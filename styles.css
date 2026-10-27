@@ -987,3 +987,4 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .boardFilters{display:flex;flex-wrap:wrap;gap:6px}
 .boardFilter{height:30px!important;min-width:0!important;padding:3px 10px!important;font-size:var(--type-label)!important;color:var(--g)!important;border-color:var(--gd)!important}
 .boardFilter.active{color:var(--c)!important;border-color:var(--c)!important}
+.netNext.hostile{color:var(--r)}

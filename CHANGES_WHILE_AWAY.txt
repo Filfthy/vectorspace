@@ -11,3 +11,17 @@ v520  Forest/swamp corridor now keeps its mission settings
       the built-in defaults. Node 42's authored values happen to equal the
       defaults, so it looks the same, except its scan now ends with its own line
       "SCAN COMPLETE · RETURN DATA TO VOX".
+
+      Performance check (no change needed). Frame cost in the heaviest scenes,
+      1920x1080: elite fight with 20 fighters 3.1 ms average (worst 16 ms), dune
+      field with 27 units 5.1 ms (worst 15 ms), xeno nest 2.1 ms. A 60 fps frame
+      allows 16.7 ms. Elite fights only keep about 5 fighters active at once.
+
+v530  Hostile standing now has a consequence
+      While you are Hostile with a network (standing below -55), its enforcers
+      become a likely route encounter on OTHER networks' jobs: OSD interdiction,
+      Free Trader hired guns, Red Jackal hit squads, Helix security drones or
+      QuickBite repo drones. Its own jobs never get them, so working for it is
+      how you mend things. The Networks page and the Guide say so.
+      Checked: Hostile networks still offer work, so standing can always be
+      repaired.

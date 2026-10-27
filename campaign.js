@@ -2291,6 +2291,7 @@ class CampaignController {
   networkNextHtml(factionId){
     const C=globalThis.AgentXFactionContent,chain=C?.chains?.find(c=>c.faction===factionId);if(!chain)return '';
     const f=this.factions[factionId],rep=Number(f?.rep)||0,flags=this.state.mailFlags||{},lvl=this.levelForXP(),esc=t=>this.escapeHtml(String(t));
+    if(rep<-55)return `<div class="netNext hostile">Hostile · its enforcers may intercept you on other jobs. Its own jobs repair standing.</div>`;
     const reward=this.items[chain.reward];
     if(flags[chain.steps[2].flag+'Done'])return `<div class="netNext done">Reward earned · ${esc(reward?.name||'')} · priority jobs +40%</div>`;
     const i=chain.steps.findIndex(s=>!flags[s.flag+'Done']),step=chain.steps[i];

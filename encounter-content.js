@@ -37,6 +37,16 @@
     {id:'customs_sweep',ack:'customs_intercept',type:'customs_drones',profile:'customs',nav:'CUSTOMS INTERCEPT',hud:'CUSTOMS INTERCEPT',places:['orbit','departure'],weight:6,onlyFactions:['jackals'],
       variants:[['patrol',4,5,1,0],['sweep',6,7,1,.05]]}
   ];
+  // Enforcers from a network the player is Hostile with (see apply()).
+  const enforcer=(id,profile,nav,hud)=>({id:`enforcers_${id}`,ack:'pirate_ambush',profile,nav,hud,places:['orbit','station','asteroid','departure'],weight:9,
+    variants:[['patrol',4,5,1.1,0],['squad',6,7,1.2,0]]});
+  const ENFORCERS={
+    security:enforcer('security','rogue','OSD INTERDICTION · YOU ARE FLAGGED','OSD INTERDICTION'),
+    trade:enforcer('trade','hostile','FREE TRADER HIRED GUNS','HIRED GUNS'),
+    jackals:enforcer('jackals','hostile','RED JACKAL HIT SQUAD','JACKAL HIT SQUAD'),
+    helix:enforcer('helix','rogue','HELIX SECURITY DRONES','HELIX SECURITY'),
+    quickbite:enforcer('quickbite','rogue','QUICKBITE REPO DRONES','REPO DRONES')
+  };
   // Harmless nav-computer chatter on quiet runs. One line, no explanation.
   const AMBIENT=[
     {nav:'OSD PATROL IN AREA · NO ACTION',places:['station','orbit','departure']},
@@ -84,10 +94,15 @@
     // optional diversion that the player can investigate or ignore.
     if(modules.some(m=>COMBAT.has(m.type))){maybeDiversion(modules,spots,risk,.14);return null}
     const level=campaign.levelForXP(),state=campaign.state;
+    // v530: a network you are Hostile with (standing below -55) sends enforcers after
+    // you on other networks' jobs. Its own jobs never get them: working for it is how
+    // the standing is repaired.
+    const hostile=Object.values(campaign.factions||{}).filter(f=>f.id!==faction&&(Number(f.rep)||0)<-55&&ENFORCERS[f.id]);
     // Most visits stay quiet. Templates that roll their own orbital encounter get less.
-    const chance=template?.encounterTable?.entries?.22:.3;
+    const chance=Math.min(.6,(template?.encounterTable?.entries?.22:.3)+hostile.length*.12);
     if(Math.random()<chance){
       const options=[];
+      for(const f of hostile){const e=ENFORCERS[f.id];for(const s of spots)if(e.places.includes(s.place))options.push({e,s})}
       for(const e of ENCOUNTERS){
         if(e.minLevel&&level<e.minLevel)continue;
         if(e.onlyFactions&&!e.onlyFactions.includes(faction))continue;
@@ -116,5 +131,5 @@
     return null
   }
 
-  globalThis.AgentXEncounters={apply,ENCOUNTERS,AMBIENT};
+  globalThis.AgentXEncounters={apply,ENCOUNTERS,AMBIENT,ENFORCERS};
 })();
