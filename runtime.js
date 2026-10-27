@@ -24,6 +24,7 @@ function killFighter(f,p){
    const bountyTag=campaign.bountyTag?.()||'';
    if(f.bugKind) say(`XENOFORM DOWN · ${interceptorsDestroyed}/${interceptorGoal}${bountyTag}`,.42);
    else say((freezeObjectives?'HOSTILE DOWN · OBJECTIVE FROZEN':(thin?'HOSTILE DOWN · GROUP THINNING':'HOSTILE DOWN'))+bountyTag,.42);
+   if(bountyTag)callout((f.bugKind?'XENOFORM DOWN':'HOSTILE DOWN')+bountyTag,1)
    if(interceptorsDestroyed>=interceptorGoal&&!freezeObjectives){
      interceptorClearDelay=.72;
      for(const other of fighters)if(!other.dead){other.shotsLeft=0}

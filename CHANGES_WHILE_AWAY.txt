@@ -370,3 +370,25 @@ v790  New board job: Wreck Recovery (Compact, Red Jackal)
       Flown muted: field, ambush and salvagers destroyed, route thinning,
       gap approach (my unpiloted drone then hit rocks, as you'd expect), then
       wreck and depot stepped through to victory and mail. No errors.
+
+v800  Fixes from a second independent review
+      I had a fresh reviewer read everything from tonight. Nothing broke play,
+      but it caught one thing that matters a lot:
+      - say() (the old on-screen message) has deliberately done nothing for a
+        long time. Your design keeps one text layer, the voice subtitles. So
+        every on-screen prompt I added since v400 was invisible: route
+        encounter announcements, "DISTRESS BEACON · INVESTIGATE OR CONTINUE",
+        diversion outcomes, "HOSTILE DOWN · +CR 720" bounties and "LOYALTY
+        CONFLICT". My tests checked the calls were made, not that you could
+        see them. They now go through the subtitle line itself (callout()),
+        but only when no spoken line is showing, so speech always wins and
+        there is still only one text layer. The original game's own silenced
+        messages stay silent. Checked on screen.
+      - Groundside Pickup's depot handoff said "DATA UPLOAD" and "Data
+        transfer complete" for taco shells. It now reads CARGO HANDOFF and
+        CARGO RECEIVED with the "Delivery complete" voice. Wreck Recovery and
+        Corvella's mission keep the data wording.
+      - The world colour now also reaches the forest corridor floor and the
+        city ground, instead of snapping back to green.
+      - Hijacked-drone fights are acknowledged as drones in follow-up mail,
+        not as pirates.

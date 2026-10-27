@@ -213,7 +213,7 @@ class ScenarioFlowController {
     // type stays UNKNOWN CONTACTS until it has been seen once.
     const seen=campaign.state.seenProfiles||(campaign.state.seenProfiles={});
     this.encounterHudTag=stage?.hudTag?((stage.unknownFirst&&!seen[profile])?'UNKNOWN CONTACTS':stage.hudTag):'';
-    if(stage?.navMessage&&stage?.routeEncounter)say(this.encounterHudTag==='UNKNOWN CONTACTS'?'UNKNOWN CONTACTS':stage.navMessage,1.6);
+    if(stage?.navMessage&&stage?.routeEncounter)callout(this.encounterHudTag==='UNKNOWN CONTACTS'?'UNKNOWN CONTACTS':stage.navMessage,2);
     if(!stage?.tutorial&&!campaign.currentMission?.training)seen[profile]=true;
     // v307: a fight that starts mid-flight (e.g. the wreck ambush) must not
     // rebuild the camera basis from Euler angles, which would drop the roll.
@@ -262,7 +262,7 @@ class ScenarioFlowController {
     if(routeDiversion?.active&&stage.type!=='route_diversion')routeDiversion.reset();
     // v410: harmless ambient nav chatter on quiet runs, shown once the section has settled
     // so the section's own opening message is not overwritten.
-    if(stage.navAmbient&&stage.navMessage){const msg=stage.navMessage,ref=stage;setTimeout(()=>{if(campaign.currentStage?.()===ref)say(msg,1.4)},3200)}
+    if(stage.navAmbient&&stage.navMessage){const msg=stage.navMessage,ref=stage;setTimeout(()=>{if(campaign.currentStage?.()===ref)callout(msg,1.8)},3200)}
     // Music follows the section actually being played, not merely the contract family.
     // Combat encounters always use the violent playlist; when they hand back to a
     // delivery/travel/surface section, restore the mission's authored base mode.

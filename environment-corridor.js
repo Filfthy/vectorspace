@@ -53,7 +53,7 @@ class CorridorEnvironmentController {
   isRelayDestination(){return this.terminalDestination==='swamp_relay_delivery'||this.terminalDestination==='swamp_relay_console'}
   isMonolithDestination(){return this.terminalDestination==='swamp_monolith_scan'}
   relayAction(){return this.terminalDestination==='swamp_relay_console'?'console':(this.terminalDestination==='swamp_relay_delivery'?'delivery':null)}
-  sceneGridColor(){const key=this.environmentConfig?.scene?.gridColor;return key&&C[key]?C[key]:(this.isSwampVariant()?C.c:C.gd)}
+  sceneGridColor(){const key=this.environmentConfig?.scene?.gridColor;return key&&C[key]?C[key]:(this.isSwampVariant()?C.c:(typeof landingWorldColour==='function'?landingWorldColour():C.gd))}
   sceneRouteLabel(){return this.environmentConfig?.scene?.routeLabel||(this.isSwampVariant()?'ALIEN SWAMP':'FOREST ROUTE')}
   gladeBlend(worldZ){
     if(!this.hasGladeDestination())return 0;

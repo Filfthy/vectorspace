@@ -1180,14 +1180,14 @@ class GroundAssaultController{
     campaign.bumpStat?.(`kills.armour.${u.kind}`);
     u.state='collapsing';u.collapseT=0;u.speed=0;u.collapseTilt=[u.tiltZ||(Math.random()<.5?-.12:.12),u.tiltX||.08];
     if(this.lockId===u.id)this.lockId=0;
-    say(`${u.K.label} BUCKLING${campaign.bountyTag?.()||''}`,.7)
+    say(`${u.K.label} BUCKLING`,.7);const bt=campaign.bountyTag?.()||'';if(bt)callout(`${String(u.K.label||'WALKER').toUpperCase()} BUCKLING${bt}`,1.1)
   }
   destroy(u,bp){
     u.state='gone';this.pose(u);
     explodeMesh({x:u.x,y:this.ug(u),z:u.z,s:u.s,rot:[0,u.h+Math.PI,0]},u.mesh,bp||proj([u.x,u.y,u.z])||{x:W*.5,y:viewH*.5},u.K.col);
     score+=u.K.score;u.dead=true;if(this.lockId===u.id)this.lockId=0;
     campaign.bumpStat?.(u.kind==='generator'?'kills.generators':`kills.armour.${u.kind}`);
-    const tag=campaign.bountyTag?.()||'';if(tag)say(`${String(u.K.label||'ARMOUR').toUpperCase()} DOWN${tag}`,.45)
+    const tag=campaign.bountyTag?.()||'';if(tag)callout(`${String(u.K.label||'ARMOUR').toUpperCase()} DOWN${tag}`,1)
   }
   // ---------- lock-on and missiles ----------
   aimCandidate(a,cone){

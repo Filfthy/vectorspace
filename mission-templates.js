@@ -1741,7 +1741,7 @@
       {type:'urban_exit',label:'City Exit',params:{difficulty:'$risk'}},
       {type:'planet_launch',label:'Planet Launch',params:{difficulty:'$risk'}},
       {type:'space_transit',label:'Depot Transit',params:{difficulty:'$risk',duration:3.3,message:'HEADING TO FREIGHT DEPOT',hud:'TO FREIGHT DEPOT',playZoomSound:true}},
-      {type:'free_traders_depot_terminal',label:'Depot Handoff',params:{difficulty:1,scale:26,spawnDistance:475,spawnX:-36,spawnY:-12,pitch:-.085,yaw:.58,roll:.05,startMessage:'Hand the cargo over at the depot terminal',depotRevealRadius:205,terminalStageDistance:82,terminalCaptureRadius:86,terminalStandOff:15.5,transferSeconds:3.1,turnSeconds:1.75,clearDistance:52}}
+      {type:'free_traders_depot_terminal',label:'Depot Handoff',params:{difficulty:1,scale:26,spawnDistance:475,spawnX:-36,spawnY:-12,pitch:-.085,yaw:.58,roll:.05,startMessage:'Hand the cargo over at the depot terminal',transferHud:'CARGO HANDOFF',receivedHud:'CARGO RECEIVED',completeVoice:'deliveryComplete',depotRevealRadius:205,terminalStageDistance:82,terminalCaptureRadius:86,terminalStandOff:15.5,transferSeconds:3.1,turnSeconds:1.75,clearDistance:52}}
     ],
     presentation:{
       trade:{

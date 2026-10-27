@@ -56,7 +56,7 @@ const routeDiversion={
       // that drains while raiders are alive. Clear them in time and it gets away.
       const side=Math.random()<.5?-1:1,w=cameraPointToWorld([side*-45,4+Math.random()*8,150]);
       this.civ={x:w[0],y:w[1],z:w[2],s:5,rot:[0,side>0?-.55:.55,0],vx:side*7,hp:1,hitT:0,dead:false,col:C.c};
-      this.state='pursuit';say(`${def.nav} · ASSIST OR CONTINUE`,1.6);this.speak(def.voice);return true
+      this.state='pursuit';callout(`${def.nav} · ASSIST OR CONTINUE`,2.4);this.speak(def.voice);return true
     }
     // Beacon or derelict: a marker off the route, reached under the player's own control.
     // The drone cruises forward at ~45 u/s, so the marker sits well ahead and off to one
@@ -67,7 +67,7 @@ const routeDiversion={
     salvageRecovery.state='search';salvageRecovery.package={x:w[0],y:w[1],z:w[2],rot:[.2,Math.random()*6.28,-.1]};
     salvageRecovery.embeddedCompletion=()=>this.investigated();salvageRecovery.embeddedRestorePhase='space';
     this.startDistance=salvageRecovery.distance();
-    say(`${def.nav} · INVESTIGATE OR CONTINUE`,1.6);this.speak(def.voice);return true
+    callout(`${def.nav} · INVESTIGATE OR CONTINUE`,2.4);this.speak(def.voice);return true
   },
   hudLeft(){
     if(!this.active)return '';
@@ -115,27 +115,27 @@ const routeDiversion={
       const k=campaign.contractToughnessScale(campaign.currentMission?.risk||1);
       const n=o.fight.min+Math.floor(Math.random()*(o.fight.max-o.fight.min+1));
       this.stage.spaceCombat=true;this.stage.hudTag=o.fight.hud;this.state='fight';this.pendingOutcome=o;
-      say(o.say,1.4);
+      callout(o.say,1.8);
       scenarioFlow.startFighterStage({...this.stage,target:n,fighterHp:Math.round(12*k),profile:o.fight.profile,navMessage:null,combatVoice:audio.hasVoice?.(o.voice)?o.voice:undefined},o.fight.profile,{preservePhase:true});
       scenarioFlow.encounterHudTag=o.fight.hud;return
     }
-    say(o.say,1.4);this.speak(o.voice);SoundFX.objectiveComplete?.();
+    callout(o.say,1.8);this.speak(o.voice);SoundFX.objectiveComplete?.();
     this.record(o);this.end()
   },
   // Called by the main loop when every fighter in this stage is down.
   onFightCleared(){
-    if(this.state==='fight'){say('HOSTILES CLEARED · CONTINUING ROUTE',1.1);this.record(this.pendingOutcome);this.end();return}
+    if(this.state==='fight'){callout('HOSTILES CLEARED · CONTINUING ROUTE',1.6);this.record(this.pendingOutcome);this.end();return}
     if(this.state==='pursuit')this.finishPursuit(true)
   },
   finishPursuit(helped,message=null){
     const def=this.KINDS.civilian,o=helped?def.helped:def.ignored;
     if(!helped){fighters.length=0;bolts.length=0}
     this.civ=null;
-    say(message||o.say,1.3);this.speak(o.voice);if(helped)this.record({id:'rescued',...o});else this.recordIgnored();
+    callout(message||o.say,1.8);this.speak(o.voice);if(helped)this.record({id:'rescued',...o});else this.recordIgnored();
     this.end()
   },
   ignore(message){
-    salvageRecovery.reset();say(message,1.1);this.recordIgnored();this.end()
+    salvageRecovery.reset();callout(message,1.6);this.recordIgnored();this.end()
   },
   record(o){
     const m=campaign.currentMission;if(!m||!o)return;

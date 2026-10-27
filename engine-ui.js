@@ -3,7 +3,7 @@ let sceneRenderSerial=0;
 let shieldRestoreFlashIndex=-1,shieldRestoreFlashT=0;
 let playerGunKick=0,playerGunKicks=[0,0],playerGunCycle=0;
 
-let speechSubtitleText='',speechSubtitleT=0;
+let speechSubtitleText='',speechSubtitleT=0,speechSubtitleCallout=false;
 let tutorialObjectiveSubtitleKey='',tutorialObjectiveSubtitleText='';
 let tutorialAnnouncementText='',tutorialAnnouncementT=0;
 const TUTORIAL_OBJECTIVE_VOICE_KEYS=new Set([
@@ -34,8 +34,17 @@ function showSpeechSubtitle(key,text,audioDuration=0){
     }
     speechSubtitleText='';speechSubtitleT=0;return
   }
-  speechSubtitleText=String(text);
+  speechSubtitleText=String(text);speechSubtitleCallout=false;
   speechSubtitleT=speechSubtitleDuration(speechSubtitleText,audioDuration)
+}
+// v800: say() is a deliberate no-op (one announcement layer, the subtitles), so the
+// v400+ gameplay prompts (route encounters, diversions, bounties, loyalty conflicts)
+// were never seen. They now use the subtitle line itself, but only when no spoken
+// line is showing: speech always wins, and a callout never interrupts it.
+function callout(text,seconds=1.4){
+  if(!text||mode==='idle'||mode==='dead'||gateVisible()||campaign?.isOpen?.()||options?.isOpen?.()||tutorialHudActive())return false;
+  if(speechSubtitleT>0&&!speechSubtitleCallout)return false;
+  speechSubtitleText=String(text);speechSubtitleT=Math.max(.6,Number(seconds)||1.4);speechSubtitleCallout=true;return true
 }
 function completeTutorialObjective(key=null){
   if(!tutorialHudActive())return false;

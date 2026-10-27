@@ -222,7 +222,7 @@ class FreeTradersDepotController{
     if(this.transferT>=seconds)this.dataDraining=true;
     if(!this.dataDraining){this.dataSpawnT-=dt;while(this.dataSpawnT<=0&&this.dataPackets.length<18){this.dataPackets.push(...stationHack.makeDataPacketGroup(false));this.dataSpawnT+=.14+Math.random()*.34}}
     if(!this.dataDraining||this.dataPackets.length)return;
-    audio?.hackChirp?.stop?.();SoundFX.relayCalibrated?.();audio.playVoice('dataTransferComplete',{once:false,priority:true});
+    audio?.hackChirp?.stop?.();SoundFX.relayCalibrated?.();audio.playVoice(this.stage?.completeVoice||'dataTransferComplete',{once:false,priority:true});
     this.state='terminalHold';this.holdT=0;this.stateT=0
   }
   beginTurn(){
@@ -288,8 +288,8 @@ class FreeTradersDepotController{
   hudRight(){
     if(!this.active)return'';
     if(this.state==='terminalApproach')return'AUTOPILOT · TERMINAL';
-    if(this.state==='terminalTransfer')return`DATA UPLOAD ${Math.round(clamp(this.transferT/Math.max(1.6,Number(this.stage?.transferSeconds)||3.1),0,1)*100)}%`;
-    if(this.state==='terminalHold')return'DATA RECEIVED';
+    if(this.state==='terminalTransfer')return`${this.stage?.transferHud||'DATA UPLOAD'} ${Math.round(clamp(this.transferT/Math.max(1.6,Number(this.stage?.transferSeconds)||3.1),0,1)*100)}%`;
+    if(this.state==='terminalHold')return this.stage?.receivedHud||'DATA RECEIVED';
     if(this.state==='terminalTurn')return'TURNAROUND';
     if(this.state==='terminalClear')return'CLEARING DEPOT';
     const t=this.markerTarget();return t?.point?`${t.label} ${Math.round(this.distanceTo(t.point))}`:''

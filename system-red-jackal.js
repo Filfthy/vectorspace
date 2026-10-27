@@ -860,7 +860,9 @@ class RedJackalDeliveryController {
     const turning=this.state==='turn'||this.state==='pickupTurn',reverse=Math.cos(viewYaw)<-.15;
     const raw0=turning?travel-far:(reverse?travel-far:travel+1),raw1=turning?travel+far:(reverse?travel+32:travel+far);
     const wz0=Math.floor(raw0/spacing)*spacing,wz1=raw1;
-    ctx.save();ctx.strokeStyle=C.gd;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.globalAlpha=.42;ctx.beginPath();let any=false;
+    // v800: the city ground takes the landing world's colour like the plains around it.
+    const world=typeof landingWorldColour==='function'?landingWorldColour():C.gd;
+    ctx.save();ctx.strokeStyle=world;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.globalAlpha=.42;ctx.beginPath();let any=false;
     for(let x=-span;x<=span;x+=spacing){
       let prev=null;for(let wz=wz0;wz<=wz1;wz+=spacing){const p=proj([x,this.groundY,wz-travel]);if(prev&&p){ctx.moveTo(prev.x,prev.y);ctx.lineTo(p.x,p.y);any=true}prev=p||null}
     }
@@ -868,7 +870,7 @@ class RedJackalDeliveryController {
     if(any)ctx.stroke();ctx.restore();
     // Cross streets are only a few extra projected strokes, but they expose gaps
     // between blocks and make the city read as a wider road network.
-    ctx.save();ctx.strokeStyle=C.g;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.globalAlpha=.48;
+    ctx.save();ctx.strokeStyle=world;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.globalAlpha=.48;
     for(const road of this.sideStreets){
       const rz=road.worldZ-travel;if(Math.abs(rz)>250)continue;const hw=road.halfWidth||4.2,extent=road.exit?74:58;
       for(const dz of [-hw,hw]){const a=proj([-extent,this.groundY+.018,rz+dz]),b=proj([extent,this.groundY+.018,rz+dz]);if(a&&b)line(a.x,a.y,b.x,b.y,C.g,.76,.52)}
@@ -886,7 +888,7 @@ class RedJackalDeliveryController {
     ctx.restore();
     // Once the reverse run clears the city edge, the same open-world mountain
     // horizon used on arrival becomes visible ahead across the plains.
-    if(this.state==='cityOutbound'||this.state==='outboundMerge')drawSharedSurfaceHorizon(this.groundY,340,1)
+    if(this.state==='cityOutbound'||this.state==='outboundMerge'){const wc=typeof landingWorldColour==='function'?landingWorldColour():C.gd;drawSharedSurfaceHorizon(this.groundY,340,1,wc,wc)}
   }
   drawBuilding(b,camDepth=null){
     const z=b.worldZ-travel,depth=camDepth??camPoint([b.x,this.groundY+b.h*.5,z])[2];if(depth<.3||depth>320)return;
