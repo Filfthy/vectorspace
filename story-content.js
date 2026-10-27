@@ -906,7 +906,10 @@ globalThis.AgentXStoryContent={
     return{id:`${id}_retry_${n}`,from:r.from,subject:t.subject,category:'story',priority:'normal',body:t.body.slice(),retryOf:id,
       action:{type:'story',contractId:id,label:r.label}}
   },
-  devMailOptions(){return Object.values(stories).map(s=>cloneStory(s.campaign?.devMailOption)).filter(Boolean)}
+  devMailOptions(){return Object.values(stories).map(s=>cloneStory(s.campaign?.devMailOption)).filter(Boolean)},
+  // v400: faction agent chains (faction-content.js) register their missions here so
+  // they share the story launch, drone bay, retry and DEV offer paths.
+  register(id,story,retry){stories[id]=story;if(retry)storyRetry[id]=retry}
 };
 
 // Compatibility aliases while the remaining mechanics are migrated to the registry.

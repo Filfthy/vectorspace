@@ -497,6 +497,7 @@ class ScenarioFlowController {
     if(campaign.hasMoreStages()){
       const next=campaign.currentMission.modules[campaign.currentStageIndex+1];
       campaign.currentStageIndex++;
+      campaign.onStageAdvance?.();
       audio.resetMissionVoices();
       const kind=this.transitionKind(from,next);
       this.leaveStage(from,{terminal:false});

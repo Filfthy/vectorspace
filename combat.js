@@ -1196,7 +1196,7 @@ function spawnFighterBolt(f){
  const tz=leadWorld[2];
  const hitIntent=Math.hypot(tx-shipX,ty-shipY,tz)<1.55;
  bolts.push({
-   x,y,z,spawnDistance:distance,targetX:tx,targetY:ty,targetZ:tz,hitIntent,leadShot:pursued,
+   src:f,x,y,z,spawnDistance:distance,targetX:tx,targetY:ty,targetZ:tz,hitIntent,leadShot:pursued,
    vx:(tx-x)/timeToImpact,vy:(ty-y)/timeToImpact,vz:(tz-z)/timeToImpact,
    homing:0,rot:Math.random()*6.28,rotSpeed:bugKind==='hornet'?7.2:(bugKind==='larva'?2.9:4.5),dead:false,visibleFor:0,visibleNow:false,
    age:0,maxLife:timeToImpact+1.15,

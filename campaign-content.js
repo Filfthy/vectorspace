@@ -40,6 +40,15 @@ globalThis.AgentXCampaignContent={
     // Primary weapon: one per frame. Mk I is always fitted for free and never sold.
     [[1,0,1],[2,6000,1.5],[3,24000,2],[4,90000,2.75],[5,360000,3.5]].forEach(([t,price,dmg])=>add(gear(t===1?'laser1':`laser${t}`,`Pulse Laser${mk(t)}`,price,'weapon',t,
       t===1?'Standard-issue twin pulse laser. 1 damage per pulse. Always available.':`Upgraded emitter pair. ${dmg} damage per pulse.`,{hud:`LASER ${R[t]}`,icon:'pulseLaser',damage:dmg,free:t===1})));
+    // Alternative weapon families (Green upward). Same prices and colours as the laser
+    // of the same tier; each trades one strength for another. structureDamage is what
+    // every non-fighter target (armour, walkers, caps, doors, turrets, girders) takes.
+    [[2,6000,.9],[3,24000,1.2],[4,90000,1.65],[5,360000,2.1]].forEach(([t,price,dmg])=>add(gear(`scatter${t}`,`Scatter Emitter${mk(t)}`,price,'weapon',t,
+      `Wide-field emitter. ${dmg} damage per pulse, +2 pulses per burst, much easier to hit fighters and incoming fire. Weak against armour.`,
+      {hud:`SCATTER ${R[t]}`,icon:'pulseLaser',family:'scatter',damage:dmg,burstBonus:2,aimMult:1.6,boltTolMult:1.6,structureDamage:1,gunStyle:'D',sound:'scatterShot'})));
+    [[2,6000,4.5],[3,24000,6],[4,90000,8.25],[5,360000,10.5]].forEach(([t,price,dmg])=>add(gear(`rail${t}`,`Rail Driver${mk(t)}`,price,'weapon',t,
+      `Heavy slug driver. ${dmg} damage per shot, double damage to armour and structures. Two shots per burst, slow and needs precise aim.`,
+      {hud:`RAIL ${R[t]}`,icon:'pulseLaser',family:'rail',damage:dmg,burstFixed:2,intervalMult:2.4,aimMult:.8,boltTolMult:.7,structureDamage:2,gunStyle:'R',sound:'railShot'})));
     // Everyday consumables, Mk I–V.
     [2,3,4,5,6].forEach((restore,i)=>{const t=i+1;add(gear(t===1?'shieldBooster':`shieldBooster${t}`,`Shield Boost${mk(t)}`,per(150,t),'consumable',t,
       `Emergency field capacitor. Restores ${restore} shields instantly.`,{hud:`BOOST${t>1?' '+R[t]:''}`,icon:'shieldBooster',effect:'shieldBoost',restore,pack:3}))});
@@ -77,9 +86,19 @@ globalThis.AgentXCampaignContent={
     add(gear('shieldRecharger5','Shield Recharger Mk V',384000,'internal',5,'Rebuilds damaged shields three times as fast.',{hud:'RECHARGE V',icon:'shieldRecharger',regenMult:.32}));
     add(gear('laserCooler5','Laser Cooler Mk V',332800,'internal',5,'Adds 7 pulses to each uninterrupted laser burst.',{hud:'COOLER V',icon:'laserCooler',burstBonus:7}));
     add(gear('targetingComputer5','Targeting Computer Mk IV',358400,'internal',5,'Widens hit tolerance by 18%.',{hud:'TARGET IV',icon:'targetingComputer',aimMult:1.18}));
+    add(gear('targetingComputer1','Targeting Computer I',1400,'internal',1,'Widens the hit tolerance on fighters and incoming projectiles by 3%.',{hud:'TARGET I',icon:'targetingComputer',aimMult:1.03}));
+    // Faction capstone rewards: earned once on each network's third agent mission,
+    // never sold in the market and always recovered if the drone is lost.
+    const unique=(id,name,slot,faction,note,extra)=>add({...gear(id,name,90000,slot,4,note,extra),unique:true,faction,kind:`${slotLabel[slot]} · Faction reward`});
+    unique('interdictorArray','Interdictor Array','internal','security','OSD fire-control link. Shooting down a projectile stalls the fighter that fired it for 1.5 s.',{hud:'INTERDICT',icon:'targetingComputer',boltStall:1.5});
+    unique('nomadPod','Nomad Pod','internal','trade','Free Traders hardpoint adaptor. Adds one consumable slot to any frame.',{hud:'NOMAD POD',icon:'shieldExtender',consumableSlotBonus:1});
+    unique('ripper','Ripper','weapon','jackals','Red Jackal hand-built cannon. 5 damage per shot, triple damage to armour and structures. Three shots per burst.',
+      {hud:'RIPPER',icon:'pulseLaser',family:'rail',damage:5,burstFixed:3,intervalMult:1.9,aimMult:.9,boltTolMult:.8,structureDamage:3,gunStyle:'R',sound:'railShot'});
+    unique('fieldLattice','Field Lattice','internal','helix','Helix experimental field mesh. Every fighter you destroy restores 1 shield.',{hud:'LATTICE',icon:'shieldRecharger',killShield:1});
+    unique('hotBox','Hot Box','internal','quickbite','QuickBite insulated stores pod. Each new mission stage adds one charge to every fitted consumable.',{hud:'HOT BOX',icon:'nanitePatch',stageRefill:1});
     // Retired ids kept only so old saves can be refunded on load.
     target.retiredItems={flightStabilizer2:5200,flightStabilizer3:20800,flightStabilizer4:83200,flightStabilizer5:332800};
-    target.shop=Object.values(target.items).filter(it=>!it.free);
+    target.shop=Object.values(target.items).filter(it=>!it.free&&!it.unique);
 
     // Frames are choices, not a single linear ladder. Slot layout is the main identity;
     // built-in bonuses are intentionally modest so fitted equipment still matters.
@@ -87,19 +106,19 @@ globalThis.AgentXCampaignContent={
       'AX-1':{id:'AX-1',name:'AX-1 Standard',tier:1,price:3500,shields:6,consumables:1,internals:1,note:'Disposable starter combat frame. Replacement is always free.',bonusText:'No built-in bonus.'},
       'AX-2I':{id:'AX-2I',name:'AX-2I Integrator',tier:2,price:18000,shields:7,consumables:1,internals:2,regenMult:.95,note:'Green-tier systems frame with room for two passive internals.',bonusText:'Shield rebuild 5% faster.'},
       'AX-2R':{id:'AX-2R',name:'AX-2R Runner',tier:2,price:17000,shields:6,consumables:2,internals:1,packBonus:1,note:'Green-tier attack frame with a second consumable hardpoint.',bonusText:'+1 charge in every consumable pack.'},
-      'OSD-2S':{id:'OSD-2S',name:'OSD-2 Sentinel',tier:2,price:22000,shields:8,consumables:1,internals:2,enemyHitMult:.96,faction:'security',repReq:25,note:'Orbital Security derivative built around survivability.',bonusText:'Enemy hit intent -4%.',factionName:'Orbital Security Directorate'},
+      'OSD-2S':{id:'OSD-2S',name:'OSD-2 Sentinel',tier:2,price:22000,shields:8,consumables:1,internals:2,enemyHitMult:.96,faction:'security',repReq:25,minLevel:2,note:'Orbital Security derivative built around survivability.',bonusText:'Enemy hit intent -4%.',factionName:'Orbital Security Directorate'},
 
       'AX-3B':{id:'AX-3B',name:'AX-3B Bastion',tier:3,price:72000,shields:9,consumables:1,internals:3,regenMult:.95,note:'Blue-tier defensive chassis with extensive internal capacity.',bonusText:'Shield rebuild 5% faster.'},
       'AX-3S':{id:'AX-3S',name:'AX-3S Striker',tier:3,price:68000,shields:8,consumables:2,internals:2,burstBonus:1,note:'Blue-tier balanced combat frame with two active stores.',bonusText:'+1 laser pulse per burst.'},
-      'HIG-3V':{id:'HIG-3V',name:'HIG-3 Vector',tier:3,price:84000,shields:8,consumables:1,internals:3,regenMult:.85,faction:'helix',repReq:35,note:'Helix Industrial engineering derivative with an unusually efficient field bus.',bonusText:'Shield rebuild 15% faster.',factionName:'Helix Industrial Group'},
+      'HIG-3V':{id:'HIG-3V',name:'HIG-3 Vector',tier:3,price:84000,shields:8,consumables:1,internals:3,regenMult:.85,faction:'helix',repReq:35,minLevel:5,note:'Helix Industrial engineering derivative with an unusually efficient field bus.',bonusText:'Shield rebuild 15% faster.',factionName:'Helix Industrial Group'},
 
       'AX-4W':{id:'AX-4W',name:'AX-4W Warden',tier:4,price:288000,shields:10,consumables:2,internals:3,enemyHitMult:.94,note:'Purple-tier defensive frame designed to survive sustained hostile attention.',bonusText:'Enemy hit intent -6%.'},
       'AX-4L':{id:'AX-4L',name:'AX-4L Lancer',tier:4,price:272000,shields:9,consumables:3,internals:2,fireIntervalMult:.95,note:'Purple-tier assault frame favouring active stores and sustained firing.',bonusText:'Laser firing cycle 5% faster.'},
-      'RJC-4M':{id:'RJC-4M',name:'RJC-4 Marauder',tier:4,price:320000,shields:8,consumables:3,internals:2,burstBonus:2,lockMult:.5,faction:'jackals',repReq:45,note:'Red Jackal hot-rod frame: lightly protected, heavily biased toward attack.',bonusText:'+2 laser pulses. Locks in half the time.',factionName:'Red Jackal Combine'},
+      'RJC-4M':{id:'RJC-4M',name:'RJC-4 Marauder',tier:4,price:320000,shields:8,consumables:3,internals:2,burstBonus:2,lockMult:.5,faction:'jackals',repReq:45,minLevel:9,note:'Red Jackal hot-rod frame: lightly protected, heavily biased toward attack.',bonusText:'+2 laser pulses. Locks in half the time.',factionName:'Red Jackal Combine'},
 
       'AX-5A':{id:'AX-5A',name:'AX-5A Apex',tier:5,price:1080000,shields:11,consumables:3,internals:3,aimMult:1.05,boltTolMult:1.25,note:'Orange-tier balanced endgame frame with no obvious weak system.',bonusText:'Aim tolerance +5%. Incoming projectiles 25% easier to shoot down.'},
       'AX-5C':{id:'AX-5C',name:'AX-5C Citadel',tier:5,price:1160000,shields:12,consumables:2,internals:4,regenMult:.88,note:'Orange-tier systems fortress with four internal bays.',bonusText:'Shield rebuild 12% faster.'},
-      'FTC-5N':{id:'FTC-5N',name:'FTC-5 Nomad',tier:5,price:1280000,shields:10,consumables:3,internals:3,packBonus:1,lockMult:.6,faction:'trade',repReq:60,note:'Free Traders premium long-range combat courier derivative.',bonusText:'+1 charge in every pack. Faster lock.',factionName:'Free Traders Compact'}
+      'FTC-5N':{id:'FTC-5N',name:'FTC-5 Nomad',tier:5,price:1280000,shields:10,consumables:3,internals:3,packBonus:1,lockMult:.6,faction:'trade',repReq:60,minLevel:14,note:'Free Traders premium long-range combat courier derivative.',bonusText:'+1 charge in every pack. Faster lock.',factionName:'Free Traders Compact'}
     };
     target.marketTierView='accessible';
     target.marketKindView='all';

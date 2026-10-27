@@ -908,3 +908,6 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .catalogRowFacts{line-height:17px!important;margin-top:5px!important}
 .skillNotice>span{flex:1}
 .catalogList>.catalogRow{flex-shrink:0!important}
+
+/* v400 faction work: priority board contracts and faction reward items */
+.catalogRowFacts .priorityTag{color:var(--y)}

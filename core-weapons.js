@@ -24,10 +24,10 @@ class WeaponController {
  shotCD=BASE_LASER_INTERVAL*campaign.laserIntervalMultiplier();
  playerGunKick=.12;
  // Twin (stacked) cannons alternate barrels shot to shot; the single Mk I fires its one barrel.
- const twin=this.gunStyle()!=='single';
+ const style0=this.gunStyle(),twin=style0!=='single'&&style0!=='R';
  if(twin)playerGunCycle^=1;else playerGunCycle=0;
  playerGunKicks[playerGunCycle]=.12;
- SoundFX.laser();
+ SoundFX.laser(campaign.weaponItem?.()?.sound);
  if(campaign.currentMission?.training&&campaign.currentStage?.()?.type==='asteroids')audio.playVoice('tutorialDestroyFive',{once:true,priority:false});
  const a=aimScreen();
  registerPlayerShotThreat(a);
@@ -36,7 +36,8 @@ class WeaponController {
  // sound. Keep it alive long enough for the eye to follow it travelling away from
  // the muzzles; hit resolution remains immediate arcade logic.
  const lm=gg.left.muzzles[playerGunCycle],rm=gg.right.muzzles[playerGunCycle];
- shots.push({x:a.x,y:a.y,age:0,dur:.34,pulsePx:16,lx:lm.x,ly:lm.y,rx:rm.x,ry:rm.y,twin});
+ const fam=campaign.weaponItem?.()?.family;
+ shots.push({x:a.x,y:a.y,age:0,dur:fam==='rail'?.26:.34,pulsePx:fam==='rail'?30:(fam==='scatter'?22:16),lx:lm.x,ly:lm.y,rx:rm.x,ry:rm.y,twin});
  let best=null,bp=null,bd=1e9,isBolt=false,hitPart='body';
  for(const b of bolts){
    if(b.dead)continue;
@@ -142,7 +143,7 @@ class WeaponController {
  }
  if(!best)return;
  if(isBolt){
-   best.dead=true;score+=33;spark(bp.x,bp.y,C.c,12);SoundFX.projectileDestroyed();campaign.onBoltShotDown?.();
+   best.dead=true;score+=33;spark(bp.x,bp.y,C.c,12);SoundFX.projectileDestroyed();campaign.onBoltShotDown?.(best);
    if(typeof tutorialCombat!=='undefined')tutorialCombat.onProjectileDestroyed(best);
    // Remove a shot-down projectile immediately.  Do not leave it in the shared
    // bolt array until a later controller-specific cleanup pass; scripted/tunnel
@@ -161,7 +162,7 @@ class WeaponController {
    else if(hitPart==='cap'&&Number.isFinite(best.capHp))best.capHp=1;
    else if(hitPart!=='civilian'&&hitPart!=='groundArmour'&&Number.isFinite(best.hp))best.hp=1
  }
- if(hitPart==='groundArmour'){groundAssault.hit(groundArmourHit,bp,oneShotLasers?99:1);return}
+ if(hitPart==='groundArmour'){groundAssault.hit(groundArmourHit,bp,oneShotLasers?99:campaign.structureDamage());return}
  if(hitPart==='wreckBulkhead'){asteroidWreckRun.hitBulkhead(bp);return}
  if(hitPart==='carrierHardpoint'){carrierIntercept.hitHardpoint(best,bp);return}
  if(hitPart==='swampSpitter'){forest.hitSwampSpitter(best,bp);return}
@@ -170,17 +171,17 @@ class WeaponController {
  if(hitPart==='civilian'){jackalDelivery.hitCivilian(best,bp);return}
  if(hitPart==='door'){
    if(doorBreachPending>0)return;
-   bunkerDoorHp--;doorFlash=HIT_FX_TOTAL;spark(bp.x,bp.y,C.c,8);
+   bunkerDoorHp-=campaign.structureDamage();doorFlash=HIT_FX_TOTAL;spark(bp.x,bp.y,C.c,8);
    if(bunkerDoorHp<=0)doorBreachPending=.18;else SoundFX.hit();
    return
  }
  if(hitPart==='cap'){
-   best.capHp--;best.capHitFx=HIT_FX_TOTAL;spark(bp.x,bp.y,C.c,4);
+   best.capHp-=campaign.structureDamage();best.capHitFx=HIT_FX_TOTAL;spark(bp.x,bp.y,C.c,4);
    if(best.capHp<=0&&!best.capDying){best.capDying=.18;best.capDeathPoint={x:bp.x,y:bp.y}}else if(best.capHp>0)SoundFX.hit();
    return
  }
  if(hitPart==='hazard'){
-   best.hp--;best.hitFx=HIT_FX_TOTAL;
+   best.hp-=campaign.structureDamage();best.hitFx=HIT_FX_TOTAL;
    // Bunker girders use geometry flash only. Screen-space spark particles are the
    // wrong coordinate system for a moving tunnel: they stay pinned to the display
    // while the world moves and read as a fuzzy blob hanging in mid-air. Remove any
@@ -194,7 +195,7 @@ class WeaponController {
  }
  // v300: fighters take the fitted weapon's damage (plus overcharge/skill modifiers);
  // every other laser target keeps its authored one-hit-per-pulse toughness.
- best.hp-=best.type==='fighter'?(campaign.laserDamageAgainst?.(best)||1):1;best.hitFx=HIT_FX_TOTAL;spark(bp.x,bp.y,campaign.fx?.overchargeT>0?C.y:C.c,4);
+ best.hp-=best.type==='fighter'?(campaign.laserDamageAgainst?.(best)||1):campaign.structureDamage();best.hitFx=HIT_FX_TOTAL;spark(bp.x,bp.y,campaign.fx?.overchargeT>0?C.y:C.c,4);
  if(best.type==='fighter'){
    if(xenoNest.active&&best.hiveNest)xenoNest.onFighterHit(best);
    else registerFighterHit(best,a,bp)
@@ -205,7 +206,7 @@ class WeaponController {
  const tx=clamp((target.x-W*.5)/(W*.5),-1,1);
  const mountY=viewH*.865;
  const style=this.gunStyle();
- const visibleLen=clamp(W*.105,138,188)*(style==='D'?1.22:1);
+ const visibleLen=clamp(W*.105,138,188)*(style==='D'?1.22:(style==='R'?1.34:1));
  const make=(side)=>{
    // The gimbal itself is outside the camera frame. When the player aims hard
    // across the screen, the opposite-side weapon swings further away and can
@@ -217,7 +218,7 @@ class WeaponController {
    const muzzle={x:pivotX+ux*visibleLen,y:pivotY+uy*visibleLen};
    // Stacked twin barrels sit either side of the centreline, "upper" barrel first
    // (the normal is flipped per side so index 0 is always the one nearer the top).
-   const up=(ny<0?1:-1),off=style==='single'?0:this.twinOffset(style);
+   const up=(ny<0?1:-1),off=(style==='single'||style==='R')?0:this.twinOffset(style);
    const muzzles=off?[{x:muzzle.x+nx*off*up,y:muzzle.y+ny*off*up},{x:muzzle.x-nx*off*up,y:muzzle.y-ny*off*up}]:[muzzle,muzzle];
    return{side,pivot:{x:pivotX,y:pivotY},muzzle,muzzles,up,ux,uy,nx,ny,away,style};
  };
@@ -226,11 +227,11 @@ class WeaponController {
   gunStyle(){
  const w=campaign?.activeWeapon||campaign?.state?.weaponLoadout||'laser1';
  // Mk I is the single cannon; Mk II+ are two sleeves clamped together (audition B).
- return w==='laser1'?'single':'B'
+ return w==='laser1'?'single':(campaign?.items?.[w]?.gunStyle||'B')
 }
   twinOffset(style){return style==='B'?14.4:(style==='D'?8.0:6.2)}
   drawGun(g){
- if(g.style&&g.style!=='single')return this.drawTwinGun(g);
+ if(g.style&&g.style!=='single'&&g.style!=='R')return this.drawTwinGun(g);
  const p=g.pivot,m=g.muzzle,nx=g.nx,ny=g.ny,ux=g.ux,uy=g.uy;
  const kick=playerGunKick>0?Math.sin((1-clamp(playerGunKick/.12,0,1))*Math.PI)*12:0;
  // Lean 1980s-vector cannon: all strokes use the same weight. The fixed outer

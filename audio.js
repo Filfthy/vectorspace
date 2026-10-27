@@ -221,7 +221,7 @@ class SoundFX {
       try{entry.gain.gain.setTargetAtTime(entry.base*duck,ctx.currentTime,.025)}catch(_){entry.gain.gain.value=entry.base*duck}
     }
   }
-  static laser(){this.play('laser')}
+  static laser(name){this.play(name&&this.definitions[name]?name:'laser',1,'laser')}
   static explosion(){this.play('explosion')}
   static hit(){this.play('hit')}
   static damageTaken(){this.play('damageTaken')}
@@ -341,6 +341,10 @@ class SoundFX {
     return Float32Array.from(output)
   }
 }
+// v400 weapon families reuse the laser's synth recipe so they stay in one sonic family:
+// the rail is a lower, longer slam; the scatter is a brighter, buzzier crackle.
+SoundFX.definitions.railShot={...SoundFX.definitions.laser,p_base_freq:.36,p_env_sustain:.30,p_env_punch:.42,p_env_decay:.48,p_freq_ramp:-.30,p_hpf_freq:.05,p_lpf_freq:.82};
+SoundFX.definitions.scatterShot={...SoundFX.definitions.laser,p_base_freq:.78,p_env_sustain:.14,p_env_decay:.22,p_freq_ramp:-.16,p_pha_offset:.22,p_pha_ramp:-.20,wave_type:3};
 
 
 // Continuous procedural close-fighter fly-by synthesis. This follows the tuned

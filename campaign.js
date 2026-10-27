@@ -65,9 +65,12 @@ class CampaignController {
   marketAccessTier(){return clamp(this.normalMarketTier()+this.favourTierBoost(),1,5)}
   productAccess(product){
     if(!product)return {ok:false,reason:'Unavailable'};
+    if(product.unique)return {ok:false,reason:`${this.factions[product.faction]?.name||'Faction'} reward · not sold`};
     if(product.faction){
-      const rep=this.factions[product.faction]?.rep||0,need=product.repReq||25;
-      return rep>=need?{ok:true,reason:`Faction access · rep ${rep}` }:{ok:false,reason:`${product.factionName||this.factions[product.faction]?.name||'Faction'} rep ${need} required`}
+      const rep=this.factions[product.faction]?.rep||0,need=product.repReq||25,lvl=Number(product.minLevel)||1;
+      if(rep<need)return {ok:false,reason:`${product.factionName||this.factions[product.faction]?.name||'Faction'} rep ${need} required`};
+      // Faction frames still respect operator level, so standing alone cannot open an Orange frame at level 3.
+      return this.levelForXP()>=lvl?{ok:true,reason:`Faction access · rep ${rep}`}:{ok:false,reason:`Operator level ${lvl} required`}
     }
     const access=this.marketAccessTier();
     return product.tier<=access?{ok:true,reason:product.tier>this.normalMarketTier()?'Early access through favour':'Standard access'}:{ok:false,reason:`Normally opens around level ${product.tier===2?2:(product.tier===3?5:(product.tier===4?9:14))} · favour can open it earlier`}
@@ -113,7 +116,9 @@ class CampaignController {
   packSize(item){if(!item||item.slot!=='consumable')return 0;return (Number(item.pack)||1)+(this.hasSkill('quartermaster')?1:0)+(Number(this.activeFrame().packBonus)||0)}
   lockTimeMultiplier(){return (this.hasSkill('fastLock')?.5:1)*(Number(this.activeFrame().lockMult)||1)}
   lockHoldMultiplier(){return this.hasSkill('fastLock')?2:1}
-  boltToleranceMultiplier(){return (this.hasSkill('pointDefence')?1.5:1)*(Number(this.activeFrame().boltTolMult)||1)*this.internalProduct('aimMult')}
+  boltToleranceMultiplier(){return (this.hasSkill('pointDefence')?1.5:1)*(Number(this.activeFrame().boltTolMult)||1)*this.internalProduct('aimMult')*(Number(this.weaponItem().boltTolMult)||1)}
+  // Damage every non-fighter laser target takes per hit. The Pulse Laser stays at 1.
+  structureDamage(){return Math.max(1,Number(this.weaponItem().structureDamage)||1)}
   restockDiscount(){return this.hasSkill('quartermaster')?.85:1}
 
   // ---------- Operator record: stats and achievements (v58) ----------
@@ -136,7 +141,8 @@ class CampaignController {
   storyArcs(){
     const f=this.state.mailFlags||{},arc=(name,flags)=>({name,done:flags.filter(x=>f[x+'Done']).length,total:flags.length});
     return[arc('Mara Venn · VOX',['mara1','mara2','mara3']),arc('Kudo Shang · OSD',['kudo1','kudo2','kudo3']),arc('Corvella Pallis · Free Traders',['corvella1']),
-      arc('Cassian Erivan-Snade · Red Jackals',['cassian1']),arc('Navira Derris · Helix',['helix1','helix2']),arc('Nyxo Malloc · QuickBite',['nyxo1','nyxo2'])]
+      arc('Cassian Erivan-Snade · Red Jackals',['cassian1']),arc('Navira Derris · Helix',['helix1','helix2']),arc('Nyxo Malloc · QuickBite',['nyxo1','nyxo2']),
+      ...(globalThis.AgentXFactionContent?.chains||[]).map(c=>arc(c.arcName,c.steps.map(s=>s.flag)))]
   }
   achievementDefs(){
     const s=this.stats(),k=s.kills,heavy=(k.armour.strider||0)+(k.armour.crab||0)+(k.armour.tesla||0),f=this.state.mailFlags||{};
@@ -172,10 +178,28 @@ class CampaignController {
     if(fx.naniteLeft>0){fx.naniteT-=dt;if(fx.naniteT<=0){fx.naniteT=1.2;if(shield<this.maxShield()){shield++;hud()}fx.naniteLeft--;}}
     if(typeof fighters!=='undefined')for(const f of fighters)if(f.stunT>0)f.stunT=Math.max(0,f.stunT-dt);
   }
-  onFighterKilled(){this.fx.streak++;this.bumpStat('kills.fighters')}
+  onFighterKilled(){
+    this.fx.streak++;this.bumpStat('kills.fighters');
+    // Field Lattice (Helix reward): every kill feeds the shield back by one.
+    const gain=this.currentMission?this.internalSum('killShield'):0;
+    if(gain>0&&typeof shield!=='undefined'&&shield<this.maxShield()){shield=Math.min(this.maxShield(),shield+gain);hud()}
+  }
+  // Hot Box (QuickBite reward): each new stage tops up every fitted consumable by one charge.
+  onStageAdvance(){
+    if(!this.currentMission||!(this.internalSum('stageRefill')>0))return;
+    let added=0;
+    for(let i=0;i<this.activeSlotCount();i++){
+      const item=this.items[this.activeLoadout[i]];if(!item)continue;
+      const pack=this.packSize(item);if(this.activeCharges[i]<pack){this.activeCharges[i]++;added++}
+    }
+    if(added){this.syncDeployedKit();this.updateGearHud();say('HOT BOX · STORES TOPPED UP',.6)}
+  }
   onPlayerHit(){this.fx.streak=0;this.missionHits=(this.missionHits||0)+1}
-  onBoltShotDown(){
+  onBoltShotDown(bolt){
     this.bumpStat('shotDown');
+    // Interdictor Array (OSD reward): the fighter that fired the projectile is stalled.
+    const stall=this.currentMission?this.internalSum('boltStall'):0,src=bolt?.src;
+    if(stall>0&&src&&!src.dead&&!src.dying)src.stunT=Math.max(src.stunT||0,stall);
     if(!this.hasSkill('pointDefence2'))return;
     this.fx.boltsShot++;
     if(this.fx.boltsShot%3===0&&shield<this.maxShield()){shield++;hud();say('POINT DEFENCE · SHIELD +1',.45)}
@@ -222,11 +246,16 @@ class CampaignController {
     return {delay:this.hasSkill('quickRegen')?2:4,interval:Math.max(1.2,interval)}
   }
   enemyHitIntentMultiplier(){return Number(this.activeFrame().enemyHitMult)||1}
-  weaponAimMultiplier(){return (Number(this.activeFrame().aimMult)||1)*this.internalProduct('aimMult')}
-  laserIntervalMultiplier(){return Number(this.activeFrame().fireIntervalMult)||1}
-  laserBurstSize(){return 4+(Number(this.activeFrame().burstBonus)||0)+this.internalSum('burstBonus')}
+  weaponAimMultiplier(){return (Number(this.activeFrame().aimMult)||1)*this.internalProduct('aimMult')*(Number(this.weaponItem().aimMult)||1)}
+  laserIntervalMultiplier(){return (Number(this.activeFrame().fireIntervalMult)||1)*(Number(this.weaponItem().intervalMult)||1)}
+  laserBurstSize(){
+    const w=this.weaponItem(),bonus=(Number(this.activeFrame().burstBonus)||0)+this.internalSum('burstBonus');
+    // Slow heavy weapons keep a short fixed burst; any burst bonus adds a single shot.
+    if(w.burstFixed)return w.burstFixed+(bonus>0?1:0);
+    return 4+(Number(w.burstBonus)||0)+bonus
+  }
   activeSlotCount(){
-    return clamp(this.activeFrame().consumables||1,1,4)
+    return clamp((this.activeFrame().consumables||1)+this.internalSum('consumableSlotBonus'),1,4)
   }
   internalSlotCount(){return clamp(this.activeFrame().internals||1,1,4)}
   blankFrameProfile(){return {consumables:[null,null,null,null],internals:[null,null,null,null],weapon:null}}
@@ -241,6 +270,9 @@ class CampaignController {
     if(!this.state.frameLoadouts||typeof this.state.frameLoadouts!=='object')this.state.frameLoadouts={};
     this.state.frameLoadouts[this.state.drone]={consumables:this.state.loadout.slice(0,4),internals:this.state.internalLoadout.slice(0,4),weapon:this.state.weaponLoadout||null};
   }
+  // Faction rewards are registered to Agent X: a destroyed drone's unique hardware
+  // returns to stores at no cost, so only market hardware goes to an insurance claim.
+  keepUniqueHardware(ids){return (ids||[]).filter(id=>{if(!this.items[id]?.unique)return true;this.addStock(id,1);return false})}
   addStock(id,n=1){if(id&&n>0&&this.items[id]&&!this.items[id].free)this.state.inventory[id]=(this.state.inventory[id]||0)+n}
   takeStock(id,n){const have=this.state.inventory[id]||0,take=Math.max(0,Math.min(have,n));this.state.inventory[id]=have-take;return take}
   unloadBaseLoadoutToInventory(){
@@ -438,7 +470,7 @@ class CampaignController {
     if(k.dead){
       const frameId=this.frames[k.frame]?k.frame:'AX-1',lost=(k.loadout||[]).filter((id,i)=>id&&(k.charges?.[i]||0)>0);
       if(frameId!=='AX-1'){this.state.ownedFrames=this.state.ownedFrames.filter(id=>id!==frameId);if(!this.state.ownedFrames.includes('AX-1'))this.state.ownedFrames.unshift('AX-1');if(this.state.drone===frameId)this.state.drone='AX-1'}
-      this.state.pendingInsurance={title:'Contract interrupted',reason:'Drone destroyed',destroyedFrameId:frameId,frameExcess:this.frameReplacementExcess(frameId),lostConsumables:lost,insuredItems:[...internals,...(weapon?[weapon]:[])],returnPanel:'missions',resolved:{}};
+      this.state.pendingInsurance={title:'Contract interrupted',reason:'Drone destroyed',destroyedFrameId:frameId,frameExcess:this.frameReplacementExcess(frameId),lostConsumables:lost,insuredItems:this.keepUniqueHardware([...internals,...(weapon?[weapon]:[])]),returnPanel:'missions',resolved:{}};
     }else{
       (k.loadout||[]).forEach((id,i)=>{if(id&&this.items[id])this.addStock(id,Math.max(0,k.charges?.[i]|0))});
       internals.forEach(id=>this.addStock(id,1));if(weapon)this.addStock(weapon,1);
@@ -874,6 +906,21 @@ class CampaignController {
     }
     return this.shuffleContractBoard(board)
   }
+  // Standing 40+: one of that network's jobs on each board is a priority contract
+  // paying +25%, or +40% once its agent capstone is complete.
+  priorityBonus(factionId){
+    const f=this.factions[factionId];if(!f||f.rep<40)return 0;
+    return globalThis.AgentXFactionContent?.capstoneDone?.(this,factionId)?.40:.25
+  }
+  markPriorityContracts(board){
+    const seen=new Set((board||[]).filter(m=>m?.priority).map(m=>m.faction));
+    for(const m of board||[]){
+      if(!m||m.private||m.priority||seen.has(m.faction))continue;
+      const bonus=this.priorityBonus(m.faction);if(!bonus)continue;
+      seen.add(m.faction);m.priority=true;m.pay=Math.round(m.pay*(1+bonus)/50)*50
+    }
+    return board
+  }
   generateContractBoard(){
     this.state.boardGeneration=(this.state.boardGeneration||0)+1;
     const previous=this.boardTemplateSignature(this.state.contractBoard),slots=this.contractSlotCount();
@@ -889,6 +936,7 @@ class CampaignController {
     // Defensive fallback: all current ordinary mission families are templates,
     // but never leave the board short if malformed future data removes them all.
     while(board.length<slots)board.push(this.makeProceduralContract(board.length,'fighters',board));
+    this.markPriorityContracts(board);
     this.missions=board;
     this.state.contractBoard=JSON.parse(JSON.stringify(board));
     return board
@@ -924,6 +972,7 @@ class CampaignController {
     this.state.boardGeneration=(this.state.boardGeneration||0)+1;
     const template=this.pickMissionTemplate(context,{remainingSlots:1,avoidTemplateId:old?.templateId});
     this.missions[i]=template?this.makeTemplateContract(template,i):this.makeProceduralContract(i,'fighters',context);
+    this.markPriorityContracts(this.missions);
     this.state.contractBoard=JSON.parse(JSON.stringify(this.missions))
   }
   currentStage(){
@@ -1238,7 +1287,16 @@ class CampaignController {
     m.read=true;this.save();this.updateMailBadge();return true
   }
   missionClientName(m){return m?.clientName||this.factions[m?.faction]?.name||'Private client'}
-  storyContract(id){return globalThis.AgentXStoryContent.contract(id)}
+  storyContract(id){
+    const c=globalThis.AgentXStoryContent.contract(id);
+    // Faction agent missions sit in the mid/late game, so their hostiles use the same
+    // risk-band toughness as board contracts instead of the fixed early-story values.
+    if(c?.factionChain){
+      const k=this.contractToughnessScale(c.risk);
+      for(const m of c.modules||[])if(Number.isFinite(m.fighterHp)&&!m.toughnessScaled){m.fighterHp=Math.round(m.fighterHp*k);m.toughnessScaled=true}
+    }
+    return c
+  }
   storyOfferMail(id){return globalThis.AgentXStoryContent.offerMail(id)}
   storyBriefingMail(id){return globalThis.AgentXStoryContent.briefingMail?.(id)||null}
   devStoryMailOptions(){return globalThis.AgentXStoryContent.devMailOptions()}
@@ -1522,11 +1580,41 @@ class CampaignController {
       flags.maraOffer1=true;
       this.enqueueMail(this.storyOfferMail('mara_signal_1'))
     }
+    this.evaluateFactionChains();
     // Story mission 2 is handed out directly by Mara's completion mail for mission 1.
     // It deliberately does not also auto-enqueue here, which would duplicate the offer.
   }
+  // v400 faction agent chains: each network's contact offers three personal missions,
+  // gated by that network's standing and operator level. Step 3 earns the unique item.
+  evaluateFactionChains(){
+    const C=globalThis.AgentXFactionContent;if(!C)return;
+    const flags=this.state.mailFlags,lvl=this.levelForXP();
+    for(const chain of C.chains){
+      for(const step of chain.steps){
+        const k=step.flag;if(flags[k+'Done'])continue;if(flags[k+'Offer'])break;
+        const rep=Number(this.factions[chain.faction]?.rep)||0;
+        if(rep>=step.rep&&lvl>=step.level){
+          const mail=this.storyOfferMail(step.id);
+          if(mail){flags[k+'Offer']=true;this.enqueueMail(mail)}
+        }
+        break
+      }
+    }
+  }
+  completeFactionStep(m){
+    const C=globalThis.AgentXFactionContent,step=C?.step(m.storyContractId),flags=this.state.mailFlags;if(!step||flags[step.flag+'Done'])return;
+    flags[step.flag+'Done']=true;flags[step.flag+'CompletedAt']=this.state.completed;
+    const authored=globalThis.AgentXStoryContent.completionMail(step.id);if(authored)this.enqueueMail(authored);
+    if(step.reward&&!flags[step.flag+'Reward']){
+      flags[step.flag+'Reward']=true;this.addStock(step.reward,1);
+      const item=this.items[step.reward];if(item)this.enqueueMail({id:`reward_${step.reward}`,from:'VOX Stores · Contractor Services',subject:`Registered to your account: ${item.name}`,category:'gift',priority:'high',
+        body:[`${item.name} has been registered to Agent X and placed in your stores.`,item.note,'Faction-registered hardware is never sold and is always recovered if a drone is lost. Fit it in the Drone bay.']})
+    }
+    this.evaluateFactionChains()
+  }
   handleStoryCompletion(m){
     if(!m?.storyFlag)return;
+    if(m.factionChain)return this.completeFactionStep(m);
     const flags=this.state.mailFlags;
     if(m.storyFlag==='mara1'&&!flags.mara1Done){
       flags.mara1Done=true;flags.mara1CompletedAt=this.state.completed;
@@ -2058,7 +2146,7 @@ class CampaignController {
       const f=this.factions[m.faction],riskText=m.risk>=7?'Extreme':(m.risk>=5?'High':(m.risk>=3?'Moderate':'Routine'));
       const row=document.createElement('button');row.type='button';row.className=`catalogRow contractRow${m.id===this.selectedMissionId?' selected':''}`;
       row.style.minHeight='96px';row.style.height='auto';row.style.width='100%';
-      row.innerHTML=`<span class="catalogRowTitle">${m.title}</span><span class="catalogRowSub">${f.name}</span><span class="catalogRowBlurb">${m.description}</span><span class="catalogRowFacts"><b>CR ${m.pay.toLocaleString()}</b><b>${m.xp} XP</b><b>${riskText} ${m.risk}</b></span>`;
+      row.innerHTML=`<span class="catalogRowTitle">${m.title}</span><span class="catalogRowSub">${f.name}</span><span class="catalogRowBlurb">${m.description}</span><span class="catalogRowFacts">${m.priority?'<b class="priorityTag">PRIORITY</b>':''}<b>CR ${m.pay.toLocaleString()}</b><b>${m.xp} XP</b><b>${riskText} ${m.risk}</b></span>`;
       row.addEventListener('click',()=>{this.selectedMissionId=m.id;this.renderMissions()});list.appendChild(row)
     }
 
@@ -2511,7 +2599,7 @@ class CampaignController {
       this.clearActiveLoadout();this.currentMission=null;this.currentStageIndex=0;this.returnRestock=null;this.normalizeLoadout();this.updateGearHud();
       if(!m.private)this.replaceContract(m.id);
       this.evaluateMailTriggers();paused=true;document.body.classList.add('paused');
-      this.state.pendingInsurance={title:m.title,reason:`Objective complete · CR ${actualPay.toLocaleString()} paid · drone destroyed`,destroyedFrameId:lostFrameId,frameExcess:lostFrameExcess,lostConsumables,insuredItems:lostInsured,returnPanel:m.private?'mail':'missions',resolved:{}};this.save();
+      this.state.pendingInsurance={title:m.title,reason:`Objective complete · CR ${actualPay.toLocaleString()} paid · drone destroyed`,destroyedFrameId:lostFrameId,frameExcess:lostFrameExcess,lostConsumables,insuredItems:this.keepUniqueHardware(lostInsured),returnPanel:m.private?'mail':'missions',resolved:{}};this.save();
       this.showInsuranceRecovery(this.state.pendingInsurance);return true
     }
     this.recoverUnusedLoadout(true);
@@ -2533,7 +2621,7 @@ class CampaignController {
     if(this.currentMission.training)return this.finishTraining(false,reason||'Simulation ended.');
     this.beginPostMissionVoiceHold();this.queueSkillPointReminder();
     const m=this.currentMission,destroyedFrameId=this.state.drone,frameExcess=this.frameReplacementExcess(destroyedFrameId);
-    const lostConsumables=this.activeLoadout.filter((id,i)=>id&&this.slotCharges(i)>0).map((id,i)=>id),insuredItems=[...this.activeInternalLoadout.filter(Boolean),...(this.activeWeapon&&this.activeWeapon!=='laser1'?[this.activeWeapon]:[])];
+    const lostConsumables=this.activeLoadout.filter((id,i)=>id&&this.slotCharges(i)>0).map((id,i)=>id),insuredItems=this.keepUniqueHardware([...this.activeInternalLoadout.filter(Boolean),...(this.activeWeapon&&this.activeWeapon!=='laser1'?[this.activeWeapon]:[])]);
     asteroidField.stop();this.state.failed++;{const st=this.stats();st.contracts.failed++;if(/destroy/i.test(reason))st.dronesLost++}const civilian=this.templateCivilianSettlement(m);if(this.factions[m.faction])this.applyRep(m.faction,-2-(civilian?.failureRepPenalty||0));this.queueContractFailureMail(m,'failed',reason);this.queueStoryRetryMail(m,'failed');
     // AX-1 is always supplied free. A destroyed premium frame must be claimed at
     // the same excess rate as permanent hardware or the operator falls back to AX-1.
