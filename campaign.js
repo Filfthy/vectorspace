@@ -2923,7 +2923,7 @@ class CampaignController {
         <div class="missionFaction">${d.title}</div>
         <div class="missionStatus ${d.success?'good':'bad'}">${d.reason||'Training session complete.'}</div>
         <div class="catalogDetailDesc">Simulator sessions do not affect credits, experience, reputation, equipment or contract history.</div>
-        <div style="margin-top:16px"><button id="debriefReturn" type="button">Return to mail</button></div>`;
+        <div class="debriefReturnRow"><button id="debriefReturn" type="button">Return to mail</button></div>`;
       debriefBoxEl.querySelector('#debriefReturn').addEventListener('click',()=>this.closeMissionDebrief('mail'));return
     }
     debriefBoxEl.innerHTML=`<h2>${d.heading||(d.success?'Contract complete':'Drone lost')}</h2>
@@ -2939,7 +2939,7 @@ class CampaignController {
       ${this.returnRestock?.spent>0?`<div class="debriefRow"><span>Consumables restocked</span><span>- CR ${this.returnRestock.spent.toLocaleString()}</span></div>`:''}
       ${this.returnRestock?.missing>0?`<div class="debriefRow"><span>Could not afford</span><span>${this.returnRestock.missing} charge${this.returnRestock.missing===1?'':'s'}</span></div>`:''}
       <div class="debriefRow debriefTotal"><span>Current funds</span><span>CR ${this.state.money.toLocaleString()}</span></div>
-      <div style="margin-top:16px"><button id="debriefReturn" type="button">${d.returnPanel==='mail'?'Return to mail':(d.returnPanel==='dev'?'Return to DEV':'Return to mission board')}</button></div>`;
+      <div class="debriefReturnRow"><button id="debriefReturn" type="button">${d.returnPanel==='mail'?'Return to mail':(d.returnPanel==='dev'?'Return to DEV':'Return to mission board')}</button></div>`;
     debriefBoxEl.querySelector('#debriefReturn').addEventListener('click',()=>this.closeMissionDebrief(d.returnPanel||'missions'));
   }
   // v640: saves live in this browser at this address only (a local copy and the GitHub

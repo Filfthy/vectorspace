@@ -157,3 +157,12 @@ v650  The hub no longer runs off small screens
       on a bigger screen. Measured: 1024x640 and 800x600 at every setting,
       and 1920x1080, all with no overflow. Full-HD is unchanged apart from
       150% text, which is 2.23x instead of 2.25x.
+
+v660  Debrief button stays on screen; small-window check
+      Checked the rest of the layout on short screens (1024x600, text 100%
+      and 150%). The title screen fits with every button visible, and
+      everything below the bottom edge of every hub panel sits inside a
+      scrolling area, so nothing is cut off. One thing changed: on a short
+      screen the debrief's Return button (pressed after every mission) was
+      62px below the fold. It now stays pinned at the bottom of the screen
+      until you've scrolled past it.
