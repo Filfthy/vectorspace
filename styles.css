@@ -990,3 +990,4 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .netNext.hostile{color:var(--r)}
 .debriefRow .standUp{color:var(--g)}.debriefRow .standDown{color:var(--r)}
 .insuranceUniques b{color:var(--g)}
+.gearAdvice{margin:2px 0 8px;font-size:var(--type-meta)}.gearAdvice.ok{color:var(--gd)}.gearAdvice.warn{color:var(--y)}

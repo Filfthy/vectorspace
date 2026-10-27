@@ -2221,6 +2221,16 @@ class CampaignController {
   // v480 job types: what a contract is FOR, shown as an icon and tag so fights,
   // deliveries and asteroid work can be told apart at a glance. Hidden route
   // encounters are not part of the type: a delivery that meets pirates is still a delivery.
+  // v580: enemy hulls scale in grade steps with risk (contractToughnessScale) on the
+  // assumption that the weapon keeps pace. Say which grade a job expects, and warn
+  // when the fitted weapon is below it, so long fights are not a mystery.
+  gearAdviceHtml(m){
+    const band=clamp(1+Math.floor((Math.max(1,Number(m?.risk)||1)-1)/2),1,5),want=this.tierInfo(band);
+    const fitted=this.items[this.state.weaponLoadout||'laser1']||this.items.laser1,have=clamp(Number(fitted.tier)||1,1,5);
+    const head=`Expected weapon grade: ${want.name} (${want.roman})`;
+    if(have>=band)return `<div class="gearAdvice ok">${head} · your ${this.escapeHtml(fitted.name)} is ready</div>`;
+    return `<div class="gearAdvice warn">${head} · your ${this.escapeHtml(fitted.name)} is ${band-have} grade${band-have>1?'s':''} below, so any fight will be long</div>`
+  }
   jobType(m){
     const map={fighters:'combat',combat_recovery:'recovery',asteroids:'asteroids',asteroid_delivery:'delivery',station_delivery:'delivery',penthouse_delivery:'delivery',
       forest_cabin_delivery:'delivery',swamp_relay_delivery:'delivery',secure_terminal_intrusion:'infiltration',deep_core:'assault',dune_armour_clearance:'assault'};
@@ -2286,7 +2296,7 @@ class CampaignController {
     const m=this.missions.find(x=>x.id===this.selectedMissionId);
     if(m){
       const f=this.factions[m.faction],riskText=m.risk>=10?'Elite':(m.risk>=7?'Extreme':(m.risk>=5?'High':(m.risk>=3?'Moderate':'Routine')));
-      detail.innerHTML=`<div class="catalogDetailKicker">CONTRACT DETAILS · ${this.jobTypeInfo(this.jobType(m)).label}</div><h3>${m.title}</h3><div class="missionFaction">${f.name} · Rep ${f.rep} ${this.repLabel(f.rep)}</div><div class="catalogDetailDesc">${m.description}</div><div class="contractStats"><div><b>CR ${m.pay.toLocaleString()}</b><span>Pay</span></div><div><b>${m.xp}</b><span>XP</span></div><div><b>${riskText} ${m.risk}</b><span>Risk</span></div></div>${m.priority?`<div class="contractPriority">PRIORITY CONTRACT · ${f.name} standing bonus included</div>`:''}<div class="missionStatus">Available</div><button class="missionLaunch" type="button">Accept contract</button><div class="contractRoute"><h4>Route</h4><ol>${(m.stages||[]).map(x=>`<li>${this.escapeHtml(x)}</li>`).join('')}</ol></div>`;
+      detail.innerHTML=`<div class="catalogDetailKicker">CONTRACT DETAILS · ${this.jobTypeInfo(this.jobType(m)).label}</div><h3>${m.title}</h3><div class="missionFaction">${f.name} · Rep ${f.rep} ${this.repLabel(f.rep)}</div><div class="catalogDetailDesc">${m.description}</div><div class="contractStats"><div><b>CR ${m.pay.toLocaleString()}</b><span>Pay</span></div><div><b>${m.xp}</b><span>XP</span></div><div><b>${riskText} ${m.risk}</b><span>Risk</span></div></div>${m.priority?`<div class="contractPriority">PRIORITY CONTRACT · ${f.name} standing bonus included</div>`:''}${this.gearAdviceHtml(m)}<div class="missionStatus">Available</div><button class="missionLaunch" type="button">Accept contract</button><div class="contractRoute"><h4>Route</h4><ol>${(m.stages||[]).map(x=>`<li>${this.escapeHtml(x)}</li>`).join('')}</ol></div>`;
       detail.querySelector('.missionLaunch').addEventListener('click',()=>this.prepareMission(m.id));
     }else detail.innerHTML='<div class="catalogEmptyDetail">No contract selected.</div>';
     const listHost=this.wrapCatalogScroller(list,'catalogScrollHost contractScrollHost');

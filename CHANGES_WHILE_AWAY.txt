@@ -62,3 +62,9 @@ v570  Insurance screen names recovered faction hardware
       The insurance screen now says "Faction hardware: Nomad Pod · Ripper ·
       RECOVERED FREE · back in stores", so a lost frame no longer looks like lost
       rewards.
+
+v580  Contracts say what weapon grade they expect
+      Enemy hulls get tougher in grade steps with risk, assuming your weapon
+      keeps pace. Contract details now say "Expected weapon grade: Purple (IV)"
+      and either "your Pulse Laser Mk IV is ready" or, in yellow, "your Pulse
+      Laser is 3 grades below, so any fight will be long".
