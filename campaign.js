@@ -190,6 +190,8 @@ class CampaignController {
   achievementDefs(){
     const s=this.stats(),k=s.kills,heavy=(k.armour.strider||0)+(k.armour.crab||0)+(k.armour.tesla||0),f=this.state.mailFlags||{};
     const minRep=Math.min(...Object.values(this.factions).map(x=>x.rep));
+    const chains=globalThis.AgentXFactionContent?.chains||[];
+    const agentDone=chains.reduce((n,c)=>n+c.steps.filter(st=>f[st.flag+'Done']).length,0),capstones=chains.filter(c=>f[c.steps[2].flag+'Done']).length;
     return[
       {id:'firstContract',name:'On the Books',text:'Complete a contract.',v:s.contracts.done,goal:1},
       {id:'contractor',name:'Contractor',text:'Complete 25 contracts.',v:s.contracts.done,goal:25},
@@ -206,7 +208,16 @@ class CampaignController {
       {id:'reactorSpecialist',name:'Reactor Specialist',text:'Destroy 3 reactors.',v:k.reactors,goal:3},
       {id:'moonbreaker',name:'Moonbreaker',text:'Destroy a moon.',v:k.moons,goal:1},
       {id:'longGame',name:'The Long Game',text:'Finish the VOX story.',v:f.kudo3Done?1:0,goal:1},
-      {id:'wellConnected',name:'Well Connected',text:'Reach Favoured with every network.',v:Math.max(0,minRep),goal:25}
+      {id:'wellConnected',name:'Well Connected',text:'Reach Favoured with every network.',v:Math.max(0,minRep),goal:25},
+      // v500: goals for the faction, bounty, elite, diversion and Black Contract content.
+      {id:'insideMan',name:'Inside Man',text:'Complete a faction agent mission.',v:agentDone,goal:1},
+      {id:'fiveFavours',name:'Five Favours',text:'Earn the unique reward from every network.',v:capstones,goal:5},
+      {id:'bountyHunter',name:'Bounty Hunter',text:'Earn CR 100,000 in bounties.',v:s.bountyEarned||0,goal:100000},
+      {id:'headHunter',name:'Head Hunter',text:'Earn CR 1,000,000 in bounties.',v:s.bountyEarned||0,goal:1000000},
+      {id:'eliteOperator',name:'Elite Operator',text:'Complete 10 elite contracts.',v:s.contracts.elite||0,goal:10},
+      {id:'goodSamaritan',name:'Good Samaritan',text:'Investigate 10 route diversions.',v:s.diversionsInvestigated||0,goal:10},
+      {id:'remnantHunter',name:'Remnant Hunter',text:'Finish a Black Contract at threat 5.',v:Number(f.blackThreat)||0,goal:5},
+      {id:'networkBreaker',name:'Network Breaker',text:'Finish a Black Contract at threat 10.',v:Number(f.blackThreat)||0,goal:10}
     ]
   }
   checkAchievements(){
@@ -1909,7 +1920,7 @@ class CampaignController {
     if(m?.blackContract){
       // The next Black Contract arrives after two more jobs, one threat level higher.
       flags.blackThreat=Math.max(Number(flags.blackThreat)||0,Number(m.threat)||1);flags.blackOfferOpen=false;flags.blackNextAt=this.state.completed+2;
-      this.stats().blackDone=(this.stats().blackDone||0)+1;return
+      this.stats().blackDone=(this.stats().blackDone||0)+1;this.checkAchievements();return
     }
     if(!flags.kudo3Done||m?.storyFlag==='kudo3')return;
     if(!Number.isFinite(flags.voxNextAt))flags.voxNextAt=this.state.completed+2;
@@ -2732,7 +2743,7 @@ class CampaignController {
     for(const d of diversions)if(d.rep&&d.repFaction&&this.factions[d.repFaction])this.applyRep(d.repFaction,d.rep);
     asteroidField.stop();
     this.state.money+=actualPay+hazardPay+diversionPay+bountyCr;this.state.xp+=m.xp+diversionXp+bountyXp;this.state.completed++;
-    {const st=this.stats();st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay+bountyCr;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
+    {const st=this.stats();st.bountyEarned=(st.bountyEarned||0)+bountyCr;if(!m.private&&m.risk>=10)st.contracts.elite=(st.contracts.elite||0)+1;st.diversionsInvestigated=(st.diversionsInvestigated||0)+diversions.length;st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay+bountyCr;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
     let repGain=0;
     if(faction){
       const normalRepGain=Math.max(1,Math.round(8*this.positiveRepMultiplier()));
@@ -2791,7 +2802,7 @@ class CampaignController {
     audio.playVoice('missionFailed',{once:true,priority:true});paused=true;document.body.classList.add('paused');
     // Confirmed kills still pay when the drone is lost (not when a job is abandoned).
     const lostBounty=this.bountySummary();this.missionBounty=null;
-    if(lostBounty){this.state.money+=lostBounty.cr;this.state.xp+=lostBounty.xp;this.stats().creditsEarned+=lostBounty.cr;reason=`${reason} · bounties paid CR ${lostBounty.cr.toLocaleString()} (${lostBounty.text})`}
+    if(lostBounty){this.state.money+=lostBounty.cr;this.state.xp+=lostBounty.xp;this.stats().creditsEarned+=lostBounty.cr;this.stats().bountyEarned=(this.stats().bountyEarned||0)+lostBounty.cr;reason=`${reason} · bounties paid CR ${lostBounty.cr.toLocaleString()} (${lostBounty.text})`}
     this.state.pendingInsurance={title:m.title,reason,destroyedFrameId,frameExcess,lostConsumables,insuredItems,returnPanel:m.private?'mail':'missions',resolved:{}};this.save();
     this.showInsuranceRecovery(this.state.pendingInsurance);return true
   }
