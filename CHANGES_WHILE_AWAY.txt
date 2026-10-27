@@ -104,3 +104,11 @@ v610  Your existing save is told what's new
       to the delivery and reached the debrief, with no errors. Timings: an
       ignored marker drops out after about 6 seconds, and a civilian chased by
       3 raiders lasts about 21 seconds, so there's time to decide.
+
+      Dune armour flight test (no change needed). I flew a Dune Armour
+      Clearance job with the game running: descent, 15 units in 4 groups,
+      "DUNES CLEAR", the climb out, then victory and the debrief. No errors.
+      It was the only v400 mission type not yet flown for real. Reward check
+      at level 7 (where it first appears): CR 13,700 and 1,400 XP on average,
+      in line with Deep Core (CR 11,400 / 1,270 XP) and Penthouse
+      (CR 18,700 / 1,270 XP).
