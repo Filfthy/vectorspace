@@ -22,6 +22,7 @@ const AgentXUiScale={
   save(){try{localStorage.setItem(this.key,String(this.user))}catch(_){}},
   screenFactor(){return Math.max(1,Math.min(2.6,Math.min(innerWidth/1280,innerHeight/720)))},
   zoom(){return this.screenFactor()*this.user},
+  hudScale(){return Math.min(3,this.screenFactor()*this.user)},
   apply(){
     const z=this.zoom();
     for(const id of this.fullScreen){
@@ -31,6 +32,11 @@ const AgentXUiScale={
       el.style.zoom=String(z);el.style.inset='auto';el.style.left='0';el.style.top='0';el.style.width=`${100/z}vw`;el.style.height=`${100/z}vh`
     }
     for(const id of this.centred){const el=document.getElementById(id);if(el)el.style.zoom=String(this.screenFactor())}
+    // In-flight HUD: the canvas strip and world labels, the nav message line and the
+    // equipment slots all follow the same screen factor and text setting.
+    const k=this.hudScale();globalThis.AgentXHudScale=k;globalThis.AgentXHudTextScale=k;
+    document.documentElement.style.setProperty('--hud-scale',String(k));
+    const gear=document.getElementById('gearHud');if(gear)gear.style.zoom=String(k);
     const label=document.getElementById('uiScaleValue');if(label)label.textContent=`${Math.round(this.user*100)}%`;
     for(const b of document.querySelectorAll('[data-ui-scale]')){
       const dir=b.dataset.uiScale,i=this.steps.indexOf(this.user);

@@ -664,7 +664,17 @@ class SceneRenderer {
  }
 }
   drawFX(){for(const s of sparks){line(s.x-2,s.y,s.x+2,s.y,s.col,.9,clamp(s.t/.5,0,1));line(s.x,s.y-2,s.x,s.y+2,s.col,.9,clamp(s.t/.5,0,1))}for(const f of fragments)line(f.x1,f.y1,f.x2,f.y2,f.col,1,clamp(f.t/.85,0,1));for(const d of doorPieces){const a=1-clamp(d.age/d.dur,0,1),c=Math.cos(d.rot),s=Math.sin(d.rot),pts=d.pts.map(p=>[d.x+p.x*c-p.y*s,d.y+p.x*s+p.y*c]);if(pts.length>2){fillScreenPoly(pts);strokePoly(pts,C.r,1.25,a);line(pts[0][0],pts[0][1],pts[2][0],pts[2][1],C.y,.8,a*.8)}}}
+  // v440: the top HUD strip (labels, shield bar, captions) is laid out in fixed pixels
+  // for a 1280-wide screen. It is drawn scaled as one block so text and spacing grow
+  // together with the screen and the player's text setting (ui-scale.js).
   topHud(){
+    const k=Math.max(.5,Number(globalThis.AgentXHudScale)||1);
+    if(Math.abs(k-1)<.01)return this.topHudBody();
+    const W0=W,textScale=globalThis.AgentXHudTextScale;
+    ctx.save();ctx.scale(k,k);W=W0/k;globalThis.AgentXHudTextScale=1;
+    try{return this.topHudBody()}finally{W=W0;globalThis.AgentXHudTextScale=textScale;ctx.restore()}
+  }
+  topHudBody(){
  if(mode==='idle')return;
  ctx.textBaseline='top';ctx.font='400 12px Consolas,monospace';ctx.lineWidth=VECTOR_LINE_WIDTH;
  const rawLabel=(mode==='moonFinale'||(groundAssault?.active&&mode!=='play'))?(groundAssault?.variant==='dunes'&&mode!=='moonFinale'?'DUNE ASSAULT':'FACTORY ASSAULT'):(mode==='play'?phase.toUpperCase():mode.toUpperCase());

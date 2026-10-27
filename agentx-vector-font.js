@@ -695,7 +695,8 @@ function installCanvasStrokeText(){
   const nativeStrokeText=proto.strokeText;Object.defineProperty(proto,'__agentXVectorInstalled',{value:true});
   proto.strokeText=function(text,x,y,maxWidth){
     try{
-      let size=fontSizeFromContext(this),w=measure(text,size,null,'auto'),drawSize=size;
+      // v440: in-flight canvas labels follow the HUD text scale (ui-scale.js).
+      let size=fontSizeFromContext(this)*(Number(global.AgentXHudTextScale)||1),w=measure(text,size,null,'auto'),drawSize=size;
       if(Number.isFinite(maxWidth)&&maxWidth>0&&w>maxWidth)drawSize*=maxWidth/w;
       return draw(this,text,x,y,drawSize,{lineWidth:1});
     }catch(err){return nativeStrokeText.call(this,text,x,y,maxWidth)}
