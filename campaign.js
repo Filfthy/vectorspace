@@ -294,7 +294,8 @@ class CampaignController {
   }
   // Until the kit is actually deployed at launch, the fitted (base) internals apply,
   // so slot-adding internals such as the Nomad Pod are counted when the loadout is normalised.
-  fittedInternalIds(){return this.currentMission&&this.state.deployedKit?this.activeInternalLoadout:this.state.internalLoadout}
+  // v670: the simulator has no deployed kit but must still ignore hub-fitted internals.
+  fittedInternalIds(){return this.currentMission&&(this.state.deployedKit||this.currentMission.training)?this.activeInternalLoadout:this.state.internalLoadout}
   hasInternal(id){return (this.fittedInternalIds()||[]).includes(id)}
   maxShield(){return this.activeFrame().shields+this.internalSum('shieldBonus')+(this.hasSkill('hardenedField')?2:0)}
   shieldRegeneration(){

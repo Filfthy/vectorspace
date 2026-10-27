@@ -166,3 +166,21 @@ v660  Debrief button stays on screen; small-window check
       screen the debrief's Return button (pressed after every mission) was
       62px below the fold. It now stays pinned at the bottom of the screen
       until you've scrolled past it.
+
+v670  Three bugs found by an independent review, fixed
+      I had a separate reviewer read everything changed tonight, looking only
+      for real bugs. It confirmed the rest (bounties, unique items, chain
+      gating, old saves, import) and found three, all mine and all now fixed:
+      - Route fights and diversions placed after a station stage were skipped:
+        the station kept running and finished them on the first frame, so no
+        fight and no bounty, but the job still counted it. This hit Secure
+        Terminal Intrusion's departure, station departures and the Relay 10
+        arrival. Events now never go directly after a station stage. Checked
+        on 1,650 generated contracts: none after a station, and the other slots
+        still fill. Secure Terminal Intrusion no longer gets route events;
+        its only slot was the broken one.
+      - The diversion's HUD label line had split an if/else chain, so a few
+        other labels could be overwritten. Moved to the end of the chain.
+      - Since v400 the VOX simulator used your fitted internals (extra slots,
+        more shields). It's back to the fixed setup: 6 shields with a Shield
+        Extender fitted, where the hub shows 7.

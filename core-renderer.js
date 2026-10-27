@@ -689,10 +689,11 @@ class SceneRenderer {
  else if(groundAssault?.active)leftLabel=groundAssault.hudLeft()||leftLabel;
  else if(tacoBeaconDelivery?.active)leftLabel=tacoBeaconDelivery.hudLeft()||leftLabel;
  else if(salvageRecovery.active&&salvageRecovery.state!=='combat')leftLabel='RECOVERY';
- if(typeof routeDiversion!=='undefined'&&routeDiversion.active)leftLabel=routeDiversion.hudLeft()||leftLabel;
  else if(helixBiolab?.active)leftLabel='HELIX ORBITAL BIOLAB';
  else if(scenarioFlow?.pendingDestination)leftLabel='HELIX RETURN';
  else if(phase==='jackalCity'&&(jackalDelivery.state==='outboundMerge'||jackalDelivery.state==='cityOutbound'))leftLabel='CITY EXIT';
+ // v670: after the chain, so it neither splits it nor loses to the borrowed RECOVERY label.
+ if(typeof routeDiversion!=='undefined'&&routeDiversion.active)leftLabel=routeDiversion.hudLeft()||leftLabel;
  ctx.textAlign='left';ctx.strokeStyle=C.g;ctx.strokeText(leftLabel,12,10);
  ctx.textAlign='right';
  const destinationHud=surfaceDestination?.hudRight?.()||'',securityHud=securityCheckpoint?.hudRight?.()||'',forestHud=forest?.hudRight?.()||'',courierHud=courier?.hudRight?.()||'',jackalHud=jackalDelivery?.hudRight?.()||'',stationHud=stationDelivery?.hudRight?.()||'',xenoHud=xenoNest?.hudRight?.()||'',recoveryHud=salvageRecovery?.hudRight?.()||'',pendingHud=scenarioFlow?.pendingDestinationHud?.()||'',helixHud=helixBiolab?.hudRight?.()||'',landGunHud=bunkerRaid?.hudRight?.()||'',asteroidWreckHud=asteroidWreckRun?.hudRight?.()||'',freeTradersDepotHud=freeTradersDepot?.hudRight?.()||'',tacoBeaconHud=tacoBeaconDelivery?.hudRight?.()||'',carrierHud=carrierIntercept?.hudRight?.()||'';

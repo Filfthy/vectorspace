@@ -70,7 +70,10 @@
     if(asteroid>=0)out.push({place:'asteroid',index:asteroid});
     const last=modules[modules.length-1];
     if(last&&DEPARTURE.has(last.type))out.push({place:'departure',index:modules.length});
-    return out
+    // v670: never directly after a station stage. The station controller only shuts down
+    // when its stage is the last one, so a fight or diversion placed after it was
+    // completed by the still-running station on its first frame (no fight, no bounty).
+    return out.filter(s=>!String(modules[s.index-1]?.type||'').startsWith('station_'))
   }
   const pick=(list,weightOf)=>{
     const total=list.reduce((n,x)=>n+Math.max(0,weightOf(x)),0);if(total<=0)return null;
