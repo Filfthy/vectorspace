@@ -2,8 +2,8 @@ AGENT X / VECTOR SPACE
 BEYOND THE STORY: FACTION MISSIONS, REWARDS AND WEAPONS (DRAFT FOR REVIEW)
 =========================================================================
 
-Status: built in v400 (sections 1-4). Random encounters (section 4, last bullet)
-are not built yet. Salvage, loot and selling were dropped by design.
+Status: built in v400 (sections 1-4). Random route encounters added in v410
+(encounter-content.js). Salvage, loot and selling were dropped by design.
 
 
 DIRECTION

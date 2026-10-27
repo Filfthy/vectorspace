@@ -703,12 +703,14 @@ class CampaignController {
     const pay=Math.round((rawPay*this.contractPayMultiplier(risk))/roundPay)*roundPay;
     const xp=Math.round((Number(reward.baseXp)||0)+(Number(reward.xpPerRisk)||0)*risk+(Number(reward.xpRiskSquare)||0)*risk*risk+(Number(reward.xpPerFighterWork)||0)*fighterWork+(Number(reward.xpPerAsteroidWork)||0)*asteroidWork);
     const difficulty=risk<=1?1:(risk<=3?2:(risk<=5?3:5)),serial=(this.state.boardGeneration||0)*10+slot;
+    const routeEncounter=options?.noRouteEncounter?null:(globalThis.AgentXEncounters?.apply(this,{template,faction,risk,modules})||null);
     return{
       id:`proc_${Date.now().toString(36)}_${serial}_${((Math.random()*0xffffff)|0).toString(36)}`,
       faction,title,kind:'procedural',family:template.family||template.id,templateId:template.id,templateVersion:template.version||1,
       cargo,destination,cargoStyle:pack.cargoStyle||'',targetGroup,motive,situation,targetProfile,musicMode:template.musicMode||null,
       planetaryRequirements,
       risk,minLevel:template.minLevel||1,minRep:-100,pay,xp,difficulty,implemented:true,intelStyle:template.intelStyle||'hiddenGroup',scenarioVersion:11,boardSchemaVersion:this.contractBoardSchemaVersion(),
+      routeEncounter,
       description,modules:this.scaleContractToughness(modules,risk),stages:modules.map(x=>x.label)
     }
   }
@@ -2578,9 +2580,11 @@ class CampaignController {
     const jackalSettlement=(m.family==='jackal_party_delivery'&&typeof jackalDelivery!=='undefined'&&jackalDelivery?.settlement)?jackalDelivery.settlement():null;
     const templateCivilian=this.templateCivilianSettlement(m),settlement=jackalSettlement||templateCivilian;
     const actualPay=settlement?Math.max(0,Math.round((m.pay*settlement.payMultiplier)/50)*50):m.pay;
+    // Route encounter fought and survived: hazard pay on top of the contract fee.
+    const hazardPay=m.routeEncounter&&!settlement?Math.round((m.pay*(Number(m.routeEncounter.payBonus)||.15))/50)*50:0;
     asteroidField.stop();
-    this.state.money+=actualPay;this.state.xp+=m.xp;this.state.completed++;
-    {const st=this.stats();st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
+    this.state.money+=actualPay+hazardPay;this.state.xp+=m.xp;this.state.completed++;
+    {const st=this.stats();st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
     let repGain=0;
     if(faction){
       const normalRepGain=Math.max(1,Math.round(8*this.positiveRepMultiplier()));
@@ -2614,7 +2618,7 @@ class CampaignController {
     const penalty=templateCivilian?.incidents>0
       ?(templateCivilian.assaults>0?`${templateCivilian.assaults} civilian traffic assault${templateCivilian.assaults===1?'':'s'} · settlement penalised`:`${templateCivilian.collisions} civilian traffic incident${templateCivilian.collisions===1?'':'s'} · settlement penalised`)
       :(jackalSettlement?.incidents>0?(jackalSettlement.incidents>=3?`${jackalSettlement.incidents} civilian incidents · Red Jackal refused payment`:`${jackalSettlement.incidents} civilian incident${jackalSettlement.incidents===1?'':'s'} · Red Jackal cut the settlement`):'');
-    this.showDebrief({success:true,title:m.title,pay:actualPay,xp:m.xp,liability:0,reason:penalty,returnPanel:m.private?'mail':'missions'});
+    this.showDebrief({success:true,title:m.title,pay:actualPay,hazardPay,hazardLabel:m.routeEncounter?.nav||'',xp:m.xp,liability:0,reason:penalty,returnPanel:m.private?'mail':'missions'});
     return true;
   }
   failCurrentMission(reason='Mission failed'){
@@ -2714,6 +2718,7 @@ class CampaignController {
       <div class="missionFaction">${d.title}</div>
       ${d.reason?`<div class="missionStatus bad">${d.reason}</div>`:''}
       <div class="debriefRow"><span>Contract payment</span><span>CR ${d.pay.toLocaleString()}</span></div>
+      ${d.hazardPay>0?`<div class="debriefRow"><span>Hazard pay · ${this.escapeHtml(d.hazardLabel||'route encounter')}</span><span>CR ${d.hazardPay.toLocaleString()}</span></div>`:''}
       <div class="debriefRow"><span>Experience</span><span>${d.xp} XP</span></div>
       <div class="debriefRow"><span>Drone liability</span><span>${d.liability?'- CR '+d.liability.toLocaleString():'CR 0'}</span></div>
       ${this.returnRestock?.spent>0?`<div class="debriefRow"><span>Consumables restocked</span><span>- CR ${this.returnRestock.spent.toLocaleString()}</span></div>`:''}
