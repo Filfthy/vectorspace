@@ -145,3 +145,15 @@ v640  Save to file / Load from file
       what the game is, how to run it locally, the controls, where missions,
       voices, music and design notes live, and the save-file tip. © 2026
       BugVictim. Docs only; nothing in the game changed.
+
+v650  The hub no longer runs off small screens
+      The terminal needs about 860px of layout width. On a 1024x640 window
+      with text at 150%, the right quarter of every panel (titles, notes, the
+      Networks record, drone bay cards) was off screen. The zoom is now capped
+      so the layout always fits: on a small window big text settings are held
+      back, A+ greys out with "Larger text needs a bigger window", and the
+      setting reads "130% · window limit". A window narrower than the layout
+      (800x600) shrinks the hub to fit. Your setting is kept and applies fully
+      on a bigger screen. Measured: 1024x640 and 800x600 at every setting,
+      and 1920x1080, all with no overflow. Full-HD is unchanged apart from
+      150% text, which is 2.23x instead of 2.25x.

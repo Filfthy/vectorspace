@@ -21,7 +21,14 @@ const AgentXUiScale={
   },
   save(){try{localStorage.setItem(this.key,String(this.user))}catch(_){}},
   screenFactor(){return Math.max(1,Math.min(2.6,Math.min(innerWidth/1280,innerHeight/720)))},
-  zoom(){return this.screenFactor()*this.user},
+  // v650: the hub layout needs about 853 CSS px of width (measured), so the zoom never
+  // leaves it less than MIN_WIDTH. On a small window a big text setting is held back
+  // (and A+ greys out) rather than pushing panels off the right edge; a window
+  // narrower than the layout shrinks the hub to fit. The setting itself is kept.
+  MIN_WIDTH:860,
+  maxZoom(){return innerWidth/this.MIN_WIDTH},
+  zoom(){return Math.min(this.screenFactor()*this.user,this.maxZoom())},
+  limited(){return this.screenFactor()*this.user>this.maxZoom()+1e-6},
   hudScale(){return Math.min(3,this.screenFactor()*this.user)},
   apply(){
     const z=this.zoom();
@@ -37,16 +44,19 @@ const AgentXUiScale={
     const k=this.hudScale();globalThis.AgentXHudScale=k;globalThis.AgentXHudTextScale=k;
     document.documentElement.style.setProperty('--hud-scale',String(k));
     const gear=document.getElementById('gearHud');if(gear)gear.style.zoom=String(k);
-    const label=document.getElementById('uiScaleValue');if(label)label.textContent=`${Math.round(this.user*100)}%`;
+    const label=document.getElementById('uiScaleValue');if(label)label.textContent=`${Math.round(this.user*100)}%${this.limited()?' · window limit':''}`;
     for(const b of document.querySelectorAll('[data-ui-scale]')){
       const dir=b.dataset.uiScale,i=this.steps.indexOf(this.user);
-      b.disabled=dir==='down'?i<=0:i>=this.steps.length-1
+      const capped=dir==='up'&&this.screenFactor()*this.user>=this.maxZoom()-1e-6;
+      b.disabled=dir==='down'?i<=0:(i>=this.steps.length-1||capped);
+      if(dir==='up')b.title=capped&&i<this.steps.length-1?'Larger text needs a bigger window':''
     }
     // Panels that measure themselves (custom scrollbars, contract lists) re-layout.
     try{campaign?.contractScrollbar?.update?.()}catch(_){}
     return z
   },
   step(dir){
+    if(dir==='up'&&this.screenFactor()*this.user>=this.maxZoom()-1e-6)return false;
     const i=this.steps.indexOf(this.user),n=Math.max(0,Math.min(this.steps.length-1,i+(dir==='up'?1:-1)));
     if(n===i)return false;this.user=this.steps[n];this.save();this.apply();
     try{SoundFX.uiClick?.()}catch(_){}
