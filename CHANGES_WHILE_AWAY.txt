@@ -50,3 +50,9 @@ v560  A fourth skill row for veterans (3 points each)
       Hardened Field (+2 maximum shields), Heavy Warheads (missiles +40% damage)
       and Bounty Broker (bounties +25%). The full tree now takes until about
       level 36.
+
+      Full regression sweep (no change needed). After tonight's changes I
+      launched and stepped through every stage of all 12 story missions, the 15
+      faction agent missions, the 6 Black Contracts and all 11 board templates:
+      no errors anywhere. Station Delivery shows 9 of 10 stages because the truck
+      stop arrival skips ahead when no fight is rolled, which is intended.
