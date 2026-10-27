@@ -295,3 +295,17 @@ v740  New board job: Groundside Pickup (Compact, QuickBite, Red Jackal)
       Flown muted: live descent and plains approach (a cyan world), city legs
       stepped, then the depot approach and handoff ran by themselves through
       to victory and the completion mail. No errors.
+
+v750  New major board job: Nest Clearance (Helix, OSD)
+      The xeno nest, one of the biggest set pieces, used to appear only in
+      Nest Strike and Navira's agent chain. It's now a rare major board
+      contract from level 10, like Deep Core: collect a pheromone mask at the
+      Helix orbital biolab, follow the trail, enter the hive and destroy it.
+      Navira's briefings follow the canon that a hive is one living body
+      whose xenos are its immune response ("Hurt it and it will send its
+      defences after you"). Kudo wants it burned out. At level 11 it pays
+      CR 15,550 and 1,470 XP (Deep Core: CR 16,300 / 1,630 XP) and shows up
+      on about one board in eight.
+      Flown muted: the biolab pickup ran live start to finish, the trail
+      transit, then the nest approach ("MASK ACTIVE"). Navira's completion
+      mail checked. No errors.

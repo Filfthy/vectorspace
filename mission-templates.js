@@ -1526,6 +1526,66 @@
     defaults:{destination:'swamp relay clearing',cargo:'sealed delivery package'}
   };
 
+  // v750 board nest clearance (style guide T12): collect a pheromone mask at the Helix
+  // orbital biolab, follow the chemical trail, enter the hive and destroy it. Same
+  // proven module chain as Nest Strike and Navira's agent mission 2. A hive is one
+  // living organism and its xenos are the immune response (AGENT_X_WORLD_LORE.txt 4),
+  // so the writing treats it as biology, never as an army. Rare and major, like Deep Core.
+  const nestClearance={
+    id:'nest_clearance',
+    version:1,
+    family:'nest_clearance',
+    musicMode:'calm',
+    minLevel:10,
+    maxLevel:null,
+    allowedFactions:['helix','security'],
+    factionWeights:{helix:4,security:2},
+    board:{category:'major',weight:.15,maxPerBoard:1,major:true},
+    risk:{base:5,min:5,levelsPerStep:2,max:9,jitter:1},
+    reward:{
+      basePay:4200,payPerRisk:950,payRiskSquare:230,randomPay:600,roundPay:50,
+      baseXp:540,xpPerRisk:115,xpRiskSquare:13
+    },
+    sections:[
+      {type:'helix_biolab_approach',label:'Collect Pheromone Mask',params:{transferMode:'pickup',payloadKind:'pheromone',
+        navDistance:720,navX:48,navY:-12,labScale:34,planetRadius:290,revealRadius:220,hatchCaptureRadius:92,hatchStandOff:15.5,
+        hatchOpenSeconds:.82,deliverySeconds:2.35,hatchCloseSeconds:.74,turnSeconds:1.78,clearDistance:58,
+        message:'PROCEED TO HELIX ORBITAL BIOLAB',hud:'HELIX BIOLAB',markerLabel:'HELIX BIOLAB',
+        hatchLabel:'PHEROMONE PICKUP',hatchPrompt:'PROCEED TO PHEROMONE PICKUP',securedMessage:'PHEROMONE MASK SECURED'}},
+      {type:'space_transit',label:'Follow the Trail',params:{duration:3.35,message:'HEADING TO XENO NEST',hud:'TO XENO NEST',playZoomSound:true}},
+      {type:'xeno_nest',label:'Destroy the Nest',params:{message:'XENO NEST · APPROACH',hud:'XENO NEST'}}
+    ],
+    presentation:{
+      helix:{
+        contactId:'navira_derris',
+        titles:['Nest Clearance','A Young Hive','Trail to the Nest'],
+        descriptions:[
+          'A survey drone found a chemical trail leading to a young hive near a shipping lane. Collect a pheromone mask at the biolab, follow the trail, go inside and destroy the nest.',
+          'Another nest. Small, fast growing and too close to traffic. The mask is ready at the biolab. Remember that a hive is one body. Hurt it and it will send its defences after you.',
+          'I would prefer to study this one, but it is growing toward a mining route. Collect the mask, enter the nest and end it. Bring me good telemetry while you are in there.'
+        ],
+        completionSubjects:['The nest is gone','Readings fell to nothing'],
+        completionBodies:['The nest has stopped responding. Every reading fell to zero. Payment: CR {credits}. Standing: +{rep}.','The hive is dead and the telemetry is excellent. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'navira_derris',subjects:['The nest responded'],bodies:['The nest recognised the intrusion and its defences did exactly what an immune response should. Fascinating, and fatal for your drone. The mask is still viable.']},
+        abandonMail:{contactId:'navira_derris',subjects:['Nest not concluded'],bodies:['You left before the nest was destroyed. It will be larger next time. That is not a threat. It is just biology.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:6,chance:.22,subjects:['About your telemetry'],bodies:['I watched the nest readings fall as you went deeper. The defences changed pattern twice before the end. I have never seen that. Thank you.']}
+      },
+      security:{
+        contactId:'kudo_shang',
+        titles:['Hive Destruction','Burn the Nest','Biological Hard Target'],
+        descriptions:[
+          'A xeno nest has taken root near a Directorate route. Helix has a pheromone mask at its biolab. Collect it, enter the nest and destroy it. No survivors.',
+          'Hive sighted. It is growing. Collect the Helix mask, go inside and finish it. Decisive force.'
+        ],
+        completionSubjects:['Hive destroyed','Nest eliminated'],
+        completionBodies:['The nest is destroyed. Route secure. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Hive still active'],bodies:['The hive killed your drone. That makes it a hard target. Go back in.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Withdrawal from the hive'],bodies:['You withdrew with the nest still alive. Things that grow do not wait for you to find your nerve.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:7,chance:.16,subjects:['Re: hive destruction'],bodies:['Clean kill on a living target. That is harder than it looks. Noted.']}
+      }
+    }
+  };
+
   // v740 groundside pickup (style guide T02 on land): descend, fly the plains into a
   // city, collect from a ground-level room, leave through traffic, launch, and hand the
   // cargo over at a Compact freight depot. Every module is proven: the city leg is the
@@ -1888,7 +1948,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{groundside_pickup:groundsidePickup,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{nest_clearance:nestClearance,groundside_pickup:groundsidePickup,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();
