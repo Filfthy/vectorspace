@@ -56,3 +56,9 @@ v560  A fourth skill row for veterans (3 points each)
       faction agent missions, the 6 Black Contracts and all 11 board templates:
       no errors anywhere. Station Delivery shows 9 of 10 stages because the truck
       stop arrival skips ahead when no fight is rolled, which is intended.
+
+v570  Insurance screen names recovered faction hardware
+      Faction reward items always came back when a drone was lost, but silently.
+      The insurance screen now says "Faction hardware: Nomad Pod · Ripper ·
+      RECOVERED FREE · back in stores", so a lost frame no longer looks like lost
+      rewards.

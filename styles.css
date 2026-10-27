@@ -989,3 +989,4 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .boardFilter.active{color:var(--c)!important;border-color:var(--c)!important}
 .netNext.hostile{color:var(--r)}
 .debriefRow .standUp{color:var(--g)}.debriefRow .standDown{color:var(--r)}
+.insuranceUniques b{color:var(--g)}

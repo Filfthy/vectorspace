@@ -335,7 +335,11 @@ class CampaignController {
   }
   // Faction rewards are registered to Agent X: a destroyed drone's unique hardware
   // returns to stores at no cost, so only market hardware goes to an insurance claim.
-  keepUniqueHardware(ids){return (ids||[]).filter(id=>{if(!this.items[id]?.unique)return true;this.addStock(id,1);return false})}
+  keepUniqueHardware(ids){
+    const kept=[];const rest=(ids||[]).filter(id=>{if(!this.items[id]?.unique)return true;this.addStock(id,1);kept.push(this.items[id].name);return false});
+    // v570: the insurance screen names what came back, so a lost frame does not read as lost rewards.
+    this.pendingRecoveredUniques=kept;return rest
+  }
   addStock(id,n=1){if(id&&n>0&&this.items[id]&&!this.items[id].free)this.state.inventory[id]=(this.state.inventory[id]||0)+n}
   takeStock(id,n){const have=this.state.inventory[id]||0,take=Math.max(0,Math.min(have,n));this.state.inventory[id]=have-take;return take}
   unloadBaseLoadoutToInventory(){
@@ -2841,10 +2845,12 @@ class CampaignController {
     // Claims already settled before a reload keep their outcome (no double charge).
     const done=(d.resolved&&typeof d.resolved==='object')?d.resolved:{};for(const c of claims)if(done[c.index])c.status=done[c.index];
     const lostNames=(d.lostConsumables||[]).map(id=>this.items[id]?.name||id);
+    if(!d.recoveredUniques&&this.pendingRecoveredUniques?.length){d.recoveredUniques=this.pendingRecoveredUniques;this.save()}this.pendingRecoveredUniques=null;
     const claimRows=claims.length?claims.map(c=>`<div class="insuranceItem${c.status?' '+c.status:''}" data-claim="${c.index}"><div><b>${c.item.name}</b><span>${c.type==='frame'?'Frame':'Replacement'} CR ${c.item.price.toLocaleString()} · excess ${Math.round(rate*100)}%${trainingDiscount?' · training benefit -1%':''}</span></div><strong>CR ${c.excess.toLocaleString()}</strong><div class="insuranceActions">${c.status?`<span>${c.status==='recovered'?'RECOVERED':'DECLINED'}</span>`:`<button type="button" data-recover="${c.index}">Pay excess</button><button type="button" data-decline="${c.index}">Decline</button>`}</div></div>`).join(''):'<div class="insuranceNone">No premium frame or permanent fitted equipment was lost.</div>';
     debriefBoxEl.innerHTML=`<h2>Insurance / recovery</h2><div class="missionFaction">${d.title}</div><div class="missionStatus bad">${d.reason||'Drone destroyed'}</div>
       <div class="insuranceFrame"><span>Fallback AX-1 frame</span><b>ALWAYS AVAILABLE · CR 0</b></div>
       <div class="insuranceConsumables"><span>Consumables</span><b>${lostNames.length?`${lostNames.join(' · ')} · LOST`:'NONE FITTED'}</b></div>
+      ${d.recoveredUniques?.length?`<div class="insuranceConsumables insuranceUniques"><span>Faction hardware</span><b>${d.recoveredUniques.map(n=>this.escapeHtml(n)).join(' · ')} · RECOVERED FREE · back in stores</b></div>`:''}
       <div class="insuranceHeading">FRAME / PERMANENT EQUIPMENT CLAIMS</div>${claimRows}
       <div class="debriefRow debriefTotal"><span>Current funds</span><span data-insurance-funds>CR ${this.state.money.toLocaleString()}</span></div>
       <div class="insuranceFooter"><span data-insurance-status>${claims.length?'Resolve each claim to continue.':'No claims to resolve.'}</span><button type="button" id="insuranceContinue" ${claims.length?'disabled':''}>${d.returnPanel==='mail'?'Return to mail':'Return to mission board'}</button></div>`;
