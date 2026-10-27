@@ -195,8 +195,8 @@ v690  The bulletin mentions Save to file
       The one-time bulletin (v610) that your save will get now also mentions
       Save to file, so you hear about it before moving to the online copy.
 
-The last round finished at about 22:50. There wasn't time to start
-another before the 23:00 stop. Things only you can do: hand-play the new
+I stopped at 22:50 instead of starting a new change this close to the
+23:00 cut-off. Things only you can do: hand-play the new
 content (none of it has been flown by a person), record the 16 lines in
 VOICE_REQUESTS.txt if you want them voiced, "Save to file" once before
 moving to GitHub Pages, and switch Pages on in the repo settings if you
