@@ -2347,10 +2347,13 @@ class CampaignController {
       return `<div class="netRow"><div class="netName">${esc(f.name)}</div><div class="repTrack"><span style="left:${(rep+100)/2}%"></span></div><div class="netMeta"><span>${rep>0?'+':''}${rep} · ${esc(this.repLabel(rep))}</span><span>${jobs} contract${jobs===1?'':'s'}</span></div>${this.networkNextHtml(f.id)}</div>`}).join('');
     const op=document.createElement('section');op.className='opColumn';
     const arcs=this.storyArcs(),main=arcs.reduce((a,x)=>a+x.done,0),mainT=arcs.reduce((a,x)=>a+x.total,0),k=st.kills;
+    // v620: tonight's systems (agent missions, elite work, bounties, route events) on the record too.
+    const chains=globalThis.AgentXFactionContent?.chains||[],fl=this.state.mailFlags||{},agent=chains.reduce((a,c)=>a+c.steps.filter(x=>fl[x.flag+'Done']).length,0),agentT=chains.reduce((a,c)=>a+c.steps.length,0);
     const rec=[['Contracts completed',n(st.contracts.done)],['Contracts failed',n(st.contracts.failed)],['Contracts abandoned',n(st.contracts.abandoned)],['Clean runs',n(st.cleanRuns)],
-      ['Credits earned',`CR ${n(st.creditsEarned)}`],['Insurance paid',`CR ${n(st.insurancePaid)}`],['Drones lost',n(st.dronesLost)],['Projectiles shot down',n(st.shotDown)],
+      ['Elite contracts',n(st.contracts.elite)],['Agent missions',`${agent} / ${agentT}`],
+      ['Credits earned',`CR ${n(st.creditsEarned)}`],['Bounties earned',`CR ${n(st.bountyEarned)}`],['Insurance paid',`CR ${n(st.insurancePaid)}`],['Drones lost',n(st.dronesLost)],['Projectiles shot down',n(st.shotDown)],
       ['Fighters destroyed',n(k.fighters)],['Ground armour destroyed',n(this.armourKills())],['Walker knees broken',n(k.knees)],['Generators destroyed',n(k.generators)],
-      ['Reactors destroyed',n(k.reactors)],['Moons destroyed',n(k.moons)],
+      ['Reactors destroyed',n(k.reactors)],['Moons destroyed',n(k.moons)],['Route encounters survived',n(st.routeEncounters)],['Diversions answered',n(st.diversionsInvestigated)],
       ['Black contracts',`${n(st.blackDone)}${this.state.mailFlags?.blackThreat?` · threat ${this.state.mailFlags.blackThreat}`:''}`],
       ['Veteran bonus',this.veteranBonus()>0?`+${Math.round(this.veteranBonus()*100)}% pay`:'from level 21']];
     const got=this.state.achievements||{},ach=this.achievementDefs();
@@ -2782,7 +2785,7 @@ class CampaignController {
     for(const d of diversions)if(d.rep&&d.repFaction&&this.factions[d.repFaction])this.applyRep(d.repFaction,d.rep);
     asteroidField.stop();
     this.state.money+=actualPay+hazardPay+diversionPay+bountyCr;this.state.xp+=m.xp+diversionXp+bountyXp;this.state.completed++;
-    {const st=this.stats();st.bountyEarned=(st.bountyEarned||0)+bountyCr;if(!m.private&&m.risk>=10)st.contracts.elite=(st.contracts.elite||0)+1;st.diversionsInvestigated=(st.diversionsInvestigated||0)+diversions.length;st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay+bountyCr;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
+    {const st=this.stats();st.bountyEarned=(st.bountyEarned||0)+bountyCr;if(!m.private&&m.risk>=10)st.contracts.elite=(st.contracts.elite||0)+1;st.diversionsInvestigated=(st.diversionsInvestigated||0)+diversions.length;if(m.routeEncounter)st.routeEncounters=(st.routeEncounters||0)+1;st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay+bountyCr;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
     let repGain=0;
     if(faction){
       const normalRepGain=Math.max(1,Math.round(8*this.positiveRepMultiplier()));

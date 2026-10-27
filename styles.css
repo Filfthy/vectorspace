@@ -181,7 +181,7 @@ body.cheating canvas{cursor:var(--cursor-vector)}
 .netMeta{display:flex;justify-content:space-between;font-size:var(--type-meta);color:var(--c)}
 .netMeta span:last-child{color:var(--g)}
 .opName{color:var(--c);letter-spacing:.12em}.opName b{color:var(--y);font-weight:400}
-.opLine{color:var(--g);font-size:10px;margin-top:3px}
+.opLine{color:var(--g);font-size:var(--type-meta);margin-top:3px}
 .opBlock{margin-top:12px;border-top:1px solid var(--gd);padding-top:9px}
 .opBlock h4{margin:0 0 7px;color:var(--y);font-weight:400;display:flex;justify-content:space-between}
 .opBlock h4 span{color:var(--c)}
@@ -191,12 +191,12 @@ body.cheating canvas{cursor:var(--cursor-vector)}
 .opTicks .tick{display:inline-block;width:8px;height:8px;border:1px solid var(--gd)}
 .opTicks .tick.on{border-color:var(--y);background:var(--y)}
 .opTicks em{font-style:normal;color:var(--c);margin-left:6px;min-width:24px;text-align:right}
-.opStats{display:grid;grid-template-columns:1fr 1fr;gap:3px 18px;font-size:10px}
+.opStats{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;font-size:var(--type-meta)}
 .opStats div{display:flex;justify-content:space-between;color:var(--g)}
 .opStats b{color:var(--w);font-weight:400}
 .opAch{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
-.achBadge{border:1px solid #303030;padding:6px 7px;color:var(--x);font-size:11px}
-.achBadge b{display:block;font-weight:400;font-size:10px;margin-bottom:2px}
+.achBadge{border:1px solid #303030;padding:6px 7px;color:var(--x);font-size:var(--type-compact)}
+.achBadge b{display:block;font-weight:400;font-size:var(--type-meta);margin-bottom:2px}
 .achBadge.on{border-color:var(--y);color:var(--g)}
 .achBadge.on b{color:var(--y)}
 #workshopGrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);gap:12px;align-items:start}

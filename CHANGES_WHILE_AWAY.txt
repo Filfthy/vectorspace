@@ -112,3 +112,12 @@ v610  Your existing save is told what's new
       at level 7 (where it first appears): CR 13,700 and 1,400 XP on average,
       in line with Deep Core (CR 11,400 / 1,270 XP) and Penthouse
       (CR 18,700 / 1,270 XP).
+
+v620  The Operator record shows tonight's systems, in bigger text
+      The Networks page's Record now also lists Elite contracts, Agent
+      missions (n / 15), Bounties earned, Route encounters survived and
+      Diversions answered. Bounties, elite jobs and diversions were already
+      being counted, just not shown. Route encounters start counting from now.
+      The Record, the operator line and the achievement badges were still at
+      10-11px, missed by the v430 text pass; they now use the standard sizes
+      (12px, scaled with A-/A+).
