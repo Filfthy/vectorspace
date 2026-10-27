@@ -1217,7 +1217,8 @@ class CampaignController {
       'VOX brokers work between independent operators and client networks, holds contract payments, records reputation and provides access to approved equipment suppliers.',
       'You have been allocated one AX-1 general-purpose drone under the basic replacement scheme. The AX-1 frame is replaced free if destroyed. Consumables are expendable and permanent fitted hardware is subject to your current insurance excess.',
       'Complete ordinary work to build experience, credits and standing. Better relationships can expose equipment before your operator level would normally bring it to market.',
-      'Try not to destroy anything the client did not ask you to destroy.'
+      'Try not to destroy anything the client did not ask you to destroy.',
+      'The ? button at the top of this terminal opens the operator guide: controls, contracts, networks and what comes later.'
     ];
     const actions=[
       {type:'tutorial',tutorialId:'movement_shooting',label:'START SIMULATOR'},

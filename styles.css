@@ -958,3 +958,18 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 #campaignTabs .campaignUtilityTab{flex:0 0 auto}
 #campaignTabs .uiScaleBtn.campaignUtilityTab{min-width:44px;padding:0 8px}
 #campaignTabs .campaignTabSpacer{flex:0 1 18px}
+
+/* v460 operator guide: headings that open for detail */
+#campaignTabs .guideTab{flex:0 0 auto;min-width:44px;padding:0 8px}
+.guidePanel h2{margin:4px 0 6px;color:var(--c);font-size:var(--type-panel-title);font-weight:400}
+.guideIntro{margin:0 0 12px;color:var(--gd);font-size:var(--type-meta)}
+.guideItem{border:1px solid var(--gd);margin:0 0 8px;max-width:980px}
+.guideItem>summary{list-style:none;cursor:var(--cursor-action,pointer);padding:10px 14px;color:var(--g);font-size:var(--type-card-title)}
+.guideItem>summary::-webkit-details-marker{display:none}
+.guideItem>summary::before{content:'+';display:inline-block;width:20px;color:var(--c)}
+.guideItem[open]>summary::before{content:'-'}
+.guideItem[open]>summary{color:var(--w);border-bottom:1px solid #063}
+.guideBody{padding:10px 14px 12px 34px;color:var(--w);font-size:var(--type-body);line-height:var(--line-body)}
+.guideBody p{margin:0 0 8px}
+.guideKeys{display:grid;grid-template-columns:minmax(160px,auto) 1fr;gap:4px 18px;margin:0 0 10px}
+.guideKeys span:nth-child(odd){color:var(--c)}

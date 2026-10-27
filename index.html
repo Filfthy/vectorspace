@@ -104,6 +104,7 @@
       <button class="campaignTab skillsTab" data-tab="perks" type="button">Skills <span id="skillPointsBadge" class="mailUnreadBadge skillPointsBadge" hidden>0</span></button>
       <button id="campaignResume" class="campaignUtilityTab" type="button" style="display:none">Return to flight</button>
       <span class="campaignTabSpacer" aria-hidden="true"></span>
+      <button class="campaignTab guideTab" data-tab="guide" type="button" aria-label="Operator guide">?</button>
       <button class="campaignUtilityTab uiScaleBtn" data-ui-scale="down" type="button" aria-label="Smaller text">A−</button>
       <button class="campaignUtilityTab uiScaleBtn" data-ui-scale="up" type="button" aria-label="Larger text">A+</button>
       <button class="campaignTab campaignSettingsTab" data-tab="options" type="button">Settings</button>
@@ -150,7 +151,7 @@
         <h3>Campaign</h3>
         <p class="optionNote">Reset removes Agent X campaign progress, money, XP, reputation, equipment and purchased skills.</p>
         <button id="campaignReset" class="dangerOption" type="button">Reset campaign</button>
-        <p class="optionNote buildInfo">Build v450</p>
+        <p class="optionNote buildInfo">Build v460</p>
 
         <h3>Sound mixer</h3>
         <p class="optionNote">Adjust the overall game mix. Individual sound-effect and music-track audition trims are available in the local development tab.</p>
@@ -166,6 +167,78 @@
     </div>
     <div id="optionsFooter"><button id="optionsClose" type="button">Close</button></div>
   </div>
+      </section>
+      <section class="campaignPanel guidePanel" data-panel="guide">
+        <h2>Operator guide</h2>
+        <p class="guideIntro">Short notes on how VOX work fits together. Select a heading to open it.</p>
+        <details class="guideItem" open>
+          <summary>Controls</summary>
+          <div class="guideBody">
+            <div class="guideKeys">
+              <span>Mouse</span><span>Aim and steer</span>
+              <span>Left mouse or Space</span><span>Fire</span>
+              <span>Hold right mouse</span><span>Lock on to a target, then fire a missile</span>
+              <span>Middle mouse or 1</span><span>Use consumable slot 1</span>
+              <span>2 to 4</span><span>Use consumable slots 2 to 4</span>
+              <span>Hold Q</span><span>Abandon the mission. The drone is saved, the job is failed</span>
+              <span>P</span><span>Next music track</span>
+              <span>[ and ]</span><span>Smaller or larger text, while this terminal is open</span>
+            </div>
+            <p>New to the drone? The VOX simulator in your first mail teaches all of this. It costs nothing and changes nothing.</p>
+          </div>
+        </details>
+        <details class="guideItem">
+          <summary>Contracts and risk</summary>
+          <div class="guideBody">
+            <p>The Contracts board is ordinary paid work from the five networks. Higher risk means more hostiles and more pay. Risk rises with your operator level.</p>
+            <p>Request new contracts to refresh the board. The first refresh after a job is free.</p>
+            <p>PRIORITY jobs come from a network that trusts you. They pay extra.</p>
+          </div>
+        </details>
+        <details class="guideItem">
+          <summary>Surprises on the route</summary>
+          <div class="guideBody">
+            <p>The board says why you are going. It does not promise the trip stays quiet. Some jobs meet a pirate blockade, rogue drones or bounty hunters on the way. Surviving one pays hazard money.</p>
+            <p>Sometimes a distress beacon, a derelict or a civilian under attack appears off the route. These are optional. Steer to the marker or destroy the pursuers to help, or carry on and it passes. Results can be good, bad or nothing at all.</p>
+          </div>
+        </details>
+        <details class="guideItem">
+          <summary>Networks and agent missions</summary>
+          <div class="guideBody">
+            <p>Each network tracks your standing separately. Finishing its jobs raises it. Failing or abandoning lowers it.</p>
+            <p>Every network's contact has three personal agent missions. They arrive in Mail at Favoured standing (25) and level 6, standing 40 and level 9, and Trusted (60) and level 12.</p>
+            <p>The third mission earns that network's unique item, which is never sold and is always recovered if your drone is lost. The Networks page shows what each network unlocks next.</p>
+          </div>
+        </details>
+        <details class="guideItem">
+          <summary>Drone bay and equipment</summary>
+          <div class="guideBody">
+            <p>Buy gear in the Market and fit it in the Drone bay. Point at an item in your stores to compare it with what is fitted.</p>
+            <p>Pulse Laser is the all-rounder. Scatter Emitter is wide and good against swarms and incoming fire. Rail Driver is slow but breaks armour and structures.</p>
+            <p>Consumables are bought by the charge and restock automatically after a run if you allow it. Lost hardware can be reclaimed through insurance for part of its price.</p>
+          </div>
+        </details>
+        <details class="guideItem">
+          <summary>Skills and levels</summary>
+          <div class="guideBody">
+            <p>Each operator level gives one skill point. Skills change how your guns, defences, ordnance and contracts work.</p>
+            <p>Levels also open better market grades: Green at 2, Blue at 5, Purple at 9 and Orange at 14. Strong standing can open a grade early.</p>
+          </div>
+        </details>
+        <details class="guideItem">
+          <summary>Late game</summary>
+          <div class="guideBody">
+            <p>Elite contracts (risk 10 to 12) appear from level 15, 18 and 21. They field more hostiles and pay a large premium.</p>
+            <p>Once the VOX story is finished, Black Contracts start at level 15. Each one finished raises the threat on the next, with tougher remnants and bigger pay.</p>
+            <p>From level 21, Veteran rank adds 2% to board pay per level, up to 30%.</p>
+          </div>
+        </details>
+        <details class="guideItem">
+          <summary>Mail</summary>
+          <div class="guideBody">
+            <p>Story missions, agent missions, Black Contracts, rewards and notices all arrive in Mail. Open a message to accept its mission. A failed story or agent mission sends a new offer so you can try again.</p>
+          </div>
+        </details>
       </section>
       <section id="campaignDevPanel" class="campaignPanel campaignDevPanel" data-panel="dev" hidden>
           <h2>Developer</h2>
