@@ -1,0 +1,13 @@
+VECTOR SPACE: CHANGES MADE WHILE YOU WERE AWAY
+==============================================
+
+Started 27 Oct 2026, 21:11. Loop set to stop after 23:00.
+Each entry is also its own git commit (git log shows the detail).
+Everything was tested muted in the browser, but none of it hand-flown.
+
+v520  Forest/swamp corridor now keeps its mission settings
+      The corridor never stored the stage it was started with, so any mission
+      that customised its ending (text, scan time, monolith layout) silently got
+      the built-in defaults. Node 42's authored values happen to equal the
+      defaults, so it looks the same, except its scan now ends with its own line
+      "SCAN COMPLETE · RETURN DATA TO VOX".

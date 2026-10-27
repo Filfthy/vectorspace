@@ -786,6 +786,10 @@ class CorridorEnvironmentController {
   }
   begin(stage=null){
     if(this.active)this.stopForJump();
+    // v520: keep the stage. Every per-mission setting below and later (presentation
+    // text, terminalConfig, scanSeconds) is read from this.stage, which was never set,
+    // so missions silently got the built-in defaults.
+    this.stage=stage||null;
     this.active=true;this.finishing=false;this.finishT=0;this.wallHitCD=0;
     this.scenarioMode=!!(campaign.currentMission&&campaign.currentStage()?.type==='forest_corridor');
     this.environmentId=stage?.environment||(stage?.variant==='alien_swamp'?'alien_swamp':'forest_corridor');
