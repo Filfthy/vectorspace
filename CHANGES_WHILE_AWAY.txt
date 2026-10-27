@@ -184,3 +184,15 @@ v670  Three bugs found by an independent review, fixed
       - Since v400 the VOX simulator used your fitted internals (extra slots,
         more shields). It's back to the fixed setup: 6 shields with a Shield
         Extender fitted, where the hub shows 7.
+
+v680  Diversions are tidied away when a job completes
+      Failing or abandoning a job already cleared any diversion state, but
+      completing one didn't, so the diversion lingered until the next launch.
+      It's harmless after v670, but now all three endings clear it the same
+      way.
+
+Loop stopped at 23:00 as asked. Things only you can do: hand-play the new
+content (none of it has been flown by a person), record the 16 lines in
+VOICE_REQUESTS.txt if you want them voiced, "Save to file" once before
+moving to GitHub Pages, and switch Pages on in the repo settings if you
+want the online copy.

@@ -2771,7 +2771,7 @@ class CampaignController {
     if(this.currentMission.devTest&&typeof scenarioFlow!=='undefined')return scenarioFlow.finishDevelopmentMission(true);
     if(this.currentMission.devTemplateTest)return this.finishDevTemplateTest(true);
     if(this.currentMission.training)return this.finishTraining(true,'Exercise objectives completed.');
-    this.beginPostMissionVoiceHold();
+    this.beginPostMissionVoiceHold();routeDiversion?.reset?.();
     const lostFrameId=this.state.drone,lostFrameExcess=droneLost?this.frameReplacementExcess(lostFrameId):0;
     const lostConsumables=droneLost?this.activeLoadout.filter((id,i)=>id&&this.slotCharges(i)>0):[],lostInsured=droneLost?[...this.activeInternalLoadout.filter(Boolean),...(this.activeWeapon&&this.activeWeapon!=='laser1'?[this.activeWeapon]:[])]:[];
     const m=this.currentMission,faction=this.factions[m.faction]||null;
