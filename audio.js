@@ -1244,7 +1244,9 @@ class AudioManager {
     if(!this.voiceFiles[key])return;
     if(once&&this.spoken.has(key))return;
     if(once)this.spoken.add(key);
-    if(AudioMixer.channelVolume('speech')<=0)return;
+    // v430: with speech off or muted the line is still shown as a caption, so the
+    // simulator's instructions and mission callouts are never lost.
+    if(AudioMixer.channelVolume('speech')<=0){this.queueSilentCaption(key,priority);return}
     const item={key,delayBeforeMs:Math.max(0,Number(delayBeforeMs)||0)};
     if(priority){
       this.stopVoice(false);
@@ -1253,6 +1255,20 @@ class AudioManager {
       this.voiceQueue.push(item);
     }
     this.pumpVoice();
+  }
+  queueSilentCaption(key,priority=false){
+    const text=this.voiceText?.[key];if(!text||typeof window.onSpeechVoiceStarted!=='function')return;
+    const q=this.silentCaptions||(this.silentCaptions=[]);
+    if(priority){q.length=0;clearTimeout(this.silentCaptionTimer);this.silentCaptionTimer=null}
+    if(q.some(x=>x.key===key))return;
+    q.push({key,text});if(!this.silentCaptionTimer)this.pumpSilentCaption()
+  }
+  pumpSilentCaption(){
+    const q=this.silentCaptions||[],next=q.shift();this.silentCaptionTimer=null;if(!next)return;
+    // Roughly reading pace for a short spoken line.
+    const seconds=Math.max(1.8,Math.min(5,.9+next.text.length*.055));
+    try{window.onSpeechVoiceStarted(next.key,next.text,seconds)}catch(_){ }
+    this.silentCaptionTimer=setTimeout(()=>this.pumpSilentCaption(),seconds*1000)
   }
   playSequence(keys){
     for(const key of keys)this.playVoice(key,{once:true,priority:false});

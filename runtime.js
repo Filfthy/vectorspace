@@ -651,18 +651,21 @@ class CabinetScrollbar{
     const top=m.max>0?(this.scroller.scrollTop/m.max)*m.travel:0;
     this.thumb.style.height=`${Math.round(m.thumbH)}px`;this.thumb.style.transform=`translateY(${Math.round(top)}px)`
   }
+  // v430: the hub is CSS-zoomed (ui-scale.js). Pointer coordinates are on-screen
+  // pixels while track/thumb metrics are layout pixels, so convert between them.
+  screenScale(){const h=this.track.offsetHeight;return h>0?(this.track.getBoundingClientRect().height/h)||1:1}
   trackPointer(e){
     if(e.target===this.thumb)return;const m=this.metrics();if(m.max<=0)return;
-    const r=this.track.getBoundingClientRect(),y=clamp(e.clientY-r.top-2-m.thumbH*.5,0,m.travel);
+    const r=this.track.getBoundingClientRect(),y=clamp((e.clientY-r.top)/this.screenScale()-2-m.thumbH*.5,0,m.travel);
     this.scroller.scrollTop=m.travel>0?(y/m.travel)*m.max:0
   }
   beginDrag(e){
-    e.preventDefault();e.stopPropagation();const m=this.metrics();this.drag={y:e.clientY,scroll:this.scroller.scrollTop,max:m.max,travel:m.travel};
+    e.preventDefault();e.stopPropagation();const m=this.metrics();this.drag={y:e.clientY,scroll:this.scroller.scrollTop,max:m.max,travel:m.travel,k:this.screenScale()};
     this.thumb.setPointerCapture(e.pointerId)
   }
   dragMove(e){
     if(!this.drag)return;e.preventDefault();const d=this.drag;if(d.max<=0||d.travel<=0)return;
-    this.scroller.scrollTop=clamp(d.scroll+(e.clientY-d.y)*(d.max/d.travel),0,d.max)
+    this.scroller.scrollTop=clamp(d.scroll+((e.clientY-d.y)/(d.k||1))*(d.max/d.travel),0,d.max)
   }
   endDrag(e){if(!this.drag)return;this.drag=null;try{this.thumb.releasePointerCapture(e.pointerId)}catch(_){}}
 }

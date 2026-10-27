@@ -117,6 +117,21 @@ class CampaignController {
   lockTimeMultiplier(){return (this.hasSkill('fastLock')?.5:1)*(Number(this.activeFrame().lockMult)||1)}
   lockHoldMultiplier(){return this.hasSkill('fastLock')?2:1}
   boltToleranceMultiplier(){return (this.hasSkill('pointDefence')?1.5:1)*(Number(this.activeFrame().boltTolMult)||1)*this.internalProduct('aimMult')*(Number(this.weaponItem().boltTolMult)||1)}
+  // v430 market: a weapon's own numbers beside the fitted weapon's, so the families'
+  // trade-offs are visible without reading prose. Frame and skill bonuses are excluded.
+  weaponStats(w){
+    w=w||this.items.laser1;
+    return {damage:Number(w.damage)||1,burst:w.burstFixed?w.burstFixed:4+(Number(w.burstBonus)||0),cycle:Number(w.intervalMult)||1,
+      aim:Number(w.aimMult)||1,shootDown:Number(w.boltTolMult)||1,structure:Math.max(1,Number(w.structureDamage)||1)}
+  }
+  weaponCompareHtml(p){
+    const fittedId=this.state.weaponLoadout||'laser1',fitted=this.items[fittedId]||this.items.laser1,a=this.weaponStats(p),b=this.weaponStats(fitted);
+    const pct=v=>`${Math.round(v*100)}%`,rate=v=>v===1?'normal':(v>1?`${v.toFixed(1)}× slower`:`${(1/v).toFixed(1)}× faster`);
+    const rows=[['Damage per shot',a.damage,b.damage,v=>String(v),1],['Shots per burst',a.burst,b.burst,v=>String(v),1],['Firing rate',a.cycle,b.cycle,rate,-1],
+      ['Hit size vs fighters',a.aim,b.aim,pct,1],['Shooting down fire',a.shootDown,b.shootDown,pct,1],['Damage to armour and structures',a.structure,b.structure,v=>`${v}×`,1]];
+    const cls=(x,y,dir)=>x===y?'':((x-y)*dir>0?'better':'worse');
+    return `<div class="weaponCompare"><div class="weaponCompareHead"><span></span><span>This</span><span>Fitted: ${this.escapeHtml(fitted.name)}</span></div>${rows.map(([n,x,y,f,dir])=>`<div class="weaponCompareRow"><span>${n}</span><b class="${cls(x,y,dir)}">${f(x)}</b><span>${f(y)}</span></div>`).join('')}</div>`
+  }
   // Damage every non-fighter laser target takes per hit. The Pulse Laser stays at 1.
   structureDamage(){return Math.max(1,Number(this.weaponItem().structureDamage)||1)}
   restockDiscount(){return this.hasSkill('quartermaster')?.85:1}
@@ -711,7 +726,8 @@ class CampaignController {
       planetaryRequirements,
       risk,minLevel:template.minLevel||1,minRep:-100,pay,xp,difficulty,implemented:true,intelStyle:template.intelStyle||'hiddenGroup',scenarioVersion:11,boardSchemaVersion:this.contractBoardSchemaVersion(),
       routeEncounter,
-      description,modules:this.scaleContractToughness(modules,risk),stages:modules.map(x=>x.label)
+      // Hidden route encounters and optional diversions are not listed: they are surprises.
+      description,modules:this.scaleContractToughness(modules,risk),stages:modules.filter(x=>!x.routeEncounter&&x.type!=='route_diversion').map(x=>x.label)
     }
   }
   contractBoardSchemaVersion(){return 3}
@@ -2159,7 +2175,7 @@ class CampaignController {
     const m=this.missions.find(x=>x.id===this.selectedMissionId);
     if(m){
       const f=this.factions[m.faction],riskText=m.risk>=7?'Extreme':(m.risk>=5?'High':(m.risk>=3?'Moderate':'Routine'));
-      detail.innerHTML=`<div class="catalogDetailKicker">CONTRACT DETAILS</div><h3>${m.title}</h3><div class="missionFaction">${f.name} · Rep ${f.rep} ${this.repLabel(f.rep)}</div><div class="catalogDetailDesc">${m.description}</div><div class="missionMeta"><span>Pay <b>CR ${m.pay.toLocaleString()}</b></span><span>XP <b>${m.xp}</b></span><span>Risk <b>${riskText} ${m.risk}</b></span></div><div class="stageLine">${m.stages.join(' → ')}</div><div class="missionStatus">Available</div><button class="missionLaunch" type="button">Accept contract</button>`;
+      detail.innerHTML=`<div class="catalogDetailKicker">CONTRACT DETAILS</div><h3>${m.title}</h3><div class="missionFaction">${f.name} · Rep ${f.rep} ${this.repLabel(f.rep)}</div><div class="catalogDetailDesc">${m.description}</div><div class="contractStats"><div><b>CR ${m.pay.toLocaleString()}</b><span>Pay</span></div><div><b>${m.xp}</b><span>XP</span></div><div><b>${riskText} ${m.risk}</b><span>Risk</span></div></div>${m.priority?`<div class="contractPriority">PRIORITY CONTRACT · ${f.name} standing bonus included</div>`:''}<div class="missionStatus">Available</div><button class="missionLaunch" type="button">Accept contract</button><div class="contractRoute"><h4>Route</h4><ol>${(m.stages||[]).map(x=>`<li>${this.escapeHtml(x)}</li>`).join('')}</ol></div>`;
       detail.querySelector('.missionLaunch').addEventListener('click',()=>this.prepareMission(m.id));
     }else detail.innerHTML='<div class="catalogEmptyDetail">No contract selected.</div>';
     const listHost=this.wrapCatalogScroller(list,'catalogScrollHost contractScrollHost');
@@ -2168,13 +2184,29 @@ class CampaignController {
     layout.append(listHost,detail);missionBoardEl.appendChild(layout);
     requestAnimationFrame(()=>this.contractScrollbar?.update?.())
   }
+  // v430: one short line per network saying what standing unlocks next.
+  networkNextHtml(factionId){
+    const C=globalThis.AgentXFactionContent,chain=C?.chains?.find(c=>c.faction===factionId);if(!chain)return '';
+    const f=this.factions[factionId],rep=Number(f?.rep)||0,flags=this.state.mailFlags||{},lvl=this.levelForXP(),esc=t=>this.escapeHtml(String(t));
+    const reward=this.items[chain.reward];
+    if(flags[chain.steps[2].flag+'Done'])return `<div class="netNext done">Reward earned · ${esc(reward?.name||'')} · priority jobs +40%</div>`;
+    const i=chain.steps.findIndex(s=>!flags[s.flag+'Done']),step=chain.steps[i];
+    let line;
+    if(flags[step.flag+'Offer'])line=`Agent mission ${i+1} of 3 waiting in Mail`;
+    else{
+      const need=[];if(rep<step.rep)need.push(`standing ${step.rep}`);if(lvl<step.level)need.push(`level ${step.level}`);
+      line=need.length?`Next: agent mission ${i+1} of 3 at ${need.join(' and ')}`:`Agent mission ${i+1} of 3 unlocked · arrives in Mail after your next contract`
+    }
+    const extra=rep<40?' · priority jobs at 40':'';
+    return `<div class="netNext">${esc(line)}${extra}${i===2&&reward?` · reward ${esc(reward.name)}`:''}</div>`
+  }
   // Networks + Operator on one page (Dave, v58): compact standing rows on the left,
   // the operator record (storylines, stats, achievements) on the right.
   renderFactions(){
     factionGridEl.innerHTML='';const st=this.stats(),esc=t=>this.escapeHtml(String(t)),n=v=>Number(v||0).toLocaleString();
     const nets=document.createElement('section');nets.className='netColumn';
     nets.innerHTML='<h3 class="opHeading">Networks</h3>'+Object.values(this.factions).map(f=>{const rep=clamp(f.rep,-100,100),jobs=st.contracts.byFaction[f.id]||0;
-      return `<div class="netRow"><div class="netName">${esc(f.name)}</div><div class="repTrack"><span style="left:${(rep+100)/2}%"></span></div><div class="netMeta"><span>${rep>0?'+':''}${rep} · ${esc(this.repLabel(rep))}</span><span>${jobs} contract${jobs===1?'':'s'}</span></div></div>`}).join('');
+      return `<div class="netRow"><div class="netName">${esc(f.name)}</div><div class="repTrack"><span style="left:${(rep+100)/2}%"></span></div><div class="netMeta"><span>${rep>0?'+':''}${rep} · ${esc(this.repLabel(rep))}</span><span>${jobs} contract${jobs===1?'':'s'}</span></div>${this.networkNextHtml(f.id)}</div>`}).join('');
     const op=document.createElement('section');op.className='opColumn';
     const arcs=this.storyArcs(),main=arcs.reduce((a,x)=>a+x.done,0),mainT=arcs.reduce((a,x)=>a+x.total,0),k=st.kills;
     const rec=[['Contracts completed',n(st.contracts.done)],['Contracts failed',n(st.contracts.failed)],['Contracts abandoned',n(st.contracts.abandoned)],['Clean runs',n(st.cleanRuns)],
@@ -2253,9 +2285,10 @@ class CampaignController {
       const tier=this.tierInfo(p.tier),icon=isFrame?this.frameIcon(p):this.itemIcon(p.id),meta=isFrame?`Frame · Tier ${tier.roman} · ${tier.name}`:p.kind;
       const specs=isFrame?`<div class="frameSpecs"><span>${p.shields} shields</span><span>${p.consumables} consumable</span><span>${p.internals} internal</span></div><div class="frameBonus">${p.bonusText}</div>`:'';
       const faction=p.faction?`<div class="factionAccess">${p.factionName} · REP ${p.repReq}</div>`:'';
+      const compare=!isFrame&&p.slot==='weapon'?this.weaponCompareHtml(p):'';
       const price=this.marketPrice(p),discounted=price<p.price;
       detail.className=`catalogDetail marketDetail ${this.tierClass(p.tier)}${access.ok?'':' locked'}`;
-      detail.innerHTML=`<div class="catalogDetailKicker">MARKET ITEM</div><div class="shopItemHead"><div class="itemIconFrame"><div class="shopItemIcon">${icon}</div></div><div><h3>${p.name}</h3><div class="missionFaction">${meta}</div></div></div>${faction}<div class="catalogDetailDesc">${p.note}</div>${specs}<div class="shopAccess ${access.ok?'':'bad'}">${access.reason}</div><div class="shopPrice">CR ${price.toLocaleString()}${discounted?` <span class="mailDiscount">MAIL DISCOUNT · WAS CR ${p.price.toLocaleString()}</span>`:''}</div><div class="shopOwned">${isFrame?(active?'ACTIVE FRAME':(owned?'OWNED · SELECT IN DRONE BAY':'NOT OWNED')):`Workshop stock X${owned}`}</div><button class="marketBuyPrimary" type="button" ${(!access.ok||active||owned&&isFrame||this.state.money<price)?'disabled':''}>${isFrame?'Buy frame':'Buy one'}</button>`;
+      detail.innerHTML=`<div class="catalogDetailKicker">MARKET ITEM</div><div class="shopItemHead"><div class="itemIconFrame"><div class="shopItemIcon">${icon}</div></div><div><h3>${p.name}</h3><div class="missionFaction">${meta}</div></div></div>${faction}<div class="shopAccess ${access.ok?'':'bad'}">${access.reason}</div><div class="shopPrice">CR ${price.toLocaleString()}${discounted?` <span class="mailDiscount">MAIL DISCOUNT · WAS CR ${p.price.toLocaleString()}</span>`:''}</div><div class="shopOwned">${isFrame?(active?'ACTIVE FRAME':(owned?'OWNED · SELECT IN DRONE BAY':'NOT OWNED')):`Workshop stock X${owned}`}</div><button class="marketBuyPrimary" type="button" ${(!access.ok||active||owned&&isFrame||this.state.money<price)?'disabled':''}>${isFrame?'Buy frame':'Buy one'}</button><div class="catalogDetailDesc">${p.note}</div>${specs}${compare}`;
       const buyBtn=detail.querySelector('.marketBuyPrimary');
       if(!isFrame&&p.slot==='consumable'){
         const pack=this.packSize(p)||Number(p.pack)||1,unit=Number(p.price)||0;

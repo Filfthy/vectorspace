@@ -7,15 +7,17 @@
 
   /* Shared cabinet typography. Components choose a role; they do not invent
      their own prose/metadata metrics. */
-  --type-body:11px;
-  --type-meta:10px;
-  --type-compact:9px;
-  --type-label:8px;
-  --type-micro:7px;
-  --type-card-title:15px;
-  --type-section-title:14px;
-  --type-detail-title:20px;
-  --type-panel-title:23px;
+  /* v430: raised for readability (were 11/10/9/8/7/15/14/20/23). The whole hub is
+     also zoomed to the screen size and the player's text setting (ui-scale.js). */
+  --type-body:13px;
+  --type-meta:12px;
+  --type-compact:11px;
+  --type-label:10px;
+  --type-micro:9px;
+  --type-card-title:16px;
+  --type-section-title:15px;
+  --type-detail-title:21px;
+  --type-panel-title:24px;
   --line-body:1.5;
   --line-compact:1.35;
   --line-tight:1.2;
@@ -45,7 +47,7 @@ body.playing:not(.paused):not(.cheating) canvas{cursor:none}
 #abandonBox.show{display:block}
 #abandonBox.blocked{border-color:var(--r);color:var(--r)}
 #abandonTitle{font-size:12px;letter-spacing:var(--track-label)}
-#abandonHint{margin-top:4px;color:var(--g);font-size:9px}
+#abandonHint{margin-top:4px;color:var(--g);font-size:11px}
 #abandonBox.blocked #abandonHint{color:var(--r)}
 #abandonProgress{height:10px;margin-top:8px;border:1px solid currentColor;padding:1px;background:#000}
 #abandonProgressFill{height:6px;width:0;border:1px solid var(--c);background:#000;box-sizing:border-box}
@@ -176,14 +178,14 @@ body.cheating canvas{cursor:var(--cursor-vector)}
 .netRow:first-of-type{border-top:0}
 .netName{color:var(--w)}
 .netRow .repTrack{margin:7px 0 5px}
-.netMeta{display:flex;justify-content:space-between;font-size:9px;color:var(--c)}
+.netMeta{display:flex;justify-content:space-between;font-size:var(--type-meta);color:var(--c)}
 .netMeta span:last-child{color:var(--g)}
 .opName{color:var(--c);letter-spacing:.12em}.opName b{color:var(--y);font-weight:400}
 .opLine{color:var(--g);font-size:10px;margin-top:3px}
 .opBlock{margin-top:12px;border-top:1px solid var(--gd);padding-top:9px}
 .opBlock h4{margin:0 0 7px;color:var(--y);font-weight:400;display:flex;justify-content:space-between}
 .opBlock h4 span{color:var(--c)}
-.opArc{display:flex;justify-content:space-between;color:var(--g);font-size:10px;padding:2px 0}
+.opArc{display:flex;justify-content:space-between;color:var(--g);font-size:var(--type-meta);padding:3px 0}
 .opArc.done{color:var(--w)}
 .opTicks{display:flex;align-items:center;gap:4px}
 .opTicks .tick{display:inline-block;width:8px;height:8px;border:1px solid var(--gd)}
@@ -193,7 +195,7 @@ body.cheating canvas{cursor:var(--cursor-vector)}
 .opStats div{display:flex;justify-content:space-between;color:var(--g)}
 .opStats b{color:var(--w);font-weight:400}
 .opAch{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
-.achBadge{border:1px solid #303030;padding:6px 7px;color:var(--x);font-size:9px}
+.achBadge{border:1px solid #303030;padding:6px 7px;color:var(--x);font-size:11px}
 .achBadge b{display:block;font-weight:400;font-size:10px;margin-bottom:2px}
 .achBadge.on{border-color:var(--y);color:var(--g)}
 .achBadge.on b{color:var(--y)}
@@ -204,15 +206,15 @@ body.cheating canvas{cursor:var(--cursor-vector)}
 .workshopMission{border-color:var(--c)}
 .workshopMission .missionFaction{margin-bottom:6px}
 .workshopDroneStats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0 13px}
-.workshopDroneStats div{border:1px solid var(--gd);padding:8px;color:var(--g);font-size:9px;min-width:0}
+.workshopDroneStats div{border:1px solid var(--gd);padding:8px;color:var(--g);font-size:11px;min-width:0}
 .workshopDroneStats b{display:block;color:var(--w);font-size:13px;font-weight:400;margin-bottom:3px}
 .loadoutSlots{display:grid;grid-template-columns:repeat(3,minmax(82px,1fr));gap:9px}
 .loadoutSlot{position:relative;width:100%;aspect-ratio:1/1;min-height:92px!important;padding:8px!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;overflow:hidden}
 .loadoutKey{position:absolute;left:6px;top:5px;color:var(--y);font-size:15px;line-height:1}
 .loadoutIcon{width:48px;height:48px;display:grid;place-items:center;color:inherit}
 .loadoutIcon svg,.inventorySlotIcon svg,.shopItemIcon svg,.gearHudIcon svg{width:100%;height:100%;display:block;fill:none;stroke:currentColor;stroke-width:1.45;stroke-linecap:square;stroke-linejoin:miter;vector-effect:non-scaling-stroke}
-.loadoutName{color:inherit;font-size:8px;line-height:1.2;min-height:19px}
-.loadoutState{font-size:7px;color:var(--c);line-height:1.1}
+.loadoutName{color:inherit;font-size:10px;line-height:1.2;min-height:19px}
+.loadoutState{font-size:9px;color:var(--c);line-height:1.1}
 .loadoutSlot.locked{border-color:var(--gd)!important;color:var(--gd)!important;opacity:.5}
 .loadoutSlot.empty .loadoutIcon{opacity:.18}
 .inventoryHeader{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-bottom:8px}
@@ -222,15 +224,15 @@ body.cheating canvas{cursor:var(--cursor-vector)}
 .inventorySlot:hover:not(:disabled),.inventorySlot:focus-visible:not(:disabled){color:var(--c)!important;border-color:var(--c)!important}
 .inventorySlot.empty{opacity:.34;pointer-events:none}
 .inventorySlotIcon{width:40px;height:40px;display:grid;place-items:center;color:inherit}
-.inventorySlotName{font-size:7px;line-height:1.1;color:inherit}
-.inventorySlotIndex{position:absolute;right:4px;top:3px;color:var(--gd);font-size:7px}
+.inventorySlotName{font-size:9px;line-height:1.1;color:inherit}
+.inventorySlotIndex{position:absolute;right:4px;top:3px;color:var(--gd);font-size:9px}
 .inventoryOverflow{border:1px solid var(--gd);min-height:76px;display:grid;place-items:center;color:var(--y);font-size:10px}
 .itemIconFrame{border:1px solid var(--gd);width:70px;height:70px;display:grid;place-items:center;color:var(--c);flex:0 0 auto}
 .shopItemHead{display:flex;align-items:center;gap:12px;margin-bottom:9px}
 .shopItemHead h3{margin:0 0 5px}
 .shopItemIcon{width:52px;height:52px;display:grid;place-items:center;color:inherit}
 .workshopActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.workshopActions button{min-width:132px;height:30px;font-size:9px;color:var(--g);border-color:var(--gd)}
+.workshopActions button{min-width:132px;height:30px;font-size:11px;color:var(--g);border-color:var(--gd)}
 .workshopLaunchPrimary{position:relative;min-width:280px;height:58px!important;padding:0 28px!important;color:var(--y)!important;border-color:var(--y)!important;font-size:18px!important;letter-spacing:.1em;overflow:visible}
 .workshopLaunchPrimary:hover,.workshopLaunchPrimary:focus{color:#fff!important;border-color:#fff!important}
 .shopOwned{color:var(--c);font-size:10px;margin:7px 0}
@@ -270,9 +272,9 @@ body.cheating canvas{cursor:var(--cursor-vector)}
 .skillTooltip{position:absolute;z-index:20;width:248px;display:none;pointer-events:none;background:#000;border:1px solid var(--c);padding:8px 9px;line-height:1.35}
 .skillTooltip.show{display:block}
 .skillTooltipTitle{color:var(--y);font-size:10px;margin-bottom:5px}
-.skillTooltipBody{color:var(--w);font-size:8px}
-.skillTooltipMeta{color:var(--c);font-size:8px;margin-top:6px;border-top:1px solid var(--gd);padding-top:5px}
-.skillTooltipAction{color:var(--g);font-size:8px;margin-top:4px}
+.skillTooltipBody{color:var(--w);font-size:10px}
+.skillTooltipMeta{color:var(--c);font-size:10px;margin-top:6px;border-top:1px solid var(--gd);padding-top:5px}
+.skillTooltipAction{color:var(--g);font-size:10px;margin-top:4px}
 @media(max-width:980px){.skillTreeGraph{min-width:720px}}
 .repTrack{height:11px;margin:9px 0;position:relative;background:#000;border:0;border-top:1px solid var(--g)}
 .repTrack::before{content:'';position:absolute;left:50%;top:-4px;height:7px;border-left:1px solid var(--g)}
@@ -285,7 +287,7 @@ body.cheating canvas{cursor:var(--cursor-vector)}
 .shopPrice{color:var(--y);font-size:14px;margin:10px 0}
 .perkNode{border:1px solid var(--g);padding:6px 8px;margin:7px 0;background:#000}
 .perkNode b{display:block;color:var(--w);font-size:11px;font-weight:400}
-.perkNode span{font-size:9px;color:var(--g)}
+.perkNode span{font-size:11px;color:var(--g)}
 #debriefBox{max-width:680px;margin:7vh auto 0;border:1px solid var(--c);padding:22px;background:#000}
 #debriefBox h2{color:var(--c);margin:0 0 12px;font-weight:400}
 .debriefRow{display:flex;justify-content:space-between;border-bottom:1px solid var(--gd);padding:7px 0;font-size:12px}
@@ -431,10 +433,10 @@ button:disabled{
 #musicTrackMixer{display:grid;gap:8px;margin-top:4px}
 .trackGroupLabel{margin:10px 0 1px;color:var(--g);font-size:10px;letter-spacing:var(--track-label);text-transform:uppercase}
 .trackMixerHeader,.trackMixerRow{display:grid;grid-template-columns:minmax(195px,1.15fr) minmax(115px,.7fr) 46px minmax(150px,.9fr) 90px 66px;gap:8px 10px;align-items:center}
-.trackMixerHeader{color:var(--c);font-size:9px;border-bottom:1px solid var(--g);padding-bottom:4px}
+.trackMixerHeader{color:var(--c);font-size:11px;border-bottom:1px solid var(--g);padding-bottom:4px}
 .trackMixerRow{min-height:30px}
 .trackName{color:var(--w);font-size:10px;line-height:1.3;min-width:0}
-.trackTime{color:var(--g);font-size:9px;text-align:center;white-space:nowrap}
+.trackTime{color:var(--g);font-size:11px;text-align:center;white-space:nowrap}
 .trackPlay{height:28px!important;padding:2px 8px!important;border-color:var(--c)!important;color:var(--c)!important}
 .trackPlay.active{border-color:var(--y)!important;color:var(--y)!important}
 .trackPosition{accent-color:var(--c)}
@@ -569,7 +571,7 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 /* v183 — slot-type loadout + insurance recovery */
 .loadoutGroup{margin-top:12px}
 .loadoutGroup:first-of-type{margin-top:4px}
-.loadoutGroupLabel{color:var(--c);font-size:8px;letter-spacing:var(--track-kicker);margin:0 0 6px}
+.loadoutGroupLabel{color:var(--c);font-size:10px;letter-spacing:var(--track-kicker);margin:0 0 6px}
 .internalSlots{grid-template-columns:minmax(110px,180px)}
 .loadoutSlot.internal{border-color:var(--c)!important;color:var(--c)!important}
 .inventorySlotType{font-size:6px;line-height:1;color:var(--x)}
@@ -578,20 +580,20 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .insuranceFrame,.insuranceConsumables{display:flex;justify-content:space-between;gap:14px;border-bottom:1px solid var(--gd);padding:9px 0;font-size:11px}
 .insuranceFrame b{color:var(--c);font-weight:400}
 .insuranceConsumables b{color:var(--y);font-weight:400;text-align:right}
-.insuranceHeading{color:var(--c);font-size:9px;letter-spacing:var(--track-kicker);margin:18px 0 7px}
+.insuranceHeading{color:var(--c);font-size:11px;letter-spacing:var(--track-kicker);margin:18px 0 7px}
 .insuranceItem{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;border:1px solid var(--gd);padding:10px;margin:7px 0}
 .insuranceItem b{display:block;color:var(--w);font-weight:400;font-size:12px}
-.insuranceItem span{display:block;color:var(--g);font-size:8px;margin-top:3px}
+.insuranceItem span{display:block;color:var(--g);font-size:10px;margin-top:3px}
 .insuranceItem>strong{color:var(--y);font-size:12px;font-weight:400}
 .insuranceActions{display:flex;gap:6px}
-.insuranceActions button{min-width:92px;height:28px;font-size:8px}
+.insuranceActions button{min-width:92px;height:28px;font-size:10px}
 .insuranceItem.recovered{border-color:var(--c)}
 .insuranceItem.recovered .insuranceActions span{color:var(--c)}
 .insuranceItem.declined{opacity:.55}
 .insuranceItem.declined .insuranceActions span{color:var(--x)}
-.insuranceNone{border:1px solid var(--gd);padding:11px;color:var(--x);font-size:9px}
+.insuranceNone{border:1px solid var(--gd);padding:11px;color:var(--x);font-size:11px}
 .insuranceFooter{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px}
-.insuranceFooter span{font-size:9px;color:var(--g)}
+.insuranceFooter span{font-size:11px;color:var(--g)}
 .insuranceFooter button{min-width:210px}
 .campaignSettingsTab{margin-left:0}
 @media (max-width:760px){.insuranceItem{grid-template-columns:1fr}.insuranceActions{justify-content:flex-start}.insuranceFooter{align-items:stretch;flex-direction:column}.insuranceFooter button{width:100%}}
@@ -602,16 +604,16 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .marketAccessSummary{font-size:10px;color:var(--c);letter-spacing:var(--track-label)}
 .marketAccessSummary b{color:var(--y);font-weight:400}
 .marketFilterRow{display:flex;gap:7px;flex-wrap:wrap}
-.marketFilterRow button{min-width:78px;height:28px;padding:0 9px;font-size:9px}
+.marketFilterRow button{min-width:78px;height:28px;padding:0 9px;font-size:11px}
 .marketFilterRow button.active{color:var(--c)!important;border-color:var(--c)!important}
 .marketEmpty{grid-column:1/-1;border:1px solid var(--x);padding:18px;color:var(--x)}
 .shopCard.locked{border-color:var(--x);opacity:.72}
-.shopAccess{font-size:9px;color:var(--c);line-height:1.35;margin:8px 0}
+.shopAccess{font-size:11px;color:var(--c);line-height:1.35;margin:8px 0}
 .shopAccess.bad{color:var(--x)}
 .frameSpecs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.frameSpecs span{border:1px solid currentColor;padding:3px 6px;font-size:9px}
-.frameBonus{font-size:9px;color:var(--y);margin:6px 0;line-height:1.35}
-.factionAccess{font-size:9px;color:var(--c);margin:-2px 0 7px}
+.frameSpecs span{border:1px solid currentColor;padding:3px 6px;font-size:11px}
+.frameBonus{font-size:11px;color:var(--y);margin:6px 0;line-height:1.35}
+.factionAccess{font-size:11px;color:var(--c);margin:-2px 0 7px}
 .shopCard:not(.locked) button:disabled{color:var(--x)!important;border-color:var(--x)!important}
 
 .shopCard.tierWhite,.workshopCard.tierWhite{border-color:var(--w)}
@@ -625,33 +627,33 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .shopCard.tierOrange,.workshopCard.tierOrange{border-color:var(--o)}
 .shopCard.tierOrange h3,.shopCard.tierOrange .shopItemIcon,.inventorySlot.tierOrange,.loadoutIcon.tierOrange{color:var(--o)!important}
 
-.frameTrait{color:var(--y);font-size:9px;margin:-3px 0 10px;line-height:1.35}
+.frameTrait{color:var(--y);font-size:11px;margin:-3px 0 10px;line-height:1.35}
 .ownedFramePicker{border-top:1px solid var(--gd);border-bottom:1px solid var(--gd);padding:8px 0;margin:0 0 11px;display:grid;gap:7px}
-.ownedFramePicker>span{font-size:9px;color:var(--c);letter-spacing:.09em}
+.ownedFramePicker>span{font-size:11px;color:var(--c);letter-spacing:.09em}
 .ownedFramePicker>div{display:flex;gap:6px;flex-wrap:wrap}
-.ownedFramePicker button{height:26px!important;min-width:72px;padding:0 8px!important;font-size:9px!important}
+.ownedFramePicker button{height:26px!important;min-width:72px;padding:0 8px!important;font-size:11px!important}
 .ownedFramePicker button.active,.ownedFramePicker button:disabled.active{color:var(--y)!important;border-color:var(--y)!important}
 
 /* Launch is a persistent Drone-bay action, not something the player has to scroll down to find. */
 .campaignPanel[data-panel="workshop"]{padding-bottom:82px}
 .workshopLaunchDock{position:fixed!important;right:26px;bottom:26px;z-index:95;display:flex!important;align-items:flex-end;justify-content:flex-end!important;min-height:0!important;padding:0!important;background:#000;box-shadow:0 0 0 8px #000}
 
-.temporaryTag{color:var(--r);font-size:9px;letter-spacing:var(--track-label);font-weight:400}
+.temporaryTag{color:var(--r);font-size:11px;letter-spacing:var(--track-label);font-weight:400}
 #progressionSandbox{border:1px solid var(--gd);padding:10px;display:grid;gap:10px;margin-bottom:18px}
-.sandboxSummary{display:flex;gap:16px;flex-wrap:wrap;color:var(--g);font-size:9px}
+.sandboxSummary{display:flex;gap:16px;flex-wrap:wrap;color:var(--g);font-size:11px}
 .sandboxSummary b{color:var(--c);font-weight:400}
 .sandboxRow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
-.sandboxRow label{display:grid;grid-template-columns:70px minmax(120px,1fr) 56px;gap:8px;align-items:center;color:var(--w);font-size:9px}
+.sandboxRow label{display:grid;grid-template-columns:70px minmax(120px,1fr) 56px;gap:8px;align-items:center;color:var(--w);font-size:11px}
 .sandboxRow input[type="number"]{grid-column:2/4;background:#000;border:1px solid var(--c);color:var(--c);height:28px;padding:0 8px;font:inherit}
 .sandboxRow output{color:var(--c)}
 .sandboxRow button{height:28px;min-width:100px}
 .sandboxPresets{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
-.sandboxPresets>span{color:var(--y);font-size:9px;margin-right:4px}
-.sandboxPresets button{height:26px;min-width:72px;padding:0 8px;font-size:9px}
+.sandboxPresets>span{color:var(--y);font-size:11px;margin-right:4px}
+.sandboxPresets button{height:26px;min-width:72px;padding:0 8px;font-size:11px}
 .sandboxRepGrid{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:8px 14px}
-.sandboxRepGrid label{display:grid;grid-template-columns:150px minmax(100px,1fr) 38px;gap:8px;align-items:center;font-size:8px;color:var(--w)}
+.sandboxRepGrid label{display:grid;grid-template-columns:150px minmax(100px,1fr) 38px;gap:8px;align-items:center;font-size:10px;color:var(--w)}
 .sandboxRepGrid output{color:var(--c);text-align:right}
-.sandboxNote{font-size:8px;color:var(--x);line-height:1.4}
+.sandboxNote{font-size:10px;color:var(--x);line-height:1.4}
 
 @media (max-width:760px){
   .workshopLaunchDock{right:16px;bottom:16px;left:16px}.workshopLaunchPrimary{width:100%;min-width:0}
@@ -690,7 +692,7 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
     linear-gradient(var(--c),var(--c)) right bottom/14px 1px no-repeat,
     linear-gradient(var(--c),var(--c)) right bottom/1px 14px no-repeat;
 }
-.catalogRow.selected::after{content:"SELECTED";position:absolute;right:8px;top:8px;color:var(--c);font-size:7px;letter-spacing:var(--track-label)}
+.catalogRow.selected::after{content:"SELECTED";position:absolute;right:8px;top:8px;color:var(--c);font-size:9px;letter-spacing:var(--track-label)}
 .catalogRowTitle{font-size:var(--type-section-title);line-height:1.15;padding-right:58px;color:inherit}
 .catalogRowSub{line-height:var(--line-tight);color:var(--c);letter-spacing:var(--track-subtle)}
 .catalogRowBlurb{color:var(--w);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:4px}
@@ -723,7 +725,7 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 }
 
 /* ---------- v190/v199 Mail / narrative ---------- */
-.mailUnreadBadge{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:7px;padding:0 4px;border:1px solid var(--g);color:var(--g);font-size:8px;line-height:1;background:#000}
+.mailUnreadBadge{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:7px;padding:0 4px;border:1px solid var(--g);color:var(--g);font-size:10px;line-height:1;background:#000}
 .mailUnreadBadge.high{border-color:var(--y);color:var(--y)}
 .mailUnreadBadge.normal{border-color:var(--g);color:var(--g)}
 .mailUnreadBadge[hidden]{display:none!important}
@@ -732,7 +734,7 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .campaignTab.mailTab.hasNormalUnread:not(.active){border-color:var(--g)!important}
 .campaignTab.mailTab.hasHighUnread:not(.active){border-color:var(--y)!important}
 .mailFilters{display:flex;gap:6px;align-items:center;margin:0 0 8px;min-height:29px}
-.mailFilter{height:28px!important;min-width:72px!important;padding:3px 9px!important;font-size:8px!important;color:var(--g)!important;border-color:var(--gd)!important}
+.mailFilter{height:28px!important;min-width:72px!important;padding:3px 9px!important;font-size:10px!important;color:var(--g)!important;border-color:var(--gd)!important}
 .mailFilter:hover,.mailFilter:focus-visible{color:var(--c)!important;border-color:var(--c)!important}
 .mailFilter.active{color:var(--c)!important;border-color:var(--c)!important}
 .mailToggle{margin-left:auto}
@@ -752,8 +754,8 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .mailRow.priority-low.unread .mailRowSubject{color:var(--w)}
 .mailRowSubject{font-size:12px;line-height:var(--line-tight);padding-right:74px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:inherit}
 .mailRowFrom{color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:74px}
-.mailNew{position:absolute;right:8px;top:8px;color:var(--c);font-size:7px;letter-spacing:var(--track-label)}
-.mailPriority{position:absolute;right:8px;bottom:8px;font-size:7px;letter-spacing:var(--track-label);color:var(--x)}
+.mailNew{position:absolute;right:8px;top:8px;color:var(--c);font-size:9px;letter-spacing:var(--track-label)}
+.mailPriority{position:absolute;right:8px;bottom:8px;font-size:9px;letter-spacing:var(--track-label);color:var(--x)}
 .mailRow.priority-high .mailPriority{color:var(--y)}
 .mailRow.priority-normal .mailPriority{color:var(--g)}
 .mailRow.priority-low .mailPriority{color:var(--x)}
@@ -787,7 +789,7 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 /* ---------- v192 development forest mission ---------- */
 .devMissionRow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--gd);padding:10px;margin-bottom:18px}
 .devMissionRow button{min-width:220px;height:30px;border-color:var(--y);color:var(--y)}
-.devMissionRow span{font-size:8px;line-height:1.4;color:var(--x)}
+.devMissionRow span{font-size:10px;line-height:1.4;color:var(--x)}
 
 .devModeNote{border-left:2px solid var(--o);padding-left:10px}
 .devToolButton{height:30px;border-color:var(--y);color:var(--y);margin-bottom:18px}
@@ -805,23 +807,23 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 
 /* DEV template mission tester */
 .devTemplateTester{display:grid;grid-template-columns:minmax(220px,1fr) minmax(220px,1fr);gap:10px 16px;border:1px solid var(--gd);padding:12px;margin:0 0 20px}
-.devTemplateTester>label{display:grid;grid-template-columns:86px minmax(0,1fr);align-items:center;gap:9px;color:var(--w);font-size:9px}
+.devTemplateTester>label{display:grid;grid-template-columns:86px minmax(0,1fr);align-items:center;gap:9px;color:var(--w);font-size:11px}
 .devTemplateTester select{width:100%;height:30px;color:var(--c);border-color:var(--c);background:#000}
 .devTemplateTester .devCheck{display:flex;grid-template-columns:none;align-items:center;gap:9px;color:var(--g)}
 .devTemplateTester input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:13px;height:13px;margin:0;border:1px solid var(--c);background:#000!important;position:relative;flex:0 0 auto}
 .devTemplateTester input[type="checkbox"]:checked::after{content:'';position:absolute;left:2px;top:2px;width:7px;height:7px;border-left:1px solid var(--c);border-bottom:1px solid var(--c);transform:rotate(-45deg)}
 .devContractPreview{grid-column:1/-1;border-top:1px solid var(--gd);padding-top:12px;min-height:132px}
 .devContractPreview h3{margin:4px 0 7px!important;color:var(--g)!important;font-size:15px!important}
-.devContractPreview .catalogDetailKicker{font-size:8px;color:var(--gd);letter-spacing:.08em}
-.devContractPreview .catalogDetailDesc{margin:8px 0;color:var(--w);font-size:9px;line-height:1.45}
+.devContractPreview .catalogDetailKicker{font-size:10px;color:var(--gd);letter-spacing:.08em}
+.devContractPreview .catalogDetailDesc{margin:8px 0;color:var(--w);font-size:11px;line-height:1.45}
 .devContractPreview .missionMeta{margin:9px 0;display:flex;gap:16px;flex-wrap:wrap}
-.devContractPreview .stageLine{margin-top:8px;font-size:8px;line-height:1.4;color:var(--gd)}
-.devContractPreview .missionStatus{margin-top:8px;color:var(--g);font-size:8px}
+.devContractPreview .stageLine{margin-top:8px;font-size:10px;line-height:1.4;color:var(--gd)}
+.devContractPreview .missionStatus{margin-top:8px;color:var(--g);font-size:10px}
 .devTemplateActions{grid-column:1/-1;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 #devRegenerateTemplate,#devLaunchTemplate{height:31px;justify-self:start;min-width:190px}
 #devRegenerateTemplate{border-color:var(--c);color:var(--c)}
 #devLaunchTemplate{border-color:var(--y);color:var(--y)}
-.devTemplateStatus{grid-column:1/-1;align-self:center;color:var(--r);font-size:8px;line-height:1.35}
+.devTemplateStatus{grid-column:1/-1;align-self:center;color:var(--r);font-size:10px;line-height:1.35}
 @media(max-width:760px){.devTemplateTester{grid-template-columns:1fr}}
 
 @media(max-width:680px){#stage{min-height:240px}}
@@ -911,3 +913,48 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 
 /* v400 faction work: priority board contracts and faction reward items */
 .catalogRowFacts .priorityTag{color:var(--y)}
+
+/* v430 text size control (ui-scale.js) */
+.uiScaleBtn.campaignUtilityTab{min-width:52px;padding:0 10px}
+.uiScaleBtn:disabled{opacity:.35;cursor:var(--cursor-vector,default)}
+.uiScaleRow{display:flex;align-items:center;gap:12px;margin:6px 0 4px;color:var(--w)}
+.uiScaleRow>span{min-width:92px}
+.uiScaleRow .uiScaleBtn{min-width:52px;height:32px}
+.uiScaleRow output{min-width:54px;text-align:center;color:var(--c)}
+
+/* v430 contract details: clear stat blocks and a numbered route */
+.contractStats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0 10px}
+.contractStats>div{border:1px solid var(--gd);padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.contractStats b{color:var(--w);font-size:var(--type-card-title);font-weight:400}
+.contractStats span{color:var(--gd);font-size:var(--type-label);letter-spacing:var(--track-label);text-transform:uppercase}
+.contractPriority{color:var(--y);font-size:var(--type-meta);margin:4px 0 8px}
+.contractRoute{margin:10px 0 14px}
+.contractRoute h4{margin:0 0 6px;color:var(--gd);font-size:var(--type-label);font-weight:400;letter-spacing:var(--track-kicker);text-transform:uppercase}
+.contractRoute ol{margin:0;padding-left:22px;color:var(--c);font-size:var(--type-body);line-height:var(--line-body)}
+
+/* v430 market weapon comparison */
+.weaponCompare{margin:12px 0 10px;border:1px solid var(--gd);font-size:var(--type-meta)}
+.weaponCompareHead,.weaponCompareRow{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,.8fr) minmax(0,1.2fr);gap:8px;padding:5px 10px;align-items:center}
+.weaponCompareHead{color:var(--gd);font-size:var(--type-label);letter-spacing:var(--track-label);border-bottom:1px solid var(--gd)}
+.weaponCompareRow>span:first-child{color:var(--w)}
+.weaponCompareRow>span:last-child{color:var(--x)}
+.weaponCompareRow b{font-weight:400;color:var(--c)}
+.weaponCompareRow b.better{color:var(--g)}
+.weaponCompareRow b.worse{color:var(--r)}
+
+/* v430 drone bay: short store cards (full detail on hover/compare), roomier slots */
+.bayItemNote{overflow:hidden;max-height:1.4em;line-height:1.4em!important}
+.baySlots{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.baySlots.weaponSlot{grid-template-columns:minmax(260px,1fr)}
+.bayStat{grid-template-columns:200px 1fr auto}
+
+/* v430 networks: what standing unlocks next */
+.netNext{margin-top:4px;color:var(--y);font-size:var(--type-label);letter-spacing:var(--track-subtle)}
+.netNext.done{color:var(--w)}
+
+/* v430 tab bar stays on one row at any text size: tabs share the width */
+#campaignTabs{flex-wrap:nowrap;gap:8px}
+#campaignTabs .campaignTab{min-width:0;flex:1 1 0;padding:0 8px;white-space:nowrap}
+#campaignTabs .campaignUtilityTab{flex:0 0 auto}
+#campaignTabs .uiScaleBtn.campaignUtilityTab{min-width:44px;padding:0 8px}
+#campaignTabs .campaignTabSpacer{flex:0 1 18px}

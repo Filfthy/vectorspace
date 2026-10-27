@@ -104,6 +104,8 @@
       <button class="campaignTab skillsTab" data-tab="perks" type="button">Skills <span id="skillPointsBadge" class="mailUnreadBadge skillPointsBadge" hidden>0</span></button>
       <button id="campaignResume" class="campaignUtilityTab" type="button" style="display:none">Return to flight</button>
       <span class="campaignTabSpacer" aria-hidden="true"></span>
+      <button class="campaignUtilityTab uiScaleBtn" data-ui-scale="down" type="button" aria-label="Smaller text">A−</button>
+      <button class="campaignUtilityTab uiScaleBtn" data-ui-scale="up" type="button" aria-label="Larger text">A+</button>
       <button class="campaignTab campaignSettingsTab" data-tab="options" type="button">Settings</button>
       <button id="campaignDevTab" class="campaignTab campaignDevTab" data-tab="dev" type="button" hidden>DEV</button>
     </div>
@@ -142,12 +144,13 @@
           <h2>Settings</h2>
         <h3>Display</h3>
         <label class="cabinetGlow optionsGlow"><span>Glow</span><input id="campaignGlow" type="range" min="0" max="100" step="1" value="20" data-vector-ignore aria-label="GPU bloom strength"><output id="campaignGlowValue">20%</output></label>
-        <p class="optionNote">Typography is fixed for readability. Agent X Facet is reserved for the Vector Space opening screen and the persistent terminal header/navigation shown above. Agent X Vector Sans is used everywhere else, including detailed cabinet text and in-flight lettering.</p>
+        <div class="uiScaleRow"><span>Text size</span><button class="uiScaleBtn" data-ui-scale="down" type="button" aria-label="Smaller text">A−</button><output id="uiScaleValue">100%</output><button class="uiScaleBtn" data-ui-scale="up" type="button" aria-label="Larger text">A+</button></div>
+        <p class="optionNote">The terminal scales with your screen. Text size adds to that. The [ and ] keys also change it while the terminal is open.</p>
 
         <h3>Campaign</h3>
         <p class="optionNote">Reset removes Agent X campaign progress, money, XP, reputation, equipment and purchased skills.</p>
         <button id="campaignReset" class="dangerOption" type="button">Reset campaign</button>
-        <p class="optionNote buildInfo">Build v420</p>
+        <p class="optionNote buildInfo">Build v430</p>
 
         <h3>Sound mixer</h3>
         <p class="optionNote">Adjust the overall game mix. Individual sound-effect and music-track audition trims are available in the local development tab.</p>
@@ -369,6 +372,7 @@
 <script src="faction-content.js"></script>
 <script src="encounter-content.js"></script>
 <script src="route-diversion.js"></script>
+<script src="ui-scale.js"></script>
 <script src="campaign.js"></script>
 
 <!-- Shared services -->
