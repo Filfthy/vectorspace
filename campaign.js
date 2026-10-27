@@ -235,7 +235,9 @@ class CampaignController {
   scaleContractToughness(modules,risk){
     const k=this.contractToughnessScale(risk);
     for(const m of modules||[])if((m.type==='fighters'||m.type==='customs_drones')&&!m.toughnessScaled){
-      const base=Math.max(12,Number(m.fighterHp)||12);m.fighterHp=Math.round((12+(base-12)*.5)*k);m.toughnessScaled=true
+      const base=Math.max(12,Number(m.fighterHp)||12);m.fighterHp=Math.round((12+(base-12)*.5)*k);m.toughnessScaled=true;
+      // Elite risk adds bodies rather than more hull: +10% hostiles per point above 9, at most 22.
+      if(risk>9&&Number.isFinite(Number(m.target)))m.target=Math.min(22,Math.round(Number(m.target)*(1+.1*(risk-9))))
     }
     return modules
   }
@@ -244,7 +246,8 @@ class CampaignController {
     const lvl=this.levelForXP(),rep=this.bestReputation();
     let cap=clamp(3+Math.floor((lvl-1)/2),3,9);
     if(rep>=25)cap++;if(rep>=60)cap++;
-    return clamp(cap,3,9)
+    // Elite contracts (risk 10-12) open with operator level only: 15, 18 and 21.
+    return Math.max(clamp(cap,3,9),cap>=9?this.eliteRiskCap():0)
   }
   // Until the kit is actually deployed at launch, the fitted (base) internals apply,
   // so slot-adding internals such as the Nomad Pod are counted when the loadout is normalised.
@@ -581,8 +584,14 @@ class CampaignController {
     let m=1;
     if(this.hasSkill('negotiator'))m+=.10;
     if(this.hasSkill('negotiator2'))m+=.10;
+    // v450 economy: high-risk work carries a risk premium (risk 9 +48%, elite 12 +84%)
+    // so late gear is reachable, and Veteran rank adds 2% per level above 20.
+    m+=Math.max(0,(Number(risk)||1)-5)*.12;
+    m+=this.veteranBonus();
     return m
   }
+  veteranBonus(){return Math.min(.3,Math.max(0,this.levelForXP()-20)*.02)}
+  eliteRiskCap(){const l=this.levelForXP();return 9+(l>=15?1:0)+(l>=18?1:0)+(l>=21?1:0)}
   positiveRepMultiplier(){return this.hasSkill('connections')?1.25:1}
   contractSlotCount(){return this.hasSkill('connections')?7:6}
 
@@ -630,7 +639,11 @@ class CampaignController {
     let risk=(Number(cfg.base)||1)+Math.floor(Math.max(0,level-minLevel)/step);
     const jitter=Math.max(0,Math.round(Number(cfg.jitter)||0));
     if(jitter)risk+=((Math.random()*(jitter*2+1))|0)-jitter;
-    const cap=Math.max(floorRisk,Math.min(Math.max(1,Number(cfg.max)||9),this.maxContractRisk()));
+    // Elite work is a share of a high-level board, not the whole board: roughly a
+    // third of contracts that would exceed risk 9 stay elite, the rest top out at 8-9.
+    if(risk>9&&Math.random()>=.35)risk=9-((Math.random()*2)|0);
+    // Templates that scale all the way (max 9) continue into elite risk at high level.
+    const tmax=Math.max(1,Number(cfg.max)||9),cap=Math.max(floorRisk,Math.min(tmax>=9?99:tmax,this.maxContractRisk()));
     return clamp(Math.round(risk),floorRisk,cap)
   }
   resolveTemplateValue(value,vars={}){
@@ -1603,6 +1616,7 @@ class CampaignController {
       this.enqueueMail(this.storyOfferMail('mara_signal_1'))
     }
     this.evaluateFactionChains();
+    this.evaluateLateGame();
     // Story mission 2 is handed out directly by Mara's completion mail for mission 1.
     // It deliberately does not also auto-enqueue here, which would duplicate the offer.
   }
@@ -1622,6 +1636,20 @@ class CampaignController {
         break
       }
     }
+  }
+  // v450 late game: one notice per level unlock, and the Black Contract series.
+  evaluateLateGame(){
+    const E=globalThis.AgentXEndgame;if(!E)return;
+    const flags=this.state.mailFlags,lvl=this.levelForXP();
+    for(const u of E.LEVEL_UNLOCKS){
+      if(lvl<u.level||flags[`levelUnlock${u.level}`])continue;
+      flags[`levelUnlock${u.level}`]=true;
+      this.enqueueMail({id:`level_unlock_${u.level}`,from:'VOX Operator Records',subject:u.subject,category:'system',priority:'normal',body:u.body.slice()})
+    }
+    if(!flags.kudo3Done||lvl<E.BLACK_LEVEL||flags.blackOfferOpen)return;
+    if(Number.isFinite(flags.blackNextAt)&&this.state.completed<flags.blackNextAt)return;
+    const threat=(Number(flags.blackThreat)||0)+1,c=E.blackContract(threat);
+    flags.blackOfferOpen=true;this.enqueueMail(E.offerMail(c,threat===1))
   }
   completeFactionStep(m){
     const C=globalThis.AgentXFactionContent,step=C?.step(m.storyContractId),flags=this.state.mailFlags;if(!step||flags[step.flag+'Done'])return;
@@ -1849,6 +1877,11 @@ class CampaignController {
   maybeQueueVoxFollowUp(m){
     const flags=this.state.mailFlags;
     if(m?.voxMailId){const mail=this.state.mail.find(x=>x.id===m.voxMailId);if(mail)mail.contractDone=true}
+    if(m?.blackContract){
+      // The next Black Contract arrives after two more jobs, one threat level higher.
+      flags.blackThreat=Math.max(Number(flags.blackThreat)||0,Number(m.threat)||1);flags.blackOfferOpen=false;flags.blackNextAt=this.state.completed+2;
+      this.stats().blackDone=(this.stats().blackDone||0)+1;return
+    }
     if(!flags.kudo3Done||m?.storyFlag==='kudo3')return;
     if(!Number.isFinite(flags.voxNextAt))flags.voxNextAt=this.state.completed+2;
     if(this.state.completed<flags.voxNextAt)return;
@@ -2165,7 +2198,7 @@ class CampaignController {
     list.style.minHeight='0';
 
     for(const m of this.missions){
-      const f=this.factions[m.faction],riskText=m.risk>=7?'Extreme':(m.risk>=5?'High':(m.risk>=3?'Moderate':'Routine'));
+      const f=this.factions[m.faction],riskText=m.risk>=10?'Elite':(m.risk>=7?'Extreme':(m.risk>=5?'High':(m.risk>=3?'Moderate':'Routine')));
       const row=document.createElement('button');row.type='button';row.className=`catalogRow contractRow${m.id===this.selectedMissionId?' selected':''}`;
       row.style.minHeight='96px';row.style.height='auto';row.style.width='100%';
       row.innerHTML=`<span class="catalogRowTitle">${m.title}</span><span class="catalogRowSub">${f.name}</span><span class="catalogRowBlurb">${m.description}</span><span class="catalogRowFacts">${m.priority?'<b class="priorityTag">PRIORITY</b>':''}<b>CR ${m.pay.toLocaleString()}</b><b>${m.xp} XP</b><b>${riskText} ${m.risk}</b></span>`;
@@ -2174,7 +2207,7 @@ class CampaignController {
 
     const m=this.missions.find(x=>x.id===this.selectedMissionId);
     if(m){
-      const f=this.factions[m.faction],riskText=m.risk>=7?'Extreme':(m.risk>=5?'High':(m.risk>=3?'Moderate':'Routine'));
+      const f=this.factions[m.faction],riskText=m.risk>=10?'Elite':(m.risk>=7?'Extreme':(m.risk>=5?'High':(m.risk>=3?'Moderate':'Routine')));
       detail.innerHTML=`<div class="catalogDetailKicker">CONTRACT DETAILS</div><h3>${m.title}</h3><div class="missionFaction">${f.name} · Rep ${f.rep} ${this.repLabel(f.rep)}</div><div class="catalogDetailDesc">${m.description}</div><div class="contractStats"><div><b>CR ${m.pay.toLocaleString()}</b><span>Pay</span></div><div><b>${m.xp}</b><span>XP</span></div><div><b>${riskText} ${m.risk}</b><span>Risk</span></div></div>${m.priority?`<div class="contractPriority">PRIORITY CONTRACT · ${f.name} standing bonus included</div>`:''}<div class="missionStatus">Available</div><button class="missionLaunch" type="button">Accept contract</button><div class="contractRoute"><h4>Route</h4><ol>${(m.stages||[]).map(x=>`<li>${this.escapeHtml(x)}</li>`).join('')}</ol></div>`;
       detail.querySelector('.missionLaunch').addEventListener('click',()=>this.prepareMission(m.id));
     }else detail.innerHTML='<div class="catalogEmptyDetail">No contract selected.</div>';
@@ -2212,7 +2245,9 @@ class CampaignController {
     const rec=[['Contracts completed',n(st.contracts.done)],['Contracts failed',n(st.contracts.failed)],['Contracts abandoned',n(st.contracts.abandoned)],['Clean runs',n(st.cleanRuns)],
       ['Credits earned',`CR ${n(st.creditsEarned)}`],['Insurance paid',`CR ${n(st.insurancePaid)}`],['Drones lost',n(st.dronesLost)],['Projectiles shot down',n(st.shotDown)],
       ['Fighters destroyed',n(k.fighters)],['Ground armour destroyed',n(this.armourKills())],['Walker knees broken',n(k.knees)],['Generators destroyed',n(k.generators)],
-      ['Reactors destroyed',n(k.reactors)],['Moons destroyed',n(k.moons)]];
+      ['Reactors destroyed',n(k.reactors)],['Moons destroyed',n(k.moons)],
+      ['Black contracts',`${n(st.blackDone)}${this.state.mailFlags?.blackThreat?` · threat ${this.state.mailFlags.blackThreat}`:''}`],
+      ['Veteran bonus',this.veteranBonus()>0?`+${Math.round(this.veteranBonus()*100)}% pay`:'from level 21']];
     const got=this.state.achievements||{},ach=this.achievementDefs();
     op.innerHTML=`<div class="opIdent"><h3 class="opHeading">Operator</h3><div class="opName">AGENT X${this.state.title?` · <b>${esc(this.state.title.toUpperCase())}</b>`:''}</div>
         <div class="opLine">Level ${this.levelForXP()} · ${n(this.state.xp)} XP · ${esc(this.state.drone)}</div></div>
