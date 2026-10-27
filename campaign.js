@@ -802,6 +802,8 @@ class CampaignController {
       const minLevel=Math.max(1,Number(template.minLevel)||1);
       if(lvl<minLevel)return false;
       if(template.maxLevel!=null&&lvl>Number(template.maxLevel))return false;
+      // v760: post-story templates name a story flag that must be set first.
+      if(template.requiresFlag&&!this.state.mailFlags?.[template.requiresFlag])return false;
       const allowed=Array.isArray(template.allowedFactions)?template.allowedFactions:[];
       return !allowed.length||allowed.some(id=>this.factions[id]);
     })
@@ -2290,7 +2292,7 @@ class CampaignController {
   }
   jobType(m){
     const map={fighters:'combat',combat_recovery:'recovery',asteroids:'asteroids',asteroid_delivery:'delivery',station_delivery:'delivery',penthouse_delivery:'delivery',
-      forest_cabin_delivery:'delivery',swamp_relay_delivery:'delivery',secure_terminal_intrusion:'infiltration',deep_core:'assault',dune_armour_clearance:'assault',bunker_raid:'assault',groundside_pickup:'delivery',nest_clearance:'assault'};
+      forest_cabin_delivery:'delivery',swamp_relay_delivery:'delivery',secure_terminal_intrusion:'infiltration',deep_core:'assault',dune_armour_clearance:'assault',bunker_raid:'assault',groundside_pickup:'delivery',nest_clearance:'assault',factory_strike:'assault'};
     return map[m?.templateId]||(m?.kind==='procedural'?'combat':'delivery')
   }
   jobTypeInfo(type){

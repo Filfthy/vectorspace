@@ -309,3 +309,19 @@ v750  New major board job: Nest Clearance (Helix, OSD)
       Flown muted: the biolab pickup ran live start to finish, the trail
       transit, then the nest approach ("MASK ACTIVE"). Navira's completion
       mail checked. No errors.
+
+v760  Post-story board job: Factory Strike (OSD, Helix)
+      The factory moon (screen fight, orange moon, six generators, shield
+      domes, bunker, tunnel, reactor, escape) was only ever the VOX finale.
+      Once the story is finished and you're level 14, OSD and Helix post
+      Factory Strikes: more self-replicating Partition War factories found
+      on ignored moons (lore 3.2). Kudo's is "still building drones for a
+      war that ended before I was born". Navira wants you to "fly slowly past
+      anything that looks like a fabrication bay". It's locked before the
+      finale so it can't spoil it. That uses a new template option,
+      requiresFlag, that later templates can reuse.
+      At level 15 it pays CR 37,200 and 2,430 XP: above Nest Clearance and
+      Deep Core, well below a Black Contract (CR 70,000). About one board in
+      ten. The Guide's late game section mentions it.
+      Flown muted: screen fight, descent, live factory start (orange ground,
+      GENERATORS 0/6, shielded bunker), completion mail. No errors.

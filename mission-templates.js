@@ -1526,6 +1526,63 @@
     defaults:{destination:'swamp relay clearing',cargo:'sealed delivery package'}
   };
 
+  // v760 post-story factory strike. Rogue drone factories are self-replicating
+  // Partition War industry that can run for years on an ignored moon
+  // (AGENT_X_WORLD_LORE.txt 3.2). Same proven chain as the VOX finale (Factory Moon):
+  // orbital rogue screen, moon descent, six generators, bunker, tunnel, reactor,
+  // escape. Locked until the VOX story is finished so the finale is never spoiled.
+  const factoryStrike={
+    id:'factory_strike',
+    version:1,
+    family:'factory_strike',
+    musicMode:'violent',
+    minLevel:14,
+    maxLevel:null,
+    requiresFlag:'kudo3Done',
+    allowedFactions:['security','helix'],
+    factionWeights:{security:3,helix:2},
+    board:{category:'major',weight:.15,maxPerBoard:1,major:true},
+    risk:{base:7,min:6,levelsPerStep:3,max:9,jitter:1},
+    reward:{
+      basePay:6000,payPerRisk:1300,payRiskSquare:260,randomPay:900,roundPay:50,
+      baseXp:700,xpPerRisk:140,xpRiskSquare:14
+    },
+    planetaryRequirements:{landingBody:'moon',landingColour:'orange',moonCount:{min:1,max:2}},
+    sections:[
+      {type:'fighters',label:'Rogue Drone Screen',params:{target:12,fighterHp:16,profile:'rogue',difficulty:'$risk'}},
+      {type:'planet_descent',label:'Factory Moon Descent',params:{difficulty:'$risk'}},
+      {type:'factory_assault',label:'Factory Assault',params:{difficulty:'$risk'}}
+    ],
+    presentation:{
+      security:{
+        contactId:'kudo_shang',
+        titles:['Factory Strike','Second Factory','Industrial Hard Target'],
+        descriptions:[
+          'We found another one. A Partition War factory on an outer moon, still building drones for a war that ended before I was born. Break the screen, take down its six generators, breach the bunker and destroy the reactor.',
+          'Rogue drone factory. Orange moon, fortified, shielded generators. You have done this before. Do it again. Finish the reactor and get out.'
+        ],
+        completionSubjects:['Factory destroyed','Production ended'],
+        completionBodies:['The factory reactor is down and the moon is quiet. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Factory still producing'],bodies:['The factory is still building drones. Every hour it runs, there are more of them. Go back.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['You left it running'],bodies:['You withdrew from a factory that builds the enemy. That is the one target you never walk away from.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:7,chance:.2,subjects:['Re: factory strike'],bodies:['Two factories. Same result. That is not luck. That is discipline.']}
+      },
+      helix:{
+        contactId:'navira_derris',
+        titles:['Production Line Study','An Old Factory','Closing the Line'],
+        descriptions:[
+          'A rogue drone factory has been running unobserved on a remote moon. Helix would like its production telemetry, and the people near that moon would like it to stop. Break the screen, destroy the six generators and the reactor. Your drone will record the rest.',
+          'Another self-replicating factory. They cannot grow forever, which is the interesting part. Shut this one down for me, and fly slowly past anything that looks like a fabrication bay.'
+        ],
+        completionSubjects:['The line has stopped','Telemetry received'],
+        completionBodies:['The factory reactor is gone and your telemetry of the fabrication bays is extraordinary. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'navira_derris',subjects:['The factory defended itself'],bodies:['The factory defended itself very efficiently. I have learned a great deal about its defences and nothing about its production. Please try again.']},
+        abandonMail:{contactId:'navira_derris',subjects:['Factory still running'],bodies:['You left before the reactor went. The factory will repair what you broke. They always do.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:7,chance:.22,subjects:['About the fabrication bays'],bodies:['The bays were building parts for designs nobody has used in seventy years. It is like finding a printing press still setting yesterday\'s news. I cannot stop thinking about it.']}
+      }
+    }
+  };
+
   // v750 board nest clearance (style guide T12): collect a pheromone mask at the Helix
   // orbital biolab, follow the chemical trail, enter the hive and destroy it. Same
   // proven module chain as Nest Strike and Navira's agent mission 2. A hive is one
@@ -1948,7 +2005,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{nest_clearance:nestClearance,groundside_pickup:groundsidePickup,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();
