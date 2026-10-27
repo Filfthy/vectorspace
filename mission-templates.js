@@ -25,8 +25,8 @@
     board:{category:'delivery',weight:1.15,maxPerBoard:2},
     risk:{base:1,levelsPerStep:2,max:9,jitter:1},
     reward:{
-      basePay:300,payPerRisk:185,payRiskSquare:32,randomPay:150,roundPay:50,
-      baseXp:55,xpPerRisk:23,xpRiskSquare:2
+      basePay:900,payPerRisk:555,payRiskSquare:96,randomPay:300,roundPay:50,
+      baseXp:88,xpPerRisk:37,xpRiskSquare:3
     },
     sections:[
       {
@@ -759,7 +759,7 @@
     board:{category:'combat',weight:1.15,maxPerBoard:2},
     risk:{base:1,min:1,levelsPerStep:2,max:9,jitter:1},
     reward:{
-      basePay:650,payPerRisk:430,payRiskSquare:115,payPerAsteroidWork:72,randomPay:220,roundPay:50,
+      basePay:1040,payPerRisk:690,payRiskSquare:184,payPerAsteroidWork:115,randomPay:220,roundPay:50,
       baseXp:55,xpPerRisk:25,xpRiskSquare:3,xpPerAsteroidWork:6
     },
     sections:[
@@ -874,8 +874,8 @@
     board:{category:'combat',weight:1.15,maxPerBoard:2},
     risk:{base:1,min:1,levelsPerStep:2,max:9,jitter:1},
     reward:{
-      basePay:700,payPerRisk:700,payRiskSquare:220,payPerFighterWork:70,randomPay:350,roundPay:50,
-      baseXp:80,xpPerRisk:60,xpRiskSquare:8,xpPerFighterWork:7
+      basePay:420,payPerRisk:420,payRiskSquare:132,payPerFighterWork:42,randomPay:350,roundPay:50,
+      baseXp:68,xpPerRisk:51,xpRiskSquare:7,xpPerFighterWork:6
     },
     sections:[
       {type:'fighters',label:'Hostile Group',params:{target:{base:4,perRisk:1,random:2,min:5,max:18,round:true},fighterHp:{base:11,perRisk:.65,min:12,max:18,round:true},profile:'$profile'}}
@@ -982,7 +982,7 @@
     board:{category:'combat',weight:.72,maxPerBoard:2},
     risk:{base:1,min:1,levelsPerStep:2,max:9,jitter:1},
     reward:{
-      basePay:900,payPerRisk:780,payRiskSquare:230,payPerFighterWork:72,randomPay:400,roundPay:50,
+      basePay:630,payPerRisk:546,payRiskSquare:161,payPerFighterWork:50,randomPay:400,roundPay:50,
       baseXp:95,xpPerRisk:64,xpRiskSquare:8,xpPerFighterWork:7
     },
     sections:[
@@ -1090,7 +1090,7 @@
       moonCount:{min:1,max:2}
     },
     reward:{
-      basePay:3600,payPerRisk:410,payRiskSquare:95,payPerFighterWork:82,randomPay:500,roundPay:50,
+      basePay:2880,payPerRisk:328,payRiskSquare:76,payPerFighterWork:66,randomPay:500,roundPay:50,
       baseXp:320,xpPerRisk:58,xpRiskSquare:7,xpPerFighterWork:7
     },
     sections:[
@@ -1189,7 +1189,7 @@
     board:{enabled:true,category:'intrusion',weight:.8,maxPerBoard:1},
     risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
     reward:{
-      basePay:1350,payPerRisk:760,payRiskSquare:170,randomPay:350,roundPay:50,
+      basePay:1690,payPerRisk:950,payRiskSquare:212,randomPay:350,roundPay:50,
       baseXp:170,xpPerRisk:58,xpRiskSquare:14
     },
     sections:[
@@ -1538,7 +1538,7 @@
     board:{category:'combat',weight:.8,maxPerBoard:1},
     risk:{base:5,min:5,levelsPerStep:2,max:9,jitter:1},
     reward:{
-      basePay:4200,payPerRisk:1500,payRiskSquare:300,randomPay:600,roundPay:50,
+      basePay:2520,payPerRisk:900,payRiskSquare:180,randomPay:600,roundPay:50,
       baseXp:420,xpPerRisk:120,xpRiskSquare:12
     },
     planetaryRequirements:{landingBody:'planet',landingColour:'yellow',moonCount:{min:0,max:2}},

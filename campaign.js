@@ -150,7 +150,33 @@ class CampaignController {
     if(!force&&!this.statsLive())return;
     const s=this.stats(),keys=path.split('.');let o=s;
     for(let i=0;i<keys.length-1;i++)o=o[keys[i]]||(o[keys[i]]={});
-    const k=keys[keys.length-1];o[k]=(o[k]||0)+n;this.checkAchievements()
+    const k=keys[keys.length-1];o[k]=(o[k]||0)+n;this.checkAchievements();
+    if(keys[0]==='kills')this.recordBounty(keys,n)
+  }
+  // v480 bounties: every confirmed kill on a real mission pays credits and a little XP,
+  // scaled by target and risk. Fight contracts carry part of their pay this way, and a
+  // fight met on a delivery pays the same as the same fight anywhere else.
+  bountyUnits(keys){
+    const kind=keys[1],sub=keys[2];
+    if(kind==='fighters')return 1;
+    if(kind==='generators')return 2;
+    if(kind==='reactors')return 5;
+    if(kind==='armour')return ['strider','crab','tesla'].includes(sub)?4:1.5;
+    return 0
+  }
+  recordBounty(keys,n=1){
+    const m=this.currentMission;if(!m||m.training||m.devTest||m.devTemplateTest||m.devGroundTest)return;
+    const units=this.bountyUnits(keys)*n;if(units<=0)return;
+    const risk=Math.max(1,Number(m.risk)||1),b=this.missionBounty||(this.missionBounty={cr:0,xp:0,counts:{}});
+    b.cr+=units*(100+90*risk)*this.contractPayMultiplier(risk);b.xp+=units*(6+3*risk);
+    const label=keys[1]==='armour'?(this.bountyUnits(keys)>=4?'heavy walkers':'armour'):keys[1];
+    b.counts[label]=(b.counts[label]||0)+n
+  }
+  bountySummary(){
+    const b=this.missionBounty;if(!b||b.cr<=0)return null;
+    const names={fighters:['fighter','fighters'],armour:['armour unit','armour units'],'heavy walkers':['heavy walker','heavy walkers'],generators:['generator','generators'],reactors:['reactor','reactors']};
+    const text=Object.entries(b.counts).map(([k,v])=>`${v} ${(names[k]||[k,k])[v===1?0:1]}`).join(', ');
+    return {cr:Math.round(b.cr/50)*50,xp:Math.round(b.xp),text}
   }
   armourKills(){return Object.values(this.stats().kills.armour).reduce((a,b)=>a+b,0)}
   storyArcs(){
@@ -2171,6 +2197,25 @@ class CampaignController {
     });
     return shell
   }
+  // v480 job types: what a contract is FOR, shown as an icon and tag so fights,
+  // deliveries and asteroid work can be told apart at a glance. Hidden route
+  // encounters are not part of the type: a delivery that meets pirates is still a delivery.
+  jobType(m){
+    const map={fighters:'combat',combat_recovery:'recovery',asteroids:'asteroids',asteroid_delivery:'delivery',station_delivery:'delivery',penthouse_delivery:'delivery',
+      forest_cabin_delivery:'delivery',swamp_relay_delivery:'delivery',secure_terminal_intrusion:'infiltration',deep_core:'assault',dune_armour_clearance:'assault'};
+    return map[m?.templateId]||(m?.kind==='procedural'?'combat':'delivery')
+  }
+  jobTypeInfo(type){
+    const svg=d=>`<svg class="jobIcon" viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
+    return ({
+      combat:{label:'COMBAT',icon:svg('M12 3V8M12 16V21M3 12H8M16 12H21M12 7A5 5 0 1 0 12.01 7')},
+      recovery:{label:'RECOVERY',icon:svg('M12 3V11M8 7L12 11L16 7M6 14H18L16 20H8Z')},
+      asteroids:{label:'ASTEROIDS',icon:svg('M7 5L15 4L20 9L19 16L13 20L6 18L3 11Z M9 10L12 9M13 14L15 13')},
+      delivery:{label:'DELIVERY',icon:svg('M4 8L12 4L20 8V16L12 20L4 16Z M4 8L12 12L20 8M12 12V20')},
+      infiltration:{label:'INFILTRATION',icon:svg('M4 5H20V15H4Z M8 19H16M12 15V19M9 10H15')},
+      assault:{label:'ASSAULT',icon:svg('M3 19H21M6 19V14H18V19M9 14V10H15V14M12 10V4M12 4L16 6L12 7')}
+    })[type]||{label:String(type||'').toUpperCase(),icon:''}
+  }
   renderMissions(){
     missionBoardEl.innerHTML='';
     const toolbar=document.createElement('div');
@@ -2183,9 +2228,19 @@ class CampaignController {
       const f=this.boardRefreshFee();if(this.state.money<f)return;
       this.state.money-=f;this.state.freeBoardRefresh=false;this.selectedMissionId=null;this.refreshContracts();this.renderHeader();this.save()
     });
+    // Filter by job type (only the types on the current board, plus All).
+    const types=[...new Set(this.missions.map(m=>this.jobType(m)))],filter=types.includes(this.boardFilter)?this.boardFilter:'all';
+    const filters=document.createElement('div');filters.className='boardFilters';
+    for(const t of ['all',...types]){
+      const b=document.createElement('button');b.type='button';b.className=`boardFilter${t===filter?' active':''}`;
+      b.innerHTML=t==='all'?'All':`${this.jobTypeInfo(t).icon}${this.jobTypeInfo(t).label}`;
+      b.addEventListener('click',()=>{this.boardFilter=t;this.renderMissions()});filters.appendChild(b)
+    }
+    toolbar.appendChild(filters);
     missionBoardEl.appendChild(toolbar);
+    const shown=this.missions.filter(m=>filter==='all'||this.jobType(m)===filter);
 
-    if(!this.missions.some(m=>m.id===this.selectedMissionId))this.selectedMissionId=this.missions[0]?.id||null;
+    if(!shown.some(m=>m.id===this.selectedMissionId))this.selectedMissionId=shown[0]?.id||null;
     const layout=document.createElement('div');layout.className='catalogLayout contractCatalog';
     const list=document.createElement('div');list.className='catalogList contractList';list.setAttribute('aria-label','Contracts');
     const detail=document.createElement('section');detail.className='catalogDetail contractDetail';
@@ -2198,18 +2253,19 @@ class CampaignController {
     list.style.overflowX='hidden';
     list.style.minHeight='0';
 
-    for(const m of this.missions){
+    for(const m of shown){
       const f=this.factions[m.faction],riskText=m.risk>=10?'Elite':(m.risk>=7?'Extreme':(m.risk>=5?'High':(m.risk>=3?'Moderate':'Routine')));
+      const job=this.jobTypeInfo(this.jobType(m));
       const row=document.createElement('button');row.type='button';row.className=`catalogRow contractRow${m.id===this.selectedMissionId?' selected':''}`;
       row.style.minHeight='96px';row.style.height='auto';row.style.width='100%';
-      row.innerHTML=`<span class="catalogRowTitle">${m.title}</span><span class="catalogRowSub">${f.name}</span><span class="catalogRowBlurb">${m.description}</span><span class="catalogRowFacts">${m.priority?'<b class="priorityTag">PRIORITY</b>':''}<b>CR ${m.pay.toLocaleString()}</b><b>${m.xp} XP</b><b>${riskText} ${m.risk}</b></span>`;
+      row.innerHTML=`<span class="catalogRowTitle">${m.title}</span><span class="catalogRowSub">${f.name}</span><span class="catalogRowBlurb">${m.description}</span><span class="catalogRowFacts"><b class="jobTag">${job.icon}${job.label}</b>${m.priority?'<b class="priorityTag">PRIORITY</b>':''}<b>CR ${m.pay.toLocaleString()}</b><b>${m.xp} XP</b><b>${riskText} ${m.risk}</b></span>`;
       row.addEventListener('click',()=>{this.selectedMissionId=m.id;this.renderMissions()});list.appendChild(row)
     }
 
     const m=this.missions.find(x=>x.id===this.selectedMissionId);
     if(m){
       const f=this.factions[m.faction],riskText=m.risk>=10?'Elite':(m.risk>=7?'Extreme':(m.risk>=5?'High':(m.risk>=3?'Moderate':'Routine')));
-      detail.innerHTML=`<div class="catalogDetailKicker">CONTRACT DETAILS</div><h3>${m.title}</h3><div class="missionFaction">${f.name} · Rep ${f.rep} ${this.repLabel(f.rep)}</div><div class="catalogDetailDesc">${m.description}</div><div class="contractStats"><div><b>CR ${m.pay.toLocaleString()}</b><span>Pay</span></div><div><b>${m.xp}</b><span>XP</span></div><div><b>${riskText} ${m.risk}</b><span>Risk</span></div></div>${m.priority?`<div class="contractPriority">PRIORITY CONTRACT · ${f.name} standing bonus included</div>`:''}<div class="missionStatus">Available</div><button class="missionLaunch" type="button">Accept contract</button><div class="contractRoute"><h4>Route</h4><ol>${(m.stages||[]).map(x=>`<li>${this.escapeHtml(x)}</li>`).join('')}</ol></div>`;
+      detail.innerHTML=`<div class="catalogDetailKicker">CONTRACT DETAILS · ${this.jobTypeInfo(this.jobType(m)).label}</div><h3>${m.title}</h3><div class="missionFaction">${f.name} · Rep ${f.rep} ${this.repLabel(f.rep)}</div><div class="catalogDetailDesc">${m.description}</div><div class="contractStats"><div><b>CR ${m.pay.toLocaleString()}</b><span>Pay</span></div><div><b>${m.xp}</b><span>XP</span></div><div><b>${riskText} ${m.risk}</b><span>Risk</span></div></div>${m.priority?`<div class="contractPriority">PRIORITY CONTRACT · ${f.name} standing bonus included</div>`:''}<div class="missionStatus">Available</div><button class="missionLaunch" type="button">Accept contract</button><div class="contractRoute"><h4>Route</h4><ol>${(m.stages||[]).map(x=>`<li>${this.escapeHtml(x)}</li>`).join('')}</ol></div>`;
       detail.querySelector('.missionLaunch').addEventListener('click',()=>this.prepareMission(m.id));
     }else detail.innerHTML='<div class="catalogEmptyDetail">No contract selected.</div>';
     const listHost=this.wrapCatalogScroller(list,'catalogScrollHost contractScrollHost');
@@ -2594,7 +2650,7 @@ class CampaignController {
   launchMission(id){
     const m=this.pendingMission?.id===id?this.pendingMission:this.missions.find(x=>x.id===id);if(!m||!m.implemented||this.currentMission)return;
     if(m.devGroundTest){this.launchDevGroundTest(m);return}
-    this.missionHits=0;
+    this.missionHits=0;this.missionBounty=null;
     this.currentMission=m;this.pendingMission=null;this.currentStageIndex=0;this.deployLoadout();this.open=false;campaignShell.classList.remove('open');this.updateGearHud();
     level=Math.max(1,Number(m.difficulty)||1);
 
@@ -2667,13 +2723,14 @@ class CampaignController {
     const templateCivilian=this.templateCivilianSettlement(m),settlement=jackalSettlement||templateCivilian;
     const actualPay=settlement?Math.max(0,Math.round((m.pay*settlement.payMultiplier)/50)*50):m.pay;
     // Route encounter fought and survived: hazard pay on top of the contract fee.
-    const hazardPay=m.routeEncounter&&!settlement?Math.round((m.pay*(Number(m.routeEncounter.payBonus)||.15))/50)*50:0;
+    // v480: route-encounter hazard pay is replaced by bounties for the kills themselves.
+    const hazardPay=0,bounty=this.bountySummary(),bountyCr=bounty?.cr||0,bountyXp=bounty?.xp||0;this.missionBounty=null;
     // Optional diversions investigated on the way (beacons, derelicts, civilians).
     const diversions=(m.diversions||[]).filter(d=>d.outcome!=='ignored'),diversionPay=diversions.reduce((n,d)=>n+(d.pay||0),0),diversionXp=diversions.reduce((n,d)=>n+(d.xp||0),0);
     for(const d of diversions)if(d.rep&&d.repFaction&&this.factions[d.repFaction])this.applyRep(d.repFaction,d.rep);
     asteroidField.stop();
-    this.state.money+=actualPay+hazardPay+diversionPay;this.state.xp+=m.xp+diversionXp;this.state.completed++;
-    {const st=this.stats();st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
+    this.state.money+=actualPay+hazardPay+diversionPay+bountyCr;this.state.xp+=m.xp+diversionXp+bountyXp;this.state.completed++;
+    {const st=this.stats();st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay+bountyCr;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
     let repGain=0;
     if(faction){
       const normalRepGain=Math.max(1,Math.round(8*this.positiveRepMultiplier()));
@@ -2707,7 +2764,7 @@ class CampaignController {
     const penalty=templateCivilian?.incidents>0
       ?(templateCivilian.assaults>0?`${templateCivilian.assaults} civilian traffic assault${templateCivilian.assaults===1?'':'s'} · settlement penalised`:`${templateCivilian.collisions} civilian traffic incident${templateCivilian.collisions===1?'':'s'} · settlement penalised`)
       :(jackalSettlement?.incidents>0?(jackalSettlement.incidents>=3?`${jackalSettlement.incidents} civilian incidents · Red Jackal refused payment`:`${jackalSettlement.incidents} civilian incident${jackalSettlement.incidents===1?'':'s'} · Red Jackal cut the settlement`):'');
-    this.showDebrief({success:true,title:m.title,pay:actualPay,hazardPay,hazardLabel:m.routeEncounter?.nav||'',diversions,xp:m.xp+diversionXp,liability:0,reason:penalty,returnPanel:m.private?'mail':'missions'});
+    this.showDebrief({success:true,title:m.title,pay:actualPay,hazardPay,hazardLabel:m.routeEncounter?.nav||'',bounty,diversions,xp:m.xp+diversionXp+bountyXp,liability:0,reason:penalty,returnPanel:m.private?'mail':'missions'});
     return true;
   }
   failCurrentMission(reason='Mission failed'){
@@ -2730,6 +2787,9 @@ class CampaignController {
     this.clearActiveLoadout();
     this.currentMission=null;this.currentStageIndex=0;this.normalizeLoadout();this.updateGearHud();if(!m.private)this.replaceContract(m.id);this.save();
     audio.playVoice('missionFailed',{once:true,priority:true});paused=true;document.body.classList.add('paused');
+    // Confirmed kills still pay when the drone is lost (not when a job is abandoned).
+    const lostBounty=this.bountySummary();this.missionBounty=null;
+    if(lostBounty){this.state.money+=lostBounty.cr;this.state.xp+=lostBounty.xp;this.stats().creditsEarned+=lostBounty.cr;reason=`${reason} · bounties paid CR ${lostBounty.cr.toLocaleString()} (${lostBounty.text})`}
     this.state.pendingInsurance={title:m.title,reason,destroyedFrameId,frameExcess,lostConsumables,insuredItems,returnPanel:m.private?'mail':'missions',resolved:{}};this.save();
     this.showInsuranceRecovery(this.state.pendingInsurance);return true
   }
@@ -2742,7 +2802,7 @@ class CampaignController {
     this.beginPostMissionVoiceHold();this.queueSkillPointReminder();routeDiversion?.reset?.();
     const m=this.currentMission;
     asteroidField.stop();
-    this.state.failed++;this.stats().contracts.abandoned++;
+    this.state.failed++;this.stats().contracts.abandoned++;this.missionBounty=null;
     const civilian=this.templateCivilianSettlement(m);
     if(this.factions[m.faction])this.applyRep(m.faction,-2-(civilian?.failureRepPenalty||0));
     this.queueContractFailureMail(m,'abandoned',reason);this.queueStoryRetryMail(m,'abandoned');
@@ -2807,6 +2867,7 @@ class CampaignController {
       <div class="missionFaction">${d.title}</div>
       ${d.reason?`<div class="missionStatus bad">${d.reason}</div>`:''}
       <div class="debriefRow"><span>Contract payment</span><span>CR ${d.pay.toLocaleString()}</span></div>
+      ${d.bounty?`<div class="debriefRow"><span>Bounties · ${this.escapeHtml(d.bounty.text)}${d.hazardLabel?` · ${this.escapeHtml(d.hazardLabel)}`:''} · +${d.bounty.xp} XP</span><span>CR ${d.bounty.cr.toLocaleString()}</span></div>`:''}
       ${(d.diversions||[]).map(v=>`<div class="debriefRow"><span>Diversion · ${this.escapeHtml(v.text)}${v.rep?` · standing +${v.rep}`:''}${v.xp?` · +${v.xp} XP`:''}</span><span>${v.pay?'CR '+v.pay.toLocaleString():'-'}</span></div>`).join('')}
       ${d.hazardPay>0?`<div class="debriefRow"><span>Hazard pay · ${this.escapeHtml(d.hazardLabel||'route encounter')}</span><span>CR ${d.hazardPay.toLocaleString()}</span></div>`:''}
       <div class="debriefRow"><span>Experience</span><span>${d.xp} XP</span></div>

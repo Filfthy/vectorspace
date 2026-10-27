@@ -11,8 +11,8 @@
 // avoid repeating the previous one. Quiet runs can instead carry a harmless ambient
 // nav message so the world feels busy without every event being a battle.
 //
-// Encounter fights pay hazard money on completion. Story and faction-agent missions
-// are authored and never receive route encounters.
+// Encounter fights are paid through bounties for each kill (v480; payBonus is no longer
+// used). Story and faction-agent missions are authored and never receive route encounters.
 (function(){
   // Where an encounter can be placed, by the module it precedes (or follows).
   const ARRIVAL_STATION=new Set(['station_pad_approach','station_approach','taco_beacon_pickup','free_traders_depot_terminal','helix_biolab_approach']);
