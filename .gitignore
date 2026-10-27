@@ -1,0 +1,9 @@
+# Raw voice takes (normalize.bat turns these into voices/)
+voices unprocessed/
+*.zip
+
+# Editor / OS
+.vscode/
+Thumbs.db
+desktop.ini
+.DS_Store
