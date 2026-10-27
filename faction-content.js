@@ -38,7 +38,7 @@
       globalThis.AgentXStoryContent?.register(id,story,{from:def.from,label:def.label,failed:m.failed,abandoned:m.abandoned});
       return {id,flag,rep:gate.rep,level:gate.level,reward:i===2?def.reward:null}
     });
-    chains.push({faction:def.faction,arcName:def.arcName,reward:def.reward,steps})
+    chains.push({faction:def.faction,arcName:def.arcName,reward:def.reward,steps,from:def.from})
   }
 
   // ---- chains are authored below ----

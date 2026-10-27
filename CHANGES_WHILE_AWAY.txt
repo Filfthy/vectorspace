@@ -201,3 +201,34 @@ content (none of it has been flown by a person), record the 16 lines in
 VOICE_REQUESTS.txt if you want them voiced, "Save to file" once before
 moving to GitHub Pages, and switch Pages on in the repo settings if you
 want the online copy.
+
+
+OVERNIGHT RUN (27 Oct 23:00 to 28 Oct 07:00)
+============================================
+Your brief: more content and locations, more general land missions,
+different planet and moon types, a new class of opponent, and lore for the
+faction agents as you get to know them. Same rules: one piece at a time,
+tested muted, each its own commit.
+
+v700  Getting to know the contacts: 15 personal letters
+      Each network contact now sends three personal letters as the
+      relationship deepens: one at standing 15 (before their agent missions),
+      one after agent mission 2, and one three jobs after the capstone. At
+      most one arrives per finished job, so an older save isn't flooded.
+      - Kudo: his file on you, why Crossroads was his own order, and the
+        short list he keeps.
+      - Corvella: "hospitality, very personal service", the telemetry she
+        replays, then the earned reveal. She was built as a pleasure model,
+        a Compact auditor couldn't bring herself to sell her for parts, and
+        gave her a desk instead. It only arrives after her whole chain.
+      - Cassian: on taste, the Erivan-Snade marriage of money and manners,
+        and not knowing whether X is an asset or a friend.
+      - Navira: the xeno sample in a lunch cooler at fourteen, why she minds
+        destroying nests, and Teodor, who ran the field lab before her.
+      - Nyxo: thanks from night dispatch, his promotion to Senior Dispatch
+        Associate (meetings about meetings), and one real-talk letter.
+      Kept to character. Nothing settles the lore file's open questions
+      (politics, Partition War details, xeno origins). Invented personal
+      details you may want to veto: Kudo's 26 years of service, Corvella's
+      auditor, Cassian's grandparents, Navira's mining moon and Teodor,
+      Nyxo's six years of night dispatch.

@@ -1686,6 +1686,22 @@ class CampaignController {
         break
       }
     }
+    this.evaluateFactionLore()
+  }
+  // v700: personal letters from the five contacts as X gets to know them (faction-lore.js).
+  // At most one per finished contract, the earliest-due first, so nothing arrives in a flood.
+  evaluateFactionLore(){
+    const C=globalThis.AgentXFactionContent,F=globalThis.AgentXFactionLore;if(!C||!F)return;
+    const flags=this.state.mailFlags,completed=Number(this.state.completed)||0;
+    if(Number.isFinite(flags.loreSentAt)&&completed<=flags.loreSentAt)return;
+    for(let i=0;i<3;i++)for(const chain of C.chains){
+      const letter=F.LETTERS[chain.faction]?.[i],key=`${chain.faction}Lore${i+1}`;
+      if(!letter||flags[key]||(i>0&&!flags[`${chain.faction}Lore${i}`]))continue;
+      if(!F.due(i,{rep:Number(this.factions[chain.faction]?.rep)||0,flags,chain,completed}))continue;
+      flags[key]=true;flags.loreSentAt=completed;
+      this.enqueueMail({id:`lore_${chain.faction}_${i+1}`,from:chain.from,subject:letter.subject,category:'story',priority:'normal',body:letter.body.slice()});
+      return
+    }
   }
   // v450 late game: one notice per level unlock, and the Black Contract series.
   // v610: a save with progress from before tonight's additions gets one short bulletin
