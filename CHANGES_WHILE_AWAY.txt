@@ -43,3 +43,10 @@ v550  Kill callouts show the bounty
       "WEDGE DOWN · +CR 550", "STRIDER BUCKLING · +CR 1,650". Armour kills had no
       callout before. Also fixed: since the v490 rebalance, heavy walkers were
       listed as "armour units" on the debrief.
+
+v560  A fourth skill row for veterans (3 points each)
+      All 12 skills used to be owned by about level 24, after which skill points
+      meant nothing. New row: Deadeye (shots land 15% more easily on fighters),
+      Hardened Field (+2 maximum shields), Heavy Warheads (missiles +40% damage)
+      and Bounty Broker (bounties +25%). The full tree now takes until about
+      level 36.

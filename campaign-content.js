@@ -145,7 +145,12 @@ globalThis.AgentXCampaignContent={
       {id:'chainWarhead',col:'ordnance',row:3,name:'Chain Warhead',icon:'chain',ranks:[{id:'chainWarhead',cost:2,text:'A missile that kills its target flies on to the nearest other hostile.'}]},
       {id:'negotiator',col:'operator',row:1,name:'Negotiator',icon:'handshake',ranks:[{id:'negotiator',cost:1,text:'+10% pay on board contracts (story jobs pay a fixed fee).'},{id:'negotiator2',cost:1,text:'+20% pay on board contracts in total.'}]},
       {id:'connections',col:'operator',row:2,name:'Connections',icon:'network',ranks:[{id:'connections',cost:2,text:'Standing gains +25%, one extra contract slot, and gear opens a grade earlier.'}]},
-      {id:'insurance',col:'operator',row:3,name:'Insurance',icon:'policy',ranks:[{id:'insurance',cost:2,text:'Lost hardware excess drops from 30% to 20%.'},{id:'insurance2',cost:2,text:'Excess drops to 10%.'}]}
+      {id:'insurance',col:'operator',row:3,name:'Insurance',icon:'policy',ranks:[{id:'insurance',cost:2,text:'Lost hardware excess drops from 30% to 20%.'},{id:'insurance2',cost:2,text:'Excess drops to 10%.'}]},
+      // v560 row 4: late-game skills (3 SP each) so levels past 20 still buy something.
+      {id:'deadeye',col:'gunnery',row:4,name:'Deadeye',icon:'trigger',ranks:[{id:'deadeye',cost:3,text:'Your shots land 15% more easily on fighters.'}]},
+      {id:'hardenedField',col:'defence',row:4,name:'Hardened Field',icon:'regen',ranks:[{id:'hardenedField',cost:3,text:'+2 maximum shields on every frame.'}]},
+      {id:'heavyWarheads',col:'ordnance',row:4,name:'Heavy Warheads',icon:'chain',ranks:[{id:'heavyWarheads',cost:3,text:'Missiles deal 40% more damage.'}]},
+      {id:'bountyBroker',col:'operator',row:4,name:'Bounty Broker',icon:'handshake',ranks:[{id:'bountyBroker',cost:3,text:'Bounties pay 25% more.'}]}
     ];
   }
 };

@@ -170,7 +170,7 @@ class CampaignController {
     const m=this.currentMission;if(!m||m.training||m.devTest||m.devTemplateTest||m.devGroundTest)return;
     const units=this.bountyUnits(keys)*n;if(units<=0)return;
     const risk=Math.max(1,Number(m.risk)||1),b=this.missionBounty||(this.missionBounty={cr:0,xp:0,counts:{}});
-    const cr=units*(100+90*risk)*this.contractPayMultiplier(risk);
+    const cr=units*(100+90*risk)*this.contractPayMultiplier(risk)*(this.hasSkill('bountyBroker')?1.25:1);
     b.cr+=cr;b.xp+=units*(4+2*risk);
     // Remembered for the kill callout ("HOSTILE DOWN · +CR 550").
     this.lastBounty={cr:Math.round(cr/10)*10,at:performance.now()};
@@ -296,7 +296,7 @@ class CampaignController {
   // so slot-adding internals such as the Nomad Pod are counted when the loadout is normalised.
   fittedInternalIds(){return this.currentMission&&this.state.deployedKit?this.activeInternalLoadout:this.state.internalLoadout}
   hasInternal(id){return (this.fittedInternalIds()||[]).includes(id)}
-  maxShield(){return this.activeFrame().shields+this.internalSum('shieldBonus')}
+  maxShield(){return this.activeFrame().shields+this.internalSum('shieldBonus')+(this.hasSkill('hardenedField')?2:0)}
   shieldRegeneration(){
     // The consumables lesson deliberately demonstrates shield loss and recovery, so
     // automatic repair is disabled for that simulator stage. Earlier training keeps
@@ -309,7 +309,7 @@ class CampaignController {
     return {delay:this.hasSkill('quickRegen')?2:4,interval:Math.max(1.2,interval)}
   }
   enemyHitIntentMultiplier(){return Number(this.activeFrame().enemyHitMult)||1}
-  weaponAimMultiplier(){return (Number(this.activeFrame().aimMult)||1)*this.internalProduct('aimMult')*(Number(this.weaponItem().aimMult)||1)}
+  weaponAimMultiplier(){return (Number(this.activeFrame().aimMult)||1)*this.internalProduct('aimMult')*(Number(this.weaponItem().aimMult)||1)*(this.hasSkill('deadeye')?1.15:1)}
   laserIntervalMultiplier(){return (Number(this.activeFrame().fireIntervalMult)||1)*(Number(this.weaponItem().intervalMult)||1)}
   laserBurstSize(){
     const w=this.weaponItem(),bonus=(Number(this.activeFrame().burstBonus)||0)+this.internalSum('burstBonus');
@@ -585,12 +585,12 @@ class CampaignController {
     }
     if(item.effect==='homingMissile'){
       const target=this.currentMissileTarget();if(!target){say('NO MISSILE TARGET',.45);return false}
-      if(!launchHomingMissile(target,item.missileDamage||6,item.missileSpeed||72)){say('MISSILE NOT AVAILABLE',.45);return false}
+      if(!launchHomingMissile(target,(item.missileDamage||6)*(this.hasSkill('heavyWarheads')?1.4:1),item.missileSpeed||72)){say('MISSILE NOT AVAILABLE',.45);return false}
       return spend(`${item.name.toUpperCase()} AWAY`,.55)
     }
     if(item.effect==='cluster'){
       const targets=this.hostilesInView(4);if(!targets.length){say('NO TARGETS IN VIEW',.45);return false}
-      for(let k=0;k<4;k++)launchHomingMissile(targets[k%targets.length],item.missileDamage||6,item.missileSpeed||80);
+      for(let k=0;k<4;k++)launchHomingMissile(targets[k%targets.length],(item.missileDamage||6)*(this.hasSkill('heavyWarheads')?1.4:1),item.missileSpeed||80);
       return spend(`CLUSTER AWAY · ${targets.length} TARGET${targets.length>1?'S':''}`,.55)
     }
     if(item.effect==='nanite'){
@@ -2574,7 +2574,7 @@ class CampaignController {
   renderPerks(){
     const avail=this.skillPointsAvailable(),total=this.skillPointsTotal(),spent=this.skillPointsSpent(),locked=this.equipmentLocked();
     const notice=this.state.skillRefundNotice?`<div class="skillNotice"><span>THE SKILL TREE HAS BEEN REBUILT. YOUR POINTS HAVE BEEN REFUNDED: SPEND THEM AGAIN BELOW.</span><button type="button" data-dismiss-notice>OK</button></div>`:'';
-    perkGridEl.innerHTML=`${notice}<div class="skillTreeStatus"><span>SKILL POINTS <b>${avail}</b> / ${total}</span><span>SPENT <b>${spent}</b></span><span>1 POINT PER LEVEL · ROW 1 COSTS 1 · ROWS 2–3 COST 2</span><button type="button" data-respec ${locked||!this.state.skills.length||this.state.money<this.respecCost()?'disabled':''}>RESET SKILLS · CR ${this.respecCost().toLocaleString()}</button></div><div class="skillColumns"></div>`;
+    perkGridEl.innerHTML=`${notice}<div class="skillTreeStatus"><span>SKILL POINTS <b>${avail}</b> / ${total}</span><span>SPENT <b>${spent}</b></span><span>1 POINT PER LEVEL · ROW 1 COSTS 1 · ROWS 2–3 COST 2 · ROW 4 COSTS 3</span><button type="button" data-respec ${locked||!this.state.skills.length||this.state.money<this.respecCost()?'disabled':''}>RESET SKILLS · CR ${this.respecCost().toLocaleString()}</button></div><div class="skillColumns"></div>`;
     perkGridEl.querySelector('[data-dismiss-notice]')?.addEventListener('click',()=>{this.state.skillRefundNotice=false;this.save();this.renderPerks()});
     perkGridEl.querySelector('[data-respec]')?.addEventListener('click',()=>this.respecSkills());
     const host=perkGridEl.querySelector('.skillColumns');
