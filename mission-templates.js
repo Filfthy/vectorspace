@@ -1656,8 +1656,8 @@
     musicMode:'calm',
     minLevel:3,
     maxLevel:null,
-    allowedFactions:['trade','quickbite','jackals'],
-    factionWeights:{trade:5,quickbite:4,jackals:3},
+    allowedFactions:['trade','quickbite','jackals','helix'],
+    factionWeights:{trade:5,quickbite:4,jackals:3,helix:3},
     board:{category:'delivery',weight:.8,maxPerBoard:1},
     risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
     reward:{
@@ -1694,7 +1694,7 @@
           'Babe, I need {cargo} lifted out of a city and dropped at {destination}. Mind the traffic. I want you back shiny.'
         ],
         completionSubjects:['Depot handoff confirmed','Freight logged in'],
-        completionBodies:['{destination} has logged {cargo} in. Payment: CR {credits}. Standing: +{rep}.'],
+        completionBodies:['The depot has logged {cargo} in. Payment: CR {credits}. Standing: +{rep}.'],
         civilianTrafficMail:{
           contactId:'corvella_pallis',
           assaultSubjects:['Sweetie. The traffic.'],incidentSubjects:['Watch the traffic, babe'],
@@ -1730,17 +1730,40 @@
         abandonMail:{contactId:'nyxo_malloc',subjects:['You bailed?'],bodies:['You bailed on a pallet pickup? Dude. It was a pallet.']},
         personalFollowUp:{contactId:'nyxo_malloc',minRisk:3,chance:.24,subjects:['Depot guy says hi'],bodies:['Dude, the depot guy said you parked like a legend. I am putting that in your file. We do not have files. I am making one.']}
       },
+      helix:{
+        contactId:'navira_derris',cargoStyle:'case',
+        titles:['Field Sample Collection','City Lab Pickup','Specimen Transfer'],
+        cargo:['a sealed specimen case','a cold-chain sample cassette','a field culture rack'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'X. A city lab has {cargo} for us. Helix freight goes through the Compact depot, so collect it from {origin}, launch and hand it over at {destination}. Please keep it level. It is alive.',
+          'A small collection job. There is {cargo} waiting in {origin}. It needs to reach {destination} before it warms up, so please do not sightsee.'
+        ],
+        completionSubjects:['Sample received','Cold chain intact'],
+        completionBodies:['The depot logged {cargo} in and the temperature trace never moved. CR {credits} released. Standing: +{rep}.'],
+        civilianTrafficMail:{
+          contactId:'navira_derris',
+          assaultSubjects:['About the traffic'],incidentSubjects:['A traffic report'],
+          assaultBodies:['City control reports that you fired on civilian traffic. I do not understand why that was necessary and neither does Helix. The fee is reduced to CR {credits}.'],
+          incidentBodies:['The sample arrived, but city control filed a traffic report. Helix has reduced the fee to CR {credits}. The sample, at least, is fine.'],
+          failureAddenda:['There is also a traffic report, which does not help.'],
+          abandonAddenda:['And a traffic report. That makes the withdrawal harder to explain.']
+        },
+        failureMail:{contactId:'navira_derris',subjects:['The sample was lost'],bodies:['The sample did not reach the depot. It was the only one of its kind. I will ask the lab whether they can grow another, which will take some weeks.']},
+        abandonMail:{contactId:'navira_derris',subjects:['Sample still in the city'],bodies:['You left the sample in the city. It will not survive the wait. I would like to understand why.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:4,chance:.2,subjects:['The culture survived'],bodies:['The culture rack arrived and the cells are dividing normally. You flew a living thing out of a city and through a launch without upsetting it. That is genuinely difficult.']}
+      },
       jackals:{
         contactId:'cassian_erivan_snade',cargoStyle:'case',
         titles:['A Quiet Collection','Groundside Courtesy','Depot Discretion'],
         cargo:['a case that does not officially exist','a sealed gift','an unlabelled crate'],
         destinations:['the Compact freight depot','a Compact depot with an understanding night shift'],
         descriptions:[
-          'X. {cargo} is waiting in {origin}. It would be convenient if it reached {destination} by this evening, where the staff are paid not to look inside things.',
+          'X. There is {cargo} waiting in {origin}. It would be convenient if it reached {destination} by this evening, where the staff are paid not to look inside things.',
           'A small errand. Collect {cargo} from a city, leave quietly, and see it safely to {destination}. The less the city remembers, the better.'
         ],
         completionSubjects:['Received without comment','A tidy errand'],
-        completionBodies:['{destination} confirms a crate arrived and that nobody looked at it. CR {credits} released. Standing: +{rep}.'],
+        completionBodies:['The depot confirms a crate arrived and that nobody looked at it. CR {credits} released. Standing: +{rep}.'],
         civilianTrafficMail:{
           contactId:'cassian_erivan_snade',
           assaultSubjects:['Noise'],incidentSubjects:['A traffic report'],
@@ -1807,8 +1830,8 @@
     musicMode:'violent',
     minLevel:7,
     maxLevel:null,
-    allowedFactions:['trade','security','jackals','helix'],
-    factionWeights:{security:5,trade:3,helix:3,jackals:2},
+    allowedFactions:['trade','security','jackals','helix','quickbite'],
+    factionWeights:{security:5,trade:3,helix:3,jackals:2,quickbite:2},
     board:{category:'combat',weight:.8,maxPerBoard:1},
     risk:{base:5,min:5,levelsPerStep:2,max:9,jitter:1},
     reward:{
@@ -1821,6 +1844,17 @@
       {type:'dune_assault',label:'Destroy the Armour Groups',params:{difficulty:'$risk',startMessage:'ARMOUR GROUPS'}}
     ],
     presentation:{
+      // v770: Nyxo finally gets a job with tanks in it.
+      quickbite:{
+        contactId:'nyxo_malloc',
+        titles:['Tanks on the Delivery Route','Dune Route Problem','Armour Versus Lunch'],
+        descriptions:['Dude. Somebody parked actual tanks across our dune delivery route. Four groups of them. The drivers will not go near it and honestly, fair. Go down and break them. Hit the big walkers at the knees.','So the desert franchise has not had a delivery in three days because of armour. Like, military armour. On a taco route. Please make it stop existing.'],
+        completionSubjects:['Route is open, dude','Tanks deleted'],
+        completionBodies:['All four armour groups are scrap and the drivers are moving again. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'nyxo_malloc',subjects:['The tanks won'],bodies:['Dude, the tanks are still there and your drone is in pieces on the sand. The desert franchise is now serving cereal. Please go back.']},
+        abandonMail:{contactId:'nyxo_malloc',subjects:['You left the tanks there?'],bodies:['You flew all the way down there and left the tanks. They are still parked on the route. Like a bad joke.']},
+        personalFollowUp:{contactId:'nyxo_malloc',minRisk:5,chance:.24,subjects:['Dude, the knees'],bodies:['The drivers watched the telemetry replay. One of them cried at the part where the big walker fell over. Happy crying.']}
+      },
       trade:{
         contactId:'corvella_pallis',
         titles:['Dune Road Clearance','Armour on My Route','Sand and Steel'],

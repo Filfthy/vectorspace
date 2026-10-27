@@ -681,7 +681,9 @@ class CampaignController {
     const a=Array.isArray(values)?values:[];return a.length?a[(Math.random()*a.length)|0]:fallback
   }
   formatTemplateText(text,vars={}){
+    // v770: a variable that opens a sentence ("{cargo} did not arrive") is capitalised.
     return String(text??'').replace(/\{([A-Za-z0-9_]+)\}/g,(all,key)=>Object.prototype.hasOwnProperty.call(vars,key)?String(vars[key]):all)
+      .replace(/(^|[.!?]\s+)([a-z])/g,(m,lead,ch)=>lead+ch.toUpperCase())
   }
   templateRisk(template){
     const cfg=template?.risk||{},level=this.levelForXP(),minLevel=Math.max(1,Number(template?.minLevel)||1),step=Math.max(1,Math.round(Number(cfg.levelsPerStep)||2));

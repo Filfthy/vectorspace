@@ -325,3 +325,15 @@ v760  Post-story board job: Factory Strike (OSD, Helix)
       ten. The Guide's late game section mentions it.
       Flown muted: screen fight, descent, live factory start (orange ground,
       GENERATORS 0/6, shielded bunker), completion mail. No errors.
+
+v770  More clients for land jobs, and a grammar fix in generated text
+      - Nyxo now offers Dune Armour Clearance: "Somebody parked actual tanks
+        across our dune delivery route", while the desert franchise serves
+        cereal.
+      - Navira now offers Groundside Pickup: a living sample from a city lab,
+        sent through the Compact depot because that's how Helix freight
+        goes. "Please keep it level. It is alive."
+      - Fixed in all contract text, old and new: a filled-in name that opened
+        a sentence stayed lower case ("...failed. sealed delivery case did not
+        reach..."). Sentences now always start with a capital. Checked on
+        756 generated contracts across every template and client: none left.
