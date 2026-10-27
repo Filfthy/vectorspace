@@ -2778,7 +2778,7 @@ class CampaignController {
     const penalty=templateCivilian?.incidents>0
       ?(templateCivilian.assaults>0?`${templateCivilian.assaults} civilian traffic assault${templateCivilian.assaults===1?'':'s'} · settlement penalised`:`${templateCivilian.collisions} civilian traffic incident${templateCivilian.collisions===1?'':'s'} · settlement penalised`)
       :(jackalSettlement?.incidents>0?(jackalSettlement.incidents>=3?`${jackalSettlement.incidents} civilian incidents · Red Jackal refused payment`:`${jackalSettlement.incidents} civilian incident${jackalSettlement.incidents===1?'':'s'} · Red Jackal cut the settlement`):'');
-    this.showDebrief({success:true,title:m.title,pay:actualPay,hazardPay,hazardLabel:m.routeEncounter?.nav||'',bounty,diversions,xp:m.xp+diversionXp+bountyXp,liability:0,reason:penalty,returnPanel:m.private?'mail':'missions'});
+    this.showDebrief({success:true,title:m.title,pay:actualPay,hazardPay,hazardLabel:m.routeEncounter?.nav||'',bounty,diversions,standing:this.standingChanges([[m.faction,repGain],...diversions.filter(v=>v.rep&&v.repFaction).map(v=>[v.repFaction,v.rep])]),xp:m.xp+diversionXp+bountyXp,liability:0,reason:penalty,returnPanel:m.private?'mail':'missions'});
     return true;
   }
   failCurrentMission(reason='Mission failed'){
@@ -2826,7 +2826,7 @@ class CampaignController {
     this.save();
     audio.playVoice('missionFailed',{once:true,priority:true});
     paused=true;document.body.classList.add('paused');
-    this.showDebrief({success:false,heading:'Mission abandoned',title:m.title,pay:0,xp:0,liability:0,reason:`${reason} · drone recovered`,returnPanel:m.private?'mail':'missions'});
+    this.showDebrief({success:false,heading:'Mission abandoned',standing:this.standingChanges([[m.faction,-2-(civilian?.failureRepPenalty||0)]]),title:m.title,pay:0,xp:0,liability:0,reason:`${reason} · drone recovered`,returnPanel:m.private?'mail':'missions'});
     return true
   }
   showInsuranceRecovery(d){
@@ -2866,6 +2866,12 @@ class CampaignController {
     debriefBoxEl.querySelectorAll('[data-decline]').forEach(b=>b.addEventListener('click',()=>resolve(Number(b.dataset.decline),false)));
     continueBtn.addEventListener('click',()=>{delete this.state.pendingInsurance;this.restoreFrameLoadout(this.state.drone,true);this.save();this.closeMissionDebrief(d.returnPanel||'missions')});refresh()
   }
+  // v540: the debrief says how standing moved, since standing now gates agent
+  // missions, priority jobs and enforcers. Pairs of [factionId, delta], merged.
+  standingChanges(pairs){
+    const sum={};for(const [id,d] of pairs||[])if(id&&this.factions[id]&&d)sum[id]=(sum[id]||0)+d;
+    return Object.entries(sum).map(([id,d])=>{const f=this.factions[id];return{name:f.name,delta:d,rep:f.rep,label:this.repLabel(f.rep)}})
+  }
   showDebrief(d){
     audio.music.setMode('calm');
     this.open=true;campaignShell.classList.add('open');campaignResumeBtn.style.display='none';this.updateGearHud();this.renderHeader();this.setPanel('debrief');
@@ -2885,6 +2891,7 @@ class CampaignController {
       ${(d.diversions||[]).map(v=>`<div class="debriefRow"><span>Diversion · ${this.escapeHtml(v.text)}${v.rep?` · standing +${v.rep}`:''}${v.xp?` · +${v.xp} XP`:''}</span><span>${v.pay?'CR '+v.pay.toLocaleString():'-'}</span></div>`).join('')}
       ${d.hazardPay>0?`<div class="debriefRow"><span>Hazard pay · ${this.escapeHtml(d.hazardLabel||'route encounter')}</span><span>CR ${d.hazardPay.toLocaleString()}</span></div>`:''}
       <div class="debriefRow"><span>Experience</span><span>${d.xp} XP</span></div>
+      ${(d.standing||[]).map(v=>`<div class="debriefRow"><span>Standing · ${this.escapeHtml(v.name)}</span><span class="${v.delta>0?'standUp':'standDown'}">${v.delta>0?'+':''}${v.delta} · now ${v.rep} ${this.escapeHtml(v.label)}</span></div>`).join('')}
       <div class="debriefRow"><span>Drone liability</span><span>${d.liability?'- CR '+d.liability.toLocaleString():'CR 0'}</span></div>
       ${this.returnRestock?.spent>0?`<div class="debriefRow"><span>Consumables restocked</span><span>- CR ${this.returnRestock.spent.toLocaleString()}</span></div>`:''}
       ${this.returnRestock?.missing>0?`<div class="debriefRow"><span>Could not afford</span><span>${this.returnRestock.missing} charge${this.returnRestock.missing===1?'':'s'}</span></div>`:''}

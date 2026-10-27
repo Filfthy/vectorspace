@@ -25,3 +25,8 @@ v530  Hostile standing now has a consequence
       how you mend things. The Networks page and the Guide say so.
       Checked: Hostile networks still offer work, so standing can always be
       repaired.
+
+v540  The debrief shows how standing moved
+      After a job: "Standing · Helix Industrial Group  +8 · now 8 Neutral", plus a
+      second line when a diversion moves another network (a rescued civilian
+      gives OSD standing). Abandoning shows the loss in red.
