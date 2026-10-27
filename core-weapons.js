@@ -198,7 +198,7 @@ class WeaponController {
  best.hp-=best.type==='fighter'?(campaign.laserDamageAgainst?.(best)||1):campaign.structureDamage();best.hitFx=HIT_FX_TOTAL;spark(bp.x,bp.y,campaign.fx?.overchargeT>0?C.y:C.c,4);
  if(best.type==='fighter'){
    if(xenoNest.active&&best.hiveNest)xenoNest.onFighterHit(best);
-   else registerFighterHit(best,a,bp)
+   else{routeDiversion?.onPlayerHitFighter?.(best);registerFighterHit(best,a,bp)}
  }
  if(best.hp<=0)queueObjectDestruction(best,bp);else SoundFX.hit()
 }

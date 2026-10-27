@@ -2582,9 +2582,12 @@ class CampaignController {
     const actualPay=settlement?Math.max(0,Math.round((m.pay*settlement.payMultiplier)/50)*50):m.pay;
     // Route encounter fought and survived: hazard pay on top of the contract fee.
     const hazardPay=m.routeEncounter&&!settlement?Math.round((m.pay*(Number(m.routeEncounter.payBonus)||.15))/50)*50:0;
+    // Optional diversions investigated on the way (beacons, derelicts, civilians).
+    const diversions=(m.diversions||[]).filter(d=>d.outcome!=='ignored'),diversionPay=diversions.reduce((n,d)=>n+(d.pay||0),0),diversionXp=diversions.reduce((n,d)=>n+(d.xp||0),0);
+    for(const d of diversions)if(d.rep&&d.repFaction&&this.factions[d.repFaction])this.applyRep(d.repFaction,d.rep);
     asteroidField.stop();
-    this.state.money+=actualPay+hazardPay;this.state.xp+=m.xp;this.state.completed++;
-    {const st=this.stats();st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
+    this.state.money+=actualPay+hazardPay+diversionPay;this.state.xp+=m.xp+diversionXp;this.state.completed++;
+    {const st=this.stats();st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
     let repGain=0;
     if(faction){
       const normalRepGain=Math.max(1,Math.round(8*this.positiveRepMultiplier()));
@@ -2618,7 +2621,7 @@ class CampaignController {
     const penalty=templateCivilian?.incidents>0
       ?(templateCivilian.assaults>0?`${templateCivilian.assaults} civilian traffic assault${templateCivilian.assaults===1?'':'s'} · settlement penalised`:`${templateCivilian.collisions} civilian traffic incident${templateCivilian.collisions===1?'':'s'} · settlement penalised`)
       :(jackalSettlement?.incidents>0?(jackalSettlement.incidents>=3?`${jackalSettlement.incidents} civilian incidents · Red Jackal refused payment`:`${jackalSettlement.incidents} civilian incident${jackalSettlement.incidents===1?'':'s'} · Red Jackal cut the settlement`):'');
-    this.showDebrief({success:true,title:m.title,pay:actualPay,hazardPay,hazardLabel:m.routeEncounter?.nav||'',xp:m.xp,liability:0,reason:penalty,returnPanel:m.private?'mail':'missions'});
+    this.showDebrief({success:true,title:m.title,pay:actualPay,hazardPay,hazardLabel:m.routeEncounter?.nav||'',diversions,xp:m.xp+diversionXp,liability:0,reason:penalty,returnPanel:m.private?'mail':'missions'});
     return true;
   }
   failCurrentMission(reason='Mission failed'){
@@ -2627,7 +2630,7 @@ class CampaignController {
     if(this.currentMission.devTest&&typeof scenarioFlow!=='undefined')return scenarioFlow.finishDevelopmentMission(false,reason);
     if(this.currentMission.devTemplateTest)return this.finishDevTemplateTest(false,reason,false);
     if(this.currentMission.training)return this.finishTraining(false,reason||'Simulation ended.');
-    this.beginPostMissionVoiceHold();this.queueSkillPointReminder();
+    this.beginPostMissionVoiceHold();this.queueSkillPointReminder();routeDiversion?.reset?.();
     const m=this.currentMission,destroyedFrameId=this.state.drone,frameExcess=this.frameReplacementExcess(destroyedFrameId);
     const lostConsumables=this.activeLoadout.filter((id,i)=>id&&this.slotCharges(i)>0).map((id,i)=>id),insuredItems=this.keepUniqueHardware([...this.activeInternalLoadout.filter(Boolean),...(this.activeWeapon&&this.activeWeapon!=='laser1'?[this.activeWeapon]:[])]);
     asteroidField.stop();this.state.failed++;{const st=this.stats();st.contracts.failed++;if(/destroy/i.test(reason))st.dronesLost++}const civilian=this.templateCivilianSettlement(m);if(this.factions[m.faction])this.applyRep(m.faction,-2-(civilian?.failureRepPenalty||0));this.queueContractFailureMail(m,'failed',reason);this.queueStoryRetryMail(m,'failed');
@@ -2650,7 +2653,7 @@ class CampaignController {
     if(this.currentMission.devTest&&typeof scenarioFlow!=='undefined')return scenarioFlow.finishDevelopmentMission(false,reason);
     if(this.currentMission.devTemplateTest)return this.finishDevTemplateTest(false,reason,true);
     if(this.currentMission.training)return this.finishTraining(false,'Simulator exited.');
-    this.beginPostMissionVoiceHold();this.queueSkillPointReminder();
+    this.beginPostMissionVoiceHold();this.queueSkillPointReminder();routeDiversion?.reset?.();
     const m=this.currentMission;
     asteroidField.stop();
     this.state.failed++;this.stats().contracts.abandoned++;
@@ -2718,6 +2721,7 @@ class CampaignController {
       <div class="missionFaction">${d.title}</div>
       ${d.reason?`<div class="missionStatus bad">${d.reason}</div>`:''}
       <div class="debriefRow"><span>Contract payment</span><span>CR ${d.pay.toLocaleString()}</span></div>
+      ${(d.diversions||[]).map(v=>`<div class="debriefRow"><span>Diversion · ${this.escapeHtml(v.text)}${v.rep?` · standing +${v.rep}`:''}${v.xp?` · +${v.xp} XP`:''}</span><span>${v.pay?'CR '+v.pay.toLocaleString():'-'}</span></div>`).join('')}
       ${d.hazardPay>0?`<div class="debriefRow"><span>Hazard pay · ${this.escapeHtml(d.hazardLabel||'route encounter')}</span><span>CR ${d.hazardPay.toLocaleString()}</span></div>`:''}
       <div class="debriefRow"><span>Experience</span><span>${d.xp} XP</span></div>
       <div class="debriefRow"><span>Drone liability</span><span>${d.liability?'- CR '+d.liability.toLocaleString():'CR 0'}</span></div>

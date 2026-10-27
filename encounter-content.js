@@ -67,11 +67,22 @@
     let r=Math.random()*total;for(const x of list){r-=Math.max(0,weightOf(x));if(r<=0)return x}return list[list.length-1]
   };
 
+  // Optional diversions (route-diversion.js): open-space moments only, never stacked.
+  const DIVERSIONS=[{id:'beacon',weight:40},{id:'derelict',weight:35},{id:'civilian',weight:25}];
+  function maybeDiversion(modules,spots,risk,chance){
+    if(Math.random()>=chance||modules.some(m=>m.type==='route_diversion'))return false;
+    const s=spots[Math.floor(Math.random()*spots.length)],d=pick(DIVERSIONS,x=>x.weight);
+    modules.splice(s.index,0,{type:'route_diversion',label:'Route Diversion',diversion:d.id,difficulty:risk,spaceCombat:false,fighterHp:12});
+    return true
+  }
+
   // Mutates `modules` (adds one fight or a nav note) and returns a summary for the contract.
   function apply(campaign,{template,faction,risk,modules}){
     if(!Array.isArray(modules)||!modules.length)return null;
-    if(modules.some(m=>COMBAT.has(m.type)))return null;           // already a fight in this job
     const spots=placements(modules);if(!spots.length)return null;
+    // A job that already contains a fight gets no extra fight, but may still pass an
+    // optional diversion that the player can investigate or ignore.
+    if(modules.some(m=>COMBAT.has(m.type))){maybeDiversion(modules,spots,risk,.14);return null}
     const level=campaign.levelForXP(),state=campaign.state;
     // Most visits stay quiet. Templates that roll their own orbital encounter get less.
     const chance=template?.encounterTable?.entries?.22:.3;
@@ -95,6 +106,7 @@
         return {id:e.id,place:s.place,variant:v[0],payBonus:.15+v[4],nav:e.nav}
       }
     }
+    if(maybeDiversion(modules,spots,risk,.18))return null;
     // Quiet run: sometimes the nav computer notes something harmless on arrival.
     if(Math.random()<.35){
       const s=spots[Math.floor(Math.random()*spots.length)],target=modules[Math.min(s.index,modules.length-1)];

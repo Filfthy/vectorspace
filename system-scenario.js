@@ -49,6 +49,8 @@ class ScenarioFlowController {
       // v400: the dune armour field (formerly DEV-only) as a contract module. Like the
       // factory it completes the contract itself once the dunes are clear, so it goes last.
       dune_assault:{entry:'seamless',terminal:'departed'},
+      // v420: optional off-route diversion (beacon, derelict, pursued civilian).
+      route_diversion:{entry:'seamless',terminal:'space'},
       deep_core_surface:{entry:'seamless',terminal:'surface'},
       surface_destination_approach:{entry:'seamless',terminal:'surface'},
       urban_penthouse_delivery:{entry:'seamless',terminal:'city'},
@@ -255,6 +257,7 @@ class ScenarioFlowController {
   enterStage(stage,{via='direct',mission=null}={}){
     if(!stage)return false;
     this.encounterProfile='standard';this.encounterHudTag='';
+    if(routeDiversion?.active&&stage.type!=='route_diversion')routeDiversion.reset();
     // v410: harmless ambient nav chatter on quiet runs, shown once the section has settled
     // so the section's own opening message is not overwritten.
     if(stage.navAmbient&&stage.navMessage){const msg=stage.navMessage,ref=stage;setTimeout(()=>{if(campaign.currentStage?.()===ref)say(msg,1.4)},3200)}
@@ -323,6 +326,7 @@ class ScenarioFlowController {
     if(stage.type==='bunker_recovery_osd'){
       bunkerRaid.begin(stage);return true
     }
+    if(stage.type==='route_diversion')return routeDiversion.begin(stage);
     if(stage.type==='dune_assault'){
       groundAssault.begin();say(stage.startMessage||'ARMOUR COLUMN',.9);return true
     }

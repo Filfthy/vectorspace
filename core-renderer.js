@@ -679,6 +679,7 @@ class SceneRenderer {
  else if(groundAssault?.active)leftLabel=groundAssault.hudLeft()||leftLabel;
  else if(tacoBeaconDelivery?.active)leftLabel=tacoBeaconDelivery.hudLeft()||leftLabel;
  else if(salvageRecovery.active&&salvageRecovery.state!=='combat')leftLabel='RECOVERY';
+ if(typeof routeDiversion!=='undefined'&&routeDiversion.active)leftLabel=routeDiversion.hudLeft()||leftLabel;
  else if(helixBiolab?.active)leftLabel='HELIX ORBITAL BIOLAB';
  else if(scenarioFlow?.pendingDestination)leftLabel='HELIX RETURN';
  else if(phase==='jackalCity'&&(jackalDelivery.state==='outboundMerge'||jackalDelivery.state==='cityOutbound'))leftLabel='CITY EXIT';

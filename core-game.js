@@ -174,6 +174,7 @@ class Game {
  if(scenarioFlow?.pendingDestination&&mode==='play'&&phase==='space'){
    scenarioFlow.updatePendingDestination(dt);updateEffects(dt);return
  }
+ if(routeDiversion.active&&mode==='play')routeDiversion.update(dt);
  if(salvageRecovery.active&&salvageRecovery.state==='search'){
    salvageRecovery.update(dt);if(mode==='recoveryPickup'){updateEffects(dt);return}
  }
@@ -552,6 +553,8 @@ class Game {
        // asteroid-delivery run. Clearing the fighters unlocks the existing mine nav;
        // do not fall through into the generic approach transition on later frames.
        if(tacoBeaconDelivery?.piratesActive?.())tacoBeaconDelivery.onPiratesCleared()
+    }else if(campaign.currentMission&&activeStage?.type==='route_diversion'){
+       if(routeDiversion.active)routeDiversion.onFightCleared()
     }else if(campaign.currentMission&&(activeStage?.type==='fighters'||activeStage?.type==='customs_drones')){
        scenarioFlow.completeCurrentStage()
      }else if(campaign.currentMission&&activeStage?.type==='jackal_party_delivery')jackalDelivery.beginPlanetRun();
