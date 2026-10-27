@@ -30,3 +30,10 @@ v540  The debrief shows how standing moved
       After a job: "Standing · Helix Industrial Group  +8 · now 8 Neutral", plus a
       second line when a diversion moves another network (a rescued civilian
       gives OSD standing). Abandoning shows the loss in red.
+
+      Save compatibility check (no change needed). A save made with the archived
+      v292 build (level 9, AX-2R with Mk III laser, extender, consumables, early
+      story progress) loads cleanly in the current build: equipment, charges,
+      money and story flags intact, every hub panel opens without errors, and
+      the new systems start working on it (faction agent offers arrive, 24
+      achievements). Your own browser save should carry straight over.
