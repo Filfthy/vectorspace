@@ -1701,6 +1701,13 @@ class CampaignController {
     const C=globalThis.AgentXFactionContent,F=globalThis.AgentXFactionLore;if(!C||!F)return;
     const flags=this.state.mailFlags,completed=Number(this.state.completed)||0;
     if(Number.isFinite(flags.loreSentAt)&&completed<=flags.loreSentAt)return;
+    // Mara's letters come first: each follows a story beat by one or two contracts.
+    const M=F.MARA;if(M)for(let i=0;i<M.letters.length;i++){
+      const l=M.letters[i],key=`maraLore${i+1}`;if(flags[key])continue;if(i>0&&!flags[`maraLore${i}`])break;
+      if(!flags[l.after+'Done']||completed<(Number(flags[l.after+'CompletedAt'])||0)+l.gap)break;
+      flags[key]=true;flags.loreSentAt=completed;
+      this.enqueueMail({id:`lore_mara_${i+1}`,from:M.from,subject:l.subject,category:'story',priority:'normal',body:l.body.slice()});return
+    }
     for(let i=0;i<3;i++)for(const chain of C.chains){
       const letter=F.LETTERS[chain.faction]?.[i],key=`${chain.faction}Lore${i+1}`;
       if(!letter||flags[key]||(i>0&&!flags[`${chain.faction}Lore${i}`]))continue;

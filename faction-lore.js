@@ -95,5 +95,22 @@
     if(i===1)return !!flags[chain.steps[1].flag+'Done'];
     const cap=chain.steps[2].flag;return !!flags[cap+'Done']&&completed>=(Number(flags[cap+'CompletedAt'])||0)+3
   }
-  globalThis.AgentXFactionLore={LETTERS,due};
+  // v780: Mara Venn (VOX) writes at three story beats, one or two contracts after each
+  // so her letter never lands on top of the story mail. Character only: the antagonist
+  // stays unnamed and nothing here moves the plot (POSSIBLE GAME DIRECTION.txt).
+  const MARA={from:'Mara Venn · Contractor Services, VOX',letters:[
+    {after:'mara1',gap:1,...L('Why I called you',[
+      'X. A short one, because you will want to know and nobody else at VOX will tell you.',
+      'When the courier went down I had a list of forty contractors who could have taken the recovery. You were the only one who read the brief and did not ask for more money first.',
+      'Private work from me will always feel different from the board. Fewer people know about it. Keep it that way.'])},
+    {after:'cassian1',gap:1,...L("About Cassian's favour",[
+      'I sent you to Cassian, so what he asked of you is partly on me.',
+      'You shot Customs drones to deliver a case nobody was allowed to open. He will tell you that was nothing. It was not nothing, and I do not want you thinking I think it was.',
+      'We needed what he knew. I would make the same call again. I just wanted you to hear me say it.'])},
+    {after:'kudo3',gap:2,...L('After the factory',[
+      'X. The factory is gone and the reports are filed. VOX is calling it a successful outcome, which is the phrase VOX uses for everything.',
+      'I keep thinking about how long those machines waited out there, and how easy it was for somebody to wake them up. There will be other factories, and other people who go looking for them.',
+      'When they do, I would like it to be you I call. That is not a contract. It is just true.'])}
+  ]};
+  globalThis.AgentXFactionLore={LETTERS,due,MARA};
 })();

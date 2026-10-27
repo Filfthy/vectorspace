@@ -337,3 +337,19 @@ v770  More clients for land jobs, and a grammar fix in generated text
         a sentence stayed lower case ("...failed. sealed delivery case did not
         reach..."). Sentences now always start with a capital. Checked on
         756 generated contracts across every template and client: none left.
+
+v780  Mara Venn writes too: 3 personal letters at story beats
+      Mara is the spine of the story but had no personal mail. She now writes
+      one or two jobs after three moments, so a letter never lands on top of
+      story mail:
+      - After her first contract: "Why I called you". Of forty contractors,
+        X was the only one who read the brief and didn't ask for more money.
+      - After Cassian's favour: she owns sending you to him. Shooting Customs
+        drones for a case nobody could open "was not nothing", and she'd make
+        the same call again. The story notes say Mara takes it far less
+        casually than Cassian, so this is that moment.
+      - Two jobs after the factory finale: VOX calls it "a successful outcome,
+        which is the phrase VOX uses for everything", and there will be other
+        factories. "When they do, I would like it to be you I call."
+      The antagonist stays unnamed and nothing advances the plot. Mara's
+      letters share the one-letter-per-job limit with the other contacts.
