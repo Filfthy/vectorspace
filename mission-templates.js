@@ -1526,6 +1526,66 @@
     defaults:{destination:'swamp relay clearing',cargo:'sealed delivery package'}
   };
 
+  // v790 wreck recovery (style guide T07): cross an asteroid field to a known wreck,
+  // fight off whoever is picking at it, enter, pull the recorder and hand the data
+  // over at a Compact freight depot. Same proven module chain as Missing Manifest and
+  // Corvella's Runaway. The depot ending suits the Compact and Red Jackal.
+  const wreckRecovery={
+    id:'wreck_recovery',
+    version:1,
+    family:'wreck_recovery',
+    musicMode:'calm',
+    minLevel:3,
+    maxLevel:null,
+    allowedFactions:['trade','jackals'],
+    factionWeights:{trade:5,jackals:3},
+    board:{category:'recovery',weight:.7,maxPerBoard:1},
+    risk:{base:3,min:3,levelsPerStep:2,max:9,jitter:1},
+    reward:{
+      basePay:2200,payPerRisk:1300,payRiskSquare:140,randomPay:400,roundPay:50,
+      baseXp:300,xpPerRisk:80,xpRiskSquare:9
+    },
+    sections:[
+      {type:'asteroid_wreck_recovery',label:'Wreck Recovery',params:{difficulty:'$risk',target:{base:3,perRisk:1,min:5,max:10,round:true},fighterHp:12,profile:'pirate',
+        combatVoice:'pirateAmbushDestroyPirates',ambushMessage:'Pirate salvagers! Destroy them.',
+        route:{navDistance:550,navX:12,navY:-3,ambushDelay:4,navCaptureRadius:68,startMessage:'Proceed to the wreck',resumeMessage:'Wreck located. Continue through the field',thinMessage:'Wreck ahead. Continue through the belt'},
+        wreck:{asset:'leviathanTrueSeparation04',scale:22,spawnDistance:1050,spawnX:-6,spawnY:2,rot:[-.06,-.22,.09],revealDistance:700,
+          gapLocal:[0,-.12,2.75],gapCaptureRadius:20,entryLocal:[0,-.15,-.18],entryAutopilotSpeed:16.5,entryAutopilotStop:1.55,
+          blackBoxLocal:[0,-.13,-2.64],recorderStopLocal:[0,-.15,-2.10],recorderStopRadius:.65,transferSeconds:3.0,turnSeconds:1.75,interiorAutopilotSpeed:12.5,
+          exitLocal:[0,-.15,.92],exitRevealRadius:54,exitCaptureRadius:3.5},
+        returnTransit:{duration:3.15,message:'RETURNING TO FREE TRADERS FREIGHT DEPOT',hud:'TO FREIGHT DEPOT'}}},
+      {type:'free_traders_depot_terminal',label:'Deliver the Records',params:{difficulty:1,scale:26,spawnDistance:475,spawnX:-36,spawnY:-12,pitch:-.085,yaw:.58,roll:.05,startMessage:'Deliver the recovered records',depotRevealRadius:205,terminalStageDistance:82,terminalCaptureRadius:86,terminalStandOff:15.5,transferSeconds:3.1,turnSeconds:1.75,clearDistance:52}}
+    ],
+    presentation:{
+      trade:{
+        contactId:'corvella_pallis',
+        titles:['Wreck Recovery','Lost Hauler','Recorder Pull'],
+        descriptions:[
+          'Sweetie, one of my haulers went into an asteroid field and did not come out. Scavengers are already picking at the wreck. Chase them off, get inside and bring me the recorder. Deliver it to the depot.',
+          'Babe, there is a dead freighter in a rock field with my insurance claim inside it. Pull the recorder before the salvagers strip the hull, then take it to the depot.'
+        ],
+        completionSubjects:['Recorder delivered','I have the data, sweetie'],
+        completionBodies:['The depot has the recorder data and the insurers are already sulking. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the recorder'],bodies:['Sweetie, the recorder is still out in those rocks and so is a lot of your drone. Go back for me. Carefully this time.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, you left the wreck'],bodies:['You turned your back on my wreck, babe. The salvagers will have the hull stripped by morning.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:4,chance:.2,subjects:['That was some flying'],bodies:['Sweetie, I watched the telemetry of you threading through those rocks. I had to sit down afterwards.']}
+      },
+      jackals:{
+        contactId:'cassian_erivan_snade',
+        titles:['A Lost Ledger','Salvage Rights','An Unfortunate Collision'],
+        descriptions:[
+          'X. A vessel belonging to an acquaintance met an asteroid. Its recorder contains a ledger that several people would find fascinating. I would prefer it to find me first. Hand it in at the depot.',
+          'There is a wreck in an asteroid field and a crew of opportunists picking at it. Somewhere inside is a recorder I would like to own. The depot will hold it for me.'
+        ],
+        completionSubjects:['The ledger is home','Salvage concluded'],
+        completionBodies:['The recorder reached the depot and nobody else has read it. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'cassian_erivan_snade',subjects:['The ledger remains at large'],bodies:['The ledger is still in the wreck, and the opportunists are still beside it. That is the least elegant possible outcome.']},
+        abandonMail:{contactId:'cassian_erivan_snade',subjects:['Second thoughts about salvage'],bodies:['You left before collecting the recorder. Someone less discreet will collect it instead.']},
+        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:5,chance:.2,subjects:['The ledger was illuminating'],bodies:['The ledger was everything I hoped. Three people I know are about to have a very difficult month.']}
+      }
+    }
+  };
+
   // v760 post-story factory strike. Rogue drone factories are self-replicating
   // Partition War industry that can run for years on an ignored moon
   // (AGENT_X_WORLD_LORE.txt 3.2). Same proven chain as the VOX finale (Factory Moon):
@@ -2039,7 +2099,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();

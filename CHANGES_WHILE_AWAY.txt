@@ -353,3 +353,20 @@ v780  Mara Venn writes too: 3 personal letters at story beats
         factories. "When they do, I would like it to be you I call."
       The antagonist stays unnamed and nothing advances the plot. Mara's
       letters share the one-letter-per-job limit with the other contacts.
+
+v790  New board job: Wreck Recovery (Compact, Red Jackal)
+      The asteroid-field wreck (fly the field, fight off salvagers, slip into
+      the wreck through a hull gap, pull the recorder, deliver it to a
+      Compact depot) used to appear only in Missing Manifest and Corvella's
+      Runaway. It's now a board RECOVERY job from level 3. Corvella wants her
+      lost hauler's recorder before the scavengers strip it. Cassian wants a
+      ledger "several people would find fascinating" to find him first. The
+      salvager ambush grows with risk (5 to 10). At level 5 it pays
+      CR 10,000 and 780 XP.
+      Also: wreck recovery, bunker raids and Deep Core now count as combat
+      stages for route encounters. They already have big fights, so they no
+      longer get an extra route fight stacked on top, only the occasional
+      optional diversion.
+      Flown muted: field, ambush and salvagers destroyed, route thinning,
+      gap approach (my unpiloted drone then hit rocks, as you'd expect), then
+      wreck and depot stepped through to victory and mail. No errors.

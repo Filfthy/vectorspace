@@ -18,7 +18,7 @@
   const ARRIVAL_STATION=new Set(['station_pad_approach','station_approach','taco_beacon_pickup','free_traders_depot_terminal','helix_biolab_approach']);
   const ARRIVAL_ASTEROID=new Set(['asteroid_mine_delivery','taco_asteroid_delivery']);
   const DEPARTURE=new Set(['station_pad_departure','planet_launch','station_hack_escape','station_departure']);
-  const COMBAT=new Set(['fighters','customs_drones','combat_recovery','station_defence_recovery','carrier_intercept','station_xeno_arrival','dune_assault','xeno_nest','factory_assault']);
+  const COMBAT=new Set(['fighters','customs_drones','combat_recovery','station_defence_recovery','carrier_intercept','station_xeno_arrival','dune_assault','xeno_nest','factory_assault','asteroid_wreck_recovery','bunker_recovery_osd','deep_core_surface']);
 
   // variants: [label, minTargets, maxTargets, hpMultiplier, extra hazard pay]
   const ENCOUNTERS=[
