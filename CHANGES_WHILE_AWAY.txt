@@ -121,3 +121,12 @@ v620  The Operator record shows tonight's systems, in bigger text
       The Record, the operator line and the achievement badges were still at
       10-11px, missed by the v430 text pass; they now use the standard sizes
       (12px, scaled with A-/A+).
+
+v630  The rest of the small hub text, one size up
+      v430 raised the shared text sizes by 2px, but 43 hub styles had fixed
+      sizes of their own and stayed small (9-11px): loadout names and states,
+      inventory slots, market tags, frame specs, the insurance screen, mail
+      tags and filters, mixer and track names, skill tooltips. They now get the
+      same 2px step and scale with A-/A+. Left alone on purpose: DEV panels,
+      the title gate and the in-flight HUD (it has its own scaling). Checked
+      muted for overflow on every hub panel and the insurance screen: none.

@@ -206,15 +206,15 @@ body.cheating canvas{cursor:var(--cursor-vector)}
 .workshopMission{border-color:var(--c)}
 .workshopMission .missionFaction{margin-bottom:6px}
 .workshopDroneStats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0 13px}
-.workshopDroneStats div{border:1px solid var(--gd);padding:8px;color:var(--g);font-size:11px;min-width:0}
+.workshopDroneStats div{border:1px solid var(--gd);padding:8px;color:var(--g);font-size:var(--type-body);min-width:0}
 .workshopDroneStats b{display:block;color:var(--w);font-size:13px;font-weight:400;margin-bottom:3px}
 .loadoutSlots{display:grid;grid-template-columns:repeat(3,minmax(82px,1fr));gap:9px}
 .loadoutSlot{position:relative;width:100%;aspect-ratio:1/1;min-height:92px!important;padding:8px!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;overflow:hidden}
 .loadoutKey{position:absolute;left:6px;top:5px;color:var(--y);font-size:15px;line-height:1}
 .loadoutIcon{width:48px;height:48px;display:grid;place-items:center;color:inherit}
 .loadoutIcon svg,.inventorySlotIcon svg,.shopItemIcon svg,.gearHudIcon svg{width:100%;height:100%;display:block;fill:none;stroke:currentColor;stroke-width:1.45;stroke-linecap:square;stroke-linejoin:miter;vector-effect:non-scaling-stroke}
-.loadoutName{color:inherit;font-size:10px;line-height:1.2;min-height:19px}
-.loadoutState{font-size:9px;color:var(--c);line-height:1.1}
+.loadoutName{color:inherit;font-size:var(--type-meta);line-height:1.2;min-height:19px}
+.loadoutState{font-size:var(--type-compact);color:var(--c);line-height:1.1}
 .loadoutSlot.locked{border-color:var(--gd)!important;color:var(--gd)!important;opacity:.5}
 .loadoutSlot.empty .loadoutIcon{opacity:.18}
 .inventoryHeader{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-bottom:8px}
@@ -224,18 +224,18 @@ body.cheating canvas{cursor:var(--cursor-vector)}
 .inventorySlot:hover:not(:disabled),.inventorySlot:focus-visible:not(:disabled){color:var(--c)!important;border-color:var(--c)!important}
 .inventorySlot.empty{opacity:.34;pointer-events:none}
 .inventorySlotIcon{width:40px;height:40px;display:grid;place-items:center;color:inherit}
-.inventorySlotName{font-size:9px;line-height:1.1;color:inherit}
-.inventorySlotIndex{position:absolute;right:4px;top:3px;color:var(--gd);font-size:9px}
-.inventoryOverflow{border:1px solid var(--gd);min-height:76px;display:grid;place-items:center;color:var(--y);font-size:10px}
+.inventorySlotName{font-size:var(--type-compact);line-height:1.1;color:inherit}
+.inventorySlotIndex{position:absolute;right:4px;top:3px;color:var(--gd);font-size:var(--type-compact)}
+.inventoryOverflow{border:1px solid var(--gd);min-height:76px;display:grid;place-items:center;color:var(--y);font-size:var(--type-meta)}
 .itemIconFrame{border:1px solid var(--gd);width:70px;height:70px;display:grid;place-items:center;color:var(--c);flex:0 0 auto}
 .shopItemHead{display:flex;align-items:center;gap:12px;margin-bottom:9px}
 .shopItemHead h3{margin:0 0 5px}
 .shopItemIcon{width:52px;height:52px;display:grid;place-items:center;color:inherit}
 .workshopActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.workshopActions button{min-width:132px;height:30px;font-size:11px;color:var(--g);border-color:var(--gd)}
+.workshopActions button{min-width:132px;height:30px;font-size:var(--type-body);color:var(--g);border-color:var(--gd)}
 .workshopLaunchPrimary{position:relative;min-width:280px;height:58px!important;padding:0 28px!important;color:var(--y)!important;border-color:var(--y)!important;font-size:18px!important;letter-spacing:.1em;overflow:visible}
 .workshopLaunchPrimary:hover,.workshopLaunchPrimary:focus{color:#fff!important;border-color:#fff!important}
-.shopOwned{color:var(--c);font-size:10px;margin:7px 0}
+.shopOwned{color:var(--c);font-size:var(--type-meta);margin:7px 0}
 #gearHud{position:absolute;left:10px;bottom:30px;z-index:10;display:none;gap:7px;pointer-events:none}
 #gearHud.show{display:flex}
 .gearHudSlot{position:relative;width:58px;height:58px;border:1px solid var(--gd);background:#000;color:var(--gd);display:grid;place-items:center;padding:5px;box-sizing:border-box}
@@ -271,10 +271,10 @@ body.cheating canvas{cursor:var(--cursor-vector)}
 .skillTreeStatus b{color:var(--y);font-weight:400}
 .skillTooltip{position:absolute;z-index:20;width:248px;display:none;pointer-events:none;background:#000;border:1px solid var(--c);padding:8px 9px;line-height:1.35}
 .skillTooltip.show{display:block}
-.skillTooltipTitle{color:var(--y);font-size:10px;margin-bottom:5px}
-.skillTooltipBody{color:var(--w);font-size:10px}
-.skillTooltipMeta{color:var(--c);font-size:10px;margin-top:6px;border-top:1px solid var(--gd);padding-top:5px}
-.skillTooltipAction{color:var(--g);font-size:10px;margin-top:4px}
+.skillTooltipTitle{color:var(--y);font-size:var(--type-meta);margin-bottom:5px}
+.skillTooltipBody{color:var(--w);font-size:var(--type-meta)}
+.skillTooltipMeta{color:var(--c);font-size:var(--type-meta);margin-top:6px;border-top:1px solid var(--gd);padding-top:5px}
+.skillTooltipAction{color:var(--g);font-size:var(--type-meta);margin-top:4px}
 @media(max-width:980px){.skillTreeGraph{min-width:720px}}
 .repTrack{height:11px;margin:9px 0;position:relative;background:#000;border:0;border-top:1px solid var(--g)}
 .repTrack::before{content:'';position:absolute;left:50%;top:-4px;height:7px;border-left:1px solid var(--g)}
@@ -282,12 +282,12 @@ body.cheating canvas{cursor:var(--cursor-vector)}
   position:absolute;top:-4px;width:7px!important;height:7px;background:#000!important;
   border:1px solid var(--c);transform:translateX(-50%) rotate(45deg)!important
 }
-.repValue{font-size:11px;color:var(--c)}
-.relationLine{font-size:10px;color:var(--g);margin-top:5px}
+.repValue{font-size:var(--type-body);color:var(--c)}
+.relationLine{font-size:var(--type-meta);color:var(--g);margin-top:5px}
 .shopPrice{color:var(--y);font-size:14px;margin:10px 0}
 .perkNode{border:1px solid var(--g);padding:6px 8px;margin:7px 0;background:#000}
-.perkNode b{display:block;color:var(--w);font-size:11px;font-weight:400}
-.perkNode span{font-size:11px;color:var(--g)}
+.perkNode b{display:block;color:var(--w);font-size:var(--type-body);font-weight:400}
+.perkNode span{font-size:var(--type-body);color:var(--g)}
 #debriefBox{max-width:680px;margin:7vh auto 0;border:1px solid var(--c);padding:22px;background:#000}
 #debriefBox h2{color:var(--c);margin:0 0 12px;font-weight:400}
 .debriefRow{display:flex;justify-content:space-between;border-bottom:1px solid var(--gd);padding:7px 0;font-size:12px}
@@ -426,17 +426,17 @@ button:disabled{
 .mixerSlider::-moz-range-track{height:1px;background:var(--c);border:0}
 .mixerSlider::-moz-range-progress{height:1px;background:var(--c);border:0}
 .mixerSlider::-moz-range-thumb{width:11px;height:11px;border:1px solid var(--c);border-radius:0;background:#000}
-.mixerValue{min-width:48px;text-align:right;color:var(--c);font-size:10px}
+.mixerValue{min-width:48px;text-align:right;color:var(--c);font-size:var(--type-meta)}
 #sfxTestGrid{display:grid;grid-template-columns:minmax(150px,.8fr) minmax(180px,1fr) 54px 72px;gap:7px 12px;align-items:center}
 .sfxName{color:var(--w)}
 .sfxPlay{height:28px!important;padding:2px 8px!important;border-color:var(--c)!important;color:var(--c)!important}
 #musicTrackMixer{display:grid;gap:8px;margin-top:4px}
-.trackGroupLabel{margin:10px 0 1px;color:var(--g);font-size:10px;letter-spacing:var(--track-label);text-transform:uppercase}
+.trackGroupLabel{margin:10px 0 1px;color:var(--g);font-size:var(--type-meta);letter-spacing:var(--track-label);text-transform:uppercase}
 .trackMixerHeader,.trackMixerRow{display:grid;grid-template-columns:minmax(195px,1.15fr) minmax(115px,.7fr) 46px minmax(150px,.9fr) 90px 66px;gap:8px 10px;align-items:center}
-.trackMixerHeader{color:var(--c);font-size:11px;border-bottom:1px solid var(--g);padding-bottom:4px}
+.trackMixerHeader{color:var(--c);font-size:var(--type-body);border-bottom:1px solid var(--g);padding-bottom:4px}
 .trackMixerRow{min-height:30px}
-.trackName{color:var(--w);font-size:10px;line-height:1.3;min-width:0}
-.trackTime{color:var(--g);font-size:11px;text-align:center;white-space:nowrap}
+.trackName{color:var(--w);font-size:var(--type-meta);line-height:1.3;min-width:0}
+.trackTime{color:var(--g);font-size:var(--type-body);text-align:center;white-space:nowrap}
 .trackPlay{height:28px!important;padding:2px 8px!important;border-color:var(--c)!important;color:var(--c)!important}
 .trackPlay.active{border-color:var(--y)!important;color:var(--y)!important}
 .trackPosition{accent-color:var(--c)}
@@ -571,29 +571,29 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 /* v183 — slot-type loadout + insurance recovery */
 .loadoutGroup{margin-top:12px}
 .loadoutGroup:first-of-type{margin-top:4px}
-.loadoutGroupLabel{color:var(--c);font-size:10px;letter-spacing:var(--track-kicker);margin:0 0 6px}
+.loadoutGroupLabel{color:var(--c);font-size:var(--type-meta);letter-spacing:var(--track-kicker);margin:0 0 6px}
 .internalSlots{grid-template-columns:minmax(110px,180px)}
 .loadoutSlot.internal{border-color:var(--c)!important;color:var(--c)!important}
 .inventorySlotType{font-size:6px;line-height:1;color:var(--x)}
 .shopCard.tierWhite h3,.shopCard.tierWhite .shopItemIcon,.inventorySlot.tierWhite{color:var(--w)!important}
 .shopCard.tierWhite{border-color:var(--x)}
-.insuranceFrame,.insuranceConsumables{display:flex;justify-content:space-between;gap:14px;border-bottom:1px solid var(--gd);padding:9px 0;font-size:11px}
+.insuranceFrame,.insuranceConsumables{display:flex;justify-content:space-between;gap:14px;border-bottom:1px solid var(--gd);padding:9px 0;font-size:var(--type-body)}
 .insuranceFrame b{color:var(--c);font-weight:400}
 .insuranceConsumables b{color:var(--y);font-weight:400;text-align:right}
-.insuranceHeading{color:var(--c);font-size:11px;letter-spacing:var(--track-kicker);margin:18px 0 7px}
+.insuranceHeading{color:var(--c);font-size:var(--type-body);letter-spacing:var(--track-kicker);margin:18px 0 7px}
 .insuranceItem{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;border:1px solid var(--gd);padding:10px;margin:7px 0}
 .insuranceItem b{display:block;color:var(--w);font-weight:400;font-size:12px}
-.insuranceItem span{display:block;color:var(--g);font-size:10px;margin-top:3px}
+.insuranceItem span{display:block;color:var(--g);font-size:var(--type-meta);margin-top:3px}
 .insuranceItem>strong{color:var(--y);font-size:12px;font-weight:400}
 .insuranceActions{display:flex;gap:6px}
-.insuranceActions button{min-width:92px;height:28px;font-size:10px}
+.insuranceActions button{min-width:92px;height:28px;font-size:var(--type-meta)}
 .insuranceItem.recovered{border-color:var(--c)}
 .insuranceItem.recovered .insuranceActions span{color:var(--c)}
 .insuranceItem.declined{opacity:.55}
 .insuranceItem.declined .insuranceActions span{color:var(--x)}
-.insuranceNone{border:1px solid var(--gd);padding:11px;color:var(--x);font-size:11px}
+.insuranceNone{border:1px solid var(--gd);padding:11px;color:var(--x);font-size:var(--type-body)}
 .insuranceFooter{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px}
-.insuranceFooter span{font-size:11px;color:var(--g)}
+.insuranceFooter span{font-size:var(--type-body);color:var(--g)}
 .insuranceFooter button{min-width:210px}
 .campaignSettingsTab{margin-left:0}
 @media (max-width:760px){.insuranceItem{grid-template-columns:1fr}.insuranceActions{justify-content:flex-start}.insuranceFooter{align-items:stretch;flex-direction:column}.insuranceFooter button{width:100%}}
@@ -601,19 +601,19 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 
 /* ---------- v184 progression sandbox / tier market ---------- */
 .marketToolbar{grid-column:1/-1;border:1px solid var(--gd);padding:10px;display:grid;gap:8px;margin-bottom:10px}
-.marketAccessSummary{font-size:10px;color:var(--c);letter-spacing:var(--track-label)}
+.marketAccessSummary{font-size:var(--type-meta);color:var(--c);letter-spacing:var(--track-label)}
 .marketAccessSummary b{color:var(--y);font-weight:400}
 .marketFilterRow{display:flex;gap:7px;flex-wrap:wrap}
-.marketFilterRow button{min-width:78px;height:28px;padding:0 9px;font-size:11px}
+.marketFilterRow button{min-width:78px;height:28px;padding:0 9px;font-size:var(--type-body)}
 .marketFilterRow button.active{color:var(--c)!important;border-color:var(--c)!important}
 .marketEmpty{grid-column:1/-1;border:1px solid var(--x);padding:18px;color:var(--x)}
 .shopCard.locked{border-color:var(--x);opacity:.72}
-.shopAccess{font-size:11px;color:var(--c);line-height:1.35;margin:8px 0}
+.shopAccess{font-size:var(--type-body);color:var(--c);line-height:1.35;margin:8px 0}
 .shopAccess.bad{color:var(--x)}
 .frameSpecs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.frameSpecs span{border:1px solid currentColor;padding:3px 6px;font-size:11px}
-.frameBonus{font-size:11px;color:var(--y);margin:6px 0;line-height:1.35}
-.factionAccess{font-size:11px;color:var(--c);margin:-2px 0 7px}
+.frameSpecs span{border:1px solid currentColor;padding:3px 6px;font-size:var(--type-body)}
+.frameBonus{font-size:var(--type-body);color:var(--y);margin:6px 0;line-height:1.35}
+.factionAccess{font-size:var(--type-body);color:var(--c);margin:-2px 0 7px}
 .shopCard:not(.locked) button:disabled{color:var(--x)!important;border-color:var(--x)!important}
 
 .shopCard.tierWhite,.workshopCard.tierWhite{border-color:var(--w)}
@@ -627,18 +627,18 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .shopCard.tierOrange,.workshopCard.tierOrange{border-color:var(--o)}
 .shopCard.tierOrange h3,.shopCard.tierOrange .shopItemIcon,.inventorySlot.tierOrange,.loadoutIcon.tierOrange{color:var(--o)!important}
 
-.frameTrait{color:var(--y);font-size:11px;margin:-3px 0 10px;line-height:1.35}
+.frameTrait{color:var(--y);font-size:var(--type-body);margin:-3px 0 10px;line-height:1.35}
 .ownedFramePicker{border-top:1px solid var(--gd);border-bottom:1px solid var(--gd);padding:8px 0;margin:0 0 11px;display:grid;gap:7px}
-.ownedFramePicker>span{font-size:11px;color:var(--c);letter-spacing:.09em}
+.ownedFramePicker>span{font-size:var(--type-body);color:var(--c);letter-spacing:.09em}
 .ownedFramePicker>div{display:flex;gap:6px;flex-wrap:wrap}
-.ownedFramePicker button{height:26px!important;min-width:72px;padding:0 8px!important;font-size:11px!important}
+.ownedFramePicker button{height:26px!important;min-width:72px;padding:0 8px!important;font-size:var(--type-body)!important}
 .ownedFramePicker button.active,.ownedFramePicker button:disabled.active{color:var(--y)!important;border-color:var(--y)!important}
 
 /* Launch is a persistent Drone-bay action, not something the player has to scroll down to find. */
 .campaignPanel[data-panel="workshop"]{padding-bottom:82px}
 .workshopLaunchDock{position:fixed!important;right:26px;bottom:26px;z-index:95;display:flex!important;align-items:flex-end;justify-content:flex-end!important;min-height:0!important;padding:0!important;background:#000;box-shadow:0 0 0 8px #000}
 
-.temporaryTag{color:var(--r);font-size:11px;letter-spacing:var(--track-label);font-weight:400}
+.temporaryTag{color:var(--r);font-size:var(--type-body);letter-spacing:var(--track-label);font-weight:400}
 #progressionSandbox{border:1px solid var(--gd);padding:10px;display:grid;gap:10px;margin-bottom:18px}
 .sandboxSummary{display:flex;gap:16px;flex-wrap:wrap;color:var(--g);font-size:11px}
 .sandboxSummary b{color:var(--c);font-weight:400}
@@ -692,7 +692,7 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
     linear-gradient(var(--c),var(--c)) right bottom/14px 1px no-repeat,
     linear-gradient(var(--c),var(--c)) right bottom/1px 14px no-repeat;
 }
-.catalogRow.selected::after{content:"SELECTED";position:absolute;right:8px;top:8px;color:var(--c);font-size:9px;letter-spacing:var(--track-label)}
+.catalogRow.selected::after{content:"SELECTED";position:absolute;right:8px;top:8px;color:var(--c);font-size:var(--type-compact);letter-spacing:var(--track-label)}
 .catalogRowTitle{font-size:var(--type-section-title);line-height:1.15;padding-right:58px;color:inherit}
 .catalogRowSub{line-height:var(--line-tight);color:var(--c);letter-spacing:var(--track-subtle)}
 .catalogRowBlurb{color:var(--w);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:4px}
@@ -725,7 +725,7 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 }
 
 /* ---------- v190/v199 Mail / narrative ---------- */
-.mailUnreadBadge{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:7px;padding:0 4px;border:1px solid var(--g);color:var(--g);font-size:10px;line-height:1;background:#000}
+.mailUnreadBadge{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:7px;padding:0 4px;border:1px solid var(--g);color:var(--g);font-size:var(--type-meta);line-height:1;background:#000}
 .mailUnreadBadge.high{border-color:var(--y);color:var(--y)}
 .mailUnreadBadge.normal{border-color:var(--g);color:var(--g)}
 .mailUnreadBadge[hidden]{display:none!important}
@@ -734,7 +734,7 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .campaignTab.mailTab.hasNormalUnread:not(.active){border-color:var(--g)!important}
 .campaignTab.mailTab.hasHighUnread:not(.active){border-color:var(--y)!important}
 .mailFilters{display:flex;gap:6px;align-items:center;margin:0 0 8px;min-height:29px}
-.mailFilter{height:28px!important;min-width:72px!important;padding:3px 9px!important;font-size:10px!important;color:var(--g)!important;border-color:var(--gd)!important}
+.mailFilter{height:28px!important;min-width:72px!important;padding:3px 9px!important;font-size:var(--type-meta)!important;color:var(--g)!important;border-color:var(--gd)!important}
 .mailFilter:hover,.mailFilter:focus-visible{color:var(--c)!important;border-color:var(--c)!important}
 .mailFilter.active{color:var(--c)!important;border-color:var(--c)!important}
 .mailToggle{margin-left:auto}
@@ -754,8 +754,8 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .mailRow.priority-low.unread .mailRowSubject{color:var(--w)}
 .mailRowSubject{font-size:12px;line-height:var(--line-tight);padding-right:74px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:inherit}
 .mailRowFrom{color:var(--c);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:74px}
-.mailNew{position:absolute;right:8px;top:8px;color:var(--c);font-size:9px;letter-spacing:var(--track-label)}
-.mailPriority{position:absolute;right:8px;bottom:8px;font-size:9px;letter-spacing:var(--track-label);color:var(--x)}
+.mailNew{position:absolute;right:8px;top:8px;color:var(--c);font-size:var(--type-compact);letter-spacing:var(--track-label)}
+.mailPriority{position:absolute;right:8px;bottom:8px;font-size:var(--type-compact);letter-spacing:var(--track-label);color:var(--x)}
 .mailRow.priority-high .mailPriority{color:var(--y)}
 .mailRow.priority-normal .mailPriority{color:var(--g)}
 .mailRow.priority-low .mailPriority{color:var(--x)}
