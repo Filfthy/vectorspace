@@ -574,6 +574,10 @@ function trackingAfter(text,index,tracking,glyphs){
   if(index>=text.length-1)return 0;
   // Spaces have their own compact metric. Character tracking never leaks onto
   // either side of a word gap, so CSS tracking cannot inflate spaces.
+  // v420 exception: the widely tracked Facet display face keeps its normal letter
+  // gap before a space. Without it the letter gaps there (~.34em) came close to the
+  // word gap (.435em) and short titles read as one word ("VECTORASSAULT").
+  if(text[index+1]===' '&&glyphs===FACET_GLYPHS&&text[index]!==' ')return resolveTracking(tracking,glyphs);
   if(text[index]===' '||text[index+1]===' ')return 0;
   return resolveTracking(tracking,glyphs);
 }
