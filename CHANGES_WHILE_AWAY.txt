@@ -277,3 +277,21 @@ v730  New board job: Bunker Raid (OSD)
       (CR 11,500 / 1,290 XP), and appears on about a third of boards.
       Flown muted on an orange world through to the debrief and Kudo's
       completion mail. No errors.
+
+v740  New board job: Groundside Pickup (Compact, QuickBite, Red Jackal)
+      A land-and-space courier run from level 3: descend, fly the plains into
+      a city, collect from a ground-level room, leave through the traffic,
+      launch, and hand the cargo over at a Compact freight depot. All parts
+      are proven ones (Station Delivery's city leg, the depot from Corvella's
+      agent mission 2). Worlds vary: green, yellow, orange, cyan or blue.
+      - Corvella: Compact freight, "Mind the traffic. I want you back shiny."
+      - Nyxo: franchise stock the Corporate stores at a Compact depot ("Do
+        not ask me why"), including a box of sauce packets, the big kind.
+      - Cassian: an unlabelled crate for a depot "with an understanding
+        night shift".
+      Same civilian-traffic rules as Station Delivery, with traffic mail in
+      each voice. At level 4 it pays CR 6,900 and 520 XP, between the
+      asteroid delivery and the longer station run.
+      Flown muted: live descent and plains approach (a cyan world), city legs
+      stepped, then the depot approach and handoff ran by themselves through
+      to victory and the completion mail. No errors.

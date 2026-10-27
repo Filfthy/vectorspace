@@ -1526,6 +1526,119 @@
     defaults:{destination:'swamp relay clearing',cargo:'sealed delivery package'}
   };
 
+  // v740 groundside pickup (style guide T02 on land): descend, fly the plains into a
+  // city, collect from a ground-level room, leave through traffic, launch, and hand the
+  // cargo over at a Compact freight depot. Every module is proven: the city leg is the
+  // station delivery's, the depot terminal is Corvella's agent mission 2. The depot is
+  // Compact property, so the clients are the Compact itself, QuickBite (Corporate
+  // stores stock there) and Red Jackal (the depot staff are paid not to look).
+  const groundsidePickup={
+    id:'groundside_pickup',
+    version:1,
+    family:'groundside_pickup',
+    musicMode:'calm',
+    minLevel:3,
+    maxLevel:null,
+    allowedFactions:['trade','quickbite','jackals'],
+    factionWeights:{trade:5,quickbite:4,jackals:3},
+    board:{category:'delivery',weight:.8,maxPerBoard:1},
+    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
+    reward:{
+      basePay:2400,payPerRisk:1800,payRiskSquare:110,randomPay:350,roundPay:50,
+      baseXp:320,xpPerRisk:75,xpRiskSquare:8
+    },
+    defaults:{origin:'a groundside collection room',destination:'the Compact freight depot',cargo:'sealed freight'},
+    planetaryRequirements:{landingBody:'planet',landingColour:{choices:['green','yellow','orange','cyan','blue'],weights:[40,20,15,15,10]},moonCount:{min:0,max:2}},
+    civilianTrafficPolicy:{
+      collisionWeight:1,assaultWeight:2,
+      tiers:[
+        {min:1,max:1,payMultiplier:.75,repMultiplier:.5,allowGift:false,failureRepPenalty:2},
+        {min:2,max:2,payMultiplier:.40,repMultiplier:0,allowGift:false,failureRepPenalty:4},
+        {min:3,payMultiplier:0,repMultiplier:0,allowGift:false,failureRepPenalty:8}
+      ]
+    },
+    sections:[
+      {type:'planet_descent',label:'Planet Descent',params:{difficulty:'$risk'}},
+      {type:'surface_destination_approach',label:'City Approach',params:{difficulty:'$risk',terrain:'plains',destination:'city',routeLength:390,treeClumps:7}},
+      {type:'urban_ground_pickup',label:'Groundside Collection Room',params:{difficulty:'$risk',cityLength:540,pickupWorldZ:365,pickupSide:-1}},
+      {type:'urban_exit',label:'City Exit',params:{difficulty:'$risk'}},
+      {type:'planet_launch',label:'Planet Launch',params:{difficulty:'$risk'}},
+      {type:'space_transit',label:'Depot Transit',params:{difficulty:'$risk',duration:3.3,message:'HEADING TO FREIGHT DEPOT',hud:'TO FREIGHT DEPOT',playZoomSound:true}},
+      {type:'free_traders_depot_terminal',label:'Depot Handoff',params:{difficulty:1,scale:26,spawnDistance:475,spawnX:-36,spawnY:-12,pitch:-.085,yaw:.58,roll:.05,startMessage:'Hand the cargo over at the depot terminal',depotRevealRadius:205,terminalStageDistance:82,terminalCaptureRadius:86,terminalStandOff:15.5,transferSeconds:3.1,turnSeconds:1.75,clearDistance:52}}
+    ],
+    presentation:{
+      trade:{
+        contactId:'corvella_pallis',cargoStyle:'case',
+        titles:['Groundside Freight','City to Depot','Depot Run'],
+        cargo:['a crate of Compact freight','a sealed parts consignment','merchant samples'],
+        destinations:['the Compact freight depot','a Compact depot in high orbit'],
+        descriptions:[
+          'Sweetie, {cargo} is waiting for you in {origin}. Pick it up, get that gorgeous machine back into orbit and hand it over at {destination}. Easy money for a big strong drone.',
+          'Babe, I need {cargo} lifted out of a city and dropped at {destination}. Mind the traffic. I want you back shiny.'
+        ],
+        completionSubjects:['Depot handoff confirmed','Freight logged in'],
+        completionBodies:['{destination} has logged {cargo} in. Payment: CR {credits}. Standing: +{rep}.'],
+        civilianTrafficMail:{
+          contactId:'corvella_pallis',
+          assaultSubjects:['Sweetie. The traffic.'],incidentSubjects:['Watch the traffic, babe'],
+          assaultBodies:['Sweetie, I like a dangerous drone, not one that shoots commuters. Settlement cut from CR {fullCredits} to CR {credits}. Do better for me.'],
+          incidentBodies:['Babe, the crate made the depot but city control logged traffic trouble. I smoothed it over and cut the pay to CR {credits}.'],
+          failureAddenda:['And yes, sweetie, I saw the traffic report as well.'],
+          abandonAddenda:['Walking out after a traffic incident? Babe, no.']
+        },
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the crate'],bodies:['Sweetie, the crate never reached the depot and neither did you. I had such a nice picture of you docking. Ruined.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, you walked away'],bodies:['Babe, you took my job and then walked away from it. That is not how this works between us.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:4,chance:.2,subjects:['The depot crew noticed you'],bodies:['Sweetie, the depot crew said you came in hot and perfect. I may have made them say it twice.']}
+      },
+      quickbite:{
+        contactId:'nyxo_malloc',cargoStyle:'case',
+        titles:['Franchise Stock Run','Groundside Pickup','Depot Drop'],
+        cargo:['a pallet of franchise stock','frozen taco shells','a box of sauce packets, the big kind'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'Dude, {cargo} is sitting in {origin} and the depot is waiting on it. Grab it, launch, drop it at {destination}. That is literally the whole job.',
+          'So Corporate stores our stock at a Compact depot now. Do not ask me why. Pick up {cargo} downtown and fly it up there.'
+        ],
+        completionSubjects:['Depot signed for it','Stock delivered'],
+        completionBodies:['The depot signed for {cargo}. Payment: CR {credits}. Standing: +{rep}.'],
+        civilianTrafficMail:{
+          contactId:'nyxo_malloc',
+          assaultSubjects:['Dude. The cars.'],incidentSubjects:['Traffic complaint, dude'],
+          assaultBodies:['Dude, you shot at commuters. On a sauce run. Corporate docked it to CR {credits} and I cannot even argue.'],
+          incidentBodies:['Stock made it, but city traffic filed a complaint. Pay got cut to CR {credits}. Watch the cars, dude.'],
+          failureAddenda:['Also there is a traffic complaint. So that is fun.'],
+          abandonAddenda:['And you left a traffic complaint behind. Awesome.']
+        },
+        failureMail:{contactId:'nyxo_malloc',subjects:['Dude, the stock'],bodies:['Dude, the stock never made the depot. Now there is a franchise with no shells and a manager who will not stop calling me.']},
+        abandonMail:{contactId:'nyxo_malloc',subjects:['You bailed?'],bodies:['You bailed on a pallet pickup? Dude. It was a pallet.']},
+        personalFollowUp:{contactId:'nyxo_malloc',minRisk:3,chance:.24,subjects:['Depot guy says hi'],bodies:['Dude, the depot guy said you parked like a legend. I am putting that in your file. We do not have files. I am making one.']}
+      },
+      jackals:{
+        contactId:'cassian_erivan_snade',cargoStyle:'case',
+        titles:['A Quiet Collection','Groundside Courtesy','Depot Discretion'],
+        cargo:['a case that does not officially exist','a sealed gift','an unlabelled crate'],
+        destinations:['the Compact freight depot','a Compact depot with an understanding night shift'],
+        descriptions:[
+          'X. {cargo} is waiting in {origin}. It would be convenient if it reached {destination} by this evening, where the staff are paid not to look inside things.',
+          'A small errand. Collect {cargo} from a city, leave quietly, and see it safely to {destination}. The less the city remembers, the better.'
+        ],
+        completionSubjects:['Received without comment','A tidy errand'],
+        completionBodies:['{destination} confirms a crate arrived and that nobody looked at it. CR {credits} released. Standing: +{rep}.'],
+        civilianTrafficMail:{
+          contactId:'cassian_erivan_snade',
+          assaultSubjects:['Noise'],incidentSubjects:['A traffic report'],
+          assaultBodies:['You fired on city traffic. That is precisely the kind of noise I pay people to avoid. The fee is now CR {credits}.'],
+          incidentBodies:['The crate arrived, along with a traffic report. Untidy. I have reduced the fee to CR {credits}.'],
+          failureAddenda:['The traffic report does not help.'],
+          abandonAddenda:['Leaving a traffic report behind you is worse than leaving the crate.']
+        },
+        failureMail:{contactId:'cassian_erivan_snade',subjects:['An undelivered courtesy'],bodies:['The case did not reach the depot. Somebody will now have to explain that, and I would rather it were not me.']},
+        abandonMail:{contactId:'cassian_erivan_snade',subjects:['An unfinished errand'],bodies:['You left the errand unfinished. A crate sitting in a city is a crate that people start to notice.']},
+        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:4,chance:.2,subjects:['Forgettable, in the best way'],bodies:['Delivered without a whisper. You have a gift for being forgettable, X. I mean that kindly.']}
+      }
+    }
+  };
+
   // v730 board bunker raid (style guide T10): descend, cross the surface guns and
   // tesla perimeter, breach the blast gate, run the tunnel, recover the equipment and
   // deliver it to the OSD compound. Same proven bunker content as Source Trace and the
@@ -1775,7 +1888,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{groundside_pickup:groundsidePickup,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();
