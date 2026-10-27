@@ -1,4 +1,5 @@
-# Raw voice takes (normalize.bat turns these into voices/)
+# Working material that isn't part of the game
+Claude outputs/
 voices unprocessed/
 *.zip
 
