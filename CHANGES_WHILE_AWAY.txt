@@ -95,3 +95,12 @@ v610  Your existing save is told what's new
       with a button that opens the Guide. New accounts never get it, because
       the welcome mail covers them. The Guide also gained two lines: the weapon
       grade note on contracts, and the 3-point fourth skill row.
+
+      Diversion flight test (no change needed). Earlier checks only stepped
+      through stages, so this time I flew each diversion with the game
+      running, inside a real asteroid delivery: beacon and derelict ignored,
+      civilian ignored, civilian rescued, beacon survivors, beacon trap fight,
+      and the derelict's dormant drones. Every case ended correctly, carried on
+      to the delivery and reached the debrief, with no errors. Timings: an
+      ignored marker drops out after about 6 seconds, and a civilian chased by
+      3 raiders lasts about 21 seconds, so there's time to decide.
