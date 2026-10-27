@@ -2178,7 +2178,7 @@ class CampaignController {
     // v307: one free board refresh after each run; further redraws cost a small
     // broker fee so the board can't be re-rolled endlessly for the best pay.
     const fee=this.boardRefreshFee(),afford=this.state.money>=fee;
-    toolbar.innerHTML=`<button type="button"${afford?'':' disabled'}>Request new contracts${fee?` · CR ${fee.toLocaleString()}`:' · free'}</button>`;
+    toolbar.innerHTML=`<button type="button"${afford?'':' disabled'}>Request new contracts${fee?` · CR ${fee.toLocaleString()}`:' · free'}${afford?'':' · not enough credits'}</button>`;
     toolbar.querySelector('button').addEventListener('click',()=>{
       const f=this.boardRefreshFee();if(this.state.money<f)return;
       this.state.money-=f;this.state.freeBoardRefresh=false;this.selectedMissionId=null;this.refreshContracts();this.renderHeader();this.save()
@@ -2324,7 +2324,7 @@ class CampaignController {
       const compare=!isFrame&&p.slot==='weapon'?this.weaponCompareHtml(p):'';
       const price=this.marketPrice(p),discounted=price<p.price;
       detail.className=`catalogDetail marketDetail ${this.tierClass(p.tier)}${access.ok?'':' locked'}`;
-      detail.innerHTML=`<div class="catalogDetailKicker">MARKET ITEM</div><div class="shopItemHead"><div class="itemIconFrame"><div class="shopItemIcon">${icon}</div></div><div><h3>${p.name}</h3><div class="missionFaction">${meta}</div></div></div>${faction}<div class="shopAccess ${access.ok?'':'bad'}">${access.reason}</div><div class="shopPrice">CR ${price.toLocaleString()}${discounted?` <span class="mailDiscount">MAIL DISCOUNT · WAS CR ${p.price.toLocaleString()}</span>`:''}</div><div class="shopOwned">${isFrame?(active?'ACTIVE FRAME':(owned?'OWNED · SELECT IN DRONE BAY':'NOT OWNED')):`Workshop stock X${owned}`}</div><button class="marketBuyPrimary" type="button" ${(!access.ok||active||owned&&isFrame||this.state.money<price)?'disabled':''}>${isFrame?'Buy frame':'Buy one'}</button><div class="catalogDetailDesc">${p.note}</div>${specs}${compare}`;
+      detail.innerHTML=`<div class="catalogDetailKicker">MARKET ITEM</div><div class="shopItemHead"><div class="itemIconFrame"><div class="shopItemIcon">${icon}</div></div><div><h3>${p.name}</h3><div class="missionFaction">${meta}</div></div></div>${faction}<div class="shopAccess ${access.ok?'':'bad'}">${access.reason}</div><div class="shopPrice">CR ${price.toLocaleString()}${discounted?` <span class="mailDiscount">MAIL DISCOUNT · WAS CR ${p.price.toLocaleString()}</span>`:''}</div><div class="shopOwned">${isFrame?(active?'ACTIVE FRAME':(owned?'OWNED · SELECT IN DRONE BAY':'NOT OWNED')):`Workshop stock X${owned}`}</div><button class="marketBuyPrimary" type="button" ${(!access.ok||active||owned&&isFrame||this.state.money<price)?'disabled':''}>${isFrame?'Buy frame':'Buy one'}</button>${access.ok&&!active&&!(owned&&isFrame)&&this.state.money<price?`<div class="shopShort">Not enough credits · CR ${(price-this.state.money).toLocaleString()} more needed</div>`:''}<div class="catalogDetailDesc">${p.note}</div>${specs}${compare}`;
       const buyBtn=detail.querySelector('.marketBuyPrimary');
       if(!isFrame&&p.slot==='consumable'){
         const pack=this.packSize(p)||Number(p.pack)||1,unit=Number(p.price)||0;
@@ -2439,7 +2439,7 @@ class CampaignController {
         const fitted=g==='consumable'?this.state.loadout.slice(0,cap).includes(it.id):false;
         b.disabled=locked;
         b.innerHTML=`<span class="bayItemIcon">${this.itemIcon(it.id)}</span><span class="bayItemName">${it.name}</span><span class="bayItemCount">×${n}</span><span class="bayItemNote">${it.note}</span><span class="bayItemAct">${g==='consumable'?(fitted?'TOP UP PACK':`FIT PACK OF ${this.packSize(it)}`):(g==='weapon'?'FIT WEAPON':'FIT')}</span>`;
-        b.addEventListener('click',()=>this.equipItem(it.id));
+        b.addEventListener('click',()=>this.tryEquip(it.id));
         b.addEventListener('pointerenter',()=>compare(it));b.addEventListener('pointerleave',clearCompare);
         host.appendChild(b)
       }
@@ -2539,8 +2539,25 @@ class CampaignController {
     host.querySelectorAll('[data-sandbox-rep]').forEach(sl=>{const out=sl.parentElement.querySelector('output');sl.addEventListener('input',()=>out.textContent=`${Number(sl.value)>0?'+':''}${sl.value}`);sl.addEventListener('change',()=>{const f=this.factions[sl.dataset.sandboxRep];if(f)f.rep=Number(sl.value)||0;refresh()})})
   }
   render(){this.evaluateMailTriggers();this.renderHeader();this.renderMissions();this.renderFactions();this.renderMail();this.renderShop();this.renderWorkshop();this.renderPerks();this.renderProgressionSandbox();this.updateMailBadge()}
+  // v470: refused actions always say why on screen (Dave). One notice line under the tabs.
+  hubNotice(text,kind='warn'){
+    if(typeof document==='undefined'||!text)return;
+    let el=document.getElementById('hubNotice');
+    if(!el){const tabs=document.getElementById('campaignTabs');if(!tabs)return;el=document.createElement('div');el.id='hubNotice';el.setAttribute('role','status');tabs.insertAdjacentElement('afterend',el)}
+    el.className=`hubNotice ${kind}`;el.textContent=String(text);el.hidden=false;
+    clearTimeout(this.hubNoticeTimer);this.hubNoticeTimer=setTimeout(()=>{el.hidden=true},4200)
+  }
+  equipRefusal(id){
+    const item=this.items[id];if(!item)return 'That item is not in your stores.';
+    if(this.equipmentLocked())return 'Your drone is deployed. Fitting is locked until it returns.';
+    if(!(this.state.inventory[id]>0))return `No ${item.name} left in stores.`;
+    if(item.slot==='internal'){const n=this.internalSlotCount();return `${n===1?'Your only internal slot is':`All ${n} internal slots are`} full. Click a fitted internal to remove it first.`}
+    if(item.slot==='consumable'){const n=this.activeSlotCount();return `${n===1?'Your only consumable slot holds':`All ${n} consumable slots hold`} other items. Click a fitted slot to unload it first.`}
+    return `${item.name} cannot be fitted right now.`
+  }
+  tryEquip(id){const ok=this.equipItem(id);if(!ok)this.hubNotice(this.equipRefusal(id));return ok}
   prepareMission(id){
-    if(this.currentMission)return false;const m=this.missions.find(x=>x.id===id);if(!m||!m.implemented)return false;
+    if(this.currentMission){this.hubNotice('A mission is in flight. Return to flight and finish or abandon it first.');return false}const m=this.missions.find(x=>x.id===id);if(!m||!m.implemented)return false;
     this.pendingMission=m;this.render();this.setPanel('workshop');return true
   }
   // DEV ground tests (factory assault / dune trial) go through the normal workshop so

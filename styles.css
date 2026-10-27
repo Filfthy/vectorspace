@@ -973,3 +973,9 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .guideBody p{margin:0 0 8px}
 .guideKeys{display:grid;grid-template-columns:minmax(160px,auto) 1fr;gap:4px 18px;margin:0 0 10px}
 .guideKeys span:nth-child(odd){color:var(--c)}
+
+/* v470 refusals say why */
+.hubNotice{margin:6px 14px 0;padding:7px 12px;border:1px solid var(--y);color:var(--y);font-size:var(--type-body)}
+.hubNotice.info{border-color:var(--c);color:var(--c)}
+.hubNotice[hidden]{display:none}
+.shopShort{margin:6px 0 10px;color:var(--y);font-size:var(--type-meta)}
