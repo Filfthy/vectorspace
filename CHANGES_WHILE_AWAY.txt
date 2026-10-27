@@ -140,3 +140,8 @@ v640  Save to file / Load from file
       2026-10-27" for you to confirm, and refuses while a mission is in flight.
       It also accepts a raw copy of the browser save. Worth doing once before
       you switch to the online copy.
+
+      README added. The GitHub repo had no front page. README.md now says
+      what the game is, how to run it locally, the controls, where missions,
+      voices, music and design notes live, and the save-file tip. © 2026
+      BugVictim. Docs only; nothing in the game changed.
