@@ -263,3 +263,17 @@ v720  New opponent class: hijacked military drones
         has one new line ("Hijacked military drones detected.").
       Flight-tested muted in a real delivery: spawn, stalls, cascade, bounty
       callouts, stage clear, advisory. No errors.
+
+v730  New board job: Bunker Raid (OSD)
+      The bunker run (surface guns, tesla perimeter, blast gate, long tunnel,
+      equipment recovery, delivery to the OSD compound) used to appear only
+      in Source Trace, the OSD agent chain and one Black Contract. It's now
+      an ordinary OSD board job from level 5: "Bunker Breach", "Hard Target
+      Recovery" or "Installation Sweep", on a green, orange, yellow or cyan
+      world. Kudo's wrappers include a Partition War bunker that has started
+      transmitting again, pirates dug into an old military bunker, and rogue
+      drones using one as a depot. Listed as ASSAULT on the board filter.
+      At level 7 it averages CR 11,400 and 1,170 XP, beside Deep Core
+      (CR 11,500 / 1,290 XP), and appears on about a third of boards.
+      Flown muted on an orange world through to the debrief and Kudo's
+      completion mail. No errors.

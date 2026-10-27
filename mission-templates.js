@@ -1526,6 +1526,48 @@
     defaults:{destination:'swamp relay clearing',cargo:'sealed delivery package'}
   };
 
+  // v730 board bunker raid (style guide T10): descend, cross the surface guns and
+  // tesla perimeter, breach the blast gate, run the tunnel, recover the equipment and
+  // deliver it to the OSD compound. Same proven bunker content as Source Trace and the
+  // OSD agent chain. The ending is an OSD handoff, so it is an OSD-only contract.
+  const bunkerRaid={
+    id:'bunker_raid',
+    version:1,
+    family:'bunker_raid',
+    musicMode:'violent',
+    minLevel:5,
+    maxLevel:null,
+    allowedFactions:['security'],
+    factionWeights:{security:1},
+    board:{category:'combat',weight:.55,maxPerBoard:1},
+    risk:{base:4,min:4,levelsPerStep:2,max:9,jitter:1},
+    reward:{
+      basePay:2400,payPerRisk:850,payRiskSquare:150,randomPay:500,roundPay:50,
+      baseXp:380,xpPerRisk:105,xpRiskSquare:10
+    },
+    planetaryRequirements:{landingBody:'planet',landingColour:{choices:['green','orange','yellow','cyan'],weights:[40,30,15,15]},moonCount:{min:0,max:2}},
+    sections:[
+      {type:'planet_descent',label:'Planet Descent',params:{difficulty:'$risk'}},
+      {type:'bunker_recovery_osd',label:'Breach the Bunker and Recover',params:{difficulty:'$risk',startMessage:'BUNKER ASSAULT',contentId:'kudo_bunker_2'}}
+    ],
+    presentation:{
+      security:{
+        contactId:'kudo_shang',
+        titles:['Bunker Breach','Hard Target Recovery','Installation Sweep'],
+        descriptions:[
+          'A Partition War bunker on a remote world has started transmitting again. That is not acceptable. Cross its defences, breach it and recover its equipment. Deliver it to the OSD compound.',
+          'Pirates have dug into an old military bunker. Surface guns, a blast gate, a long tunnel. Breach it, take whatever runs it, and bring it to the OSD compound.',
+          'Rogue drones are using a wartime bunker as a depot. Hard target. Break the defences, recover the core equipment and deliver it to our compound.'
+        ],
+        completionSubjects:['Equipment received','Bunker cleared'],
+        completionBodies:['The recovered equipment is in the OSD compound. Payment: CR {credits}. Standing: +{rep}.','Compound confirms receipt of the bunker equipment. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Bunker still standing'],bodies:['The bunker is still standing and your drone is not. Go back in. Finish it.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You withdrew from a hard target with the equipment still inside. I do not reward hesitation.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:6,chance:.18,subjects:['Re: bunker breach'],bodies:['Clean breach. Decisive. Noted.']}
+      }
+    }
+  };
+
   // The dune armour field: four groups of tanks, light walkers and heavy walkers on a
   // dune world. The set-piece completes the contract itself, so it is the last section.
   const duneArmourClearance={
@@ -1733,7 +1775,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();
