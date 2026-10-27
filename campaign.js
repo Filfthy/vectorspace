@@ -1700,6 +1700,7 @@ class CampaignController {
         'Diversions. Distress beacons, derelicts and civilians under attack may appear off the route. Investigate or carry on.',
         'Market. Scatter Emitters and Rail Drivers now sit beside the Pulse Laser. Contract details say what weapon grade a job expects.',
         'Veterans. Elite contracts from level 15, Black Contracts once the VOX story is finished, and a fourth skill row.',
+        'Records. Settings now has Save to file, to back up a campaign or move it to another browser or address.',
         'The operator guide (the ? tab) has the detail.'],
       actions:[{type:'panel',panel:'guide',label:'OPEN OPERATOR GUIDE'}]})
   }
