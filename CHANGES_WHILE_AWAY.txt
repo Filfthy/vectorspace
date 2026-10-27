@@ -130,3 +130,13 @@ v630  The rest of the small hub text, one size up
       same 2px step and scale with A-/A+. Left alone on purpose: DEV panels,
       the title gate and the in-flight HUD (it has its own scaling). Checked
       muted for overflow on every hub panel and the insurance screen: none.
+
+v640  Save to file / Load from file
+      Browser saves belong to one address. Your campaign on the local server
+      won't appear on GitHub Pages, and the reverse is true too. Settings >
+      Campaign now has "Save to file" (a small .json download named with your
+      level and the date) and "Load from file". Loading checks it really is a
+      Vector Space save, shows "Level 3 · CR 777,777 · 1 contract · saved
+      2026-10-27" for you to confirm, and refuses while a mission is in flight.
+      It also accepts a raw copy of the browser save. Worth doing once before
+      you switch to the online copy.

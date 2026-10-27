@@ -2942,6 +2942,30 @@ class CampaignController {
       <div style="margin-top:16px"><button id="debriefReturn" type="button">${d.returnPanel==='mail'?'Return to mail':(d.returnPanel==='dev'?'Return to DEV':'Return to mission board')}</button></div>`;
     debriefBoxEl.querySelector('#debriefReturn').addEventListener('click',()=>this.closeMissionDebrief(d.returnPanel||'missions'));
   }
+  // v640: saves live in this browser at this address only (a local copy and the GitHub
+  // Pages copy do not share one), so the player can carry a campaign as a file.
+  exportSave(){
+    this.save();
+    const build=(document.querySelector('.buildInfo')?.textContent||'').replace(/^Build\s*/,'');
+    const data={game:'vector-space-agent-x',format:1,build,saved:new Date().toISOString(),state:this.state};
+    const blob=new Blob([JSON.stringify(data)],{type:'application/json'}),url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`vector-space-save-L${this.levelForXP()}-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+    this.hubNotice('Campaign saved to a file. Keep it somewhere safe.','info')
+  }
+  // Returns {ok,reason} or {ok,state,summary}; nothing changes until applyImportedSave().
+  readSaveFile(text){
+    let data;try{data=JSON.parse(text)}catch(_){return{ok:false,reason:'That file is not a Vector Space save.'}}
+    const st=data?.game==='vector-space-agent-x'?data.state:(data&&typeof data==='object'&&'xp' in data&&'money' in data&&'reputation' in data?data:null);
+    if(!st||typeof st!=='object')return{ok:false,reason:'That file is not a Vector Space save.'};
+    const lvl=this.levelForXP(Math.max(0,Number(st.xp)||0));
+    return{ok:true,state:st,summary:`Level ${lvl} · CR ${Math.max(0,Math.round(Number(st.money)||0)).toLocaleString()} · ${Math.max(0,Number(st.completed)|0)} contract${(Number(st.completed)|0)===1?'':'s'}${data.saved?` · saved ${String(data.saved).slice(0,10)}`:''}`}
+  }
+  applyImportedSave(st){
+    if(this.currentMission){this.hubNotice('A mission is in flight. Finish or abandon it before loading a save.');return false}
+    try{localStorage.setItem(this.storageKey,JSON.stringify(st))}catch(_){this.hubNotice('This browser would not store the save.');return false}
+    location.reload();return true
+  }
   resetCampaign(){
     this.state=this.defaultState();
     for(const f of Object.values(this.factions))f.rep=this.state.reputation[f.id]||0;

@@ -991,3 +991,5 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .debriefRow .standUp{color:var(--g)}.debriefRow .standDown{color:var(--r)}
 .insuranceUniques b{color:var(--g)}
 .gearAdvice{margin:2px 0 8px;font-size:var(--type-meta)}.gearAdvice.ok{color:var(--gd)}.gearAdvice.warn{color:var(--y)}
+/* v640 save files */
+.saveFileRow{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 12px}

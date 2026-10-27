@@ -864,6 +864,20 @@ campaignResetBtn.addEventListener('click',()=>{
  if(confirm('Reset Agent X campaign progress, money, XP and reputation?'))campaign.resetCampaign()
 });
 campaignResumeBtn.addEventListener('click',()=>campaign.hideHub());
+// v640 save files
+{const exp=document.getElementById('campaignExport'),imp=document.getElementById('campaignImport'),file=document.getElementById('campaignImportFile');
+ if(exp)exp.addEventListener('click',()=>campaign.exportSave());
+ if(imp&&file){
+  imp.addEventListener('click',()=>{if(campaign.currentMission){campaign.hubNotice('A mission is in flight. Finish or abandon it before loading a save.');return}file.value='';file.click()});
+  file.addEventListener('change',async()=>{
+   const f=file.files&&file.files[0];if(!f)return;
+   const r=campaign.readSaveFile(await f.text());
+   if(!r.ok){campaign.hubNotice(r.reason);return}
+   if(confirm(`Load this save? It replaces the current campaign.
+
+${r.summary}`))campaign.applyImportedSave(r.state)
+  })
+ }}
 
 const wreckageInvestigationMissionBtn=document.getElementById('wreckageInvestigationMission');
 if(wreckageInvestigationMissionBtn)wreckageInvestigationMissionBtn.addEventListener('click',()=>{
