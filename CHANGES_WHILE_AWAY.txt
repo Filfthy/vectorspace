@@ -232,3 +232,16 @@ v700  Getting to know the contacts: 15 personal letters
       details you may want to veto: Kudo's 26 years of service, Corvella's
       auditor, Cassian's grandparents, Navira's mining moon and Teodor,
       Nyxo's six years of night dispatch.
+
+v710  World types: the ground matches the world you saw from orbit
+      Planets and moons already came in authored colours (green forest
+      worlds, cyan marsh, yellow dunes, orange industrial moons), but the
+      ground was always green once you landed. Now the plains grid, the
+      horizon and the dune field all take the landing world's colour. Dune
+      armour jobs are on yellow sand, a cyan moon has a cyan surface, and so
+      on. The simulator and DEV tests keep the classic green.
+      Remote Order (the forest cabin delivery) now lands on varied worlds:
+      green about half the time, otherwise cyan, yellow, orange, and rarely
+      blue or magenta. Contract details show "Destination world: orange
+      moon" in that colour. Deep Core stays green on purpose, as its notes
+      ask.

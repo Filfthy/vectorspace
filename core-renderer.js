@@ -435,17 +435,17 @@ class SceneRenderer {
  // The dune armour trial draws its own dune heightfield through the scene list.
  if(groundAssault?.active){const gc=groundAssault.groundCol||C.gd;drawSharedSurfaceHorizon(floor,380,a,gc,gc===C.gd?C.g:gc);return}
  // Grid lines are fixed in world X/Z and generated around the current ship position.
- const x0=Math.floor((shipX-far)/spacing)*spacing,x1=shipX+far;
+ const gc=landingWorldColour(),x0=Math.floor((shipX-far)/spacing)*spacing,x1=shipX+far;
  const zWorld0=Math.floor((travel-far)/spacing)*spacing,zWorld1=travel+far;
  for(let x=x0;x<=x1;x+=spacing){
    let prev=null;
-   for(let wz=zWorld0;wz<=zWorld1;wz+=6){const p=proj([x,floor,wz-travel]);if(prev&&p)line(prev.x,prev.y,p.x,p.y,C.gd,.72,.56*a);prev=p||null}
+   for(let wz=zWorld0;wz<=zWorld1;wz+=6){const p=proj([x,floor,wz-travel]);if(prev&&p)line(prev.x,prev.y,p.x,p.y,gc,.72,.56*a);prev=p||null}
  }
  for(let wz=zWorld0;wz<=zWorld1;wz+=spacing){
    const rz=wz-travel;let prev=null;
-   for(let x=x0;x<=x1;x+=6){const p=proj([x,floor,rz]);if(prev&&p)line(prev.x,prev.y,p.x,p.y,C.gd,.78,.62*a);prev=p||null}
+   for(let x=x0;x<=x1;x+=6){const p=proj([x,floor,rz]);if(prev&&p)line(prev.x,prev.y,p.x,p.y,gc,.78,.62*a);prev=p||null}
  }
- this.drawSurfaceHorizon(floor,380,a)
+ drawSharedSurfaceHorizon(floor,380,a,gc,gc)
 }
   fillPortalExterior(p1,p2,p3,p4){
  if(!(p1&&p2&&p3&&p4))return;

@@ -1300,7 +1300,7 @@
 
 
   // Reusable remote forest-cabin delivery. This is the completed development route:
-  // optional light orbital trouble -> green planet/moon descent -> plains Forest Nav
+  // optional light orbital trouble -> planet/moon descent (mostly green) -> plains Forest Nav
   // -> committed forest corridor -> Raised Field Cabin tractor delivery -> canonical
   // surface pitch-up and forward extraction. The environment is shared; faction
   // wrappers change why the parcel is going somewhere this remote.
@@ -1324,7 +1324,9 @@
     },
     planetaryRequirements:{
       landingBody:{choices:['planet','moon'],weights:[65,35]},
-      landingColour:'green',
+      // v710 world types: the plains grid takes the landing world's colour, so the
+      // cabin run varies between green worlds and rarer yellow, cyan, orange ones.
+      landingColour:{choices:['green','cyan','yellow','orange','blue','magenta'],weights:[50,14,14,12,5,5]},
       moonCount:{min:0,max:2}
     },
     // Keep the complication genuinely occasional. A quiet delivery is the normal run;

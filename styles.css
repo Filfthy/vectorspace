@@ -995,3 +995,4 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .saveFileRow{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 12px}
 /* v660 the debrief's Return button stays in view on short screens */
 .debriefReturnRow{margin-top:16px;position:sticky;bottom:0;padding:12px 0 8px;background:linear-gradient(rgba(0,0,0,0),#000 40%);z-index:2}
+.worldLine{color:var(--g);font-size:var(--type-meta);margin:4px 0 8px}

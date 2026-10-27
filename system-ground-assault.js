@@ -230,7 +230,7 @@ class GroundAssaultController{
   }
   // ---------- setup ----------
   begin(opts={}){
-    this.reset();this.active=true;this.state='hunt';
+    this.reset();this.active=true;this.state='hunt';this.groundCol=landingWorldColour();
     mode='play';phase='surface';phaseT=modeT=0;travel=0;score=0;
     fighters.length=0;asteroids.length=0;groundTargets.length=0;bolts.length=0;hazards.length=0;shots.length=0;playerMissiles.length=0;
     inputX=inputY=aimX=aimY=viewYaw=viewPitch=viewRoll=shipX=0;shipY=-1.55;surfaceVX=surfaceVY=0;surfaceDistance=0;

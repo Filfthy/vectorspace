@@ -203,6 +203,15 @@ let approachTurnTargetYaw=0,approachTurnTargetPitch=0,approachSteerDelay=0,landi
 let approachStartCamCenter=[0,0,112];
 let planetWorld=[0,0,112],planetRadius=6.1,planetTilt=.22,planetSpin0=0,planetMoons=[];
 let planetLandingBody='planet',planetLandingMoonIndex=-1,planetLandingColour=C.g;
+// v710 world types: the colour of the body seen from orbit is the colour of the ground
+// you land on (green forest worlds, yellow dunes, cyan marsh and ice, orange industry,
+// magenta and blue rarer worlds). The simulator and DEV tests keep the classic green.
+function landingWorldColour(){
+  const m=typeof campaign!=='undefined'?campaign.currentMission:null;
+  if(!m||m.training||m.devGroundTest||m.devTest)return C.gd;
+  if(planetLandingBody==='moon'){const moon=planetMoons?.[planetLandingMoonIndex];if(moon?.col)return moon.col}
+  return planetLandingColour||C.gd
+}
 let approachTargetRadius=planetRadius,approachTargetTilt=planetTilt,approachTargetCol=C.g,approachTargetSpin0=0,approachSystemLock=[];
 // Celestial scenery stays inside the cabinet palette. Moon colours are deliberately
 // restricted to the six approved choices below; white/red/grey are not moon colours.

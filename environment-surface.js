@@ -362,7 +362,7 @@ class SurfaceDestinationApproachController {
     const wz0=Math.floor((travel-far)/spacing)*spacing,wz1=travel+far;
     const nx=Math.floor((x1-x0)/spacing),nz=Math.floor((wz1-wz0)/spacing);
     const xLast=x0+nx*spacing,wzLast=wz0+nz*spacing;
-    const gridCol=this.destination==='osd'?C.o:C.gd,baseCol=this.destination==='osd'?C.o:C.g;
+    const world=landingWorldColour(),gridCol=this.destination==='osd'?C.o:world,baseCol=this.destination==='osd'?C.o:world;
     ctx.save();ctx.strokeStyle=gridCol;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.globalAlpha=.55;ctx.beginPath();let any=false;
     for(let ix=0;ix<=nx;ix++){
       const x=x0+ix*spacing;
