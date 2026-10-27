@@ -1665,6 +1665,7 @@ class CampaignController {
     }
     this.evaluateFactionChains();
     this.evaluateLateGame();
+    this.evaluateBulletin();
     // Story mission 2 is handed out directly by Mara's completion mail for mission 1.
     // It deliberately does not also auto-enqueue here, which would duplicate the offer.
   }
@@ -1686,6 +1687,21 @@ class CampaignController {
     }
   }
   // v450 late game: one notice per level unlock, and the Black Contract series.
+  // v610: a save with progress from before tonight's additions gets one short bulletin
+  // naming what is new. Fresh accounts never see it (the welcome mail covers them).
+  evaluateBulletin(){
+    const flags=this.state.mailFlags;if(flags.bulletinV610)return;
+    flags.bulletinV610=true;if(!(Number(this.state.completed)>0))return;
+    this.enqueueMail({id:'bulletin_v610',from:'VOX Operator Records',subject:'Operator bulletin: expanded contractor services',category:'system',priority:'normal',
+      body:['VOX has expanded contractor services. In short:',
+        'Agent missions. Each network contact now has three personal missions for operators with good standing. The third earns registered hardware that is never sold and always recovered.',
+        'Route encounters. Board jobs can meet pirates, rogue drones or bounty hunters on the way. Every confirmed kill pays a bounty.',
+        'Diversions. Distress beacons, derelicts and civilians under attack may appear off the route. Investigate or carry on.',
+        'Market. Scatter Emitters and Rail Drivers now sit beside the Pulse Laser. Contract details say what weapon grade a job expects.',
+        'Veterans. Elite contracts from level 15, Black Contracts once the VOX story is finished, and a fourth skill row.',
+        'The operator guide (the ? tab) has the detail.'],
+      actions:[{type:'panel',panel:'guide',label:'OPEN OPERATOR GUIDE'}]})
+  }
   evaluateLateGame(){
     const E=globalThis.AgentXEndgame;if(!E)return;
     const flags=this.state.mailFlags,lvl=this.levelForXP();

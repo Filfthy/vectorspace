@@ -87,3 +87,11 @@ v600  Voice lines for the new content: a list to record, and they just work
       "Pirate ambush! Destroy the pirates." recording. Side effect: the browser
       console shows a "404 file not found" for each line not yet recorded.
       That's harmless and goes away as you add them.
+
+v610  Your existing save is told what's new
+      A save that already has finished jobs (yours) gets one VOX bulletin in
+      Mail: a paragraph each on agent missions, route encounters and bounties,
+      diversions, the new weapons and weapon grades, and the veteran content,
+      with a button that opens the Guide. New accounts never get it, because
+      the welcome mail covers them. The Guide also gained two lines: the weapon
+      grade note on contracts, and the 3-point fourth skill row.
