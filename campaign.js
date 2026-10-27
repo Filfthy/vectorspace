@@ -170,10 +170,14 @@ class CampaignController {
     const m=this.currentMission;if(!m||m.training||m.devTest||m.devTemplateTest||m.devGroundTest)return;
     const units=this.bountyUnits(keys)*n;if(units<=0)return;
     const risk=Math.max(1,Number(m.risk)||1),b=this.missionBounty||(this.missionBounty={cr:0,xp:0,counts:{}});
-    b.cr+=units*(100+90*risk)*this.contractPayMultiplier(risk);b.xp+=units*(4+2*risk);
-    const label=keys[1]==='armour'?(this.bountyUnits(keys)>=4?'heavy walkers':'armour'):keys[1];
+    const cr=units*(100+90*risk)*this.contractPayMultiplier(risk);
+    b.cr+=cr;b.xp+=units*(4+2*risk);
+    // Remembered for the kill callout ("HOSTILE DOWN · +CR 550").
+    this.lastBounty={cr:Math.round(cr/10)*10,at:performance.now()};
+    const label=keys[1]==='armour'?(['strider','crab','tesla'].includes(keys[2])?'heavy walkers':'armour'):keys[1];
     b.counts[label]=(b.counts[label]||0)+n
   }
+  bountyTag(){const b=this.lastBounty;return b&&performance.now()-b.at<400&&b.cr>0?` · +CR ${b.cr.toLocaleString()}`:''}
   bountySummary(){
     const b=this.missionBounty;if(!b||b.cr<=0)return null;
     const names={fighters:['fighter','fighters'],armour:['armour unit','armour units'],'heavy walkers':['heavy walker','heavy walkers'],generators:['generator','generators'],reactors:['reactor','reactors']};

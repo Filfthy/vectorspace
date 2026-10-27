@@ -37,3 +37,9 @@ v540  The debrief shows how standing moved
       money and story flags intact, every hub panel opens without errors, and
       the new systems start working on it (faction agent offers arrive, 24
       achievements). Your own browser save should carry straight over.
+
+v550  Kill callouts show the bounty
+      Each kill now says what it earned as it happens: "HOSTILE DOWN · +CR 720",
+      "WEDGE DOWN · +CR 550", "STRIDER BUCKLING · +CR 1,650". Armour kills had no
+      callout before. Also fixed: since the v490 rebalance, heavy walkers were
+      listed as "armour units" on the debrief.

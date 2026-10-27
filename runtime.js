@@ -21,8 +21,9 @@ function killFighter(f,p){
    if(!freezeObjectives)interceptorsDestroyed=Math.min(interceptorGoal,interceptorsDestroyed+1);
    const liveHostiles=fighters.filter(x=>!x.dead&&!x.dying).length;
    const thin=!freezeObjectives&&fighterReservesRemaining()===0&&liveHostiles<=Math.max(2,Math.ceil(activeFighterCap()*.45));
-   if(f.bugKind) say(`XENOFORM DOWN · ${interceptorsDestroyed}/${interceptorGoal}`,.42);
-   else say(freezeObjectives?'HOSTILE DOWN · OBJECTIVE FROZEN':(thin?'HOSTILE DOWN · GROUP THINNING':'HOSTILE DOWN'),.42);
+   const bountyTag=campaign.bountyTag?.()||'';
+   if(f.bugKind) say(`XENOFORM DOWN · ${interceptorsDestroyed}/${interceptorGoal}${bountyTag}`,.42);
+   else say((freezeObjectives?'HOSTILE DOWN · OBJECTIVE FROZEN':(thin?'HOSTILE DOWN · GROUP THINNING':'HOSTILE DOWN'))+bountyTag,.42);
    if(interceptorsDestroyed>=interceptorGoal&&!freezeObjectives){
      interceptorClearDelay=.72;
      for(const other of fighters)if(!other.dead){other.shotsLeft=0}
