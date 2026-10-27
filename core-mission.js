@@ -87,7 +87,8 @@ class MissionController {
  const reserveWave=(fighterGroupSpawned||0)>0;
  const customsDrones=scenarioFlow?.encounterProfile==='customs'||jackalDelivery?.customsActive?.()||false;
  const rogueDrones=scenarioFlow?.encounterProfile==='rogue';
- const droneEncounter=customsDrones||rogueDrones;
+ const hijacked=scenarioFlow?.encounterProfile==='hijacked'; // v720 hijacked-drones.js
+ const droneEncounter=customsDrones||rogueDrones||hijacked;
  const xenoforms=scenarioFlow?.encounterProfile==='xeno';
  const bugMeshes=globalThis.AgentXSpaceBugs?.meshes||{};
  for(let i=0;i<count;i++){
@@ -95,10 +96,10 @@ class MissionController {
    const rosterIndex=fighterGroupSpawned+i;
    const bugKind=xenoforms?((rosterIndex%3===2)?'larva':'hornet'):'';
    const bugMesh=bugKind?bugMeshes[bugKind]:null;
-   const hp=bugKind==='hornet'?10:(bugKind==='larva'?14:currentFighterHP);
+   const hp=bugKind==='hornet'?10:(bugKind==='larva'?14:(hijacked?Math.round(currentFighterHP*(globalThis.AgentXHijacked?.HP||1.3)):currentFighterHP));
    const f={
      id:actorId++,type:'fighter',bugKind,bugAnimPhase:bugKind?Math.random()*Math.PI*2:0,pts:[],t:0,dur:6,s:bugKind==='hornet'?1.68:(bugKind==='larva'?2.12:1.0+Math.random()*.10),rot:[0,0,0],
-     x:0,y:0,z:60,hp,maxHp:hp,damageSeed:Math.random()*10000,hitFx:0,col:bugKind==='hornet'?C.y:(bugKind==='larva'?C.g:(customsDrones?C.u:(rogueDrones?C.m:((eventIndex+i)%6===0?C.y:C.g)))),
+     x:0,y:0,z:60,hp,maxHp:hp,damageSeed:Math.random()*10000,hitFx:0,col:bugKind==='hornet'?C.y:(bugKind==='larva'?C.g:(customsDrones?C.u:(rogueDrones?C.m:(hijacked?C.o:((eventIndex+i)%6===0?C.y:C.g))))),
      nextShot:.28,shotsLeft:0,pursuitReturnFireCD:0,
      mesh:bugMesh||(droneEncounter?scenarioFlow.pickCustomsDrone(rosterIndex):pickEnemyFighterMesh()),
      hullName:'',
@@ -109,7 +110,7 @@ class MissionController {
      pursuitAcquireT:0,pursuitStrength:0,pursuitBreakUsed:false,pursuitBreakStart:0,pursuitBreakDuration:0,lastBreakSide:0,lastBreakVert:0,
      route:[],routeIndex:0,routeState:'',routeAge:0,routeSpeed:0,routeTurnRate:0,attackAge:0
    };
-   f.hullName=f.mesh?.name||'Legacy Fighter';
+   f.hullName=f.mesh?.name||'Legacy Fighter';if(hijacked)f.hijacked=true;
    fighters.push(f);fighterGroupSpawned++;
    // The opening cast establishes the battle visually. Later reserves join as
    // purposeful attack entries rather than spending a pass meandering in front.

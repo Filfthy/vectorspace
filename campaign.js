@@ -235,8 +235,10 @@ class CampaignController {
     fx.overchargeT=Math.max(0,fx.overchargeT-dt);fx.flareT=Math.max(0,fx.flareT-dt);fx.graceT=Math.max(0,fx.graceT-dt);fx.hotCD=Math.max(0,fx.hotCD-dt);
     if(fx.naniteLeft>0){fx.naniteT-=dt;if(fx.naniteT<=0){fx.naniteT=1.2;if(shield<this.maxShield()){shield++;hud()}fx.naniteLeft--;}}
     if(typeof fighters!=='undefined')for(const f of fighters)if(f.stunT>0)f.stunT=Math.max(0,f.stunT-dt);
+    globalThis.AgentXHijacked?.update(dt)
   }
-  onFighterKilled(){
+  onFighterKilled(f){
+    globalThis.AgentXHijacked?.onKilled(f);
     this.fx.streak++;this.bumpStat('kills.fighters');
     // Field Lattice (Helix reward): every kill feeds the shield back by one.
     const gain=this.currentMission?this.internalSum('killShield'):0;
@@ -1667,6 +1669,7 @@ class CampaignController {
     this.evaluateFactionChains();
     this.evaluateLateGame();
     this.evaluateBulletin();
+    this.evaluateThreatAdvisories();
     // Story mission 2 is handed out directly by Mara's completion mail for mission 1.
     // It deliberately does not also auto-enqueue here, which would duplicate the offer.
   }
@@ -1706,6 +1709,18 @@ class CampaignController {
   // v450 late game: one notice per level unlock, and the Black Contract series.
   // v610: a save with progress from before tonight's additions gets one short bulletin
   // naming what is new. Fresh accounts never see it (the welcome mail covers them).
+  // v720: a one-off VOX advisory the first time X meets a new threat class.
+  evaluateThreatAdvisories(){
+    const flags=this.state.mailFlags,seen=this.state.seenProfiles||{};
+    if(seen.hijacked&&!flags.advisoryHijacked){
+      flags.advisoryHijacked=true;
+      this.enqueueMail({id:'advisory_hijacked',from:'VOX Operator Records',subject:'Threat advisory: hijacked military drones',category:'system',priority:'normal',
+        body:['You have now met hijacked military drones. They show orange on the scope.',
+          'These are Partition War hulls stolen and re-tasked by criminal crews. Their wartime loyalty was built to survive capture, so it cannot be wiped cleanly, only overruled.',
+          'The two sets of orders fight. Expect a drone to stall its guns for a moment in a loyalty conflict, and expect the others to falter when one is destroyed. Use the gap.',
+          'Their hulls are tougher than pirate craft. Bounties are paid as normal.']})
+    }
+  }
   evaluateBulletin(){
     const flags=this.state.mailFlags;if(flags.bulletinV610)return;
     flags.bulletinV610=true;if(!(Number(this.state.completed)>0))return;

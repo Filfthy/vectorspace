@@ -34,6 +34,10 @@
       factions:{helix:1.8,quickbite:1.2},variants:[['scattered',4,5,1,0],['swarm',6,8,1,.05]]},
     {id:'bounty_interceptors',ack:'pirate_ambush',profile:'hostile',nav:'BOUNTY INTERCEPTORS',voice:'bountyHuntersOnYourTail',hud:'BOUNTY INTERCEPTORS',places:['departure','orbit'],weight:3,minLevel:6,
       factions:{jackals:1.8,security:.6},variants:[['hunters',3,4,1.25,.08],['hunter pack',5,6,1.25,.1]]},
+    // v720: stolen Partition War drones (hijacked-drones.js). Their old loyalty keeps
+    // fighting the new orders, so they stall at moments. Unknown on first meeting.
+    {id:'hijacked_drones',ack:'pirate_ambush',profile:'hijacked',nav:'HIJACKED MILITARY DRONES',hud:'HIJACKED DRONES',voice:'hijackedDronesDetected',unknownFirst:true,places:['station','asteroid','orbit'],weight:5,minLevel:5,
+      factions:{security:1.4,helix:1.3,trade:1.1},variants:[['cell',3,4,1,.05],['flight',5,6,1.05,.08]]},
     {id:'customs_sweep',ack:'customs_intercept',type:'customs_drones',profile:'customs',nav:'CUSTOMS INTERCEPT',hud:'CUSTOMS INTERCEPT',places:['orbit','departure'],weight:6,onlyFactions:['jackals'],
       variants:[['patrol',4,5,1,0],['sweep',6,7,1,.05]]}
   ];

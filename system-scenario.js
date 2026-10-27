@@ -246,6 +246,8 @@ class ScenarioFlowController {
         audio.playVoice('pirateInterceptDetected',{once:true,priority:false})
       }else if(profile==='rogue'){
         audio.playVoice('rogueDronesDetected',{once:true,priority:false})
+      }else if(profile==='hijacked'){
+        audio.playVoice(audio.hasVoice?.('hijackedDronesDetected')?'hijackedDronesDetected':'eliminateHostileGroup',{once:true,priority:false})
       }else if(profile==='hostile'){
         audio.playVoice('eliminateHostileGroup',{once:true,priority:false})
       }else{

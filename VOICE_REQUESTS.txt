@@ -12,7 +12,6 @@ pirateambushdestroythepirates.mp3).
 The list comes from voice-requests.js. Edit the text there and the filename
 changes with it.
 
-
 ROUTE ENCOUNTERS
 ----------------
 
@@ -33,6 +32,12 @@ Spoken text:
 
 Expected filename:
     bountyhuntersonyourtail.mp3
+
+Spoken text:
+    Hijacked military drones detected.
+
+Expected filename:
+    hijackedmilitarydronesdetected.mp3
 
 
 ENFORCERS (networks you are Hostile with)

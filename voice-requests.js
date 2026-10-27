@@ -18,6 +18,8 @@ globalThis.AgentXVoiceRequests={
   redJackalHitSquad:'Red Jackal hit squad inbound.',
   helixSecurityDronesInbound:'Helix security drones inbound.',
   quickbiteRepoDronesInbound:'QuickBite repo drones inbound.',
+  // v720 hijacked military drones.
+  hijackedDronesDetected:'Hijacked military drones detected.',
   // Optional route diversions.
   distressBeaconDetected:'Distress beacon detected.',
   derelictCraftOffRoute:'Derelict craft off route.',

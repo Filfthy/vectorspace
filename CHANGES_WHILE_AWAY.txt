@@ -245,3 +245,21 @@ v710  World types: the ground matches the world you saw from orbit
       blue or magenta. Contract details show "Destination world: orange
       moon" in that colour. Deep Core stays green on purpose, as its notes
       ask.
+
+v720  New opponent class: hijacked military drones
+      From the lore file's open slot for hacked and captured drones (3.3):
+      Partition War hulls stolen and re-tasked by criminal crews. Their
+      wartime loyalty was built to survive capture, so it can only be
+      overruled, never wiped, and the two sets of orders fight.
+      - Orange on the scope, drone hulls, 30% tougher than pirate craft.
+      - Every so often one hits a LOYALTY CONFLICT and stalls its guns for
+        about 1.5 seconds. Destroying one can knock the others into conflict
+        (40% each). It's an opening to use, not a free win.
+      - Route encounter from level 5, more likely on OSD, Helix and Free
+        Trader jobs. Shown as UNKNOWN CONTACTS the first time, like xenos.
+        About 1 in 7 route fights at level 8.
+      - After your first meeting, VOX sends a threat advisory explaining
+        them in lore terms. The Guide mentions them, and VOICE_REQUESTS.txt
+        has one new line ("Hijacked military drones detected.").
+      Flight-tested muted in a real delivery: spawn, stalls, cascade, bounty
+      callouts, stage clear, advisory. No errors.
