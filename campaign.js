@@ -154,21 +154,23 @@ class CampaignController {
     if(keys[0]==='kills')this.recordBounty(keys,n)
   }
   // v480 bounties: every confirmed kill on a real mission pays credits and a little XP,
-  // scaled by target and risk. Fight contracts carry part of their pay this way, and a
+  // scaled by target and risk (fighter 1, armour 1, heavy walker 3, generator 2, reactor 5).
+  // Fight contracts carry part of their pay this way, and a
   // fight met on a delivery pays the same as the same fight anywhere else.
   bountyUnits(keys){
     const kind=keys[1],sub=keys[2];
     if(kind==='fighters')return 1;
     if(kind==='generators')return 2;
     if(kind==='reactors')return 5;
-    if(kind==='armour')return ['strider','crab','tesla'].includes(sub)?4:1.5;
+    // Armour fields are large (15-27 units), so each unit is worth less than a fighter duel.
+    if(kind==='armour')return ['strider','crab','tesla'].includes(sub)?3:1;
     return 0
   }
   recordBounty(keys,n=1){
     const m=this.currentMission;if(!m||m.training||m.devTest||m.devTemplateTest||m.devGroundTest)return;
     const units=this.bountyUnits(keys)*n;if(units<=0)return;
     const risk=Math.max(1,Number(m.risk)||1),b=this.missionBounty||(this.missionBounty={cr:0,xp:0,counts:{}});
-    b.cr+=units*(100+90*risk)*this.contractPayMultiplier(risk);b.xp+=units*(6+3*risk);
+    b.cr+=units*(100+90*risk)*this.contractPayMultiplier(risk);b.xp+=units*(4+2*risk);
     const label=keys[1]==='armour'?(this.bountyUnits(keys)>=4?'heavy walkers':'armour'):keys[1];
     b.counts[label]=(b.counts[label]||0)+n
   }

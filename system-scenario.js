@@ -328,7 +328,7 @@ class ScenarioFlowController {
     }
     if(stage.type==='route_diversion')return routeDiversion.begin(stage);
     if(stage.type==='dune_assault'){
-      groundAssault.begin();say(stage.startMessage||'ARMOUR COLUMN',.9);return true
+      groundAssault.begin({risk:campaign.currentMission?.risk});say(stage.startMessage||'ARMOUR COLUMN',.9);return true
     }
     if(stage.type==='factory_assault'){
       // Mission 12: the ground assault set-piece runs the rest of the contract itself.

@@ -246,9 +246,15 @@ class GroundAssaultController{
       {name:'CHARLIE',units:['strider','stilt','stilt'],dist:205},
       {name:'DELTA',units:['crab','wedge','wedge'],dist:245}
     ];
+    // v490: the armour field grows with mission risk instead of being the same fight
+    // at risk 5 and risk 12. Risk 5 and below is the original four-group trial.
+    const risk=Math.max(1,Number(opts.risk??campaign?.currentMission?.risk)||5);
+    if(risk>=6){plan[0].units.push('wedge');plan[1].units.push('hound');plan[2].units.push('stilt');plan[3].units.push('wedge')}
+    if(risk>=8){plan[0].units.push('ram');plan[1].units.push('stilt');plan[2].units.push('strider');plan[3].units.push('hound')}
+    if(risk>=10)plan.push({name:'ECHO',units:['strider','crab','hound','hound'],dist:285});
     const base=(Math.random()-.5)*.6;
     if(!opts.noGroups)plan.forEach((g,i)=>{
-      const a=base+[0,1.75,-1.85,3.2][i]+(i?(Math.random()-.5)*.45:0);
+      const a=base+[0,1.75,-1.85,3.2,-.9][i]+(i?(Math.random()-.5)*.45:0);
       const cx=Math.sin(a)*g.dist,cwz=Math.cos(a)*g.dist;
       // The nav point is deliberately imprecise: up to ~20 units off the group.
       const na=Math.random()*Math.PI*2,nr=8+Math.random()*12;
