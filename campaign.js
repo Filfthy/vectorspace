@@ -231,7 +231,9 @@ class CampaignController {
     if(rep>=25)cap++;if(rep>=60)cap++;
     return clamp(cap,3,9)
   }
-  fittedInternalIds(){return this.currentMission?this.activeInternalLoadout:this.state.internalLoadout}
+  // Until the kit is actually deployed at launch, the fitted (base) internals apply,
+  // so slot-adding internals such as the Nomad Pod are counted when the loadout is normalised.
+  fittedInternalIds(){return this.currentMission&&this.state.deployedKit?this.activeInternalLoadout:this.state.internalLoadout}
   hasInternal(id){return (this.fittedInternalIds()||[]).includes(id)}
   maxShield(){return this.activeFrame().shields+this.internalSum('shieldBonus')}
   shieldRegeneration(){
@@ -285,7 +287,15 @@ class CampaignController {
     if(this.equipmentLocked()||frameId!==this.state.drone)return false;
     this.normalizeLoadout();
     const profile=this.normaliseFrameProfile(this.state.frameLoadouts?.[frameId]);
-    const cap=this.activeSlotCount(),internalCap=this.internalSlotCount();
+    // Internals first: one of them (Nomad Pod) can add a consumable slot.
+    const internalCap=this.internalSlotCount();
+    for(let i=0;i<internalCap;i++){
+      if(this.state.internalLoadout[i])continue;
+      const id=profile.internals[i],item=id?this.items[id]:null;
+      if(!item||item.slot!=='internal'||(this.state.inventory[id]||0)<1)continue;
+      this.state.inventory[id]--;this.state.internalLoadout[i]=id;
+    }
+    const cap=this.activeSlotCount();
     // Consumable slots remember WHAT they carry even when empty, so auto-restock knows
     // what to buy; charges come from stock up to the pack size.
     for(let i=0;i<cap;i++){
@@ -293,12 +303,6 @@ class CampaignController {
       const id=profile.consumables[i],item=id?this.items[id]:null;
       if(!item||item.slot!=='consumable')continue;
       this.state.loadout[i]=id;this.state.loadoutCharges[i]=this.takeStock(id,this.packSize(item));
-    }
-    for(let i=0;i<internalCap;i++){
-      if(this.state.internalLoadout[i])continue;
-      const id=profile.internals[i],item=id?this.items[id]:null;
-      if(!item||item.slot!=='internal'||(this.state.inventory[id]||0)<1)continue;
-      this.state.inventory[id]--;this.state.internalLoadout[i]=id;
     }
     if(!this.state.weaponLoadout&&profile.weapon&&this.items[profile.weapon]?.slot==='weapon'&&!this.items[profile.weapon].free&&(this.state.inventory[profile.weapon]||0)>0){
       this.state.inventory[profile.weapon]--;this.state.weaponLoadout=profile.weapon

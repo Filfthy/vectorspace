@@ -1,0 +1,203 @@
+AGENT X / VECTOR SPACE
+BEYOND THE STORY: FACTION MISSIONS, REWARDS AND WEAPONS (DRAFT FOR REVIEW)
+=========================================================================
+
+Status: built in v400 (sections 1-4). Random encounters (section 4, last bullet)
+are not built yet. Salvage, loot and selling were dropped by design.
+
+
+DIRECTION
+---------
+* Agent X flies a drone. This is not a trading or cargo game.
+* Items are earned through missions, or bought in the existing market. No
+  loot tables, salvage economy or selling.
+* The real gap is what there is to do after the VOX story, and what faction
+  standing is for.
+* Reuse the environments that already exist. Most new missions should be
+  authored variations on proven environments, not new engines.
+
+
+WHERE WE ARE NOW
+----------------
+* The VOX story is 12 missions. It can be finished at about level 7-9.
+* Every faction contact already appears in it once or twice, but only as a
+  favour VOX needs:
+    Kudo Shang (OSD)       Emergency Defence, Source Trace, Factory Moon
+    Corvella (Traders)     Missing Manifest
+    Cassian (Jackals)      A Small Favour
+    Navira (Helix)         Field Samples, Nest Strike
+    Nyxo (QuickBite)       Hot Delivery, Route Interference
+* After the story there are only the 9 board templates and VOX re-skins of
+  them. Four templates stop scaling at risk 4-6.
+* Standing does little: market grade +1/+2, a slightly higher risk ceiling,
+  and three faction frames. Nothing past 60. QuickBite standing gives nothing.
+* The style guide already plans one max-standing reward mission per faction,
+  where the contact offers a lead and X must fly to earn the item. Not built.
+* Built environments that are only reachable in DEV mode: dune armour field,
+  swamp delivery, swamp console, forest wreckage investigation, space recovery
+  pickup.
+
+
+1. FACTION AGENT MISSIONS
+-------------------------
+Each of the five networks gets a short personal chain of three missions from
+its named contact. The chains are separate from the VOX story and need no
+story progress, only standing and level.
+
+  STEP   UNLOCKS AT                  WHAT IT IS
+  1      Favoured (25), level 6+     "I have something better than the board"
+  2      standing 40, level 9+       the problem gets personal or bigger
+  3      Trusted (60), level 12+     capstone: X earns the faction's item
+
+* Offered by personal mail from the contact, in their established voice.
+* Each mission is authored on top of an existing environment, with a twist,
+  its own objectives and short nav-computer messages.
+* Pay is above the board for the same risk. Failure gets the usual angry
+  personal reply and the mission can be retried.
+* Level gates spread the chains across levels 6-16, which is exactly the
+  stretch where the game currently runs dry.
+
+Sketches (names and details are placeholders for your input):
+
+KUDO SHANG / ORBITAL SECURITY DIRECTORATE  (hardline)
+  1  Rogue Pickets       Station approach. OSD's own defence drones are
+                         following obsolete orders. Disable them, avoid the
+                         station.                       (station environment)
+  2  Armour Column       Intercept a pirate armour column crossing the dunes
+                         before it reaches a relay. (dune armour field, DEV now)
+  3  Redoubt             Bunker assault on the pirate base the column came
+                         from. Reward: INTERDICTOR ARRAY.  (bunker environment)
+
+CORVELLA PALLIS / FREE TRADERS COMPACT  (flirty)
+  1  Black Box           A Compact freighter went down in the forest. Find
+                         the wreck, pull the recorder. (forest wreckage, DEV now)
+  2  Blockade            Pirates are squeezing a trade station. Break the
+                         blockade so her people can dock.  (station + fighters)
+  3  Runaway             The hijacked freighter is running for a Jackal
+                         route. Chase it and cripple it before it jumps.
+                         Reward: NOMAD POD.            (carrier chase environment)
+
+CASSIAN ERIVAN-SNADE / RED JACKAL COMBINE  (indirect)
+  1  Discreet Collection Swamp pickup under an OSD customs sweep. Be quick,
+                         be unseen, shoot only drones.  (swamp delivery, DEV now)
+  2  Quiet Override      Recalibrate a relay console so a Jackal route goes
+                         dark for an hour.             (swamp console, DEV now)
+  3  Test Range          Steal a prototype weapon from a Helix test range on
+                         a dune world. Reward: RIPPER.   (dunes + factory parts)
+
+NAVIRA DERRIS / HELIX INDUSTRIAL GROUP  (curious)
+  1  Live Specimens      Collect spitter plant samples without killing the
+                         parent plants.                 (swamp, spitter plants)
+  2  Second Nest         A smaller nest has appeared. Map it, mark the queen,
+                         get out.                       (xeno nest environment)
+  3  Deep Lab            A Helix deep-core lab has gone silent. Get in,
+                         recover the field research. Reward: FIELD LATTICE.
+                                                  (deep core / biolab environment)
+
+NYXO MALLOC / QUICKBITE ORBITAL  (slacker)
+  1  Dispatch Fault II   The rogue delivery drones are back, and there are
+                         more of them.                (fighters / Dispatch Fault)
+  2  Lunch Rush          Five timed drops across a city while delivery
+                         drones misbehave.               (city environment)
+  3  The Big Order       A catering run to a mining moon in the middle of a
+                         raid. "They knew the risks." Reward: HOT BOX.
+                                                  (asteroid / moon delivery)
+
+Total: 15 authored missions. I suggest building one faction's chain first as a
+pilot, to settle the format before writing the other four.
+
+
+2. FACTION REWARDS
+------------------
+Standing should feel worth having at each step.
+
+  STANDING         REWARD
+  Favoured (25)    agent chain step 1 opens; market grade +1 (as now);
+                   faction frame where it exists (as now)
+  40               chain step 2; priority contracts: the board marks one or
+                   two of that faction's jobs per refresh with +25% pay
+  Trusted (60)     chain step 3 (the capstone); market grade +2 (as now)
+  Capstone done    the faction's unique item; the contact's tone changes in
+                   later mail; that faction's priority contracts pay +40%
+
+Unique items: one per network, earned on the capstone mission, unsellable.
+Each does something no market item does, without being a raw stat jump.
+
+  ITEM               NETWORK      EFFECT
+  Interdictor Array  OSD          Shooting down a projectile stalls the enemy
+                                  that fired it for 1 s.
+  Nomad Pod          Traders      +1 consumable slot on any frame.
+  Ripper             Jackals      Unique weapon: heavy cannon that fires two
+                                  rounds per shot (see section 3).
+  Field Lattice      Helix        Shields keep rebuilding while you fire.
+  Hot Box            QuickBite    Each new stage refills one charge of every
+                                  fitted consumable.
+
+* This also gives QuickBite standing its first real purpose.
+* Following the style guide, an upgraded version of an earned item may
+  appear in the market later, once normal progression catches up.
+* Faction frames would also gain a level gate (Tier 4 frame at level 9 or
+  higher, Tier 5 at level 14 or higher). Today a Tier 5 frame can open at
+  level 3-4 through standing alone.
+
+
+3. WEAPONS (KEPT, BUT SMALL)
+----------------------------
+Two new weapon families in the market alongside the Pulse Laser, plus the
+Jackal unique. Same tiers, prices and colours as the laser.
+
+  WEAPON            TIERS   GOOD AT                   WEAK AT
+  Pulse Laser       I-V     everything (unchanged)    nothing in particular
+  Scatter Emitter   II-V    swarms, shooting down     armour (0.6x damage)
+                            incoming fire (wide hit)
+  Rail Driver       II-V    armour and structures     slow, narrow, 2 shots
+                            (3x damage, 2 vs ground)  per burst
+  Ripper (unique)   -       Jackal capstone reward    -
+
+* Each weapon gets a "structure damage" value for ground armour, walkers,
+  generators, asteroids and doors. The laser keeps 1, so existing missions do
+  not change. The Rail Driver at 2 is the first weapon that makes ground
+  missions faster.
+* Each needs its own gun model, shot streak and sound.
+* Internals stay as they are for now, apart from adding the missing
+  Targeting Computer I.
+
+
+4. KEEPING THE BOARD ALIVE
+--------------------------
+Not new systems. Smaller jobs that make routine work last longer.
+
+* Promote the DEV-only environments to normal board templates once their
+  faction mission is built (dune armour, swamp delivery, swamp console,
+  forest wreckage, space recovery).
+* Let the four capped templates (station delivery, penthouse, terminal
+  intrusion, forest cabin) scale to higher risk.
+* Later, the random encounter idea from POSSIBLE GAME DIRECTION.txt: the
+  contract says why X is there, and an encounter table decides what happens
+  on the way. This is the long-term answer to repetition, and can come after
+  the faction chains.
+
+
+5. SUGGESTED BUILD ORDER
+------------------------
+  1. Pilot chain: one faction, three missions, mail and the unique item.
+     Kudo is a good first choice: it reuses the most finished environments
+     (station, dunes, bunker).
+  2. Standing rewards: priority contracts and level gates on faction frames.
+  3. The other four chains.
+  4. Scatter Emitter and Rail Driver.
+  5. Promote DEV environments to the board, and uncap the four templates.
+  6. Random encounters.
+
+Voice lines for new nav messages would be requested in the style guide's
+copy-friendly format as each mission is built.
+
+
+QUESTIONS FOR DAVE
+------------------
+* Three missions per contact, or fewer?
+* Which faction first?
+* Are the unique items the right flavour, or do you have favourites?
+* Keep the two new weapons, or leave weapons until after the faction work?
+* Should VOX (Mara) get anything after the story, beyond the current
+  repeat offers?

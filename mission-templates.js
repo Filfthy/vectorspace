@@ -278,9 +278,9 @@
     maxLevel:null,
     allowedFactions:['trade','security','jackals','helix','quickbite'],
     board:{category:'delivery',weight:.85,maxPerBoard:2},
-    risk:{base:2,min:2,levelsPerStep:2,max:4,jitter:1},
+    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
     reward:{
-      basePay:2700,payPerRisk:2050,payRiskSquare:0,randomPay:350,roundPay:50,
+      basePay:2700,payPerRisk:2050,payRiskSquare:120,randomPay:350,roundPay:50,
       baseXp:360,xpPerRisk:80,xpRiskSquare:8
     },
     // Civilian traffic is part of the urban environment, not target dressing.
@@ -623,7 +623,7 @@
     maxLevel:null,
     allowedFactions:['trade','security','jackals','helix','quickbite'],
     board:{category:'delivery',weight:.85,maxPerBoard:2},
-    risk:{base:2,min:2,levelsPerStep:2,max:5,jitter:1},
+    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
     reward:{
       basePay:4200,payPerRisk:2500,payRiskSquare:80,randomPay:500,roundPay:50,
       baseXp:500,xpPerRisk:115,xpRiskSquare:10
@@ -1187,10 +1187,10 @@
     maxLevel:null,
     allowedFactions:['trade','security','jackals','helix','quickbite'],
     board:{enabled:true,category:'intrusion',weight:.8,maxPerBoard:1},
-    risk:{base:2,min:2,levelsPerStep:2,max:6,jitter:1},
+    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
     reward:{
-      basePay:1350,payPerRisk:760,payRiskSquare:55,randomPay:350,roundPay:50,
-      baseXp:170,xpPerRisk:58,xpRiskSquare:6
+      basePay:1350,payPerRisk:760,payRiskSquare:170,randomPay:350,roundPay:50,
+      baseXp:170,xpPerRisk:58,xpRiskSquare:14
     },
     sections:[
       {
@@ -1317,10 +1317,10 @@
     // to use one for discreet hand-offs. The others remain possible rather than excluded.
     factionWeights:{quickbite:6,jackals:5,trade:3,helix:2,security:1},
     board:{category:'delivery',weight:1.0,maxPerBoard:2},
-    risk:{base:2,min:1,levelsPerStep:2,max:5,jitter:1},
+    risk:{base:2,min:1,levelsPerStep:2,max:9,jitter:1},
     reward:{
-      basePay:1050,payPerRisk:720,payRiskSquare:45,randomPay:300,roundPay:50,
-      baseXp:145,xpPerRisk:52,xpRiskSquare:5
+      basePay:1050,payPerRisk:720,payRiskSquare:160,randomPay:300,roundPay:50,
+      baseXp:145,xpPerRisk:52,xpRiskSquare:13
     },
     planetaryRequirements:{
       landingBody:{choices:['planet','moon'],weights:[65,35]},
@@ -1420,6 +1420,176 @@
     defaults:{destination:'remote forest cabin',cargo:'sealed delivery package'}
   };
 
+
+  // v400: environments that used to be DEV-only, promoted to the ordinary board.
+  // Swamp relay delivery reuses the alien-swamp corridor and its relay clearing drop.
+  const swampRelayDelivery={
+    id:'swamp_relay_delivery',
+    version:1,
+    family:'swamp_relay_delivery',
+    musicMode:'calm',
+    minLevel:3,
+    maxLevel:null,
+    allowedFactions:['trade','security','jackals','helix','quickbite'],
+    factionWeights:{helix:5,jackals:4,security:3,trade:3,quickbite:3},
+    board:{category:'delivery',weight:.9,maxPerBoard:1},
+    risk:{base:3,min:2,levelsPerStep:2,max:9,jitter:1},
+    reward:{
+      basePay:1600,payPerRisk:820,payRiskSquare:170,randomPay:350,roundPay:50,
+      baseXp:190,xpPerRisk:62,xpRiskSquare:14
+    },
+    planetaryRequirements:{landingBody:'planet',landingColour:'cyan',moonCount:{min:0,max:2}},
+    encounterTable:{
+      entries:{
+        pirate_ambush:{type:'fighters',profile:'pirate',params:{target:{base:2,perRisk:1,min:4,max:8,round:true},fighterHp:{base:10,perRisk:.5,min:12,max:16,round:true}}},
+        rogue_drones:{type:'fighters',profile:'rogue',params:{target:{base:2,perRisk:1,min:4,max:8,round:true},fighterHp:{base:10,perRisk:.5,min:12,max:16,round:true}}},
+        customs_intercept:{type:'customs_drones',profile:'customs',params:{target:{base:3,perRisk:1,min:5,max:9,round:true},fighterHp:{base:10,perRisk:.5,min:12,max:16,round:true}}}
+      },
+      weightsByFaction:{
+        trade:{none:76,pirate_ambush:16,rogue_drones:8},
+        security:{none:76,rogue_drones:16,pirate_ambush:8},
+        jackals:{none:72,customs_intercept:18,pirate_ambush:6,rogue_drones:4},
+        helix:{none:76,rogue_drones:14,pirate_ambush:10},
+        quickbite:{none:76,pirate_ambush:14,rogue_drones:10}
+      }
+    },
+    sections:[
+      {type:'template_encounter',label:'Orbital Approach'},
+      {type:'planet_descent',label:'Swamp World Descent',params:{difficulty:'$risk'}},
+      {type:'surface_destination_approach',label:'Swamp Approach',params:{difficulty:'$risk',environment:'swamp_approach'}},
+      {type:'forest_corridor',label:'Swamp Relay Delivery',params:{difficulty:'$risk',environment:'alien_swamp',length:620,terminalDestination:'swamp_relay_delivery',entryFrom:'surface_destination'}}
+    ],
+    presentation:{
+      trade:{
+        contactId:'corvella_pallis',cargoStyle:'case',
+        titles:['Swamp Relay Run','Muddy Little Errand','Relay Clearing Drop'],
+        cargo:['relay spares case','sealed merchant parcel','replacement transponder','weatherproof supply case'],
+        descriptions:['Sweetie, a relay out in the swamp needs {cargo}. The trees bite out there, so keep that gorgeous drone low and careful.','Babe, swamp world, relay clearing, {cargo}. Nasty plants, muddy route, and you looking good doing it.'],
+        completionSubjects:['SWAMP DROP CONFIRMED','RELAY CLEARING DELIVERY COMPLETE'],
+        completionBodies:['The relay crew confirmed {cargo}. Payment: CR {credits}. Standing: +{rep}.','Delivery is logged at the swamp relay. CR {credits} released. Standing: +{rep}.'],
+        encounterAcknowledgements:{pirate_ambush:['The record shows pirates tried their luck before descent. You saw them off and still made the drop.'],rogue_drones:['Rogue drones in orbit too. You cleared them first. Very impressive, sweetie.']},
+        failureMail:{contactId:'corvella_pallis',subjects:['SWEETIE, THE SWAMP WON','RE: SWAMP RELAY'],bodies:['Sweetie, the relay never got its {cargo}. Those horrible plants got my favourite drone instead. Try again for me.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['YOU LEFT THEM IN THE MUD, BABE'],bodies:['Babe, you took my swamp job and turned around. The relay crew is still waiting and so am I.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.18,subjects:['MUDDY BUT MARVELLOUS'],bodies:['Sweetie, the relay crew says you came through those trees like you owned them. I like that.']}
+      },
+      security:{
+        contactId:'kudo_shang',cargoStyle:'case',
+        titles:['Relay Maintenance Supply','Swamp Relay Custody','Remote Relay Transfer'],
+        cargo:['encrypted relay module','sealed maintenance kit','authorised sensor array','secure relay core'],
+        descriptions:['Deliver {cargo} to the OSD swamp relay. Hostile flora is active along the route. Maintain custody to the clearing.','An OSD relay on a swamp world needs {cargo}. Fly low, avoid the spitters, complete the handoff.'],
+        completionSubjects:['RELAY SUPPLY CONFIRMED','SWAMP TRANSFER CLOSED'],
+        completionBodies:['Custody transfer at the swamp relay is confirmed. Payment: CR {credits}. Standing: +{rep}.'],
+        encounterAcknowledgements:{rogue_drones:['Rogue drone contact before descent is recorded as removed.'],pirate_ambush:['Pirate interference before descent is recorded as removed.']},
+        failureMail:{contactId:'kudo_shang',subjects:['RELAY TRANSFER FAILED'],bodies:['The swamp relay did not receive {cargo}. The route was hostile. That is why we paid you.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['UNAUTHORISED WITHDRAWAL'],bodies:['You withdrew before the relay handoff. No withdrawal was ordered.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.12,subjects:['RE: SWAMP RELAY'],bodies:['Relay supplied on time through a hostile route. Noted.']}
+      },
+      jackals:{
+        contactId:'cassian_erivan_snade',cargoStyle:'case',
+        titles:['A Damp Arrangement','Swamp Hand-Off','The Relay Clearing'],
+        cargo:['unregistered relay key','private chemical consignment','sealed courier case','discreet signal module'],
+        descriptions:['A relay in a swamp clearing would benefit from {cargo}, and certain associates would benefit from the relay. Everyone wins, except perhaps the plants.','I have a delivery for a swamp relay where nobody asks questions, mainly because the vegetation eats them. {cargo}, if you please.'],
+        completionSubjects:['THE RELAY HAS ITS PARCEL'],
+        completionBodies:['The clearing confirms receipt of {cargo}. CR {credits} released. Standing: +{rep}.'],
+        encounterAcknowledgements:{customs_intercept:['Customs took an interest before descent. You discouraged it. How thoughtful.']},
+        failureMail:{contactId:'cassian_erivan_snade',subjects:['A SOGGY FAILURE'],bodies:['The relay is still without its {cargo}. The swamp appears to have had opinions about your drone.']},
+        abandonMail:{contactId:'cassian_erivan_snade',subjects:['SECOND THOUGHTS IN THE SWAMP'],bodies:['You accepted a discreet delivery and then withdrew from it. Discretion, I find, includes finishing things.']},
+        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:3,chance:.2,subjects:['A PLEASINGLY DAMP RESULT'],bodies:['The relay is quiet and the parcel is where it should be. Exactly as I prefer.']}
+      },
+      helix:{
+        contactId:'navira_derris',cargoStyle:'case',
+        titles:['Swamp Field Station Supply','Relay Clearing Samples','Spitter Zone Delivery'],
+        cargo:['sealed sampling kit','environmental sensor package','culture medium crate','replacement monitoring equipment'],
+        descriptions:['Our swamp relay station needs {cargo}. The spitter plants along the route are wonderful and dangerous. Please admire them from a distance.','Deliver {cargo} to the relay clearing. The flora is hostile. I would love a little telemetry of it on the way.'],
+        completionSubjects:['FIELD STATION SUPPLIED'],
+        completionBodies:['The relay clearing confirms {cargo}. CR {credits} released. Standing: +{rep}.'],
+        encounterAcknowledgements:{rogue_drones:['Rogue drones before descent. You dealt with them. The dataset is still complete, thankfully.']},
+        failureMail:{contactId:'navira_derris',subjects:['THE SWAMP RESPONDED'],bodies:['The relay did not receive {cargo}. The flora responded to your drone with great enthusiasm. Please try again.']},
+        abandonMail:{contactId:'navira_derris',subjects:['DELIVERY NOT CONCLUDED'],bodies:['You withdrew before the clearing. The station is still waiting for {cargo}.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:4,chance:.16,subjects:['LOVELY SPITTER TELEMETRY'],bodies:['Your run gave me some beautiful readings of the spitter plants. Thank you, X.']}
+      },
+      quickbite:{
+        contactId:'nyxo_malloc',cargoStyle:'food',
+        titles:['Swamp Lunch Run','Relay Crew Order','Muddy Delivery'],
+        cargo:['hot meal order','sealed takeaway crate','relay crew catering','emergency snack order'],
+        descriptions:['Dude, a relay crew in a swamp ordered {cargo}. The plants spit acid. They still want fries. Respect.','Swamp relay, {cargo}, angry trees. They knew the risks when they took a job in a swamp.'],
+        completionSubjects:['DUDE, SWAMP FOOD DELIVERED'],
+        completionBodies:['Relay crew got their {cargo}. CR {credits}. Standing: +{rep}. Somebody said the fries were a bit damp. Swamp, dude.'],
+        encounterAcknowledgements:{pirate_ambush:['Also pirates tried to steal the food before descent. You said no. Good.']},
+        failureMail:{contactId:'nyxo_malloc',subjects:['THE SWAMP ATE THE ORDER'],bodies:['Dude, the swamp ate your drone and the {cargo}. The relay crew is hungry and sad.']},
+        abandonMail:{contactId:'nyxo_malloc',subjects:['DUDE. THE RELAY CREW.'],bodies:['You bailed on a food run, dude. The relay crew is still hungry.']},
+        personalFollowUp:{contactId:'nyxo_malloc',minRisk:2,chance:.22,subjects:['NICE SWAMP RUN, DUDE'],bodies:['Relay crew says thanks. They also say the plants are worse than the food. Great review.']}
+      }
+    },
+    defaults:{destination:'swamp relay clearing',cargo:'sealed delivery package'}
+  };
+
+  // The dune armour field: four groups of tanks, light walkers and heavy walkers on a
+  // dune world. The set-piece completes the contract itself, so it is the last section.
+  const duneArmourClearance={
+    id:'dune_armour_clearance',
+    version:1,
+    family:'dune_armour_clearance',
+    musicMode:'violent',
+    minLevel:7,
+    maxLevel:null,
+    allowedFactions:['trade','security','jackals','helix'],
+    factionWeights:{security:5,trade:3,helix:3,jackals:2},
+    board:{category:'combat',weight:.8,maxPerBoard:1},
+    risk:{base:5,min:5,levelsPerStep:2,max:9,jitter:1},
+    reward:{
+      basePay:4200,payPerRisk:1500,payRiskSquare:300,randomPay:600,roundPay:50,
+      baseXp:420,xpPerRisk:120,xpRiskSquare:12
+    },
+    planetaryRequirements:{landingBody:'planet',landingColour:'yellow',moonCount:{min:0,max:2}},
+    sections:[
+      {type:'planet_descent',label:'Dune World Descent',params:{difficulty:'$risk'}},
+      {type:'dune_assault',label:'Destroy the Armour Groups',params:{difficulty:'$risk',startMessage:'ARMOUR GROUPS'}}
+    ],
+    presentation:{
+      trade:{
+        contactId:'corvella_pallis',
+        titles:['Dune Road Clearance','Armour on My Route','Sand and Steel'],
+        descriptions:['Sweetie, raiders have parked armour across one of my overland routes. Four groups of it. Go down there and break every single one. Hit the big walkers at the knees, babe.','Babe, my caravans cannot cross those dunes while there are tanks sitting on them. Make the tanks go away. You know how I love watching you work.'],
+        completionSubjects:['DUNE ROUTE CLEAR','ARMOUR REMOVED'],
+        completionBodies:['All four armour groups are destroyed and the caravans are moving. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['SWEETIE, THE TANKS WON'],bodies:['Oh sweetie. The armour is still sitting on my route and your drone is sitting in pieces on the sand. Go again for me.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['BABE, THE TANKS ARE STILL THERE'],bodies:['You flew all the way down and left with tanks still on my route, babe. Rude.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:5,chance:.24,subjects:['MY BIG STRONG DRONE'],bodies:['Babe, four armour groups. I may need a little lie down.']}
+      },
+      security:{
+        contactId:'kudo_shang',
+        titles:['Armour Suppression','Dune Belt Interdiction','Ground Threat Removal'],
+        descriptions:['Hostile ground armour is operating on a dune world. Four groups. Descend and destroy all of them. Heavy walkers fall at the knees.','An armed column has been sighted crossing the dune belt. Orbital strike is not authorised. Destroy it on the ground.'],
+        completionSubjects:['ARMOUR GROUPS NEUTRALISED','GROUND THREAT REMOVED'],
+        completionBodies:['All four armour groups are confirmed destroyed. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['GROUND THREAT REMAINS'],bodies:['The armour groups remain operational. Return to the surface and finish them.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['UNAUTHORISED WITHDRAWAL'],bodies:['You left the surface with hostile armour still active. That is not a withdrawal I authorised.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:6,chance:.18,subjects:['RE: ARMOUR SUPPRESSION'],bodies:['Four groups destroyed. Efficient. Noted.']}
+      },
+      jackals:{
+        contactId:'cassian_erivan_snade',
+        titles:['A Disagreement in the Dunes','Competitive Armour','Sand Clearance'],
+        descriptions:['A rival outfit has placed armour on a dune world where my associates prefer to land. Four groups of it. I would like them to become scrap.','Some unfortunate people believe that tanks make a negotiating position. Please demonstrate otherwise on their dune world.'],
+        completionSubjects:['THE DUNES ARE QUIET'],
+        completionBodies:['The rival armour has been reduced to scrap. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'cassian_erivan_snade',subjects:['A SANDY SETBACK'],bodies:['The armour remains and your drone does not. A pity. Shall we try again?']},
+        abandonMail:{contactId:'cassian_erivan_snade',subjects:['UNFINISHED ARGUMENT'],bodies:['You left the dunes before the argument was settled. The other party will consider that a win.']},
+        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:5,chance:.2,subjects:['A PERSUASIVE PERFORMANCE'],bodies:['The rival outfit has reconsidered its position. Remarkable what a little armour removal can achieve.']}
+      },
+      helix:{
+        contactId:'navira_derris',
+        titles:['Survey Site Protection','Dune Station Defence','Armour Near the Dig'],
+        descriptions:['Armour has appeared near one of our dune survey sites. Four groups, and they are getting closer to my equipment. Please stop them.','Our survey team on a dune world has hostile tanks and walkers on its horizon. I would like the team, and the horizon, back.'],
+        completionSubjects:['SURVEY SITE SAFE'],
+        completionBodies:['All four armour groups are destroyed. The survey team is very relieved. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'navira_derris',subjects:['THE ARMOUR IS STILL COMING'],bodies:['Your drone was destroyed and the armour is still moving toward the survey site. Please go back.']},
+        abandonMail:{contactId:'navira_derris',subjects:['THE SITE IS STILL EXPOSED'],bodies:['You withdrew before the armour was destroyed. The team is still out there.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:5,chance:.18,subjects:['THANK YOU, X'],bodies:['The survey team asked me to pass on their thanks. One of them drew you a picture. It is mostly explosions.']}
+      }
+    },
+    defaults:{destination:'dune belt',cargo:'none'}
+  };
 
   // Generic discretionary reward correspondence lives beside the mission templates
   // because it is faction/contact presentation, even when the reward itself is not
@@ -1561,7 +1731,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();

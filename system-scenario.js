@@ -46,6 +46,9 @@ class ScenarioFlowController {
       customs_drones:{entry:'checkpoint',terminal:'space'},
       planet_descent:{entry:'seamless',terminal:'surface'},
       factory_assault:{entry:'seamless',terminal:'departed'},
+      // v400: the dune armour field (formerly DEV-only) as a contract module. Like the
+      // factory it completes the contract itself once the dunes are clear, so it goes last.
+      dune_assault:{entry:'seamless',terminal:'departed'},
       deep_core_surface:{entry:'seamless',terminal:'surface'},
       surface_destination_approach:{entry:'seamless',terminal:'surface'},
       urban_penthouse_delivery:{entry:'seamless',terminal:'city'},
@@ -249,7 +252,7 @@ class ScenarioFlowController {
     // Music follows the section actually being played, not merely the contract family.
     // Combat encounters always use the violent playlist; when they hand back to a
     // delivery/travel/surface section, restore the mission's authored base mode.
-    const combatMusic=(stage.type==='fighters'||stage.type==='combat_recovery'||stage.type==='station_defence_recovery'||stage.type==='customs_drones'||stage.type==='deep_core'||stage.type==='deep_core_surface'||stage.type==='carrier_intercept');
+    const combatMusic=(stage.type==='fighters'||stage.type==='combat_recovery'||stage.type==='station_defence_recovery'||stage.type==='customs_drones'||stage.type==='deep_core'||stage.type==='deep_core_surface'||stage.type==='carrier_intercept'||stage.type==='dune_assault');
     audio.music.setMode(combatMusic?'violent':(mission?.musicMode||campaign.currentMission?.musicMode||'calm'));
     if(stage.type==='asteroid_wreck_recovery'){
       asteroidWreckRun.begin(stage);return true
@@ -310,6 +313,9 @@ class ScenarioFlowController {
     }
     if(stage.type==='bunker_recovery_osd'){
       bunkerRaid.begin(stage);return true
+    }
+    if(stage.type==='dune_assault'){
+      groundAssault.begin();say(stage.startMessage||'ARMOUR COLUMN',.9);return true
     }
     if(stage.type==='factory_assault'){
       // Mission 12: the ground assault set-piece runs the rest of the contract itself.
