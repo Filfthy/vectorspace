@@ -2080,10 +2080,10 @@ class CampaignController {
           }
         }else if(action?.type==='storyBriefing'){
           const contract=this.storyContract(action.contractId),done=contract&&this.state.mailFlags[`${contract.storyFlag}Done`],active=this.currentMission?.storyContractId===action.contractId,prepared=this.pendingMission?.storyContractId===action.contractId;
-          const b=document.createElement('button');b.type='button';b.className='mailPrimaryAction';b.textContent=done?'ASSIGNMENT COMPLETE':(active?'ASSIGNMENT IN FLIGHT':(prepared?'ASSIGNMENT PREPARED':(action.label||'OPEN BRIEFING')));b.disabled=!!done||!!active||!!prepared||!!this.currentMission||!!this.pendingMission;b.addEventListener('click',()=>this.openStoryBriefing(action.contractId));actions.appendChild(b)
+          const b=document.createElement('button');b.type='button';b.className='mailPrimaryAction';b.textContent=done?'ASSIGNMENT COMPLETE':(active?'ASSIGNMENT IN FLIGHT':(prepared?'ASSIGNMENT PREPARED':(this.currentMission||this.pendingMission?'FINISH CURRENT CONTRACT FIRST':(action.label||'OPEN BRIEFING'))));b.disabled=!!done||!!active||!!prepared||!!this.currentMission||!!this.pendingMission;b.addEventListener('click',()=>this.openStoryBriefing(action.contractId));actions.appendChild(b)
         }else if(action?.type==='story'){
           const contract=this.storyContract(action.contractId),done=contract&&this.state.mailFlags[`${contract.storyFlag}Done`],active=this.currentMission?.storyContractId===action.contractId,prepared=this.pendingMission?.storyContractId===action.contractId;
-          const b=document.createElement('button');b.type='button';b.className='mailPrimaryAction';b.textContent=done?'ASSIGNMENT COMPLETE':(active?'ASSIGNMENT IN FLIGHT':(prepared?'ASSIGNMENT PREPARED':(action.label||'OPEN PRIVATE CONTRACT')));b.disabled=!!done||!!active||!!prepared||!!this.currentMission||!!this.pendingMission;b.addEventListener('click',()=>this.prepareStoryContract(action.contractId));actions.appendChild(b)
+          const b=document.createElement('button');b.type='button';b.className='mailPrimaryAction';b.textContent=done?'ASSIGNMENT COMPLETE':(active?'ASSIGNMENT IN FLIGHT':(prepared?'ASSIGNMENT PREPARED':(this.currentMission||this.pendingMission?'FINISH CURRENT CONTRACT FIRST':(action.label||'OPEN PRIVATE CONTRACT'))));b.disabled=!!done||!!active||!!prepared||!!this.currentMission||!!this.pendingMission;b.addEventListener('click',()=>this.prepareStoryContract(action.contractId));actions.appendChild(b)
         }
       }
     }
@@ -2646,7 +2646,11 @@ class CampaignController {
   tryEquip(id){const ok=this.equipItem(id);if(!ok)this.hubNotice(this.equipRefusal(id));return ok}
   prepareMission(id){
     if(this.currentMission){this.hubNotice('A mission is in flight. Return to flight and finish or abandon it first.');return false}const m=this.missions.find(x=>x.id===id);if(!m||!m.implemented)return false;
-    this.pendingMission=m;this.render();this.setPanel('workshop');return true
+    // v590: say so when this replaces a contract already prepared in the drone bay.
+    const prev=this.pendingMission&&this.pendingMission.id!==m.id&&!this.pendingMission.devGroundTest?this.pendingMission:null;
+    this.pendingMission=m;this.render();this.setPanel('workshop');
+    if(prev)this.hubNotice(`Now preparing ${m.title}. ${prev.title} is back ${prev.storyContractId||prev.voxMailId?'in Mail':'on the board'}.`,'info');
+    return true
   }
   // DEV ground tests (factory assault / dune trial) go through the normal workshop so
   // the tester picks a loadout (Dave), then launch straight into the scene: no

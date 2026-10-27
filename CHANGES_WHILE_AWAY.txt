@@ -68,3 +68,11 @@ v580  Contracts say what weapon grade they expect
       keeps pace. Contract details now say "Expected weapon grade: Purple (IV)"
       and either "your Pulse Laser Mk IV is ready" or, in yellow, "your Pulse
       Laser is 3 grades below, so any fight will be long".
+
+v590  Swapping a prepared contract says so
+      Accepting a board contract while another one sits prepared in the drone
+      bay used to swap them silently. Now a notice says "Now preparing Clear the
+      freaking lane. Recovery Site Security is back on the board" (or "back in
+      Mail" for story and vox contracts). Story mail buttons that were greyed
+      out with no reason now read "FINISH CURRENT CONTRACT FIRST", like the vox
+      ones already did.
