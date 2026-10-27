@@ -1179,7 +1179,19 @@ class AudioManager {
     this.pendingObjectiveCue=false;
     this.objectiveCueBusy=false;
     this.objectiveCueTimer=null;
+    this.loadRequestedVoices();
   }
+  // v600: lines listed in voice-requests.js become real voices once their mp3 exists.
+  loadRequestedVoices(){
+    const req=globalThis.AgentXVoiceRequests,file=globalThis.AgentXVoiceRequestFile;if(!req||!file||typeof Audio==='undefined')return;
+    for(const [key,text] of Object.entries(req)){
+      if(this.voiceFiles[key])continue;
+      const src=`./voices/${file(text)}`,a=new Audio();a.preload='auto';
+      a.addEventListener('canplaythrough',()=>{if(this.voiceFiles[key])return;a.volume=clamp(.92*AudioMixer.channelVolume('speech'),0,1);this.voiceFiles[key]=src;this.voiceText[key]=text;this.voices[key]=a},{once:true});
+      a.src=src
+    }
+  }
+  hasVoice(key){return !!this.voiceFiles[key]}
   setSpeechDucking(active){
     const target=active?Math.pow(10,-3/20):1; // soft 3 dB reduction after voice mastering
     const start=AudioMixer.fxDuckGain,duration=active?120:260,token=++this.voiceDuckToken,started=performance.now();

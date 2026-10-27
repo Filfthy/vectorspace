@@ -1,0 +1,121 @@
+VOICE LINES WANTED
+==================
+
+New lines for content added since v400, in the style guide format.
+Same voice as the existing mission callouts. Save each mp3 into voices/
+under the exact filename shown and it plays in game automatically; no code
+change needed (the game checks for the file at start-up). Lines without a
+recording keep using the on-screen text and the older generic callouts.
+Already-recorded lines are reused where they fit (the pirate ambush uses
+pirateambushdestroythepirates.mp3).
+
+The list comes from voice-requests.js. Edit the text there and the filename
+changes with it.
+
+
+ROUTE ENCOUNTERS
+----------------
+
+Spoken text:
+    Pirate blockade ahead. Break through.
+
+Expected filename:
+    pirateblockadeaheadbreakthrough.mp3
+
+Spoken text:
+    Mercenary interceptors inbound.
+
+Expected filename:
+    mercenaryinterceptorsinbound.mp3
+
+Spoken text:
+    Bounty hunters on your tail.
+
+Expected filename:
+    bountyhuntersonyourtail.mp3
+
+
+ENFORCERS (networks you are Hostile with)
+-----------------------------------------
+
+Spoken text:
+    OSD interdiction. You are flagged.
+
+Expected filename:
+    osdinterdictionyouareflagged.mp3
+
+Spoken text:
+    Free Trader hired guns closing in.
+
+Expected filename:
+    freetraderhiredgunsclosingin.mp3
+
+Spoken text:
+    Red Jackal hit squad inbound.
+
+Expected filename:
+    redjackalhitsquadinbound.mp3
+
+Spoken text:
+    Helix security drones inbound.
+
+Expected filename:
+    helixsecuritydronesinbound.mp3
+
+Spoken text:
+    QuickBite repo drones inbound.
+
+Expected filename:
+    quickbiterepodronesinbound.mp3
+
+
+ROUTE DIVERSIONS
+----------------
+
+Spoken text:
+    Distress beacon detected.
+
+Expected filename:
+    distressbeacondetected.mp3
+
+Spoken text:
+    Derelict craft off route.
+
+Expected filename:
+    derelictcraftoffroute.mp3
+
+Spoken text:
+    Civilian craft under attack.
+
+Expected filename:
+    civiliancraftunderattack.mp3
+
+Spoken text:
+    Survivors recovered.
+
+Expected filename:
+    survivorsrecovered.mp3
+
+Spoken text:
+    It was a trap.
+
+Expected filename:
+    itwasatrap.mp3
+
+Spoken text:
+    Dormant drones activated.
+
+Expected filename:
+    dormantdronesactivated.mp3
+
+Spoken text:
+    Civilian safe.
+
+Expected filename:
+    civiliansafe.mp3
+
+Spoken text:
+    Civilian contact lost.
+
+Expected filename:
+    civiliancontactlost.mp3

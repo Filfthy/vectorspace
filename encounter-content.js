@@ -22,30 +22,30 @@
 
   // variants: [label, minTargets, maxTargets, hpMultiplier, extra hazard pay]
   const ENCOUNTERS=[
-    {id:'pirate_blockade',ack:'pirate_ambush',profile:'pirate',nav:'PIRATE BLOCKADE DETECTED',hud:'PIRATE BLOCKADE',places:['station','asteroid'],weight:10,
+    {id:'pirate_blockade',ack:'pirate_ambush',profile:'pirate',nav:'PIRATE BLOCKADE DETECTED',voice:'pirateBlockadeAhead',hud:'PIRATE BLOCKADE',places:['station','asteroid'],weight:10,
       factions:{trade:1.4,quickbite:1.3},variants:[['light',3,4,1,0],['standard',5,6,1,0],['heavy',7,8,1.2,.05]]},
-    {id:'pirate_ambush',ack:'pirate_ambush',profile:'pirate',nav:'PIRATE AMBUSH',hud:'PIRATE AMBUSH',places:['orbit'],weight:9,
+    {id:'pirate_ambush',ack:'pirate_ambush',profile:'pirate',nav:'PIRATE AMBUSH',voice:'pirateAmbushDestroyPirates',hud:'PIRATE AMBUSH',places:['orbit'],weight:9,
       factions:{trade:1.3,quickbite:1.2,helix:1.1},variants:[['light',3,4,1,0],['standard',4,6,1,0]]},
     {id:'rogue_drones',ack:'rogue_drones',profile:'rogue',nav:'ROGUE DRONES ACTIVE',hud:'ROGUE DRONES',places:['station','asteroid','orbit'],weight:7,
       factions:{security:1.6,helix:1.2},variants:[['small flight',3,5,1,0],['picket',6,8,1,.05]]},
-    {id:'mercenary_interdiction',ack:'pirate_ambush',profile:'hostile',nav:'MERCENARY INTERCEPTORS',hud:'MERCENARY INTERCEPTORS',places:['station','orbit'],weight:5,minLevel:4,
+    {id:'mercenary_interdiction',ack:'pirate_ambush',profile:'hostile',nav:'MERCENARY INTERCEPTORS',voice:'mercenaryInterceptorsInbound',hud:'MERCENARY INTERCEPTORS',places:['station','orbit'],weight:5,minLevel:4,
       factions:{trade:1.2,jackals:1.2,helix:1.2},variants:[['wing',4,5,1.1,.05],['squadron',6,8,1.15,.08]]},
     {id:'xeno_swarm',ack:'xeno_swarm',profile:'xeno',nav:'XENO SWARM DETECTED',hud:'XENO SWARM',unknownFirst:true,places:['station','asteroid'],weight:4,minLevel:3,
       factions:{helix:1.8,quickbite:1.2},variants:[['scattered',4,5,1,0],['swarm',6,8,1,.05]]},
-    {id:'bounty_interceptors',ack:'pirate_ambush',profile:'hostile',nav:'BOUNTY INTERCEPTORS',hud:'BOUNTY INTERCEPTORS',places:['departure','orbit'],weight:3,minLevel:6,
+    {id:'bounty_interceptors',ack:'pirate_ambush',profile:'hostile',nav:'BOUNTY INTERCEPTORS',voice:'bountyHuntersOnYourTail',hud:'BOUNTY INTERCEPTORS',places:['departure','orbit'],weight:3,minLevel:6,
       factions:{jackals:1.8,security:.6},variants:[['hunters',3,4,1.25,.08],['hunter pack',5,6,1.25,.1]]},
     {id:'customs_sweep',ack:'customs_intercept',type:'customs_drones',profile:'customs',nav:'CUSTOMS INTERCEPT',hud:'CUSTOMS INTERCEPT',places:['orbit','departure'],weight:6,onlyFactions:['jackals'],
       variants:[['patrol',4,5,1,0],['sweep',6,7,1,.05]]}
   ];
   // Enforcers from a network the player is Hostile with (see apply()).
-  const enforcer=(id,profile,nav,hud)=>({id:`enforcers_${id}`,ack:'pirate_ambush',profile,nav,hud,places:['orbit','station','asteroid','departure'],weight:9,
+  const enforcer=(id,profile,nav,hud,voice)=>({id:`enforcers_${id}`,ack:'pirate_ambush',profile,nav,hud,voice,places:['orbit','station','asteroid','departure'],weight:9,
     variants:[['patrol',4,5,1.1,0],['squad',6,7,1.2,0]]});
   const ENFORCERS={
-    security:enforcer('security','rogue','OSD INTERDICTION · YOU ARE FLAGGED','OSD INTERDICTION'),
-    trade:enforcer('trade','hostile','FREE TRADER HIRED GUNS','HIRED GUNS'),
-    jackals:enforcer('jackals','hostile','RED JACKAL HIT SQUAD','JACKAL HIT SQUAD'),
-    helix:enforcer('helix','rogue','HELIX SECURITY DRONES','HELIX SECURITY'),
-    quickbite:enforcer('quickbite','rogue','QUICKBITE REPO DRONES','REPO DRONES')
+    security:enforcer('security','rogue','OSD INTERDICTION · YOU ARE FLAGGED','OSD INTERDICTION','osdInterdictionYouAreFlagged'),
+    trade:enforcer('trade','hostile','FREE TRADER HIRED GUNS','HIRED GUNS','freeTraderHiredGuns'),
+    jackals:enforcer('jackals','hostile','RED JACKAL HIT SQUAD','JACKAL HIT SQUAD','redJackalHitSquad'),
+    helix:enforcer('helix','rogue','HELIX SECURITY DRONES','HELIX SECURITY','helixSecurityDronesInbound'),
+    quickbite:enforcer('quickbite','rogue','QUICKBITE REPO DRONES','REPO DRONES','quickbiteRepoDronesInbound')
   };
   // Harmless nav-computer chatter on quiet runs. One line, no explanation.
   const AMBIENT=[
@@ -115,7 +115,7 @@
         const extra=Math.floor(Math.max(0,level-4)/5);   // level adds bodies, not just health
         const target=v[1]+Math.floor(Math.random()*(v[2]-v[1]+1))+extra;
         const module={type:e.type||'fighters',label:e.hud.replace(/\b\w+/g,w=>w[0]+w.slice(1).toLowerCase()),difficulty:risk,
-          target,fighterHp:Math.round(12*v[3]),profile:e.profile,encounterId:e.ack,routeEncounter:e.id,navMessage:e.nav,hudTag:e.hud,unknownFirst:!!e.unknownFirst};
+          target,fighterHp:Math.round(12*v[3]),profile:e.profile,encounterId:e.ack,routeEncounter:e.id,navMessage:e.nav,combatVoice:e.voice||undefined,hudTag:e.hud,unknownFirst:!!e.unknownFirst};
         modules.splice(s.index,0,module);
         state.lastRouteEncounter=e.id;
         return {id:e.id,place:s.place,variant:v[0],payBonus:.15+v[4],nav:e.nav}

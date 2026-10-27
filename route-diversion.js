@@ -17,23 +17,23 @@ const routeDiversion={
   active:false,stage:null,kind:'',state:'idle',t:0,window:18,startDistance:0,result:null,
 
   KINDS:{
-    beacon:{nav:'DISTRESS BEACON DETECTED',hud:'DISTRESS BEACON',marker:'DISTRESS BEACON',label:'distress beacon',window:18,
+    beacon:{nav:'DISTRESS BEACON DETECTED',voice:'distressBeaconDetected',hud:'DISTRESS BEACON',marker:'DISTRESS BEACON',label:'distress beacon',window:18,
       outcomes:[
-        {id:'survivors',weight:34,say:'SURVIVORS RECOVERED',pay:.08,rep:2,text:'Survivors recovered'},
+        {id:'survivors',weight:34,say:'SURVIVORS RECOVERED',voice:'survivorsRecovered',pay:.08,rep:2,text:'Survivors recovered'},
         {id:'navdata',weight:22,say:'NAV DATA RECOVERED',xp:.25,text:'Beacon nav data'},
         {id:'automated',weight:22,say:'BEACON AUTOMATED · NO SURVIVORS',text:'Automated beacon'},
-        {id:'trap',weight:22,say:'IT WAS A TRAP',fight:{profile:'pirate',hud:'BEACON AMBUSH',min:3,max:5},pay:.06,text:'Beacon ambush survived'}
+        {id:'trap',weight:22,say:'IT WAS A TRAP',voice:'itWasATrap',fight:{profile:'pirate',hud:'BEACON AMBUSH',min:3,max:5},pay:.06,text:'Beacon ambush survived'}
       ]},
-    derelict:{nav:'DERELICT CRAFT OFF ROUTE',hud:'DERELICT',marker:'DERELICT',label:'derelict hulk',window:20,
+    derelict:{nav:'DERELICT CRAFT OFF ROUTE',voice:'derelictCraftOffRoute',hud:'DERELICT',marker:'DERELICT',label:'derelict hulk',window:20,
       outcomes:[
         {id:'salvage',weight:36,say:'SALVAGE RIGHTS LOGGED',pay:.12,text:'Salvage rights'},
         {id:'logs',weight:22,say:'FLIGHT LOGS RECOVERED',xp:.3,text:'Recovered flight logs'},
         {id:'stripped',weight:22,say:'DERELICT ALREADY STRIPPED',text:'Derelict stripped'},
-        {id:'dormant',weight:20,say:'DORMANT DRONES ACTIVATED',fight:{profile:'rogue',hud:'DORMANT DRONES',min:4,max:5},pay:.08,text:'Dormant drones destroyed'}
+        {id:'dormant',weight:20,say:'DORMANT DRONES ACTIVATED',voice:'dormantDronesActivated',fight:{profile:'rogue',hud:'DORMANT DRONES',min:4,max:5},pay:.08,text:'Dormant drones destroyed'}
       ]},
-    civilian:{nav:'CIVILIAN CRAFT UNDER PURSUIT',hud:'CIVILIAN UNDER ATTACK',window:24,
-      helped:{say:'CIVILIAN SAFE',pay:.1,rep:3,repFaction:'security',text:'Civilian rescued'},
-      ignored:{say:'CIVILIAN CONTACT LOST'}}
+    civilian:{nav:'CIVILIAN CRAFT UNDER PURSUIT',voice:'civilianCraftUnderAttack',hud:'CIVILIAN UNDER ATTACK',window:24,
+      helped:{say:'CIVILIAN SAFE',voice:'civilianSafe',pay:.1,rep:3,repFaction:'security',text:'Civilian rescued'},
+      ignored:{say:'CIVILIAN CONTACT LOST',voice:'civilianContactLost'}}
   },
 
   begin(stage){
@@ -56,7 +56,7 @@ const routeDiversion={
       // that drains while raiders are alive. Clear them in time and it gets away.
       const side=Math.random()<.5?-1:1,w=cameraPointToWorld([side*-45,4+Math.random()*8,150]);
       this.civ={x:w[0],y:w[1],z:w[2],s:5,rot:[0,side>0?-.55:.55,0],vx:side*7,hp:1,hitT:0,dead:false,col:C.c};
-      this.state='pursuit';say(`${def.nav} · ASSIST OR CONTINUE`,1.6);return true
+      this.state='pursuit';say(`${def.nav} · ASSIST OR CONTINUE`,1.6);this.speak(def.voice);return true
     }
     // Beacon or derelict: a marker off the route, reached under the player's own control.
     // The drone cruises forward at ~45 u/s, so the marker sits well ahead and off to one
@@ -67,7 +67,7 @@ const routeDiversion={
     salvageRecovery.state='search';salvageRecovery.package={x:w[0],y:w[1],z:w[2],rot:[.2,Math.random()*6.28,-.1]};
     salvageRecovery.embeddedCompletion=()=>this.investigated();salvageRecovery.embeddedRestorePhase='space';
     this.startDistance=salvageRecovery.distance();
-    say(`${def.nav} · INVESTIGATE OR CONTINUE`,1.6);return true
+    say(`${def.nav} · INVESTIGATE OR CONTINUE`,1.6);this.speak(def.voice);return true
   },
   hudLeft(){
     if(!this.active)return '';
@@ -106,6 +106,8 @@ const routeDiversion={
   },
   // A shot at a pursuer means X has joined in: that raider fights back.
   onPlayerHitFighter(f){if(this.active&&this.state==='pursuit'&&f){f.provoked=true;if(!(f.shotsLeft>0))f.shotsLeft=3}},
+  // v600: speaks a requested line (voice-requests.js) only once its recording exists.
+  speak(key){if(key&&audio.hasVoice?.(key))audio.playVoice(key,{once:false,priority:false})},
   pick(list){const total=list.reduce((n,o)=>n+o.weight,0);let r=Math.random()*total;for(const o of list){r-=o.weight;if(r<=0)return o}return list[0]},
   investigated(){
     const def=this.KINDS[this.kind],o=this.pick(def.outcomes);
@@ -114,10 +116,10 @@ const routeDiversion={
       const n=o.fight.min+Math.floor(Math.random()*(o.fight.max-o.fight.min+1));
       this.stage.spaceCombat=true;this.stage.hudTag=o.fight.hud;this.state='fight';this.pendingOutcome=o;
       say(o.say,1.4);
-      scenarioFlow.startFighterStage({...this.stage,target:n,fighterHp:Math.round(12*k),profile:o.fight.profile,navMessage:null},o.fight.profile,{preservePhase:true});
+      scenarioFlow.startFighterStage({...this.stage,target:n,fighterHp:Math.round(12*k),profile:o.fight.profile,navMessage:null,combatVoice:audio.hasVoice?.(o.voice)?o.voice:undefined},o.fight.profile,{preservePhase:true});
       scenarioFlow.encounterHudTag=o.fight.hud;return
     }
-    say(o.say,1.4);SoundFX.objectiveComplete?.();
+    say(o.say,1.4);this.speak(o.voice);SoundFX.objectiveComplete?.();
     this.record(o);this.end()
   },
   // Called by the main loop when every fighter in this stage is down.
@@ -129,7 +131,7 @@ const routeDiversion={
     const def=this.KINDS.civilian,o=helped?def.helped:def.ignored;
     if(!helped){fighters.length=0;bolts.length=0}
     this.civ=null;
-    say(message||o.say,1.3);if(helped)this.record({id:'rescued',...o});else this.recordIgnored();
+    say(message||o.say,1.3);this.speak(o.voice);if(helped)this.record({id:'rescued',...o});else this.recordIgnored();
     this.end()
   },
   ignore(message){

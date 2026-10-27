@@ -76,3 +76,14 @@ v590  Swapping a prepared contract says so
       Mail" for story and vox contracts). Story mail buttons that were greyed
       out with no reason now read "FINISH CURRENT CONTRACT FIRST", like the vox
       ones already did.
+
+v600  Voice lines for the new content: a list to record, and they just work
+      Everything added since v400 (route encounters, enforcers, diversions) was
+      text only. VOICE_REQUESTS.txt lists 16 short lines in the style guide's
+      spoken-text-then-filename format. Save an mp3 into voices/ under the
+      exact name and it plays: the game looks for each file at start-up, so no
+      code change is needed. Until then nothing changes (on-screen text plus
+      the older generic callouts). The pirate ambush now uses the existing
+      "Pirate ambush! Destroy the pirates." recording. Side effect: the browser
+      console shows a "404 file not found" for each line not yet recorded.
+      That's harmless and goes away as you add them.

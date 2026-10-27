@@ -235,7 +235,7 @@ class ScenarioFlowController {
     if(!stage?.tutorial){
       if(Array.isArray(stage?.combatVoiceSequence)&&stage.combatVoiceSequence.length){
         audio.playSequence(stage.combatVoiceSequence)
-      }else if(stage?.combatVoice){
+      }else if(stage?.combatVoice&&(!stage.routeEncounter||audio.hasVoice?.(stage.combatVoice))){
         audio.playVoice(stage.combatVoice,{once:true,priority:false})
       }else if(profile==='customs'){
         audio.playSequence(['customsInterceptDetected','destroyCustomsDrones'])
