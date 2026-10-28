@@ -230,12 +230,16 @@ class CampaignController {
       {id:'factoryCloser',name:'Factory Closer',text:'Complete a Factory Strike.',v:bt.factory_strike||0,goal:1},
       {id:'lunchHero',name:'Lunch Hero',text:'Complete 10 Taco Runs.',v:bt.taco_run||0,goal:10},
       {id:'stationGuard',name:'Station Guard',text:'Complete 5 Station Defences.',v:bt.station_defence||0,goal:5},
-      {id:'favourite',name:"Everyone's Favourite",text:'Complete 5 personal favours.',v:s.favoursDone||0,goal:5}
+      {id:'favourite',name:"Everyone's Favourite",text:'Complete 5 personal favours.',v:s.favoursDone||0,goal:5},
+      // v1080: world-type content (ice, crystal and arid ground).
+      {id:'coldStart',name:'Cold Start',text:'Complete 3 Ice Field Armour contracts.',v:bt.ice_field_armour||0,goal:3},
+      {id:'crystalCourier',name:'Crystal Courier',text:'Complete 3 Crystal Consignments.',v:bt.crystal_consignment||0,goal:3},
+      {id:'surveyor',name:'Surveyor',text:'Land on an ice, a crystal and an arid world.',v:['ice','crystal','arid'].filter(w=>this.state.seenProfiles?.[`world_${w}`]).length,goal:3}
     ]
   }
   checkAchievements(){
     const got=this.state.achievements||(this.state.achievements={});
-    for(const a of this.achievementDefs())if(!got[a.id]&&a.v>=a.goal){got[a.id]=this.state.completed||0;if(typeof mode!=='undefined'&&mode==='play')say(`ACHIEVEMENT · ${a.name.toUpperCase()}`,1.2)}
+    for(const a of this.achievementDefs())if(!got[a.id]&&a.v>=a.goal){got[a.id]=this.state.completed||0;if(typeof mode!=='undefined'&&mode==='play')callout(`ACHIEVEMENT · ${a.name.toUpperCase()}`,1.2)}
   }
   // ---- v300 in-mission combat effects (consumables and skills) ----
   resetCombatEffects(){this.fx={overchargeT:0,flareT:0,naniteLeft:0,naniteT:0,streak:0,lastStandUsed:false,graceT:0,boltsShot:0,hotCD:0}}
@@ -261,7 +265,7 @@ class CampaignController {
       const item=this.items[this.activeLoadout[i]];if(!item)continue;
       const pack=this.packSize(item);if(this.activeCharges[i]<pack){this.activeCharges[i]++;added++}
     }
-    if(added){this.syncDeployedKit();this.updateGearHud();say('HOT BOX · STORES TOPPED UP',.6)}
+    if(added){this.syncDeployedKit();this.updateGearHud();callout('HOT BOX · STORES TOPPED UP',.6)}
   }
   onPlayerHit(){this.fx.streak=0;this.missionHits=(this.missionHits||0)+1}
   onBoltShotDown(bolt){
@@ -271,11 +275,11 @@ class CampaignController {
     if(stall>0&&src&&!src.dead&&!src.dying)src.stunT=Math.max(src.stunT||0,stall);
     if(!this.hasSkill('pointDefence2'))return;
     this.fx.boltsShot++;
-    if(this.fx.boltsShot%3===0&&shield<this.maxShield()){shield++;hud();say('POINT DEFENCE · SHIELD +1',.45)}
+    if(this.fx.boltsShot%3===0&&shield<this.maxShield()){shield++;hud();callout('POINT DEFENCE · SHIELD +1',.45)}
   }
   tryLastStand(){
     if(!this.hasSkill('lastStand')||this.fx.lastStandUsed||!this.currentMission)return false;
-    this.fx.lastStandUsed=true;this.fx.graceT=2;say('LAST STAND',.7);return true
+    this.fx.lastStandUsed=true;this.fx.graceT=2;callout('LAST STAND',.7);return true
   }
   hotTriggerReady(){return this.hasSkill('hotTrigger')&&this.fx.hotCD<=0}
   armHotTrigger(){this.fx.hotCD=BASE_LASER_INTERVAL*this.laserIntervalMultiplier()*2}
@@ -592,26 +596,26 @@ class CampaignController {
   useActiveSlot(i){
     if(!this.currentMission||this.open||i<0||i>=this.activeSlotCount())return false;
     const id=this.activeLoadout[i],item=id?this.items[id]:null;if(!item||this.slotCharges(i)<1)return false;
-    const spend=(msg,hold=.6)=>{this.activeCharges[i]=this.slotCharges(i)-1;this.syncDeployedKit();this.save();this.updateGearHud();if(msg)say(msg,hold);return true};
+    const spend=(msg,hold=.6)=>{this.activeCharges[i]=this.slotCharges(i)-1;this.syncDeployedKit();this.save();this.updateGearHud();if(msg)callout(msg,hold);return true};
     const fx=this.fx;
     if(item.effect==='shieldBoost'){
-      if(shield>=this.maxShield()){say('SHIELDS FULL',.45);return false}
+      if(shield>=this.maxShield()){callout('SHIELDS FULL',.45);return false}
       const before=shield;shield=Math.min(this.maxShield(),shield+(item.restore||2));shieldRegenDelay=shieldRegenTick=0;hud();
       return spend(`SHIELD BOOST +${shield-before}`)
     }
     if(item.effect==='homingMissile'){
-      const target=this.currentMissileTarget();if(!target){say('NO MISSILE TARGET',.45);return false}
-      if(!launchHomingMissile(target,(item.missileDamage||6)*(this.hasSkill('heavyWarheads')?1.4:1),item.missileSpeed||72)){say('MISSILE NOT AVAILABLE',.45);return false}
+      const target=this.currentMissileTarget();if(!target){callout('NO MISSILE TARGET',.45);return false}
+      if(!launchHomingMissile(target,(item.missileDamage||6)*(this.hasSkill('heavyWarheads')?1.4:1),item.missileSpeed||72)){callout('MISSILE NOT AVAILABLE',.45);return false}
       return spend(`${item.name.toUpperCase()} AWAY`,.55)
     }
     if(item.effect==='cluster'){
-      const targets=this.hostilesInView(4);if(!targets.length){say('NO TARGETS IN VIEW',.45);return false}
+      const targets=this.hostilesInView(4);if(!targets.length){callout('NO TARGETS IN VIEW',.45);return false}
       for(let k=0;k<4;k++)launchHomingMissile(targets[k%targets.length],(item.missileDamage||6)*(this.hasSkill('heavyWarheads')?1.4:1),item.missileSpeed||80);
       return spend(`CLUSTER AWAY · ${targets.length} TARGET${targets.length>1?'S':''}`,.55)
     }
     if(item.effect==='nanite'){
-      if(fx.naniteLeft>0){say('NANITES ALREADY WORKING',.45);return false}
-      if(shield>=this.maxShield()){say('SHIELDS FULL',.45);return false}
+      if(fx.naniteLeft>0){callout('NANITES ALREADY WORKING',.45);return false}
+      if(shield>=this.maxShield()){callout('SHIELDS FULL',.45);return false}
       fx.naniteLeft=item.total||3;fx.naniteT=.35;return spend('NANITE REPAIR ACTIVE')
     }
     if(item.effect==='overcharge'){fx.overchargeT=Math.max(fx.overchargeT,item.duration||6);return spend('LASERS OVERCHARGED')}
@@ -626,7 +630,7 @@ class CampaignController {
   }
   useSecondaryFire(){
     for(let i=0;i<this.activeSlotCount();i++)if(this.activeLoadout[i]&&this.slotCharges(i)>0)return this.useActiveSlot(i);
-    say('SECONDARY EMPTY',.35);return false
+    callout('SECONDARY EMPTY',.35);return false
   }
   insuranceExcessRate(){
     if(this.hasSkill('insurance2'))return .10;

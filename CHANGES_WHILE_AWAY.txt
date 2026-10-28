@@ -757,3 +757,18 @@ v1070 Crystal Consignment
       crystal, so Nyxo needs it taken somewhere it can become money. Tested
       muted: a full run to the debrief, the spires on the plains, the board
       mix, and every network's text.
+
+v1080 Gear prompts you can see, and three achievements
+      Using a gear slot in flight talked through say(), which is silent by
+      design, so the game never told you why a slot did nothing. "SHIELDS
+      FULL", "NO MISSILE TARGET", "NO TARGETS IN VIEW", "NANITES ALREADY
+      WORKING" and "SECONDARY EMPTY" now show on the subtitle line, along
+      with what a slot did ("SHIELD BOOST +2", "CLUSTER AWAY · 3 TARGETS").
+      So do LAST STAND, the Point Defence and Hot Box skill triggers, and an
+      achievement unlocked mid-flight. As always, a spoken line wins over
+      these. That is 12 prompts in all.
+      Three new achievements (34 in all): Cold Start (3 Ice Field Armour
+      contracts), Crystal Courier (3 Crystal Consignments) and Surveyor
+      (land on an ice, a crystal and an arid world).
+      Tested muted: the prompts show in flight (screenshot), and the new
+      achievements count correctly.
