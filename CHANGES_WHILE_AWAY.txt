@@ -210,6 +210,68 @@ different planet and moon types, a new class of opponent, and lore for the
 faction agents as you get to know them. Same rules: one piece at a time,
 tested muted, each its own commit.
 
+START HERE (overnight summary)
+------------------------------
+What your brief asked for, and where it went. The details for each item are
+in the numbered entries below (v700 to v1250).
+
+New land missions and locations (board jobs)
+  Bunker Raid (OSD), Groundside Pickup (Compact, QuickBite, Red Jackal,
+  Helix), Wreck Recovery, Station Defence, Taco Run, Specimen Recovery, Nest
+  Clearance (rare, level 10), Ice Field Armour (level 9), Crystal
+  Consignment (level 6), Survey Run (level 4, fly every survey marker on the
+  plains first) and Factory Strike (after the story, level 14). Nyxo also
+  got dune armour jobs. Every network has at least one of the world-type
+  jobs. Contract details name the world you land on and its ground.
+
+Planet and moon types
+  The ground takes the colour of the world you saw from orbit, and each
+  colour has its own ground: green forest, blue wetland (reed beds), cyan
+  ice (ice shards), magenta crystal (spires), yellow and orange arid (rocks
+  and dead pines). From orbit, planets can be ringed, banded or cratered,
+  ice planets show white fracture lines and crystal planets faceted fields.
+  Land on a moon and its planet hangs in the sky. Land on a planet and you
+  can see its moons. A short nav line on the plains says what the world is
+  like.
+
+New opponents
+  Hijacked military drones (orange, tougher, they stall in "loyalty
+  conflicts"), named pirate and mercenary aces (red, three times as tough,
+  big bounty), and shield tenders (white support drones that shield their
+  wing from lasers until you kill them).
+
+Lore and the faction agents
+  Twenty personal letters, four per contact, the last a few jobs after
+  their final mission (Corvella's third is the earned pleasure-bot reveal),
+  plus three from Mara, and falling-out and making-up letters. Personal
+  favours after each capstone, and a final epilogue mission per contact
+  that grants a title. Once you are on good terms, many of their contracts
+  carry a short line from them, and they react in person when your standing
+  changes tier. The Networks page keeps a contact file on each of them that
+  fills in as you learn more. A VOX Wire news digest (41 headlines, many
+  reacting to what you have done) arrives every few jobs.
+
+Also
+  A Codex in the Guide (18 lore entries that open as you meet things), two
+  more Black Contracts, a title collection, three new diversions (escape
+  pods and smuggler caches in space, distress beacons on the landing
+  plains), eleven achievements, 24 requested voice lines in
+  VOICE_REQUESTS.txt, and a fix that makes the v400+ prompts and gear-slot
+  messages (SHIELDS FULL, NO MISSILE TARGET) visible. say() is silent by
+  design, so they now go through the subtitle line.
+
+How it was checked
+  Every change was tested muted in the browser pane. There were three
+  full sweeps of every board template, a board mix check and an economy
+  check, and eight independent read-only code reviews. All their real
+  findings are fixed, and the one wrong finding is noted.
+
+Things only you can do
+  Hand-play it (nothing tonight has been flown by a person), record the
+  lines in VOICE_REQUESTS.txt, and veto any invented personal details in
+  the letters, contact notes and contact files. Save to file before moving
+  to GitHub Pages, and switch Pages on if you want the online copy.
+
 v700  Getting to know the contacts: 15 personal letters
       Each network contact now sends three personal letters as the
       relationship deepens: one at standing 15 (before their agent missions),
