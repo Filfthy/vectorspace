@@ -216,7 +216,7 @@ tested muted, each its own commit.
 START HERE (overnight summary)
 ------------------------------
 What your brief asked for, and where it went. The details for each item are
-in the numbered entries below (v700 to v1270).
+in the numbered entries below (v700 to v1280).
 
 New land missions and locations (board jobs)
   Bunker Raid (OSD), Groundside Pickup (Compact, QuickBite, Red Jackal,
