@@ -808,3 +808,14 @@ v1100 New opponent: shield tenders
       first.", 24 in VOICE_REQUESTS.txt). Tested muted: a forced tender in a
       rogue Station Defence, the damage cut, tethers (screenshot), the kill
       callout and the mission finishing.
+
+(no code change) Second independent review, v1040 to v1090
+      A read-only review checked the new templates, contact files, world
+      labels, achievements, the say-to-callout switch, the orbital looks and
+      the VOX Wire headline. It confirmed the flag names, that every
+      contact-file fact matches its letter or mission, that the crystal job
+      can safely share Groundside Pickup's stage list, and the house style.
+      Its one finding (that Mara's contact file could never appear) was
+      wrong: VOX is added as a sixth network when the game runs. I checked
+      in game and her file shows under VOX once you have met her. Nothing
+      needed fixing.
