@@ -5,7 +5,7 @@
 // After the factory moon the Partition network is broken, not gone. Black Contracts are
 // an open-ended series of remnant clean-up operations jointly funded by VOX and OSD.
 // Each one reuses a proven set piece (carrier, hive, dune armour, deep core, bunker,
-// mined node). Every completion raises the THREAT level: more and tougher hostiles,
+// mined node, and since v980 hijacked remnants and a remnant supply ship). Every completion raises the THREAT level: more and tougher hostiles,
 // and better pay. One Black Contract is on offer at a time, arriving in Mail after a
 // couple of ordinary jobs. They open at operator level 15 once the VOX story is done.
 (function(){
@@ -45,7 +45,30 @@
           combatBeforeApproach:true,target:n,fighterHp:hp,profile:'rogue',combatMessage:'Destroy the node guards',postCombatMessage:'Guards down. Proceed through the minefield'},
         {type:'station_terminal_hack',label:'Wipe the Node',hackSeconds:5,acquiredMessage:'NODE TERMINAL ACQUIRED',completeMessage:'NODE WIPED',hackHudPrefix:'WIPE',completeHud:'NODE WIPED'},
         {type:'station_hack_escape',label:'Withdraw',escapeDistance:280,escapeMessage:'Withdraw through the minefield'}],
-      stages:['Destroy the Guards','Cross the Minefield','Wipe the Node','Withdraw']}
+      stages:['Destroy the Guards','Cross the Minefield','Wipe the Node','Withdraw']},
+    // v980: two more set pieces in the rotation, using tonight's hijacked drones and the
+    // proven wreck recovery chain.
+    {id:'hijackers',title:'Stolen Remnants',family:'station_defence_recovery',
+      description:'Criminals are flying stolen remnant drones against a relay. Destroy them, search the wrecks for whoever is giving the orders, and upload what you find through the station terminal.',
+      modules:(n,hp)=>[{type:'station_defence_recovery',label:'Defend the Relay',stationModel:'relay',approachDistance:275,encounterChance:1,target:n,fighterHp:hp,difficulty:5,profile:'hijacked',
+        startMessage:'Defend the relay',wreckageSearch:true,useCombatWrecks:true,stationAnchor:true,wreckageCount:6,inspectSeconds:1.7,markerGrowRange:110,captureRadius:26,
+        searchPromptText:'Search the wrecks for control records',missText:'Nothing useful in this one',foundText:'Control records recovered',foundHud:'Control records recovered',foundHold:1.15,
+        wreckageSearchFlow:{firstResultAlwaysMiss:true},wreckagePresentation:{searchingText:'SEARCHING WRECKAGE',searchingHold:.58,markerLabel:'WRECKAGE',contactsPrefix:'WRECKAGE CONTACTS'},
+        externalDataTerminal:true,terminalCaptureRadius:30,terminalStandOff:13,transferSeconds:3.2}],
+      stages:['Defend the Relay','Search the Wrecks','Upload the Records']},
+    {id:'supply',title:'Remnant Supply Ship',family:'asteroid_wreck_recovery',
+      description:'A remnant supply ship broke up in an asteroid field and its guard drones are still on station. Destroy them, get inside, pull the routing core and deliver it to the Compact depot VOX has arranged.',
+      modules:(n,hp)=>[{type:'asteroid_wreck_recovery',label:'The Supply Ship',difficulty:5,target:n,fighterHp:hp,profile:'rogue',
+          ambushMessage:'Guard drones! Destroy them.',
+          route:{navDistance:560,navX:-14,navY:6,ambushDelay:3.6,navCaptureRadius:68,startMessage:'Proceed to the supply ship',resumeMessage:'Supply ship located. Continue through the field',thinMessage:'Supply ship ahead. Continue through the belt'},
+          wreck:{asset:'leviathanTrueSeparation04',scale:22,spawnDistance:1050,spawnX:-6,spawnY:2,rot:[-.06,-.22,.09],revealDistance:700,
+            gapLocal:[0,-.12,2.75],gapCaptureRadius:20,entryLocal:[0,-.15,-.18],entryAutopilotSpeed:16.5,entryAutopilotStop:1.55,
+            blackBoxLocal:[0,-.13,-2.64],recorderStopLocal:[0,-.15,-2.10],recorderStopRadius:.65,transferSeconds:3.0,turnSeconds:1.75,interiorAutopilotSpeed:12.5,
+            exitLocal:[0,-.15,.92],exitRevealRadius:54,exitCaptureRadius:3.5},
+          returnTransit:{duration:3.15,message:'RETURNING TO FREE TRADERS FREIGHT DEPOT',hud:'TO FREIGHT DEPOT'}},
+        {type:'free_traders_depot_terminal',label:'Deliver the Routing Core',difficulty:1,scale:26,spawnDistance:475,spawnX:-36,spawnY:-12,pitch:-.085,yaw:.58,roll:.05,startMessage:'Deliver the routing core',
+          depotRevealRadius:205,terminalStageDistance:82,terminalCaptureRadius:86,terminalStandOff:15.5,transferSeconds:3.1,turnSeconds:1.75,clearDistance:52}],
+      stages:['Cross the Field','Destroy the Guards','Enter the Ship','Pull the Routing Core','Return to the Depot','Deliver the Core']}
   ];
 
   function blackContract(threat){

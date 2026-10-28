@@ -621,3 +621,17 @@ v970  Six more voice lines to record, wired in
       detected." As before, drop a correctly named mp3 into voices/ and it
       plays with no code change. Until then the on-screen callouts carry
       those moments.
+
+v980  Two more Black Contract set pieces
+      The post-story Black Contracts cycled through six set pieces. Now
+      there are eight:
+      - Stolen Remnants: criminals are flying stolen remnant drones (the
+        hijacked kind, with remnant-strength hulls) against a relay. Defend
+        it, search the wrecks for whoever gives the orders, upload the
+        records.
+      - Remnant Supply Ship: a broken-up remnant supply ship in an asteroid
+        field, guard drones still on station. Get inside, pull the routing
+        core, deliver it to the Compact depot VOX arranged.
+      Tested muted through the real Black Contract mail path: both played
+      to victory and were marked done, and Stolen Remnants spawned hijacked
+      drones with 74 hull at threat 7. No errors.
