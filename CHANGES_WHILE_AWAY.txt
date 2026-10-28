@@ -680,9 +680,10 @@ v1010 Ice, crystal and desert ground
       Tested muted: a full cabin run on an ice world, plus screenshots of all
       three looks.
 
-v1020 World types on the dune and bunker ground too
-      The clumps in the dune troughs of the dune armour and bunker assault
-      missions now follow the world type, like the plains do: ice shards on
+v1020 World types on the dune ground too
+      The clumps in the dune troughs of the dune armour missions (board,
+      Kudo's chain and the Black Contract one) now follow the world type,
+      like the plains do: ice shards on
       cyan worlds, crystal spires on magenta ones, and rocks among dead pines
       on yellow and orange ones (yellow rocks on an orange world, so they
       still stand out). The factory moon keeps its own orange boulders.
