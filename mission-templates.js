@@ -2197,6 +2197,124 @@
     defaults:{destination:'ice field',cargo:'none'}
   };
 
+  // v1070 crystal consignment: the groundside pickup run on a magenta crystal world,
+  // where mining towns grow up round the spires. Same stages as groundside_pickup
+  // (plains through the crystal field, city collection room, launch, depot handoff).
+  const crystalConsignment={
+    id:'crystal_consignment',
+    version:1,
+    family:'groundside_pickup',
+    musicMode:'calm',
+    minLevel:6,
+    maxLevel:null,
+    allowedFactions:['helix','jackals','trade','quickbite'],
+    factionWeights:{helix:5,jackals:4,trade:3,quickbite:2},
+    board:{category:'delivery',weight:.6,maxPerBoard:1},
+    risk:{base:3,min:2,levelsPerStep:2,max:9,jitter:1},
+    reward:{
+      basePay:2650,payPerRisk:1850,payRiskSquare:115,randomPay:400,roundPay:50,
+      baseXp:340,xpPerRisk:78,xpRiskSquare:8
+    },
+    defaults:{origin:'an assay office in a crystal mining town',destination:'the Compact freight depot',cargo:'a sealed crystal case'},
+    planetaryRequirements:{landingBody:'planet',landingColour:'magenta',moonCount:{min:0,max:2}},
+    civilianTrafficPolicy:groundsidePickup.civilianTrafficPolicy,
+    sections:groundsidePickup.sections.map((s,i)=>i===0?{...s,label:'Crystal World Descent'}:(i===1?{...s,label:'Crystal Field Approach'}:s)),
+    presentation:{
+      helix:{
+        contactId:'navira_derris',cargoStyle:'case',
+        titles:['Assay Samples','Crystal Core Pickup','Spire Samples'],
+        cargo:['a case of spire core samples','a cold-sealed crystal core','growth-ring samples from a young spire'],
+        destinations:['the Compact freight depot','a Helix collection point at the depot'],
+        descriptions:[
+          'The miners have cut {cargo} for me. The spires there grow in rings, like trees, and I would like to count them. Collect it from {origin} and hand it over at {destination}.',
+          'I need {cargo} lifted out of {origin}. Please do not shoot anything near the case. Crystal remembers stress, and I want to measure the town, not you.'
+        ],
+        completionSubjects:['Samples logged','The crystal arrived intact'],
+        completionBodies:['The samples reached the depot intact. Early readings are very interesting, which is my favourite kind. CR {credits} released. Standing: +{rep}.'],
+        civilianTrafficMail:{
+          contactId:'navira_derris',
+          assaultSubjects:['About the town traffic'],incidentSubjects:['A note on the traffic'],
+          assaultBodies:['The samples arrived, but the town reported weapons fire near civilian traffic. That contaminates more than my data. Settlement reduced from CR {fullCredits} to CR {credits}.'],
+          incidentBodies:['The samples arrived. The town logged a traffic incident on your way out. Settlement adjusted to CR {credits}.'],
+          failureAddenda:['The traffic report did not help either.'],
+          abandonAddenda:['And there was the traffic incident before you left.']
+        },
+        failureMail:{contactId:'navira_derris',subjects:['The samples did not arrive'],bodies:['Your drone was lost and the samples with it. The spires will keep growing whether we measure them or not. I would rather we did.']},
+        abandonMail:{contactId:'navira_derris',subjects:['The case is still in town'],bodies:['You withdrew before the pickup was finished. The assay office is keeping the case cold for now.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:3,chance:.22,subjects:['About the spires'],bodies:['The samples show growth rings, like a tree. Counting them is going to take my whole weekend. I am delighted.']}
+      },
+      jackals:{
+        contactId:'cassian_erivan_snade',cargoStyle:'case',
+        titles:['A Crystal Matter','Change of Ownership','Spire Stones'],
+        cargo:['a case of cut spire stones','an unregistered crystal consignment','a velvet-lined case of very good crystal'],
+        destinations:['the Compact freight depot','a quiet locker at the Compact depot'],
+        descriptions:[
+          'Somebody has turned up {cargo} that its current owners cannot quite account for. Ownership is about to change. Please collect it from {origin} and see it to {destination}.',
+          'There is {cargo} waiting in {origin}. Its paperwork is a little thin. Yours, if anyone asks, need not exist at all. Deliver it to {destination}.'
+        ],
+        completionSubjects:['The stones have a new home','Ownership settled'],
+        completionBodies:['The consignment reached the depot without anyone asking a question. CR {credits} released. Standing: +{rep}.'],
+        civilianTrafficMail:{
+          contactId:'cassian_erivan_snade',
+          assaultSubjects:['Rather loud'],incidentSubjects:['A small commotion'],
+          assaultBodies:['The stones arrived, but the town will remember the weapons fire. Memory is precisely what we were paying to avoid. Settlement reduced from CR {fullCredits} to CR {credits}.'],
+          incidentBodies:['The stones arrived. Town control logged a traffic incident, which I have arranged to forget. Forgetting has a price. Settlement adjusted to CR {credits}.'],
+          failureAddenda:['The traffic report did not help.'],
+          abandonAddenda:['And the town noticed you leaving.']
+        },
+        failureMail:{contactId:'cassian_erivan_snade',subjects:['A sparkling disappointment'],bodies:['The stones are still in town and your drone is not anywhere useful. Their current owners will be pleased. I am less so.']},
+        abandonMail:{contactId:'cassian_erivan_snade',subjects:['Left in the strongroom'],bodies:['You left before the consignment was collected. It remains, for now, with people who do not deserve it.']},
+        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:3,chance:.2,subjects:['On crystal'],bodies:['One of the stones now sits on my desk. It catches the light rather well. I find I like owning something nobody can trace.']}
+      },
+      trade:{
+        contactId:'corvella_pallis',cargoStyle:'case',
+        titles:['Crystal Freight','Spire Town Pickup','Something Shiny'],
+        cargo:['a crate of cut crystal','spire glass for a jeweller','a case of polished crystal'],
+        destinations:['the Compact freight depot','a Compact depot in high orbit'],
+        descriptions:[
+          'Sweetie, a mining town has {cargo} ready in {origin}. Fly through those gorgeous spires, pick it up and bring it to {destination}. Shiny cargo for a shiny drone.',
+          'Babe, I have a jeweller waiting on {cargo}. It is sitting in {origin}. Lift it out, mind the traffic and hand it over at {destination}.'
+        ],
+        completionSubjects:['Shiny cargo delivered','Crystal logged in'],
+        completionBodies:['The depot has logged {cargo} in. The jeweller says it is perfect. So are you, sweetie. Payment: CR {credits}. Standing: +{rep}.'],
+        civilianTrafficMail:{
+          contactId:'corvella_pallis',
+          assaultSubjects:['Sweetie. The traffic.'],incidentSubjects:['Watch the traffic, babe'],
+          assaultBodies:['Sweetie, I like a dangerous drone, not one that shoots commuters. Settlement cut from CR {fullCredits} to CR {credits}.'],
+          incidentBodies:['Babe, the crystal made the depot but town control logged traffic trouble. I smoothed it over and cut the pay to CR {credits}.'],
+          failureAddenda:['And yes, sweetie, I saw the traffic report too.'],
+          abandonAddenda:['Walking out after a traffic incident? Babe, no.']
+        },
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the crystal'],bodies:['Sweetie, the crystal never reached the depot and neither did you. The jeweller is sulking. So am I.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, the crate is still there'],bodies:['You left the crystal sitting in town, babe. It is very pretty. It is also not at my depot.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['I kept one'],bodies:['The jeweller sent me a little offcut as a thank you. I keep it on my desk next to the picture of your drone. Do not read too much into that, babe. Read a little.']}
+      },
+      quickbite:{
+        contactId:'nyxo_malloc',cargoStyle:'case',
+        titles:['Paid in Crystal','The Crystal Tip Jar','Lunch Money'],
+        cargo:["a case of crystal from the miners' tab",'the crystal town tip jar','a box of uncut crystal labelled LUNCH'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'Dude. The crystal town paid their whole catering tab in crystal. Actual rocks. Accounts will not accept rocks. So you have to collect {cargo} from {origin} and take it to {destination} where somebody can turn it into money.',
+          'So the miners tipped us in crystal again. It is in {origin}. Please bring {cargo} to {destination} before somebody in Accounts cries.'
+        ],
+        completionSubjects:['The rocks are money now','Tab settled, dude'],
+        completionBodies:['The depot turned the crystal into actual money. Accounts has stopped crying. Payment: CR {credits}. Standing: +{rep}.'],
+        civilianTrafficMail:{
+          contactId:'nyxo_malloc',
+          assaultSubjects:['Dude, the traffic'],incidentSubjects:['Small traffic thing'],
+          assaultBodies:['Dude. You shot at commuters. In a mining town. They are our best customers. Pay cut from CR {fullCredits} to CR {credits}.'],
+          incidentBodies:['The crystal made it, but town control logged a traffic thing. Pay is CR {credits}. Sorry, not my rule.'],
+          failureAddenda:['Also the traffic report. Not great.'],
+          abandonAddenda:['Also there was a traffic thing first.']
+        },
+        failureMail:{contactId:'nyxo_malloc',subjects:['The rocks stayed rocks'],bodies:['Dude, your drone exploded and the crystal is still in town. Accounts is crying again. I bought them a muffin.']},
+        abandonMail:{contactId:'nyxo_malloc',subjects:['You left the tip jar?'],bodies:['You flew all the way down there and left the tip jar. That is our tip jar, dude.']},
+        personalFollowUp:{contactId:'nyxo_malloc',minRisk:3,chance:.24,subjects:['Crystal town loves you'],bodies:['The miners asked who flew the pickup. I said the best contractor we have. They want to name a sandwich after you. I said no. They did it anyway.']}
+      }
+    }
+  };
+
   // Generic discretionary reward correspondence lives beside the mission templates
   // because it is faction/contact presentation, even when the reward itself is not
   // tied to one particular mission family. Campaign owns the reward mechanics; these
@@ -2337,7 +2455,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();

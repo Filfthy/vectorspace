@@ -743,3 +743,17 @@ v1060 Contact files on the Networks page
       only appears after her third letter, so her past stays a surprise.
       Every note summarises something the game has already told you, so
       nothing new is revealed. Tested muted with a screenshot.
+
+v1070 Crystal Consignment
+      New board job from level 6 (about one board in four): Crystal
+      Consignment, the crystal world counterpart to Ice Field Armour. You
+      descend to a magenta world, fly the plains through the crystal spires
+      to a mining town, collect a case from its assay office, then launch
+      and hand it over at the Compact depot. It uses the same proven stages
+      as Groundside Pickup. Navira wants spire core samples (the spires grow
+      in rings, like trees, and she wants to count them). For Cassian it is a
+      consignment whose ownership is "about to change". Corvella has a
+      jeweller waiting. And the miners paid QuickBite's catering tab in
+      crystal, so Nyxo needs it taken somewhere it can become money. Tested
+      muted: a full run to the debrief, the spires on the plains, the board
+      mix, and every network's text.
