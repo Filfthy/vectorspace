@@ -123,7 +123,7 @@ class SurfaceDestinationApproachController {
   reset(){
     this.active=false;this.stage=null;this.terrain='plains';this.destination='city';this.scenery='forest';
     this.groundY=-3.50;this.routeLength=430;this.targetWorldZ=430;this.targetX=0;
-    this.speed=22.0;this.navPulse=0;this.seed=0x504c4149;this.trees=[];this.survey=[];this.skyline=[];this.forestBands=[];this.forestFront=[];this.treeHitCD=0;
+    this.speed=22.0;this.navPulse=0;this.seed=0x504c4149;this.trees=[];this.survey=[];this.surveyIntro=null;this.skyline=[];this.forestBands=[];this.forestFront=[];this.treeHitCD=0;
     this.visibleTrees=[];this.visibleForestFront=[];
     this.baseCache=new WeakMap();this.finishing=false;this.finishT=0;this.entryRadius=36;
     this.lastHandoff=null;this.manualComplete=false
@@ -286,6 +286,7 @@ class SurfaceDestinationApproachController {
   surveyNext(){return this.surveyLeft().sort((a,b)=>Math.hypot(a.x-shipX,a.worldZ-travel)-Math.hypot(b.x-shipX,b.worldZ-travel))[0]||null}
   updateSurvey(dt){
     if(!this.survey?.length)return;
+    const intro=this.surveyIntro;if(intro){intro.wait-=dt;if(intro.wait<=0||(typeof callout==='function'&&callout(intro.text,2.6)))this.surveyIntro=null}
     this.surveyNagT=Math.max(0,this.surveyNagT-dt);
     for(const p of this.survey)if(!p.done&&Math.hypot(p.x-shipX,p.worldZ-travel)<8.5){
       p.done=true;const total=this.survey.length,got=total-this.surveyLeft().length;
@@ -377,7 +378,8 @@ class SurfaceDestinationApproachController {
     shipX=side*(17+this.rand()*13);shipY=-1.42;
     viewYaw=side*(.28+this.rand()*.28);viewPitch=.015;viewRoll=0;
     audio.music.setMode('calm');
-    if(this.survey?.length){if(typeof callout==='function')callout(`FLY THE ${this.survey.length} SURVEY POINTS · THEN THE ${this.destination==='forest'?'FOREST':'CITY'}`,2.6)}
+    // The survey instruction waits (up to six seconds) for any spoken line to clear.
+    if(this.survey?.length)this.surveyIntro={text:`FLY THE ${this.survey.length} SURVEY POINTS · THEN THE ${this.destination==='forest'?'FOREST':'CITY'}`,wait:6};
     else if(this.destination==='swamp')say('PROCEED TO SWAMP',.85);
     else if(this.destination==='osd')say('PROCEED TO OSD FACILITY',.85);
     else audio.playVoice(this.destination==='forest'?'proceedToForest':'proceedToCity',{once:false,priority:true})

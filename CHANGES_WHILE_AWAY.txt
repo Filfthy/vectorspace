@@ -894,3 +894,19 @@ v1160 Follow-ups for the closing letters and Survey Run
       does exist, and has "apologised to its software". Tested muted: every
       contact file fills to 6 of 6, and the headline and achievement open
       correctly.
+
+v1170 Third independent review (v1100 to v1150), two fixes
+      A read-only review of the shield tenders, standing lines, Survey Run
+      and closing letters found two small bugs, now fixed:
+        Killing a shield tender on a real contract showed the generic
+        "HOSTILE DOWN · +CR" bounty line straight over "SHIELD TENDER DOWN
+        · WING EXPOSED", so the tender message never showed. Tenders now
+        announce their own kill, as aces already did.
+        The debrief bounty line read "1 tenders". It now says "1 shield
+        tender".
+      Also from its notes: the Survey Run instruction could be lost if a
+      voice line was playing when you landed. It now waits up to six
+      seconds for the line to finish, like the ace announcement does.
+      Everything else checked out: tender gating, the damage cut, the
+      survey gate (no way to get stuck), the 4th letter timing and the
+      house style. Tested muted.

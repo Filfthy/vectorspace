@@ -183,7 +183,7 @@ class CampaignController {
   bountyTag(){const b=this.lastBounty;return b&&performance.now()-b.at<400&&b.cr>0?` · +CR ${b.cr.toLocaleString()}`:''}
   bountySummary(){
     const b=this.missionBounty;if(!b||b.cr<=0)return null;
-    const names={fighters:['fighter','fighters'],armour:['armour unit','armour units'],'heavy walkers':['heavy walker','heavy walkers'],generators:['generator','generators'],reactors:['reactor','reactors'],aces:['named ace','named aces']};
+    const names={fighters:['fighter','fighters'],armour:['armour unit','armour units'],'heavy walkers':['heavy walker','heavy walkers'],generators:['generator','generators'],reactors:['reactor','reactors'],aces:['named ace','named aces'],tenders:['shield tender','shield tenders']};
     const text=Object.entries(b.counts).map(([k,v])=>`${v} ${(names[k]||[k,k])[v===1?0:1]}`).join(', ');
     return {cr:Math.round(b.cr/50)*50,xp:Math.round(b.xp),text}
   }
