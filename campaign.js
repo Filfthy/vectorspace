@@ -1750,7 +1750,7 @@ class CampaignController {
       flags[key]=true;flags.loreSentAt=completed;
       this.enqueueMail({id:`lore_mara_${i+1}`,from:M.from,subject:l.subject,category:'story',priority:'normal',body:l.body.slice()});return
     }
-    for(let i=0;i<3;i++)for(const chain of C.chains){
+    for(let i=0;i<4;i++)for(const chain of C.chains){
       const letter=F.LETTERS[chain.faction]?.[i],key=`${chain.faction}Lore${i+1}`;
       if(!letter||flags[key]||(i>0&&!flags[`${chain.faction}Lore${i}`]))continue;
       if(!F.due(i,{rep:Number(this.factions[chain.faction]?.rep)||0,flags,chain,completed}))continue;

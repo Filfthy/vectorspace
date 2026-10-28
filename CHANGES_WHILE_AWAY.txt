@@ -868,3 +868,20 @@ v1140 Survey Run, a new kind of land mission
       plains approach, and it does nothing unless a stage asks for markers.
       Tested muted: the gate, every marker logging, a full run to the
       debrief, the board mix and a screenshot.
+
+v1150 A closing letter from each contact
+      Three contracts after a contact's final (epilogue) mission, they write
+      one last personal letter, so each relationship gets an ending.
+        Kudo breaks his own "no more letters" order to say Crossroads is
+          quiet and the pickets were stood down properly.
+        Corvella took her first holiday, as a guest, and brought you a tiny
+          model drone ("Nothing is as big as yours, babe").
+        Cassian's family reading is postponed indefinitely. His aunt has
+          taken up gardening, "revenge by other means".
+        Teodor is back at Helix, in the office next to Navira's, and said
+          "keep that one" about you.
+        The vice president who clapped sent Nyxo a plant. He named it
+          Contractor.
+      Each follows on from that contact's epilogue and adds no world facts.
+      Veto any details you do not like. Tested muted: the letter waits
+      three contracts and arrives only once.

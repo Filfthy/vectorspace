@@ -28,7 +28,12 @@
       L('Standing order',[
         'X. One message of this kind, and then I will not write like this again.',
         'My first commanding officer kept two words on her console. Finish it. She never explained them and I will not either.',
-        'I keep a list of operators I would send first. It is a short list. Your name is on it. Stay on it.'])
+        'I keep a list of operators I would send first. It is a short list. Your name is on it. Stay on it.']),
+      // v1150: a closing letter a few contracts after the epilogue (see due()).
+      L('One more thing',[
+        'X. I said I would not write like this again. I am breaking an order. It is my own, so it is allowed.',
+        'Crossroads is quiet. The pickets have been recovered and stood down properly, in a form they would accept. I wrote the stand-down myself. It was short.',
+        'That is all. Finish it.'])
     ],
     trade:[
       L('A little note from me',[
@@ -44,7 +49,11 @@
         'I was not born. I was built. Pleasure model, top of the range, very expensive and very good at making people feel wonderful.',
         'When the place that owned me went under, a Compact auditor found me in the inventory and could not bring herself to sell me for parts. She gave me a desk instead. Turns out routing freight is mostly making people feel wonderful too.',
         'So yes, babe. When I go weak at the knees over a big, muscly, heavily armed machine, I promise it is professional interest. Mostly.',
-        'I like who I am now. I like that you are part of it. Now go and blow something up for me.'])
+        'I like who I am now. I like that you are part of it. Now go and blow something up for me.']),
+      L('A postcard, sort of',[
+        'Sweetie, a little update, because you earned the right to know how the story ends.',
+        'I took my first holiday. Three days on a resort station, as a guest. They kept trying to offer me a job. I kept saying no. Best three days of my life.',
+        'I brought you a souvenir. It is a tiny model drone. It is not as big as yours. Nothing is, babe.'])
     ],
     jackals:[
       L('On the subject of taste',[
@@ -58,7 +67,11 @@
       L('An unusual admission',[
         'X. In my line of work nobody is a friend. People are assets, liabilities or furniture.',
         'I find I do not know which of those you are. It is a novel sensation, and I have decided to enjoy it.',
-        'If anyone ever offers you a great deal of money to make me disappear, do tell me first. I would hate to be outbid.'])
+        'If anyone ever offers you a great deal of money to make me disappear, do tell me first. I would hate to be outbid.']),
+      L('Postponed indefinitely',[
+        'X. You will be pleased to hear that the Snade family reading has been postponed indefinitely. My aunt has taken up gardening, which she describes as revenge by other means.',
+        'I have begun to suspect that I enjoy working with you. I mention it only in case it ever becomes useful to either of us.',
+        'Should you ever need a quiet favour, you know which door to knock on. Knock softly.'])
     ],
     helix:[
       L('A question you did not ask',[
@@ -72,7 +85,11 @@
       L('Teodor',[
         'You never met Teodor. He ran the deep-core field lab before me and taught me most of what I know about hive chemistry.',
         'He retired to a station with no xenos for forty light minutes in any direction. He says it is wonderfully boring. I do not believe him.',
-        'The lab you saved still has his handwriting on the walls. I checked. Thank you for keeping it.'])
+        'The lab you saved still has his handwriting on the walls. I checked. Thank you for keeping it.']),
+      L('Teodor is back',[
+        'Teodor came out of retirement after all. He has taken the office next to mine and has already rearranged it twice.',
+        'He asked me who flew the station clearance. I told him. He said, and I am quoting, keep that one. I intend to.',
+        'If you ever want to see a hive from the safe side of the glass, the biolab door will open for you.'])
     ],
     quickbite:[
       L('Hey',[
@@ -86,13 +103,18 @@
       L('Real talk for a second',[
         'Okay, real talk for one second and then I go back to being normal.',
         'Everybody here treats the drone jobs like a joke. Rocks in the lane, bugs at the truck stop, whatever. But some of those mining crews really do not eat if the run does not happen.',
-        'So yeah. Thanks for not treating it like a joke, even when I do. Anyway. Tacos.'])
+        'So yeah. Thanks for not treating it like a joke, even when I do. Anyway. Tacos.']),
+      L('The plant',[
+        'Dude. After the retreat, the vice president who clapped sent me a plant. An actual plant. In a pot.',
+        'Nobody has ever given me a plant. I named it Contractor. It is doing really well. Honestly, so am I.',
+        'Anyway. Thanks for everything. That is the work email. The not-work email is also thanks.'])
     ]
   };
   // When each letter becomes due. `chain` is the network's agent chain from faction-content.js.
   function due(i,{rep,flags,chain,completed}){
     if(i===0)return rep>=15;
     if(i===1)return !!flags[chain.steps[1].flag+'Done'];
+    if(i===3){const e=`${chain.faction}Agent4`;return !!flags[e+'Done']&&completed>=(Number(flags[e+'CompletedAt'])||0)+3}
     const cap=chain.steps[2].flag;return !!flags[cap+'Done']&&completed>=(Number(flags[cap+'CompletedAt'])||0)+3
   }
   // v780: Mara Venn (VOX) writes at three story beats, one or two contracts after each
