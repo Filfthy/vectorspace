@@ -2402,7 +2402,14 @@ class CampaignController {
     if(!req||!(m.modules||[]).some(x=>x.type==='planet_descent'))return '';
     const hex={green:C.g,yellow:C.y,cyan:C.c,magenta:C.m,blue:C.u,orange:C.o}[col]||C.g;
     const body=req.landingBody==='moon'?'moon':(req.landingBody==='either'?'planet or moon':'planet');
-    return `<div class="worldLine">Destination world: <b style="color:${hex}">${col||'green'} ${body}</b></div>`
+    // v1030: name the ground the plains and dunes will show (see surfaceWorldKind).
+    const look={cyan:'ice',magenta:'crystal',yellow:'arid',orange:'arid'}[col];
+    return `<div class="worldLine">Destination world: <b style="color:${hex}">${col||'green'} ${body}</b>${look?` · ${look}`:''}</div>`
+  }
+  contactNoteHtml(m){
+    const f=this.factions[m?.faction],note=f&&globalThis.AgentXContactNotes?.pick?.(f.id,f.rep,m.id);
+    if(!note)return '';
+    return `<div class="contactNote"><b>${this.escapeHtml(note.who)}:</b> ${this.escapeHtml(note.text)}</div>`
   }
   gearAdviceHtml(m){
     const band=clamp(1+Math.floor((Math.max(1,Number(m?.risk)||1)-1)/2),1,5),want=this.tierInfo(band);
@@ -2476,7 +2483,7 @@ class CampaignController {
     const m=this.missions.find(x=>x.id===this.selectedMissionId);
     if(m){
       const f=this.factions[m.faction],riskText=m.risk>=10?'Elite':(m.risk>=7?'Extreme':(m.risk>=5?'High':(m.risk>=3?'Moderate':'Routine')));
-      detail.innerHTML=`<div class="catalogDetailKicker">CONTRACT DETAILS · ${this.jobTypeInfo(this.jobType(m)).label}</div><h3>${m.title}</h3><div class="missionFaction">${f.name} · Rep ${f.rep} ${this.repLabel(f.rep)}</div><div class="catalogDetailDesc">${m.description}</div><div class="contractStats"><div><b>CR ${m.pay.toLocaleString()}</b><span>Pay</span></div><div><b>${m.xp}</b><span>XP</span></div><div><b>${riskText} ${m.risk}</b><span>Risk</span></div></div>${m.priority?`<div class="contractPriority">PRIORITY CONTRACT · ${f.name} standing bonus included</div>`:''}${this.gearAdviceHtml(m)}${this.worldHtml(m)}<div class="missionStatus">Available</div><button class="missionLaunch" type="button">Accept contract</button><div class="contractRoute"><h4>Route</h4><ol>${(m.stages||[]).map(x=>`<li>${this.escapeHtml(x)}</li>`).join('')}</ol></div>`;
+      detail.innerHTML=`<div class="catalogDetailKicker">CONTRACT DETAILS · ${this.jobTypeInfo(this.jobType(m)).label}</div><h3>${m.title}</h3><div class="missionFaction">${f.name} · Rep ${f.rep} ${this.repLabel(f.rep)}</div><div class="catalogDetailDesc">${m.description}</div>${this.contactNoteHtml(m)}<div class="contractStats"><div><b>CR ${m.pay.toLocaleString()}</b><span>Pay</span></div><div><b>${m.xp}</b><span>XP</span></div><div><b>${riskText} ${m.risk}</b><span>Risk</span></div></div>${m.priority?`<div class="contractPriority">PRIORITY CONTRACT · ${f.name} standing bonus included</div>`:''}${this.gearAdviceHtml(m)}${this.worldHtml(m)}<div class="missionStatus">Available</div><button class="missionLaunch" type="button">Accept contract</button><div class="contractRoute"><h4>Route</h4><ol>${(m.stages||[]).map(x=>`<li>${this.escapeHtml(x)}</li>`).join('')}</ol></div>`;
       detail.querySelector('.missionLaunch').addEventListener('click',()=>this.prepareMission(m.id));
     }else detail.innerHTML='<div class="catalogEmptyDetail">No contract selected.</div>';
     const listHost=this.wrapCatalogScroller(list,'catalogScrollHost contractScrollHost');

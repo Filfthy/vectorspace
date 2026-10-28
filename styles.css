@@ -996,6 +996,8 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 /* v660 the debrief's Return button stays in view on short screens */
 .debriefReturnRow{margin-top:16px;position:sticky;bottom:0;padding:12px 0 8px;background:linear-gradient(rgba(0,0,0,0),#000 40%);z-index:2}
 .worldLine{color:var(--g);font-size:var(--type-meta);margin:4px 0 8px}
+.contactNote{color:var(--c);font-size:var(--type-meta);margin:6px 0 8px;line-height:1.35}
+.contactNote b{color:var(--y);font-weight:400}
 /* v960 earned titles on the Operator page */
 .opTitles{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;font-size:var(--type-meta);color:var(--g)}
 .opTitles>span{margin-right:4px}

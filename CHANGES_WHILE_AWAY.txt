@@ -692,3 +692,16 @@ v1020 World types on the dune ground too
       still in flight. It now ends with the normal test debrief. Board
       contracts were never affected. Tested muted: dune runs on cyan,
       magenta and orange worlds, the orange one played to the debrief.
+
+v1030 Contacts talk on their contracts
+      Once your standing with a network reaches 25, about three in five of
+      its board contracts carry a one-line note from its contact, under the
+      description. From standing 60 the lines get more personal: Kudo admits
+      his officers ask about you, Corvella has put your drone's picture on
+      the office wall, Cassian has pencilled your name on his family's short
+      list, Navira names a sample after you, and Nyxo has made you his
+      emergency contact "on the work form". There are 45 lines, written to
+      the style guide's voices, and none touches anyone's private history or
+      the lore's open questions. A contract always shows the same line.
+      The destination world line also names the ground now (ice, crystal or
+      arid). Tested muted with a screenshot of the contract page.
