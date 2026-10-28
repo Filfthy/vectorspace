@@ -580,3 +580,10 @@ v940  Epilogue missions: one last personal job per contact, with a title
       Operator record, and the Guide mentions them. Tested muted: gating
       (not too soon, not below 80 standing), all five played to victory,
       titles and completion mails. No errors.
+
+v950  The Networks page points to what comes after the capstone
+      After a network's third agent mission, its line used to stop at
+      "Reward earned". It now continues with "personal favours by mail ·
+      final mission at standing 80 and level 16", then "final mission
+      waiting in Mail", and finally "title earned · Corvella's Favourite"
+      (or whichever title it is). Tested muted.

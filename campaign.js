@@ -2470,7 +2470,14 @@ class CampaignController {
     const f=this.factions[factionId],rep=Number(f?.rep)||0,flags=this.state.mailFlags||{},lvl=this.levelForXP(),esc=t=>this.escapeHtml(String(t));
     if(rep<-55)return `<div class="netNext hostile">Hostile · its enforcers may intercept you on other jobs. Its own jobs repair standing.</div>`;
     const reward=this.items[chain.reward];
-    if(flags[chain.steps[2].flag+'Done'])return `<div class="netNext done">Reward earned · ${esc(reward?.name||'')} · priority jobs +40%</div>`;
+    if(flags[chain.steps[2].flag+'Done']){
+      // v950: after the capstone, point at the favours and the epilogue (and its title).
+      const e=(C.epilogues||[]).find(x=>x.faction===factionId);let tail='personal favours by mail';
+      if(e&&flags[e.flag+'Done'])tail=`title earned · ${esc(e.titleReward)}`;
+      else if(e&&flags[e.flag+'Offer'])tail='final mission waiting in Mail';
+      else if(e)tail+=` · final mission at standing ${e.rep} and level ${e.level}`;
+      return `<div class="netNext done">Reward earned · ${esc(reward?.name||'')} · ${tail}</div>`
+    }
     const i=chain.steps.findIndex(s=>!flags[s.flag+'Done']),step=chain.steps[i];
     let line;
     if(flags[step.flag+'Offer'])line=`Agent mission ${i+1} of 3 waiting in Mail`;
