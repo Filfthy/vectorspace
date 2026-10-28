@@ -430,3 +430,19 @@ v830  New board job: Station Defence (OSD, Compact, Helix, QuickBite)
       At level 5 it pays CR 7,200 and 625 XP (a plain fighter job pays about
       CR 4,000). Flown muted against hijacked drones, through to the wreckage
       search, then stepped to victory and Nyxo's mail. No errors.
+
+v840  Contacts write when you fall out, and when you make up
+      Relationships now go both ways. When your standing with a network
+      falls to Hostile, its contact writes once, in voice, naming the
+      enforcers who will now hunt you, and again once you've repaired it
+      to Neutral:
+      - Kudo: "You are flagged" / "Flag lifted. Do not make me put it back."
+      - Corvella: "I am not talking to you" (she set the hired guns on you)
+        / "Fine, I forgive you... partly because I missed you."
+      - Cassian: you have become "an inconvenience", so take the busy routes
+        / "My associates were disappointed, but they are professionals."
+      - Navira: Helix security reclassified you, "I was not consulted, and I
+        would not have agreed" / she argued for your reinstatement.
+      - Nyxo: "Corporate flagged your account. Like, repo drones flagged."
+        / "Corporate says sorry. Corporate does not actually say sorry."
+      Each is sent once only. Tested muted.

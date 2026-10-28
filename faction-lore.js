@@ -112,5 +112,20 @@
       'I keep thinking about how long those machines waited out there, and how easy it was for somebody to wake them up. There will be other factories, and other people who go looking for them.',
       'When they do, I would like it to be you I call. That is not a contract. It is just true.'])}
   ]};
-  globalThis.AgentXFactionLore={LETTERS,due,MARA};
+  // v840: when standing with a network falls to Hostile (below -55), its contact writes
+  // once, naming the enforcers that will now hunt X on other networks' routes. When it
+  // is repaired to Neutral (-20 or better), they write once more.
+  const STANDING={
+    security:{hostile:L('You are flagged',['X. The Directorate has flagged you. Our interdiction units will treat you as a hostile contact on any route they patrol.','You did this to yourself. Directorate work is how you undo it. Nothing else counts.']),
+      repaired:L('Flag lifted',['The flag on your file has been lifted. Do not make me put it back.'])},
+    trade:{hostile:L('I am not talking to you',['Sweetie, I am very upset with you. So upset that I told the Compact hired guns exactly where you like to fly.','If you want me to stop being upset, babe, you know what to do. Do my jobs. Do them well. Maybe bring me something shiny.']),
+      repaired:L('Fine, I forgive you',['Babe. I have decided to forgive you, mostly because you have been very good lately and partly because I missed you.','I have called the hired guns off. Do not make me call them back.'])},
+    jackals:{hostile:L('A regrettable change of status',['X. Our arrangement has become uncomfortable. Certain associates of mine now consider you an inconvenience.','Inconveniences tend to meet people on quiet routes. I would take the busy ones for a while. Or do some work for us, and we can all forget this.']),
+      repaired:L('Water under the bridge',['I am pleased to report that you are no longer an inconvenience. My associates have been informed. They were disappointed, but they are professionals.'])},
+    helix:{hostile:L('Helix has restricted your access',['X. Helix security has classified you as a hostile operator. I was not consulted, and I would not have agreed.','Their security drones will intercept you on routes near Helix work. Helix contracts are the only thing that will change the classification. I would like that very much.']),
+      repaired:L('Classification revised',['Helix security has revised your classification. I argued for it, which I am told is unusual for me. Welcome back.'])},
+    quickbite:{hostile:L('Dude. What did you do',['Dude. Corporate flagged your account. Like, repo drones flagged. I did not even know we had repo drones.','If you do some QuickBite jobs they will probably unflag you. Probably. Corporate is weird.']),
+      repaired:L('You are unflagged',['Good news, you are unflagged. Corporate says sorry. Corporate does not actually say sorry. I am saying it for them.'])}
+  };
+  globalThis.AgentXFactionLore={LETTERS,due,MARA,STANDING};
 })();

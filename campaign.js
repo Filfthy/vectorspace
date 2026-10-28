@@ -1676,6 +1676,7 @@ class CampaignController {
     this.evaluateLateGame();
     this.evaluateBulletin();
     this.evaluateThreatAdvisories();
+    this.evaluateStandingLetters();
     // Story mission 2 is handed out directly by Mara's completion mail for mission 1.
     // It deliberately does not also auto-enqueue here, which would duplicate the offer.
   }
@@ -1722,6 +1723,21 @@ class CampaignController {
   // v450 late game: one notice per level unlock, and the Black Contract series.
   // v610: a save with progress from before tonight's additions gets one short bulletin
   // naming what is new. Fresh accounts never see it (the welcome mail covers them).
+  // v840: one letter when a network turns Hostile, and one when that is repaired.
+  evaluateStandingLetters(){
+    const C=globalThis.AgentXFactionContent,S=globalThis.AgentXFactionLore?.STANDING;if(!C||!S)return;
+    const flags=this.state.mailFlags;
+    for(const chain of C.chains){
+      const id=chain.faction,letters=S[id],rep=Number(this.factions[id]?.rep)||0;if(!letters)continue;
+      if(rep<-55&&!flags[`${id}HostileLetter`]){
+        flags[`${id}HostileLetter`]=true;
+        this.enqueueMail({id:`standing_${id}_hostile`,from:chain.from,subject:letters.hostile.subject,category:'story',priority:'high',body:letters.hostile.body.slice()})
+      }else if(rep>=-20&&flags[`${id}HostileLetter`]&&!flags[`${id}RepairedLetter`]){
+        flags[`${id}RepairedLetter`]=true;
+        this.enqueueMail({id:`standing_${id}_repaired`,from:chain.from,subject:letters.repaired.subject,category:'story',priority:'normal',body:letters.repaired.body.slice()})
+      }
+    }
+  }
   // v720: a one-off VOX advisory the first time X meets a new threat class.
   evaluateThreatAdvisories(){
     const flags=this.state.mailFlags,seen=this.state.seenProfiles||{};
