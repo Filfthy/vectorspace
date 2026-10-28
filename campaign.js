@@ -2026,6 +2026,25 @@ class CampaignController {
     if(Math.random()<.55)this.queueVoxContractMail();else this.queueVoxGiftMail()
   }
   voxPick(a){return a[(Math.random()*a.length)|0]}
+  // v930: a VOX Wire news digest every five to seven contracts. Reactive headlines
+  // (things the player has done) go first; the general pool refills once all are read.
+  maybeQueueVoxWire(){
+    const W=globalThis.AgentXVoxWire;if(!W)return;
+    const flags=this.state.mailFlags,done=Number(this.state.completed)||0;
+    if(!Number.isFinite(flags.wireNextAt)){flags.wireNextAt=done+3;return}
+    if(done<flags.wireNextAt)return;
+    const seen=new Set(Array.isArray(this.state.wireSeen)?this.state.wireSeen:[]);
+    const ctx={flags,stats:this.stats(),bt:this.stats().contracts.byTemplate||{},state:this.state,level:this.levelForXP()};
+    const ready=h=>!seen.has(h.id)&&(!h.when||h.when(ctx));
+    let pick=W.HEADLINES.filter(h=>h.when&&ready(h));
+    let general=W.HEADLINES.filter(h=>!h.when&&ready(h));
+    if(!general.length){for(const h of W.HEADLINES)if(!h.when)seen.delete(h.id);general=W.HEADLINES.filter(h=>!h.when)}
+    general=general.sort(()=>Math.random()-.5);
+    pick=pick.slice(0,2).concat(general).slice(0,3);if(!pick.length)return;
+    for(const h of pick)seen.add(h.id);this.state.wireSeen=[...seen];
+    const n=flags.wireSeq=(flags.wireSeq||0)+1;flags.wireNextAt=done+5+((Math.random()*3)|0);
+    this.enqueueMail({id:`vox_wire_${n}`,from:'VOX Wire',subject:'VOX Wire news digest',category:'network',priority:'low',body:pick.map(h=>h.text)})
+  }
   // v890: personal favours. Once a network's capstone is done, its contact sends one of
   // their own board jobs every five to eight contracts, at 1.6x pay and 1.3x XP, with an
   // opening line in voice. One open favour per contact; completing it clears the slot.
@@ -2912,6 +2931,7 @@ class CampaignController {
     if(m.private)this.handleStoryCompletion(m);
     this.maybeQueueVoxFollowUp(m);
     this.maybeQueueFavour(m);
+    this.maybeQueueVoxWire();
     this.checkAchievements();
     if(droneLost){
       if(lostFrameId!=='AX-1'){this.state.ownedFrames=this.state.ownedFrames.filter(id=>id!==lostFrameId);if(!this.state.ownedFrames.includes('AX-1'))this.state.ownedFrames.unshift('AX-1');this.state.drone='AX-1'}

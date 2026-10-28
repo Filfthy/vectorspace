@@ -545,3 +545,15 @@ v920  Two new diversions: escape pods and smuggler caches
       kinds. The Guide mentions the new ones. Flown muted: the cache prompt
       showed, the claim paid CR 850, Jackal went up 2 and OSD down 3, and the
       debrief listed "OSD noticed the cache". No errors.
+
+v930  VOX Wire: a news digest between jobs
+      Every five to seven contracts a short VOX Wire digest arrives in Mail,
+      with two or three in-world headlines. "QuickBite apologises after a
+      delivery drone circled a mining habitat for six hours looking for the
+      door." "Helix denies reports that a research specimen briefly left its
+      containment wing." Some headlines react to what you've done without
+      naming you: a bunker cleared by "an independent contractor", a factory
+      gone dark, a missing smuggler cache, pirates putting bounties on
+      whoever keeps downing their aces. Headlines don't repeat until the pool
+      has been read. Routine mail, so it's pruned like other notices.
+      Nothing in them settles the lore file's open questions. Tested muted.
