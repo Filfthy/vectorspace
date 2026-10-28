@@ -1001,3 +1001,8 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .opTitles>span{margin-right:4px}
 .opTitle{font-size:var(--type-meta);padding:3px 8px;border:1px solid var(--gd);color:var(--g);background:none}
 .opTitle.on{border-color:var(--y);color:var(--y)}
+/* v1000 codex */
+.codexEntry{margin:10px 0;padding-left:10px;border-left:1px solid var(--gd)}
+.codexEntry b{color:var(--w);font-weight:400}
+.codexEntry p{margin:3px 0 0}
+.codexEntry.locked b,.codexEntry.locked p{color:var(--x)}

@@ -32,7 +32,7 @@ New players should start with the VOX simulator in the first mail. The **?** tab
 
 ## Files
 
-- `index.html` plus the `*.js` files: the game. Missions are data: board templates live in `mission-templates.js`, story missions in `story-content.js`, faction agent missions in `faction-content.js`, late-game work in `endgame-content.js` and route events in `encounter-content.js`. Contact letters live in `faction-lore.js` and VOX Wire news headlines in `vox-wire.js`. The hijacked drone and named ace behaviours are in `hijacked-drones.js` and `aces.js`.
+- `index.html` plus the `*.js` files: the game. Missions are data: board templates live in `mission-templates.js`, story missions in `story-content.js`, faction agent missions in `faction-content.js`, late-game work in `endgame-content.js` and route events in `encounter-content.js`. Contact letters live in `faction-lore.js` and VOX Wire news headlines in `vox-wire.js`, and the Guide codex in `codex.js`. The hijacked drone and named ace behaviours are in `hijacked-drones.js` and `aces.js`.
 - `voices/`: spoken callouts. `VOICE_REQUESTS.txt` lists lines still to record, with their expected filenames. Drop a matching mp3 in and it plays.
 - `music/` and `music credits.txt`: soundtrack and its sources.
 - Design notes: `POSSIBLE GAME DIRECTION.txt`, `AGENT_X_WORLD_LORE.txt`, `AGENT_X_MISSION_AND_CONTACT_STYLE_GUIDE.txt`, `AGENT_X_MODEL_AND_ASSET_GUIDE.txt`, `MISSION_TEMPLATE_FORMAT.txt`, `MISSION_PRESENTATION_PACKS.txt`, `FACTIONS_AND_BEYOND_PROPOSAL.txt`.

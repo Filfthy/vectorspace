@@ -2052,6 +2052,15 @@ class CampaignController {
     if(Math.random()<.55)this.queueVoxContractMail();else this.queueVoxGiftMail()
   }
   voxPick(a){return a[(Math.random()*a.length)|0]}
+  // v1000: the Guide's codex. Entries unlock as the player meets each thing in play.
+  renderCodex(){
+    const host=typeof document!=='undefined'&&document.getElementById('guideCodex'),X=globalThis.AgentXCodex;if(!host||!X)return;
+    const st=this.stats(),ctx={flags:this.state.mailFlags||{},seen:this.state.seenProfiles||{},stats:st,byFaction:st.contracts?.byFaction||{}};
+    const esc=t=>this.escapeHtml(String(t));let open=0;
+    const rows=X.ENTRIES.map(e=>{let ok=false;try{ok=!!e.unlocked(ctx)}catch(_){}if(ok)open++;
+      return ok?`<div class="codexEntry"><b>${esc(e.title)}</b><p>${esc(e.body)}</p></div>`:`<div class="codexEntry locked"><b>Unknown entry</b><p>Not yet encountered.</p></div>`});
+    host.innerHTML=`<p>What VOX has on file. ${open} of ${X.ENTRIES.length} entries open. New entries open as you meet each thing in the field.</p>`+rows.join('')
+  }
   // v930: a VOX Wire news digest every five to seven contracts. Reactive headlines
   // (things the player has done) go first; the general pool refills once all are read.
   maybeQueueVoxWire(){
@@ -2329,6 +2338,7 @@ class CampaignController {
   }
   isOpen(){return this.open}
   setPanel(name){
+    if(name==='guide')this.renderCodex();
     document.querySelectorAll('.campaignTab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
     document.querySelectorAll('.campaignPanel').forEach(p=>p.classList.toggle('active',p.dataset.panel===name));
     if(name==='mail'){

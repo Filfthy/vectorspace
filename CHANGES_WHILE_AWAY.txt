@@ -656,3 +656,14 @@ v990  More news, and the title picker in the Guide
       Deep Core Black Contract and the swamp relay) all finished in victory
       within 6 seconds after a fresh page reload. Hours of back-to-back
       testing had slowed the hidden page down. Nothing was wrong in the game.
+
+v1000 The Guide gains a Codex
+      A new Codex section in the Guide (the ? tab) has 14 short lore
+      entries: VOX, the Partition War, rogue drones and their unbreakable
+      loyalty, hijacked drones, remnant factories, xenos as a hive's immune
+      response, the homing organ, pirates, Customs, and each of the five
+      networks. Each entry opens the first time you meet that thing in play.
+      Until then it shows only as "Unknown entry", so nothing the game keeps
+      secret (like a first xeno meeting) is spoiled. Every entry paraphrases
+      the lore file and answers none of its open questions. A new save
+      starts with 1 of 14 open. Tested muted with a screenshot.
