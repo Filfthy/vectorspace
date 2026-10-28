@@ -604,3 +604,12 @@ v960  Fixes from a fourth independent review, and a title collection
         diversions. It now needs a cache you actually claimed (new stat).
       - The Networks line now says the final mission comes "a few jobs on",
         matching the five-job wait.
+
+      Economy check (no change needed). With all the new board jobs in, I
+      simulated three careers taking a random board job each time: 79 to 82
+      jobs to reach level 20 (the earlier tuning aimed for about 81), and
+      CR 1.76 to 1.81 million in contract pay, before bounties, favours,
+      epilogues and Black Contracts. Milestones in one run: level 5 after 11
+      jobs, level 10 after 34, level 15 after 58, level 20 after 82. Sixteen
+      job types turned up in a single career. The new work didn't skew
+      levelling or money.
