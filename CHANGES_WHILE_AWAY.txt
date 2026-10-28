@@ -1001,3 +1001,13 @@ v1240 Fourth independent review (v1170 to v1230), fixes
       as the planet seen from orbit) and all the new mission text. Tested
       muted: a real board cabin contract with a forced beacon, played to the
       debrief, standing and stats correct.
+
+v1250 Two more Codex entries
+      "Survey work" opens after your first Survey Run. The outer worlds are
+      badly mapped, orbital scans disagree, and routing systems invent
+      lakes. "Ground crews" opens after you relay your first distress
+      beacon. Stranded crews call on open channels, most contractors do not
+      stop, and the crews remember the ones who do. The Codex has 18
+      entries now. Neither entry touches any open lore question. Tested
+      muted: both stay locked on a fresh save, and Ground crews opens on the
+      test save after its beacon run.
