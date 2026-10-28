@@ -206,7 +206,7 @@ let planetLandingBody='planet',planetLandingMoonIndex=-1,planetLandingColour=C.g
 // v820: some planets carry rings (core-renderer.drawSphere). null or {inc,bands}.
 let planetRings=null;
 // v850: planet surface style ('grid', 'banded' or 'cratered') and its crater list.
-let planetStyle='grid',planetCraters=[];
+let planetStyle='grid',planetCraters=[],planetLookFor=null; // planetLookFor: mission the look was rolled for
 function makeCraters(n,seed=Math.random()){
   let s=Math.floor(seed*2147483647)||1;const rnd=()=>(s=(s*16807)%2147483647)/2147483647;
   return Array.from({length:n},()=>({lat:(rnd()-.5)*2.2,lon:rnd()*Math.PI*2,r:.10+rnd()*.17}))

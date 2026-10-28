@@ -518,3 +518,17 @@ v900  Achievements for the new work
       game now counts finished contracts per job type, so more goals can be
       added later easily. 31 achievements in all, counting from now (older
       completions can't be counted back). Tested muted.
+
+v910  Three small fixes from a third independent review
+      A fresh reviewer read v800 to v900 and found nothing that breaks play
+      or saves. It found three small visual issues, all fixed:
+      - If you died or abandoned within a few seconds of an ace appearing,
+        its "ACE CONTACT" callout could show up in your next mission. It is
+        now cleared when a run starts.
+      - Craters on a landing moon vanished once the approach locked on. They
+        now stay.
+      - A planet's rings and surface style could change halfway through a
+        mission when an ambush started. They are now rolled once per mission.
+      The reviewer also confirmed aces never appear in drone or xeno fights,
+      there are no double bounties, favours complete and clear properly on
+      every path, and the new stats load fine on old saves.

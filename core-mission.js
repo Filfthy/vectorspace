@@ -22,7 +22,7 @@ class MissionController {
  const bodies=[{kind:'planet',center:camPoint(planetWorld),radius:planetRadius,tilt:planetTilt,col:planetLandingColour,spin:planetSpin0+atTime*.075,target:planetLandingBody==='planet'}];
  for(let i=0;i<planetMoons.length;i++){
    const m=planetMoons[i],worldCenter=moonOrbitCenter(planetWorld,planetRadius,planetTilt,m,atTime);
-   bodies.push({kind:'moon',center:camPoint(worldCenter),radius:planetRadius*m.radiusFactor,tilt:planetTilt+m.axisOffset,col:m.col,spin:m.spin0+atTime*m.spinSpeed,target:planetLandingBody==='moon'&&i===planetLandingMoonIndex})
+   bodies.push({kind:'moon',center:camPoint(worldCenter),radius:planetRadius*m.radiusFactor,tilt:planetTilt+m.axisOffset,col:m.col,spin:m.spin0+atTime*m.spinSpeed,craters:m.craters||null,target:planetLandingBody==='moon'&&i===planetLandingMoonIndex})
  }
  return bodies
 }
@@ -44,9 +44,11 @@ class MissionController {
  // the same pole on every run.
  planetTilt=(Math.random()<.5?-1:1)*(.48+Math.random()*.92);
  planetSpin0=Math.random()*Math.PI*2;
- // v820: about a quarter of planets are ringed, the rings inclined toward the camera.
- {const r=Math.random();planetStyle=r<.55?'grid':(r<.8?'banded':'cratered');planetCraters=planetStyle==='cratered'?makeCraters(7):[]}
- planetRings=Math.random()<.28?{inc:(Math.random()<.5?-1:1)*(.30+Math.random()*.22),bands:Math.random()<.5?[1.42,1.60]:[1.40,1.58,1.84]}:null;
+ // v820/v850: rings and surface style are rolled once per mission (v910), not on every
+ // bearing reset, so a ringed banded world does not change when an ambush starts.
+ {const mid=(typeof campaign!=='undefined'&&campaign.currentMission?.id)||'';if(planetLookFor!==mid){planetLookFor=mid;
+  const r=Math.random();planetStyle=r<.55?'grid':(r<.8?'banded':'cratered');planetCraters=planetStyle==='cratered'?makeCraters(7):[];
+  planetRings=Math.random()<.28?{inc:(Math.random()<.5?-1:1)*(.30+Math.random()*.22),bands:Math.random()<.5?[1.42,1.60]:[1.40,1.58,1.84]}:null}}
  const req=this.planetaryRequirements(),landingBody=String(req.landingBody||'planet').toLowerCase();
  planetLandingBody=landingBody==='moon'?'moon':(landingBody==='either'?(Math.random()<.5?'moon':'planet'):'planet');planetLandingMoonIndex=-1;
  const requiredLandingColour=this.moonColourToken(req.landingColour);planetLandingColour=planetLandingBody==='planet'?(requiredLandingColour||C.g):C.g;

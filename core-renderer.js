@@ -372,7 +372,7 @@ class SceneRenderer {
  }).sort((a,b)=>b.d-a.d);
  for(const b of bodies){
    if(b.kind==='planet'){this.drawSphere(b.center,b.radius,[0,0,0],localProj);continue}
-   this.drawCelestialSphere(b.center,b.radius,[0,0,0],localProj,{col:b.col,tilt:b.tilt,spin:b.spin,lats:[-.78,0,.78],lonCount:5,gridAlpha:.68,limbAlpha:.94,width:.78})
+   this.drawCelestialSphere(b.center,b.radius,[0,0,0],localProj,{col:b.col,tilt:b.tilt,spin:b.spin,lats:[-.78,0,.78],lonCount:5,gridAlpha:.68,limbAlpha:.94,width:.78,craters:b.craters})
  }
 }
   drawWorldPlanet(){
