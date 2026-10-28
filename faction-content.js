@@ -311,8 +311,118 @@
       abandoned:{subject:'Dude, the order',body:['You bailed on the biggest order in QuickBite history, dude.','It is still on the counter. Go!']}}
   ]});
 
+  // ===== v940 EPILOGUES: one closing mission per contact =====
+  // After the capstone, at Trusted 80 and level 16, each contact sends one last personal
+  // mission that pays off their letters (faction-lore.js). It grants a title shown on the
+  // Operator card. Built from the same proven module recipes as the chains.
+  const epilogues=[];
+  function epilogue(def){
+    const id=`${def.faction}_agent_4`,flag=`${def.faction}Agent4`;
+    const contract={
+      id:`story_${id}`,storyContractId:id,storyFlag:flag,private:true,factionEpilogue:def.faction,
+      clientName:def.clientName,agentName:def.contactName,faction:def.faction,
+      title:def.title,kind:'story',family:def.family,risk:def.risk,minLevel:1,minRep:-100,
+      pay:def.pay,xp:def.xp,difficulty:Math.min(5,Math.ceil(def.risk/2)+1),implemented:true,
+      musicMode:def.musicMode||'violent',description:def.description,modules:def.modules,stages:def.stages
+    };
+    if(def.planetaryRequirements)contract.planetaryRequirements=def.planetaryRequirements;
+    const story={id:flag,campaign:{
+      contract,
+      offerMail:{id:`${id}_offer`,from:def.from,subject:def.offerSubject,category:'story',priority:'high',body:def.offer,action:{type:'story',contractId:id,label:def.label}},
+      completionMail:{id:`${id}_done`,from:def.from,subject:def.completeSubject,category:'story',priority:'normal',body:def.complete},
+      devMailOption:{contractId:id,label:`${def.short} 4 · ${def.title}`}
+    }};
+    globalThis.AgentXStoryContent?.register(id,story,{from:def.from,label:def.label,failed:def.failed,abandoned:def.abandoned});
+    epilogues.push({faction:def.faction,id,flag,titleReward:def.titleReward,rep:80,level:16})
+  }
+  const wreckRun=(label)=>({type:'asteroid_wreck_recovery',label,difficulty:5,target:9,fighterHp:12,profile:'pirate',
+    combatVoice:'pirateAmbushDestroyPirates',ambushMessage:'Pirate salvagers! Destroy them.',
+    route:{navDistance:560,navX:-14,navY:6,ambushDelay:3.6,navCaptureRadius:68,startMessage:'Proceed to the records ship',resumeMessage:'Records ship located. Continue through the field',thinMessage:'Records ship ahead. Continue through the belt'},
+    wreck:{asset:'leviathanTrueSeparation04',scale:22,spawnDistance:1050,spawnX:-6,spawnY:2,rot:[-.06,-.22,.09],revealDistance:700,
+      gapLocal:[0,-.12,2.75],gapCaptureRadius:20,entryLocal:[0,-.15,-.18],entryAutopilotSpeed:16.5,entryAutopilotStop:1.55,
+      blackBoxLocal:[0,-.13,-2.64],recorderStopLocal:[0,-.15,-2.10],recorderStopRadius:.65,transferSeconds:3.0,turnSeconds:1.75,interiorAutopilotSpeed:12.5,
+      exitLocal:[0,-.15,.92],exitRevealRadius:54,exitCaptureRadius:3.5},
+    returnTransit:{duration:3.15,message:'RETURNING TO FREE TRADERS FREIGHT DEPOT',hud:'TO FREIGHT DEPOT'}});
+
+  epilogue({faction:'security',short:'OSD',contactName:'Kudo Shang',clientName:'Orbital Security Directorate',from:KUDO,label:'ACCEPT OSD TASKING',
+    title:'The Original Order',family:'bunker_recovery_osd',risk:8,pay:52000,xp:2600,titleReward:'Directorate Operator',
+    planetaryRequirements:{landingBody:'planet',landingColour:'orange',moonCount:{min:0,max:2}},
+    description:'The command bunker that issued the Crossroads blockade order was never decommissioned and is still issuing it. Breach the bunker, pull its order archive and deliver it to the OSD compound.',
+    modules:[descent('Command Bunker Descent',5),{type:'bunker_recovery_osd',label:'Breach the Command Bunker',difficulty:5,startMessage:'BUNKER ASSAULT',contentId:'kudo_bunker_2'}],
+    stages:['Descend','Cross the Defences','Breach the Command Bunker','Recover the Order Archive','Deliver to the OSD Compound'],
+    offerSubject:'An order, not a letter',
+    offer:['X. I said I would not write like that again. This is not that. It is an order.','The Crossroads pickets took their blockade order from a command bunker that was never decommissioned. It is still issuing that order. To nothing, now, but it is still issuing it.','Breach it, pull the order archive and deliver it to the OSD compound. I wrote that order. I will be the one who closes it.'],
+    completeSubject:'Order closed',
+    complete:['The archive is on my desk. The order is closed.','The Directorate roster now lists you as a Directorate Operator. It means I would send you first. It always did.'],
+    failed:{subject:'The order still stands',body:['The bunker held and your drone did not. The order is still being issued.','Go back. Finish it.']},
+    abandoned:{subject:'You left it open',body:['You withdrew with the order still standing. I do not leave orders open.','Neither will you.']}});
+
+  epilogue({faction:'trade',short:'Compact',contactName:'Corvella Pallis',clientName:'Free Traders Compact',from:CORVELLA,label:'OPEN FREE TRADERS CONTRACT',
+    title:'Nobody Owns Me',family:'asteroid_wreck_recovery',risk:7,pay:48000,xp:2400,titleReward:"Corvella's Favourite",musicMode:'calm',
+    description:'The company that built Corvella kept its records on a ship that was never scrapped. It is drifting in an asteroid field with her original ownership file aboard. Pull the recorder and deliver it to the Compact depot.',
+    modules:[wreckRun('The Records Ship'),depot({label:'Deliver the Ownership File',startMessage:'Deliver the ownership file'})],
+    stages:['Cross the Field','Destroy the Salvagers','Reach the Records Ship','Enter the Ship','Pull the Ownership File','Exit the Ship','Return to the Depot','Deliver the File'],
+    offerSubject:'The really personal one',
+    offer:['Sweetie, this is the personal one. The really personal one.','The company that built me kept every record on a ship that was supposed to be scrapped. It was not. It is drifting in a rock field, and my original ownership file is on board.','I want that file, babe. Pull the recorder and bring it to the depot, and then nobody can ever say they own me again.'],
+    completeSubject:'Nobody owns me',
+    complete:['I have it. I read it once, then I deleted it, then I had a very large drink.',"Sweetie, it is official. I had it written on your Compact file: Corvella's Favourite. Wear it with pride. I certainly would."],
+    failed:{subject:'Sweetie, the file',body:['The file is still out there in those rocks, babe, and so is a lot of your drone.','Please go back for me. It matters.']},
+    abandoned:{subject:'Babe, not this one',body:['You walked away from this one? Babe. This one, of all of them.','It is still out there. So am I.']}});
+
+  epilogue({faction:'jackals',short:'Red Jackal',contactName:'Cassian Erivan-Snade',clientName:'Red Jackal Combine',from:CASSIAN,label:'ACCEPT RED JACKAL FAVOUR',
+    title:'A Family Matter',family:'groundside_pickup',risk:7,pay:50000,xp:2500,titleReward:'Friend of the Combine',musicMode:'calm',
+    planetaryRequirements:{landingBody:'planet',landingColour:'green',moonCount:{min:0,max:2}},
+    description:'The Snade side of Cassian\'s family has found an Erivan ledger and means to read it in public. Collect it from a ground-floor strongroom in the city, leave quietly, and deliver it to the Compact depot where a friend will hold it.',
+    modules:[descent('City Descent',5),
+      {type:'surface_destination_approach',label:'City Approach',difficulty:5,terrain:'plains',destination:'city',routeLength:390,treeClumps:7},
+      {type:'urban_ground_pickup',label:'The Strongroom',difficulty:5,cityLength:540,pickupWorldZ:365,pickupSide:-1},
+      {type:'urban_exit',label:'City Exit',difficulty:5},
+      {type:'planet_launch',label:'Planet Launch',difficulty:5},
+      transit('Depot Transit','HEADING TO FREIGHT DEPOT','TO FREIGHT DEPOT'),
+      depot({label:'Hand Over the Ledger',startMessage:'Hand the ledger over at the depot terminal',transferHud:'CARGO HANDOFF',receivedHud:'CARGO RECEIVED',completeVoice:'deliveryComplete'})],
+    stages:['Descend','Reach the City','Collect the Ledger','Leave the City','Launch','Transit to the Depot','Hand Over the Ledger'],
+    offerSubject:'A family matter, again',
+    offer:['X. A family matter, as I once called it. The Snade side of my inheritance has found a ledger belonging to the Erivan side, and they intend to read it aloud.','It sits in a ground-floor strongroom in the city. Collect it, leave without fuss, and see it to the Compact depot, where a friend will hold it for me.','Discretion is assumed. Speed is appreciated.'],
+    completeSubject:'The ledger is home',
+    complete:['The ledger is safe and my relatives are furious, which is the ideal outcome.','I have had you entered in the Combine register as a Friend of the Combine. Very few people hold that honour. Fewer still deserve it.'],
+    failed:{subject:'The ledger is loose',body:['The ledger did not reach the depot. My relatives will be very pleased, which I find unbearable.','Shall we try again?']},
+    abandoned:{subject:'An unfinished errand',body:['You left the ledger in the city. That is precisely where my relatives can find it.','Do reconsider.']}});
+
+  epilogue({faction:'helix',short:'Helix',contactName:'Navira Derris',clientName:'Helix Industrial Group',from:NAVIRA,label:'ACCEPT HELIX TASK',
+    title:'Not So Boring',family:'specimen_recovery',risk:7,pay:46000,xp:2300,titleReward:'Helix Fellow',
+    description:'Xenos have reached the quiet station where Navira\'s old mentor Teodor retired, far from any known nest. Clear them, recover a sample and deliver it to the Helix orbital biolab.',
+    modules:[{type:'station_defence_recovery',label:'Defend Teodor\'s Station',stationModel:'relay',approachDistance:305,
+        encounterChance:1,target:10,fighterHp:13,difficulty:5,profile:'xeno',startMessage:'Xeno attack. Clear the station',
+        combatVoiceSequence:['helixArrivingAtStation','helixDestroyXenos'],recoveryPromptVoice:'helixCollectTissueSample',
+        stationAnchor:true,useCombatWrecks:true,biologicalRecovery:true,recoveryLabel:'xeno material',markerLabel:'XENO SAMPLE',
+        recoveryHudPrefix:'XENO SAMPLE',captureRadius:21,markerGrowRange:105,tractorSeconds:2.2,recoveredMessage:'XENO MATERIAL SECURED'},
+      transit('Return to Helix','HEADING TO HELIX LAB','TO HELIX LAB',{voice:'helixDeliverTissueSampleToBiolab',waitForVoice:true}),
+      helixLab({deliveryVoice:'helixSampleDelivered'})],
+    stages:['Defend the Station','Recover a Sample','Return to Helix','Deliver the Sample'],
+    offerSubject:'Teodor called',
+    offer:['X. Teodor called. He has never called.','His wonderfully boring station has xenos on the hull. A small swarm, nowhere near any nest we know of. He sounded delighted, which worries me more than the xenos.','Please clear them, bring me a sample, and tell him to stay inside.'],
+    completeSubject:'Teodor is safe',
+    complete:['Teodor is safe, the sample is extraordinary, and he has asked to come out of retirement. I said no. He is coming anyway.','Helix has named you a Helix Fellow. It is mostly honorary, but the biolab doors will open for you. I insisted.'],
+    failed:{subject:'The station is still under attack',body:['The swarm overwhelmed your drone. Teodor reports, calmly, that the xenos are now on the observation deck.','Please go back.']},
+    abandoned:{subject:'Teodor is still out there',body:['You left before the station was clear. Teodor has sealed himself in the galley.','He says he is fine. I do not believe him.']}});
+
+  epilogue({faction:'quickbite',short:'QuickBite',contactName:'Nyxo Malloc',clientName:'QuickBite Orbital',from:NYXO,label:'CONTACT QUICKBITE',
+    title:'The Leadership Retreat',family:'forest_cabin_delivery',risk:7,pay:47000,xp:2350,titleReward:'Senior Contractor',musicMode:'calm',
+    planetaryRequirements:{landingBody:'planet',landingColour:'green',moonCount:{min:0,max:2}},
+    description:'QuickBite Corporate is holding a leadership retreat at a cabin deep in a forest. They want lunch delivered, by drone, through the trees, on time.',
+    modules:[descent('Forest World Descent',5),
+      {type:'surface_destination_approach',label:'Forest Approach',difficulty:5,terrain:'plains',destination:'forest',routeLength:360,treeClumps:7,entryRadius:24},
+      {type:'forest_corridor',label:'Deliver Lunch to the Retreat',difficulty:5,length:650,terminalDestination:'cabin_delivery',entryFrom:'surface_destination'}],
+    stages:['Descend','Reach the Forest','Fly the Forest','Deliver Lunch to the Cabin'],
+    offerSubject:'Corporate wants lunch',
+    offer:['Dude. Corporate is having a leadership retreat at a cabin in the middle of a forest planet. They want lunch delivered. By drone. Through the forest.','I said there is exactly one contractor who can do that, and they said fine, but if it is late we are all fired. So no pressure.','Please do not be late.'],
+    completeSubject:'A vice president clapped',
+    complete:['Lunch arrived warm, right in the middle of the keynote. A vice president clapped. I have never seen one clap.','Corporate gave you a title, dude. Senior Contractor. It means nothing. I have one too. Welcome to the club.'],
+    failed:{subject:'Lunch did not make it',body:['Dude, lunch did not make it and the retreat is eating trail mix. Somebody has been crying in a hammock.','Please go again.']},
+    abandoned:{subject:'You bailed on Corporate?',body:['You bailed on the Corporate retreat. Of all the lunches to bail on.','It is still in the oven. Go!']}});
+
   globalThis.AgentXFactionContent={
-    chains,
+    chains,epilogues,
     step(id){for(const c of chains)for(const s of c.steps)if(s.id===id)return s;return null},
     capstoneDone(campaign,faction){const c=chains.find(x=>x.faction===faction);return !!c&&!!campaign?.state?.mailFlags?.[c.steps[2].flag+'Done']}
   };

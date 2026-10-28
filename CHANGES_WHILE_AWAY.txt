@@ -557,3 +557,26 @@ v930  VOX Wire: a news digest between jobs
       whoever keeps downing their aces. Headlines don't repeat until the pool
       has been read. Routine mail, so it's pruned like other notices.
       Nothing in them settles the lore file's open questions. Tested muted.
+
+v940  Epilogue missions: one last personal job per contact, with a title
+      Long after their three agent missions (Trusted 80, level 16, five jobs
+      after the capstone), each contact sends one closing mission that pays
+      off their letters, and it earns a title on your Operator card:
+      - Kudo, "The Original Order": breach the command bunker that still
+        issues the Crossroads blockade order he wrote, and close it.
+        Title: Directorate Operator.
+      - Corvella, "Nobody Owns Me": pull her original ownership file from
+        the records ship of the company that built her, "and then nobody can
+        ever say they own me again". Title: Corvella's Favourite.
+      - Cassian, "A Family Matter": recover an Erivan ledger from a city
+        strongroom before the Snades read it aloud. Title: Friend of the
+        Combine.
+      - Navira, "Not So Boring": xenos reach Teodor's wonderfully boring
+        station, and he sounds delighted. Title: Helix Fellow.
+      - Nyxo, "The Leadership Retreat": deliver Corporate's lunch through a
+        forest to their retreat cabin. "A vice president clapped." Title:
+        Senior Contractor ("It means nothing. I have one too").
+      All built from proven module chains. They show as a fourth tick on the
+      Operator record, and the Guide mentions them. Tested muted: gating
+      (not too soon, not below 80 standing), all five played to victory,
+      titles and completion mails. No errors.

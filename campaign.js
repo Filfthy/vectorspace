@@ -190,7 +190,7 @@ class CampaignController {
     const f=this.state.mailFlags||{},arc=(name,flags)=>({name,done:flags.filter(x=>f[x+'Done']).length,total:flags.length});
     return[arc('Mara Venn · VOX',['mara1','mara2','mara3']),arc('Kudo Shang · OSD',['kudo1','kudo2','kudo3']),arc('Corvella Pallis · Free Traders',['corvella1']),
       arc('Cassian Erivan-Snade · Red Jackals',['cassian1']),arc('Navira Derris · Helix',['helix1','helix2']),arc('Nyxo Malloc · QuickBite',['nyxo1','nyxo2']),
-      ...(globalThis.AgentXFactionContent?.chains||[]).map(c=>arc(c.arcName,c.steps.map(s=>s.flag)))]
+      ...(globalThis.AgentXFactionContent?.chains||[]).map(c=>arc(c.arcName,c.steps.map(s=>s.flag).concat((globalThis.AgentXFactionContent.epilogues||[]).filter(e=>e.faction===c.faction).map(e=>e.flag))))]
   }
   achievementDefs(){
     const s=this.stats(),bt=s.contracts.byTemplate||{},k=s.kills,heavy=(k.armour.strider||0)+(k.armour.crab||0)+(k.armour.tesla||0),f=this.state.mailFlags||{};
@@ -1703,7 +1703,21 @@ class CampaignController {
         break
       }
     }
+    // v940: each contact's closing mission, after the capstone, at Trusted 80 and level 16.
+    for(const e of C.epilogues||[]){
+      const chain=C.chains.find(c=>c.faction===e.faction),cap=chain?.steps[2].flag;
+      if(!cap||!flags[cap+'Done']||flags[e.flag+'Offer']||flags[e.flag+'Done'])continue;
+      const rep=Number(this.factions[e.faction]?.rep)||0,since=(Number(this.state.completed)||0)-(Number(flags[cap+'CompletedAt'])||0);
+      if(rep<e.rep||lvl<e.level||since<5)continue;
+      const mail=this.storyOfferMail(e.id);if(mail){flags[e.flag+'Offer']=true;this.enqueueMail(mail)}
+    }
     this.evaluateFactionLore()
+  }
+  completeFactionEpilogue(m){
+    const e=(globalThis.AgentXFactionContent?.epilogues||[]).find(x=>x.flag===m.storyFlag),flags=this.state.mailFlags;if(!e||flags[e.flag+'Done'])return;
+    flags[e.flag+'Done']=true;flags[e.flag+'CompletedAt']=this.state.completed;
+    const authored=globalThis.AgentXStoryContent.completionMail(e.id);if(authored)this.enqueueMail(authored);
+    this.state.title=e.titleReward;this.renderHeader?.()
   }
   // v700: personal letters from the five contacts as X gets to know them (faction-lore.js).
   // At most one per finished contract, the earliest-due first, so nothing arrives in a flood.
@@ -1802,6 +1816,7 @@ class CampaignController {
   handleStoryCompletion(m){
     if(!m?.storyFlag)return;
     if(m.factionChain)return this.completeFactionStep(m);
+    if(m.factionEpilogue)return this.completeFactionEpilogue(m);
     const flags=this.state.mailFlags;
     if(m.storyFlag==='mara1'&&!flags.mara1Done){
       flags.mara1Done=true;flags.mara1CompletedAt=this.state.completed;
