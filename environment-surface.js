@@ -53,7 +53,17 @@ function sharedSurfaceHorizonSamples(){
   });
   return sharedSurfaceHorizonCache
 }
+// v1210: standing on a moon, the parent planet hangs in the sky. It is drawn first so
+// the mountain silhouettes below occlude its lower edge, at a fixed bearing far enough
+// away that it never moves with the drone, with the same look it had from orbit.
+function drawSurfaceSkyPlanet(floor){
+  const m=typeof campaign!=='undefined'?campaign.currentMission:null;
+  if(planetLandingBody!=='moon'||!m||m.training||m.devGroundTest||typeof renderer==='undefined')return;
+  const D=1100,az=-.62,el=.16,R=D*.10,center=[shipX+Math.sin(az)*D,floor+Math.tan(el)*D,Math.cos(az)*D];
+  renderer.drawSphere(center,R,[shipX,shipY,0],q=>proj(q))
+}
 function drawSharedSurfaceHorizon(floor=-3.5,far=380,alpha=1,ridgeCol=C.gd,baseCol=C.g){
+  drawSurfaceSkyPlanet(floor);
   const cached=sharedSurfaceHorizonSamples();
   const drawLayer=(layer)=>{
     const radius=far*(layer?1.10:1),scale=layer?.70:1,samples=cached[layer];

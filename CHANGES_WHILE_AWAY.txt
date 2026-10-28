@@ -951,3 +951,13 @@ v1200 Kudo joins Crystal Consignment
       band as the older jobs rather than crowding them out. Assault work
       opens from level 6 and holds at about a sixth of the board after
       level 9. No weights changed.
+
+v1210 The parent planet in a moon's sky
+      When a contract lands you on a moon, the planet you descended past now
+      hangs large in the sky over the moon's surface, with the same colour,
+      style and rings it had from orbit, turning slowly. It sits at a fixed
+      bearing above the horizon, and the mountains hide its lower edge. It
+      shows on the plains, the dune fields (Ice Field Armour on a moon, for
+      example) and any other surface that uses the shared horizon. Never in
+      training. Tested muted: an ice moon cabin run and an Ice Field Armour
+      moon run (screenshots), the second played to the debrief.
