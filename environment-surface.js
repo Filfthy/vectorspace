@@ -62,8 +62,19 @@ function drawSurfaceSkyPlanet(floor){
   const D=1100,az=-.62,el=.16,R=D*.10,center=[shipX+Math.sin(az)*D,floor+Math.tan(el)*D,Math.cos(az)*D];
   renderer.drawSphere(center,R,[shipX,shipY,0],q=>proj(q))
 }
+// v1220: and the reverse. Standing on a planet, its moons hang small in the sky, each at
+// its own fixed bearing, coloured and cratered as they were from orbit.
+function drawSurfaceSkyMoons(floor){
+  const m=typeof campaign!=='undefined'?campaign.currentMission:null;
+  if(planetLandingBody!=='planet'||!m||m.training||m.devGroundTest||typeof renderer==='undefined'||!planetMoons?.length)return;
+  planetMoons.forEach((moon,i)=>{
+    const D=1300,az=.55+i*.85,el=.13+i*.07,R=D*clamp(.022*(Number(moon.radiusFactor)||1)/.25,.018,.05);
+    const center=[shipX+Math.sin(az)*D,floor+Math.tan(el)*D,Math.cos(az)*D];
+    renderer.drawCelestialSphere(center,R,[shipX,shipY,0],q=>proj(q),{col:moon.col,tilt:planetTilt+(moon.axisOffset||0),spin:(moon.spin0||0)+time*(moon.spinSpeed||.05),lats:[-.78,0,.78],lonCount:5,gridAlpha:.6,limbAlpha:.9,width:.74,craters:moon.craters||[]})
+  })
+}
 function drawSharedSurfaceHorizon(floor=-3.5,far=380,alpha=1,ridgeCol=C.gd,baseCol=C.g){
-  drawSurfaceSkyPlanet(floor);
+  drawSurfaceSkyPlanet(floor);drawSurfaceSkyMoons(floor);
   const cached=sharedSurfaceHorizonSamples();
   const drawLayer=(layer)=>{
     const radius=far*(layer?1.10:1),scale=layer?.70:1,samples=cached[layer];

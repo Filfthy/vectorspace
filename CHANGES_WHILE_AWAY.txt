@@ -961,3 +961,10 @@ v1210 The parent planet in a moon's sky
       example) and any other surface that uses the shared horizon. Never in
       training. Tested muted: an ice moon cabin run and an Ice Field Armour
       moon run (screenshots), the second played to the debrief.
+
+v1220 Moons in a planet's sky
+      The reverse of v1210: when you land on a planet that has moons, they
+      now hang small in the sky above the horizon, each at its own fixed
+      bearing, in the colours and craters they had from orbit. A world with
+      two moons shows two. Tested muted: a yellow planet with an orange and
+      a blue moon (screenshot), played to the debrief.
