@@ -17,13 +17,16 @@
         "Your last debrief was adequate. I do not say that often.",
         "Fly it clean. Hesitation is a decision to lose.",
         "The Directorate pays for results, not for effort.",
-        "Do not improvise. If you must improvise, win."
+        "Do not improvise. If you must improvise, win.",
+        "Weather on the route is irrelevant. So are excuses.",
+        "I read the last debrief twice. That was not a compliment. It was thoroughness."
       ],
       close:[
         "You have a reputation in my office now. Do not spend it cheaply.",
         "I put your name forward for this one. Make that look wise.",
         "My officers ask about you. I tell them nothing. That is respect.",
-        "Few contractors last this long with me. Continue."
+        "Few contractors last this long with me. Continue.",
+        "If this goes wrong, I will hear it from you first. That is a privilege. Keep it."
       ]},
     trade:{who:'Corvella Pallis',
       warm:[
@@ -31,13 +34,16 @@
         "I picked this route with you in mind, sweetie. Don't tell the others.",
         "Freight first, heroics second. Well, maybe a little heroics. For me.",
         "Every time you take off I check the tracker. Purely professional, obviously.",
-        "If the pirates show up, be rude to them. You're so good at it."
+        "If the pirates show up, be rude to them. You're so good at it.",
+        "This one goes past some lovely scenery, sweetie. Try to notice it between explosions.",
+        "Freight is freight, babe. You are not. Come back in one piece."
       ],
       close:[
         "You know I save the nice routes for my favourite, babe.",
         "There's a picture of your drone on the office wall now. I may have put it there.",
         "Come back safe, sweetie. The Compact can replace cargo. I'd rather not replace you.",
-        "I told the board you were reliable. I told myself you were wonderful. Both true."
+        "I told the board you were reliable. I told myself you were wonderful. Both true.",
+        "I keep a little list of things that make me happy, babe. You are on it twice."
       ]},
     jackals:{who:'Cassian Erivan-Snade',
       warm:[
@@ -45,13 +51,16 @@
         "Should anyone ask, you were never there. Neither, I suspect, was the cargo.",
         "The best arrangements are the ones nobody has to remember.",
         "Discretion is its own reward. The fee is also rather pleasant.",
-        "Things change hands. I merely suggest which hands."
+        "Things change hands. I merely suggest which hands.",
+        "Please be gentle with anything breakable. Including, where convenient, people.",
+        "A small matter. Large matters are for people who enjoy being noticed."
       ],
       close:[
         "My family keeps a short list of people it trusts. Your name is on it, in pencil. Ink, I think, soon.",
         "I chose you because you understand that a quiet result is the loudest compliment.",
         "You have become something of a habit. I allow myself very few.",
-        "There is a bottle set aside for the day all this becomes respectable. It may age a long time."
+        "There is a bottle set aside for the day all this becomes respectable. It may age a long time.",
+        "My aunt asked after you. I told her you were a rumour. She was delighted."
       ]},
     helix:{who:'Navira Derris',
       warm:[
@@ -59,13 +68,16 @@
         "The data from your last job was very interesting. Interesting is my favourite result.",
         "I have attached no special instructions. That is also an experiment.",
         "Risk is a variable. You happen to be very good at controlling it.",
-        "If you see anything glowing, note the colour. Then leave."
+        "If you see anything glowing, note the colour. Then leave.",
+        "Please log anything unusual. I have a broad definition of unusual.",
+        "I have a hypothesis about this route. Please do not disprove it by exploding."
       ],
       close:[
         "I trust your observations more than most of my instruments. The instruments are not offended. Yet.",
         "I have started naming samples after contractors. Yours is the one that keeps surviving.",
         "You make my results more reliable. I did not expect a pilot to do that.",
-        "Bring back whatever you can. Bring yourself back first. That data is harder to replace."
+        "Bring back whatever you can. Bring yourself back first. That data is harder to replace.",
+        "The biolab staff have a betting pool on your survival. I refused to bet against you. On scientific grounds."
       ]},
     quickbite:{who:'Nyxo Malloc',
       warm:[
@@ -73,13 +85,16 @@
         "Sorry about the route. The routing software hates me personally.",
         "If anybody shoots at you, the customer still wants it hot.",
         "This is technically a lunch order. Technically.",
-        "I'm on shift till late, so if this goes sideways just, like, fix it."
+        "I'm on shift till late, so if this goes sideways just, like, fix it.",
+        "The customer left a note saying be quick. They spelled quick wrong. Be quick anyway.",
+        "If there's a fight, the food is not a weapon. I have to say that. Legal made me."
       ],
       close:[
         "Honestly, you're the only contractor who doesn't make me fill in an incident form.",
         "I put you down as my emergency contact. On the work form. Don't make it weird.",
         "Management wanted to give you an award. I said cash. They said no. It's a sticker.",
-        "Dude, you're like the only part of this job that actually works."
+        "Dude, you're like the only part of this job that actually works.",
+        "Honestly, if you ever quit, I am quitting too. Okay, not really. But I would think about it."
       ]}
   };
   const WARM=25,CLOSE=60;

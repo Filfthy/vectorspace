@@ -1086,3 +1086,15 @@ v1250 Two more Codex entries
       throttled, and all three finished when rerun one at a time.
       Groundside was rerun both with and without a beacon. Factory Strike
       stops, as before, where the harness cannot fly into the bunker.
+
+v1260 More contract notes from the contacts
+      Each contact gets two more warm lines and one more close line for
+      their board contracts (60 lines in all now, 12 each), so the notes
+      repeat less over a long campaign. Some examples: Kudo read your last
+      debrief twice ("That was not a compliment. It was thoroughness"),
+      Corvella keeps a list of things that make her happy ("You are on it
+      twice"), Cassian told his aunt you were a rumour, Navira has a
+      hypothesis "please do not disprove by exploding", and Legal made Nyxo
+      say the food is not a weapon. None of the new lines gives away
+      anything from a later letter. Tested muted: every line comes up, and
+      the punctuation is clean.
