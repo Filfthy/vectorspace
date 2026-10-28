@@ -1105,7 +1105,7 @@ v1270 Moon chatter
       PORT BOW" (it is, see v1210) and "THIN ATMOSPHERE · SOUND WILL CARRY
       POORLY". Tested muted: 40 sampled landings give the expected mix.
 
-(no code change) Fifth independent review (v1240 to v1270)
+(no code change) Final independent review (v1240 to v1270)
       A last read-only review checked the beacon-as-diversion change
       against everything that reads a mission's diversions (completion,
       standing, stats, the debrief, the Codex and the VOX Wire), plus the
