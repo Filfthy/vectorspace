@@ -123,7 +123,7 @@ class SurfaceDestinationApproachController {
   reset(){
     this.active=false;this.stage=null;this.terrain='plains';this.destination='city';this.scenery='forest';
     this.groundY=-3.50;this.routeLength=430;this.targetWorldZ=430;this.targetX=0;
-    this.speed=22.0;this.navPulse=0;this.seed=0x504c4149;this.trees=[];this.survey=[];this.surveyIntro=null;this.skyline=[];this.forestBands=[];this.forestFront=[];this.treeHitCD=0;
+    this.speed=22.0;this.navPulse=0;this.seed=0x504c4149;this.trees=[];this.survey=[];this.surveyIntro=null;this.beacon=null;this.skyline=[];this.forestBands=[];this.forestFront=[];this.treeHitCD=0;
     this.visibleTrees=[];this.visibleForestFront=[];
     this.baseCache=new WeakMap();this.finishing=false;this.finishT=0;this.entryRadius=36;
     this.lastHandoff=null;this.manualComplete=false
@@ -168,7 +168,7 @@ class SurfaceDestinationApproachController {
     this.targetWorldZ=Number.isFinite(Number(resolved?.targetWorldZ))?Number(resolved.targetWorldZ):this.routeLength;
     this.targetX=Number.isFinite(Number(resolved?.targetX))?Number(resolved.targetX):0;
     this.entryRadius=clamp(Number(resolved?.entryRadius)||36,24,60);
-    this.buildScenery();this.buildSurvey(resolved?.surveyPoints);
+    this.buildScenery();this.buildSurvey(resolved?.surveyPoints);this.buildBeacon();
     if(this.destination==='forest')this.buildForestBoundary();
     else if(this.destination==='swamp')this.buildSwampBoundary();
     else if(this.destination==='bunker'||this.destination==='osd'){this.skyline.length=0;this.forestBands.length=0;this.forestFront.length=0}
@@ -281,6 +281,41 @@ class SurfaceDestinationApproachController {
       this.survey.push({x:this.targetX+side*(20+this.rand()*26),worldZ:this.routeLength*u,done:false})
     }
     this.trees=this.trees.filter(t=>!this.survey.some(p=>Math.hypot(t.x-p.x,t.worldZ-p.worldZ)<9))
+  }
+  // v1180 LAND DIVERSION: about one board plains approach in four carries an off-route
+  // distress beacon from a stranded ground crew. Optional, like the space diversions:
+  // fly over it to relay their position (+1 standing with the client, counts towards
+  // Good Samaritan). No pay and no loot. Never on story, agent, training or DEV runs,
+  // and never alongside a survey.
+  buildBeacon(){
+    this.beacon=null;this.beaconSeen=false;
+    const m=typeof campaign!=='undefined'?campaign.currentMission:null,force=this.forceBeacon;this.forceBeacon=false;
+    if(!m||this.survey?.length||this.stage?.type!=='surface_destination_approach')return;
+    if(!force&&(m.training||m.devTest||m.devTemplateTest||m.devGroundTest||m.kind==='story'||m.factionChain||m.factionEpilogue||!m.templateId||Math.random()>=.25))return;
+    const side=Math.random()<.5?-1:1;
+    this.beacon={x:this.targetX+side*(32+Math.random()*30),worldZ:this.routeLength*(.32+Math.random()*.3),done:false};
+    this.trees=this.trees.filter(t=>Math.hypot(t.x-this.beacon.x,t.worldZ-this.beacon.worldZ)>=9)
+  }
+  updateBeacon(){
+    const b=this.beacon;if(!b||b.done)return;
+    const d=Math.hypot(b.x-shipX,b.worldZ-travel);
+    if(!this.beaconSeen&&d<150&&typeof callout==='function'&&callout('DISTRESS BEACON · OFF ROUTE',1.8))this.beaconSeen=true;
+    if(d<8.5){
+      b.done=true;const m=campaign?.currentMission;
+      if(m?.faction&&campaign.factions?.[m.faction])campaign.applyRep(m.faction,1);
+      campaign.bumpStat?.('diversionsInvestigated');campaign.bumpStat?.('landBeacons');
+      if(typeof callout==='function')callout('STRANDED CREW LOCATED · POSITION RELAYED',2);SoundFX.objectiveComplete?.()
+    }
+  }
+  drawBeacon(){
+    const b=this.beacon;if(!b||b.done)return;
+    const g=camPoint([b.x,this.groundY,b.worldZ-travel]),t=camPoint([b.x,this.groundY+3.4,b.worldZ-travel]);
+    if(!(g[2]>.3&&t[2]>.3&&g[2]<280))return;
+    const a=projectCam(g),p=projectCam(t);if(!a||!p)return;
+    const al=clamp(1.15-g[2]/280,.3,.9),r=6+Math.sin(this.navPulse*5)*1.2;
+    line(a.x,a.y,p.x,p.y,C.m,1,al*.8);
+    line(p.x,p.y-r,p.x+r,p.y,C.m,1.1,al);line(p.x+r,p.y,p.x,p.y+r,C.m,1.1,al);line(p.x,p.y+r,p.x-r,p.y,C.m,1.1,al);line(p.x-r,p.y,p.x,p.y-r,C.m,1.1,al);
+    if(g[2]<200){ctx.textAlign='center';ctx.font='400 8px Consolas,monospace';ctx.strokeStyle=C.m;ctx.globalAlpha=al;ctx.strokeText('DISTRESS',p.x,p.y-r-6);ctx.globalAlpha=1;ctx.textAlign='left'}
   }
   surveyLeft(){return (this.survey||[]).filter(p=>!p.done)}
   surveyNext(){return this.surveyLeft().sort((a,b)=>Math.hypot(a.x-shipX,a.worldZ-travel)-Math.hypot(b.x-shipX,b.worldZ-travel))[0]||null}
@@ -418,7 +453,7 @@ class SurfaceDestinationApproachController {
         if(Math.abs(dz)<1.15&&Math.abs(dx)<radius&&shipY<top){t.hit=true;this.treeHitCD=.82;damage(t.kind==='rock'?'ROCK':'TREE');if(mode==='dead')return;break}
       }
     }
-    this.updateSurvey(dt);
+    this.updateSurvey(dt);this.updateBeacon();
     const d=this.distance();
     if(!this.finishing&&d<78&&this.surveyLeft?.().length){
       if(this.surveyNagT<=0&&typeof callout==='function'&&callout(`SURVEY INCOMPLETE · ${this.surveyLeft().length} POINT${this.surveyLeft().length>1?'S':''} LEFT`,1.6))this.surveyNagT=5;
@@ -499,6 +534,7 @@ class SurfaceDestinationApproachController {
   drawSkyline(){const scene=[];this.appendSkyline(scene);this.drawObjectScene(scene)}
   appendEnvironmentObjects(scene){this.appendSkyline(scene);this.appendScenery(scene);return scene}
   drawNavigation(){
+    this.drawBeacon?.();
     const next=this.surveyNext?.();
     // Each open marker stands on a faint pole so its range reads against the ground.
     for(const p of this.surveyLeft?.()||[]){

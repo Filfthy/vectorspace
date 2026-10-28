@@ -910,3 +910,18 @@ v1170 Third independent review (v1100 to v1150), two fixes
       Everything else checked out: tender gating, the damage cut, the
       survey gate (no way to get stuck), the 4th letter timing and the
       house style. Tested muted.
+
+v1180 Land diversions: distress beacons on the plains
+      Space routes have had optional diversions since v420, but the landing
+      plains had none. Now about one board plains approach in four carries a
+      magenta DISTRESS marker, on a pole, off to one side of the route: a
+      stranded ground crew. It is optional. Fly over it to relay their
+      position ("STRANDED CREW LOCATED · POSITION RELAYED") for +1 standing
+      with your client, or ignore it. It pays no credits and gives no loot.
+      It counts towards Good Samaritan (now "route diversions or distress
+      beacons"), and a "Stranded crews located" row is on the Operator
+      record. Never on story, agent, training or DEV runs, and never on a
+      Survey Run. The Guide mentions it. Tested muted: a forced beacon on a
+      yellow world, the marker (screenshot), the relay and the mission
+      finishing. (Testing also put the test save's QuickBite standing back
+      to 100. It only lives in the test pane, not your browser.)

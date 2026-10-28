@@ -222,7 +222,7 @@ class CampaignController {
       {id:'bountyHunter',name:'Bounty Hunter',text:'Earn CR 100,000 in bounties.',v:s.bountyEarned||0,goal:100000},
       {id:'headHunter',name:'Head Hunter',text:'Earn CR 1,000,000 in bounties.',v:s.bountyEarned||0,goal:1000000},
       {id:'eliteOperator',name:'Elite Operator',text:'Complete 10 elite contracts.',v:s.contracts.elite||0,goal:10},
-      {id:'goodSamaritan',name:'Good Samaritan',text:'Investigate 10 route diversions.',v:s.diversionsInvestigated||0,goal:10},
+      {id:'goodSamaritan',name:'Good Samaritan',text:'Investigate 10 route diversions or distress beacons.',v:s.diversionsInvestigated||0,goal:10},
       {id:'remnantHunter',name:'Remnant Hunter',text:'Finish a Black Contract at threat 5.',v:Number(f.blackThreat)||0,goal:5},
       {id:'networkBreaker',name:'Network Breaker',text:'Finish a Black Contract at threat 10.',v:Number(f.blackThreat)||0,goal:10},
       {id:'aceHunter',name:'Ace Hunter',text:'Destroy 5 named aces.',v:k.aces||0,goal:5},
@@ -2549,7 +2549,7 @@ class CampaignController {
       ['Elite contracts',n(st.contracts.elite)],['Agent missions',`${agent} / ${agentT}`],
       ['Credits earned',`CR ${n(st.creditsEarned)}`],['Bounties earned',`CR ${n(st.bountyEarned)}`],['Insurance paid',`CR ${n(st.insurancePaid)}`],['Drones lost',n(st.dronesLost)],['Projectiles shot down',n(st.shotDown)],
       ['Fighters destroyed',n(k.fighters)],['Ground armour destroyed',n(this.armourKills())],['Walker knees broken',n(k.knees)],['Generators destroyed',n(k.generators)],
-      ['Reactors destroyed',n(k.reactors)],['Aces destroyed',n(k.aces)],['Shield tenders destroyed',n(k.tenders)],['Moons destroyed',n(k.moons)],['Route encounters survived',n(st.routeEncounters)],['Diversions answered',n(st.diversionsInvestigated)],
+      ['Reactors destroyed',n(k.reactors)],['Aces destroyed',n(k.aces)],['Shield tenders destroyed',n(k.tenders)],['Stranded crews located',n(st.landBeacons)],['Moons destroyed',n(k.moons)],['Route encounters survived',n(st.routeEncounters)],['Diversions answered',n(st.diversionsInvestigated)],
       ['Black contracts',`${n(st.blackDone)}${this.state.mailFlags?.blackThreat?` · threat ${this.state.mailFlags.blackThreat}`:''}`],
       ['Veteran bonus',this.veteranBonus()>0?`+${Math.round(this.veteranBonus()*100)}% pay`:'from level 21']];
     const got=this.state.achievements||{},ach=this.achievementDefs();
