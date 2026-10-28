@@ -2413,7 +2413,7 @@ class CampaignController {
     // Only where that ground is actually shown: a forest or city plains approach, or a
     // dune assault. Swamp and rock approaches keep their own scenery (review fix).
     const shows=(m.modules||[]).some(x=>x.type==='dune_assault'||(x.type==='surface_destination_approach'&&!x.environment&&x.scenery!=='rocks'&&x.scenery!=='swamp'&&x.destination!=='swamp'));
-    const look=shows?{cyan:'ice',magenta:'crystal',yellow:'arid',orange:'arid'}[col]:null;
+    const look=shows?{cyan:'ice',magenta:'crystal',yellow:'arid',orange:'arid',blue:'wetland'}[col]:null;
     return `<div class="worldLine">Destination world: <b style="color:${hex}">${col||'green'} ${body}</b>${look?` · ${look}`:''}</div>`
   }
   contactNoteHtml(m){

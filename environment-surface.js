@@ -25,7 +25,7 @@ function surfaceShardMesh(sides,r,mid,top,lean){
 }
 const surfaceIceShardMesh=surfaceShardMesh(5,.62,1.55,2.55,.34);
 const surfaceCrystalMesh=surfaceShardMesh(6,.42,2.35,3.35,.08);
-const SURFACE_WORLD_MIX=Object.freeze({ice:.42,crystal:.46,arid:.58});
+const SURFACE_WORLD_MIX=Object.freeze({ice:.42,crystal:.46,arid:.58,wet:.45});
 // v1050: remember which world types the player has landed on (Guide codex).
 function noteSurfaceWorld(kind){
   if(kind==='temperate'||typeof campaign==='undefined'||!campaign?.currentMission||campaign.currentMission.devTemplateTest||campaign.currentMission.training)return;
@@ -36,6 +36,7 @@ function surfaceWorldKind(){
   if(c===C.c)return 'ice';
   if(c===C.m)return 'crystal';
   if(c===C.y||c===C.o)return 'arid';
+  if(c===C.u)return 'wet'; // v1130: blue worlds are wetlands, reed beds among the trees
   return 'temperate'
 }
 let sharedSurfaceHorizonCache=null;
@@ -216,7 +217,12 @@ class SurfaceDestinationApproachController {
       const mx=.78+this.rand()*.42,my=.72+this.rand()*.74,y=this.groundY-.10*scale*my;
       this.trees.push({kind:'rock',feature:world,mesh,x,y,worldZ:wz,s:scale,rot:[(this.rand()-.5)*.24,this.rand()*Math.PI*2,(this.rand()-.5)*.24],col:crystal?C.c:C.w,mx,my,mz:mx,hit:false})
     };
-    const addFeature=(x,wz,scale)=>{if(world==='arid')addRock(x,wz,scale*1.05);else addShard(x,wz,scale)};
+    const addReed=(x,wz,scale)=>{
+      const reg=globalThis.AgentXAlienSwampScenery,reeds=['swampReedTall','swampReedFan','swampReedWide','swampReedSpike'],id=reeds[Math.floor(this.rand()*reeds.length)];
+      const base=reg?.get?.(id)||(typeof alienSwampSceneryMesh==='function'?alienSwampSceneryMesh(id):null);if(!base)return;
+      this.trees.push({assetId:id,mesh:base,x,y:this.groundY-this.meshBaseY(base)*scale,worldZ:wz,s:scale,rot:[0,this.rand()*Math.PI*2,0],col:resolvePaletteColor(base.singleColorKey)||C.g,hit:false,my:1.55+this.rand()*.65,mx:1.08+this.rand()*.22,mz:1.0+this.rand()*.16})
+    };
+    const addFeature=(x,wz,scale)=>{if(world==='arid')addRock(x,wz,scale*1.05);else if(world==='wet')addReed(x,wz,scale);else addShard(x,wz,scale)};
     const addClump=(centreX,centreWZ,count,xSpread,zSpread,baseScale=1,allowSingles=false)=>{
       for(let i=0;i<count;i++){
         const x=centreX+(this.rand()-.5)*xSpread,wz=centreWZ+(this.rand()-.5)*zSpread;

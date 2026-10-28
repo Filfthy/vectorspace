@@ -839,3 +839,13 @@ v1120 Follow-ups for the new content
       (destroy 10 shield tenders), for 35 in all. Tested muted: both
       headlines open only after the thing has happened, and the achievement
       counts.
+
+v1130 Blue worlds are wetlands
+      Blue worlds were plain forest. Their plains now mix reed beds in among
+      the trees (the swamp's reeds, about 45% of each clump), so every world
+      colour now has its own ground: green forest, blue wetland, cyan ice,
+      magenta crystal, yellow and orange arid. The contract line says
+      "wetland", and the Guide and the Survey colours Codex entry say so too.
+      Dune fields on blue worlds keep their trees, since the reed meshes are
+      not built for dune terrain. Tested muted: a blue cabin run with 115
+      reeds on the plains (screenshot) and no errors.
