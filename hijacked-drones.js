@@ -19,7 +19,7 @@ const AgentXHijacked={
   arm(f){f.glitchCD=4+Math.random()*6},
   conflict(f,seconds){
     f.stunT=Math.max(f.stunT||0,seconds);f.glitchT=seconds;
-    if(this.calloutT<=0&&typeof callout==='function'&&callout('LOYALTY CONFLICT',1.2))this.calloutT=4.5
+    if(this.calloutT<=0&&typeof callout==='function'&&callout('LOYALTY CONFLICT',1.2)){this.calloutT=4.5;if(audio?.hasVoice?.('loyaltyConflict'))audio.playVoice('loyaltyConflict',{once:false,priority:false})}
   },
   update(dt){
     this.calloutT=Math.max(0,this.calloutT-dt);

@@ -613,3 +613,11 @@ v960  Fixes from a fourth independent review, and a title collection
       jobs, level 10 after 34, level 15 after 58, level 20 after 82. Sixteen
       job types turned up in a single career. The new work didn't skew
       levelling or money.
+
+v970  Six more voice lines to record, wired in
+      VOICE_REQUESTS.txt now lists 23 lines. New ones: "Escape pod signal
+      detected.", "Survivor recovered.", "Unmarked cargo cache detected.",
+      "Ace contact. Watch yourself.", "Ace down." and "Loyalty conflict
+      detected." As before, drop a correctly named mp3 into voices/ and it
+      plays with no code change. Until then the on-screen callouts carry
+      those moments.

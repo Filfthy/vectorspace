@@ -33,13 +33,13 @@ const routeDiversion={
       ]},
     // v920: a drifting escape pod, and an unmarked smuggler cache that pays well and
     // pleases Red Jackal, at the cost of OSD standing (alsoRep adds a second entry).
-    pod:{nav:'ESCAPE POD SIGNAL',hud:'ESCAPE POD',marker:'ESCAPE POD',label:'escape pod',window:18,
+    pod:{nav:'ESCAPE POD SIGNAL',voice:'escapePodSignal',hud:'ESCAPE POD',marker:'ESCAPE POD',label:'escape pod',window:18,
       outcomes:[
-        {id:'rescued',weight:46,say:'POD RECOVERED · SURVIVOR ALIVE',pay:.06,rep:3,repFaction:'security',text:'Escape pod survivor rescued'},
+        {id:'rescued',weight:46,say:'POD RECOVERED · SURVIVOR ALIVE',voice:'podSurvivorRecovered',pay:.06,rep:3,repFaction:'security',text:'Escape pod survivor rescued'},
         {id:'empty',weight:24,say:'POD EMPTY · LIFE SUPPORT FAILED',text:'Escape pod, no survivor'},
         {id:'bait',weight:30,say:'THE POD WAS BAIT',fight:{profile:'pirate',hud:'POD AMBUSH',min:3,max:5},pay:.06,text:'Pod ambush survived'}
       ]},
-    cache:{nav:'UNMARKED CARGO CACHE',hud:'SMUGGLER CACHE',marker:'CARGO CACHE',label:'smuggler cache',window:18,
+    cache:{nav:'UNMARKED CARGO CACHE',voice:'cargoCacheDetected',hud:'SMUGGLER CACHE',marker:'CARGO CACHE',label:'smuggler cache',window:18,
       outcomes:[
         {id:'goods',weight:55,say:'CACHE CLAIMED · OSD WILL NOT LIKE THIS',pay:.18,rep:2,repFaction:'jackals',alsoRep:{faction:'security',amount:-3,text:'OSD noticed the cache'},text:'Smuggler cache claimed'},
         {id:'guarded',weight:30,say:'THE CACHE IS GUARDED',fight:{profile:'hostile',hud:'CACHE GUARDS',min:3,max:5},pay:.14,rep:2,repFaction:'jackals',alsoRep:{faction:'security',amount:-3,text:'OSD noticed the cache'},text:'Guarded cache claimed'},

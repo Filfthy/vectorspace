@@ -12,6 +12,7 @@ pirateambushdestroythepirates.mp3).
 The list comes from voice-requests.js. Edit the text there and the filename
 changes with it.
 
+
 ROUTE ENCOUNTERS
 ----------------
 
@@ -124,3 +125,43 @@ Spoken text:
 
 Expected filename:
     civiliancontactlost.mp3
+
+Spoken text:
+    Escape pod signal detected.
+
+Expected filename:
+    escapepodsignaldetected.mp3
+
+Spoken text:
+    Survivor recovered.
+
+Expected filename:
+    survivorrecovered.mp3
+
+Spoken text:
+    Unmarked cargo cache detected.
+
+Expected filename:
+    unmarkedcargocachedetected.mp3
+
+
+ACES AND HIJACKED DRONES
+------------------------
+
+Spoken text:
+    Ace contact. Watch yourself.
+
+Expected filename:
+    acecontactwatchyourself.mp3
+
+Spoken text:
+    Ace down.
+
+Expected filename:
+    acedown.mp3
+
+Spoken text:
+    Loyalty conflict detected.
+
+Expected filename:
+    loyaltyconflictdetected.mp3

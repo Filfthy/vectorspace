@@ -34,11 +34,11 @@ const AgentXAces={
   },
   update(dt){
     const p=this.pending;if(!p)return;p.wait-=dt;
-    if(p.wait<=0||(typeof callout==='function'&&callout(p.text,2.4)))this.pending=null
+    if(p.wait<=0||(typeof callout==='function'&&callout(p.text,2.4))){if(p.wait>0&&audio?.hasVoice?.('aceContact'))audio.playVoice('aceContact',{once:false,priority:false});this.pending=null}
   },
   onKilled(f){
     if(!f?.ace)return;
-    campaign.bumpStat?.('kills.aces');
+    campaign.bumpStat?.('kills.aces');if(audio?.hasVoice?.('aceDown'))audio.playVoice('aceDown',{once:false,priority:false});
     if(typeof callout==='function')callout(`${f.ace.name.toUpperCase()} DOWN${campaign.bountyTag?.()||''}`,2)
   }
 };

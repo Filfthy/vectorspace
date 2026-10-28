@@ -28,7 +28,14 @@ globalThis.AgentXVoiceRequests={
   itWasATrap:'It was a trap.',
   dormantDronesActivated:'Dormant drones activated.',
   civilianSafe:'Civilian safe.',
-  civilianContactLost:'Civilian contact lost.'
+  civilianContactLost:'Civilian contact lost.',
+  // v970: escape pods, smuggler caches, named aces and hijacked-drone stalls.
+  escapePodSignal:'Escape pod signal detected.',
+  podSurvivorRecovered:'Survivor recovered.',
+  cargoCacheDetected:'Unmarked cargo cache detected.',
+  aceContact:'Ace contact. Watch yourself.',
+  aceDown:'Ace down.',
+  loyaltyConflict:'Loyalty conflict detected.'
 };
 // Expected filename: the spoken text in lower case with spaces and punctuation removed.
 globalThis.AgentXVoiceRequestFile=text=>String(text).toLowerCase().replace(/[^a-z0-9]/g,'')+'.mp3';
