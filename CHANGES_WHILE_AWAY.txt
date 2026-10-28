@@ -772,3 +772,12 @@ v1080 Gear prompts you can see, and three achievements
       (land on an ice, a crystal and an arid world).
       Tested muted: the prompts show in flight (screenshot), and the new
       achievements count correctly.
+
+(no code change) Board template sweep after the world-type work
+      All 21 board templates were launched in turn on a fresh page (muted)
+      and driven to the end. 20 finished with no errors, including the new
+      Ice Field Armour and Crystal Consignment. Factory Strike stops where
+      the test harness cannot fly the drone into the bunker. It was played
+      through by hand earlier in the night. Dune and Ice Field Armour first
+      slowed down while the test pane was in the background, and both
+      finished in about 40 s each when rerun.
