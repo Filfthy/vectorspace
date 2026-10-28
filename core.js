@@ -205,6 +205,12 @@ let planetWorld=[0,0,112],planetRadius=6.1,planetTilt=.22,planetSpin0=0,planetMo
 let planetLandingBody='planet',planetLandingMoonIndex=-1,planetLandingColour=C.g;
 // v820: some planets carry rings (core-renderer.drawSphere). null or {inc,bands}.
 let planetRings=null;
+// v850: planet surface style ('grid', 'banded' or 'cratered') and its crater list.
+let planetStyle='grid',planetCraters=[];
+function makeCraters(n,seed=Math.random()){
+  let s=Math.floor(seed*2147483647)||1;const rnd=()=>(s=(s*16807)%2147483647)/2147483647;
+  return Array.from({length:n},()=>({lat:(rnd()-.5)*2.2,lon:rnd()*Math.PI*2,r:.10+rnd()*.17}))
+}
 // v710 world types: the colour of the body seen from orbit is the colour of the ground
 // you land on (green forest worlds, yellow dunes, cyan marsh and ice, orange industry,
 // magenta and blue rarer worlds). The simulator and DEV tests keep the classic green.

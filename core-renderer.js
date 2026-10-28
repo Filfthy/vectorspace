@@ -259,7 +259,13 @@ class SceneRenderer {
  p=rz(p,tilt);
  return[center[0]+p[0],center[1]+p[1],center[2]+p[2]];
 }
-  drawCelestialSphere(center,R,camPos,projectFn,{col=C.g,tilt=0,spin=0,lats=null,lonCount=6,gridAlpha=.66,limbAlpha=.92,width=.82}={}){
+  // v850: crater rims as small circles on the sphere, hidden on the far side like the grid.
+  drawCraters(center,R,camPos,projectFn,craters,tilt,spin,col,alpha=.7,width=.72){
+ for(const k of craters||[]){
+   drawSphereCurve(u=>{const t=u*Math.PI*2,lat=k.lat+k.r*Math.cos(t);return sphereGridPoint(center,R,lat,k.lon+k.r*Math.sin(t)/Math.max(.25,Math.cos(k.lat)),tilt,spin)},36,center,R,camPos,projectFn,col,alpha,width)
+ }
+}
+  drawCelestialSphere(center,R,camPos,projectFn,{col=C.g,tilt=0,spin=0,lats=null,lonCount=6,gridAlpha=.66,limbAlpha=.92,width=.82,craters=null}={}){
  const limb=sphereLimb(center,R,camPos,projectFn);
  // Invisible black body is geometry/occlusion, not a colour fill in the artwork.
  if(limb.length>2){
@@ -282,6 +288,7 @@ class SceneRenderer {
      return sphereGridPoint(center,R,lat,lon,tilt,spin);
    },130,center,R,camPos,projectFn,col,gridAlpha,width);
  }
+ if(craters?.length)this.drawCraters(center,R,camPos,projectFn,craters,tilt,spin,col,gridAlpha,width);
 }
   // v820: planetary rings in the body's own (inclined) equatorial plane. The far half is
   // drawn before the occluding disc so the planet hides it; the near half after the grid.
@@ -312,20 +319,24 @@ class SceneRenderer {
  }
  const tilt=planetTilt;
  const spin=planetSpin0+time*.075;
- const lats=[-1.28,-1.02,-.76,-.5,-.25,0,.25,.5,.76,1.02,1.28];
+ // v850 styles: banded worlds trade the meridians for dense storm bands; cratered ones
+ // keep the grid and add rims.
+ const banded=planetStyle==='banded';
+ const lats=banded?[-1.36,-1.2,-1.05,-.88,-.7,-.5,-.31,-.12,.06,.24,.43,.62,.8,.98,1.15,1.3]:[-1.28,-1.02,-.76,-.5,-.25,0,.25,.5,.76,1.02,1.28];
  for(const lat of lats){
    drawSphereCurve(u=>{
      const lon=-Math.PI+u*Math.PI*2;
      return sphereGridPoint(center,R,lat,lon,tilt,spin);
    },180,center,R,camPos,projectFn,planetLandingColour,.62,.72);
  }
- for(let j=0;j<12;j++){
-   const lon=-Math.PI+j*Math.PI/6;
+ for(let j=0;j<(banded?3:12);j++){
+   const lon=-Math.PI+j*Math.PI/(banded?1.5:6);
    drawSphereCurve(u=>{
      const lat=-Math.PI*.5+u*Math.PI;
      return sphereGridPoint(center,R,lat,lon,tilt,spin);
    },150,center,R,camPos,projectFn,planetLandingColour,.72,.76);
  }
+ if(planetStyle==='cratered')this.drawCraters(center,R,camPos,projectFn,planetCraters,tilt,spin,planetLandingColour,.66,.74);
  this.drawPlanetRings(center,R,camPos,projectFn,true)
 }
   drawPlanetMoonSystem(center,R,camPos,projectFn){
@@ -342,7 +353,8 @@ class SceneRenderer {
    const m=b.moon;
    this.drawCelestialSphere(b.center,R*m.radiusFactor,camPos,projectFn,{
      col:m.col,tilt:planetTilt+m.axisOffset,spin:m.spin0+time*m.spinSpeed,
-     lats:[-.78,0,.78],lonCount:5,gridAlpha:.68,limbAlpha:.94,width:.78
+     lats:[-.78,0,.78],lonCount:5,gridAlpha:.68,limbAlpha:.94,width:.78,
+     craters:m.craters||(m.craters=Math.random()<.5?makeCraters(4+Math.floor(Math.random()*3)):[])
    })
  }
 }
