@@ -7,6 +7,32 @@ function sharedSurfaceMountainHeight(a,layer=0){
   const crags=3.4*Math.pow(Math.abs(Math.sin(a*33-p*.3+2.1)),10);
   return 4.8+broad+peaks+teeth+crags;
 }
+// v1010 WORLD SCENERY
+// The landing plains follow the world the player saw from orbit: cyan worlds are
+// ice (white shards among sparse frozen pines), magenta worlds grow cyan crystal
+// spires, yellow and orange worlds are arid (rock outcrops among dead pines) and
+// green or blue worlds keep the original forest. Explicit rock or swamp scenery and
+// training missions are never changed. Shards use the rock path for drawing and
+// collisions, so nothing else needs to know about them.
+function surfaceShardMesh(sides,r,mid,top,lean){
+  const v=[],e=[];
+  for(let i=0;i<sides;i++){const a=i*Math.PI*2/sides;v.push([Math.cos(a)*r,0,Math.sin(a)*r])}
+  for(let i=0;i<sides;i++){const a=i*Math.PI*2/sides+.18;v.push([Math.cos(a)*r*.72+lean*.4,mid,Math.sin(a)*r*.72])}
+  v.push([lean,top,0]);
+  const apex=sides*2;
+  for(let i=0;i<sides;i++){const j=(i+1)%sides;e.push([i,j],[sides+i,sides+j],[i,sides+i],[sides+i,apex])}
+  return {v,e}
+}
+const surfaceIceShardMesh=surfaceShardMesh(5,.62,1.55,2.55,.34);
+const surfaceCrystalMesh=surfaceShardMesh(6,.42,2.35,3.35,.08);
+const SURFACE_WORLD_MIX=Object.freeze({ice:.42,crystal:.46,arid:.58});
+function surfaceWorldKind(){
+  const c=typeof landingWorldColour==='function'?landingWorldColour():C.gd;
+  if(c===C.c)return 'ice';
+  if(c===C.m)return 'crystal';
+  if(c===C.y||c===C.o)return 'arid';
+  return 'temperate'
+}
 let sharedSurfaceHorizonCache=null;
 function sharedSurfaceHorizonSamples(){
   if(sharedSurfaceHorizonCache)return sharedSurfaceHorizonCache;
@@ -151,9 +177,11 @@ class SurfaceDestinationApproachController {
     const rockMode=this.scenery==='rocks';
     const swamp=this.scenery==='swamp';
     const registry=swamp?globalThis.AgentXAlienSwampScenery:globalThis.AgentXForestScenery;
+    const world=(!rockMode&&!swamp&&this.stage?.worldScenery!==false)?surfaceWorldKind():'temperate';
+    this.worldKind=world;
     const ids=swamp
       ?['swampReedTall','swampReedFan','swampReedWide','swampReedSpike','alienBulbPlantConnected','alienUmbrellaPlantConnected','alienEggPodFat','alienEggClusterFat']
-      :['pineTall','pineBroad','pineYoung','pineDeadSparse'];
+      :(world==='ice'?['pineTall','pineYoung','pineDeadSparse','pineDeadSparse']:(world==='arid'?['pineDeadSparse','pineDeadSparse','pineYoung']:['pineTall','pineBroad','pineYoung','pineDeadSparse']));
     const addTree=(id,x,wz,scale)=>{
       const fallback=swamp?(typeof alienSwampSceneryMesh==='function'?alienSwampSceneryMesh(id):null):(typeof forestSceneryMesh==='function'?forestSceneryMesh(id):null);
       const baseMesh=registry?.get?.(id)||fallback;if(!baseMesh)return;
@@ -173,14 +201,22 @@ class SurfaceDestinationApproachController {
       const mx=1.05+this.rand()*1.25,my=.45+this.rand()*.62,mz=.95+this.rand()*1.1;
       const bury=.12+this.rand()*.18;
       const y=this.groundY-(this.meshBaseY(mesh)+bury)*scale*my;
-      const col=C.o;
+      const col=world==='arid'&&landingWorldColour()===C.o?C.y:C.o;
       const obj={kind:'rock',mesh,x,y,worldZ:wz,s:scale,rot:[(this.rand()-.5)*.28,this.rand()*Math.PI*2,(this.rand()-.5)*.24],col,mx,my,mz,hit:false};
       this.trees.push(obj)
     };
+    const addShard=(x,wz,scale)=>{
+      if(this.sceneryReserved(x,wz,Math.max(1.5,scale*1.6)))return;
+      const crystal=world==='crystal',mesh=crystal?surfaceCrystalMesh:surfaceIceShardMesh;
+      const mx=.78+this.rand()*.42,my=.72+this.rand()*.74,y=this.groundY-.10*scale*my;
+      this.trees.push({kind:'rock',feature:world,mesh,x,y,worldZ:wz,s:scale,rot:[(this.rand()-.5)*.24,this.rand()*Math.PI*2,(this.rand()-.5)*.24],col:crystal?C.c:C.w,mx,my,mz:mx,hit:false})
+    };
+    const addFeature=(x,wz,scale)=>{if(world==='arid')addRock(x,wz,scale*1.05);else addShard(x,wz,scale)};
     const addClump=(centreX,centreWZ,count,xSpread,zSpread,baseScale=1,allowSingles=false)=>{
       for(let i=0;i<count;i++){
         const x=centreX+(this.rand()-.5)*xSpread,wz=centreWZ+(this.rand()-.5)*zSpread;
         if(rockMode)addRock(x,wz,baseScale*(.86+this.rand()*.46));
+        else if(world!=='temperate'&&this.rand()<SURFACE_WORLD_MIX[world])addFeature(x,wz,baseScale*(.86+this.rand()*.40));
         else {
           const id=ids[Math.floor(this.rand()*ids.length)];
           addTree(id,x,wz,baseScale*(.88+this.rand()*.34))
@@ -188,7 +224,7 @@ class SurfaceDestinationApproachController {
       }
       if(allowSingles&&this.rand()<.18){
         const sx=centreX+(this.rand()<.5?-1:1)*(xSpread*.85+2+this.rand()*5),sz=centreWZ+(this.rand()-.5)*(zSpread*1.6),ss=baseScale*(.84+this.rand()*.26);
-        if(rockMode)addRock(sx,sz,ss);else addTree(ids[Math.floor(this.rand()*ids.length)],sx,sz,ss)
+        if(rockMode)addRock(sx,sz,ss);else if(world!=='temperate'&&this.rand()<SURFACE_WORLD_MIX[world])addFeature(sx,sz,ss);else addTree(ids[Math.floor(this.rand()*ids.length)],sx,sz,ss)
       }
     };
     const requestedClumps=Number(rockMode?(this.stage?.rockClumps??this.stage?.treeClumps):this.stage?.treeClumps);

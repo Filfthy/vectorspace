@@ -667,3 +667,15 @@ v1000 The Guide gains a Codex
       secret (like a first xeno meeting) is spoiled. Every entry paraphrases
       the lore file and answers none of its open questions. A new save
       starts with 1 of 14 open. Tested muted with a screenshot.
+
+v1010 Ice, crystal and desert ground
+      The plains you fly over after landing now match the world you saw from
+      orbit. Cyan worlds are icy: white ice shards stand among sparse,
+      frozen-looking pines. Magenta worlds grow tall cyan crystal spires.
+      Yellow and orange worlds are dry, with rock outcrops and dead pines.
+      Green and blue worlds keep the forest exactly as before. The cabin run,
+      city deliveries and other plains approaches all use it. Missions that
+      ask for rocks or swamp, and training, are unchanged. Shards and spires
+      count as rocks if you clip one. The Guide's land-work line says so.
+      Tested muted: a full cabin run on an ice world, plus screenshots of all
+      three looks.
