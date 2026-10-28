@@ -47,7 +47,7 @@ class MissionController {
  // v820/v850: rings and surface style are rolled once per mission (v910), not on every
  // bearing reset, so a ringed banded world does not change when an ambush starts.
  {const mid=(typeof campaign!=='undefined'&&campaign.currentMission?.id)||'';if(planetLookFor!==mid){planetLookFor=mid;
-  const r=Math.random();planetStyle=r<.55?'grid':(r<.8?'banded':'cratered');planetCraters=planetStyle==='cratered'?makeCraters(7):[];planetFacets=makeCraters(10);
+  const r=Math.random();planetStyle=r<.55?'grid':(r<.8?'banded':'cratered');planetCraters=planetStyle==='cratered'?makeCraters(7):[];
   planetRings=Math.random()<.28?{inc:(Math.random()<.5?-1:1)*(.30+Math.random()*.22),bands:Math.random()<.5?[1.42,1.60]:[1.40,1.58,1.84]}:null}}
  const req=this.planetaryRequirements(),landingBody=String(req.landingBody||'planet').toLowerCase();
  planetLandingBody=landingBody==='moon'?'moon':(landingBody==='either'?(Math.random()<.5?'moon':'planet'):'planet');planetLandingMoonIndex=-1;

@@ -265,22 +265,6 @@ class SceneRenderer {
    drawSphereCurve(u=>{const t=u*Math.PI*2,lat=k.lat+k.r*Math.cos(t);return sphereGridPoint(center,R,lat,k.lon+k.r*Math.sin(t)/Math.max(.25,Math.cos(k.lat)),tilt,spin)},36,center,R,camPos,projectFn,col,alpha,width)
  }
 }
-  // v1090 world types from orbit: ice worlds (cyan) show white fracture lines across
-  // the face and crystal worlds (magenta) diamond-shaped cyan facet fields, matching
-  // the ground below. Both reuse the per-mission planetFacets positions.
-  drawIceCracks(center,R,camPos,projectFn,facets,tilt,spin){
- for(const k of facets||[]){
-   const nodes=[[k.lat,k.lon]];let a=k.lon*3.1;
-   for(let i=0;i<6;i++){a+=(i%2?.75:-.75);const[l,o]=nodes[i];nodes.push([l+k.r*1.5*Math.cos(a),o+k.r*1.5*Math.sin(a)/Math.max(.3,Math.cos(l))])}
-   drawSphereCurve(u=>{const f=u*6,i=Math.min(5,Math.floor(f)),t=f-i,A=nodes[i],B=nodes[i+1];return sphereGridPoint(center,R,A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t,tilt,spin)},48,center,R,camPos,projectFn,C.w,.86,.76)
- }
-}
-  drawCrystalFacets(center,R,camPos,projectFn,facets,tilt,spin){
- for(const k of facets||[])for(const sc of[1,.52]){
-   const r=k.r*sc;
-   drawSphereCurve(u=>{const t=u*Math.PI*2;return sphereGridPoint(center,R,k.lat+r*Math.cos(t),k.lon+r*Math.sin(t)/Math.max(.25,Math.cos(k.lat)),tilt,spin)},4,center,R,camPos,projectFn,C.c,.74,.74)
- }
-}
   drawCelestialSphere(center,R,camPos,projectFn,{col=C.g,tilt=0,spin=0,lats=null,lonCount=6,gridAlpha=.66,limbAlpha=.92,width=.82,craters=null}={}){
  const limb=sphereLimb(center,R,camPos,projectFn);
  // Invisible black body is geometry/occlusion, not a colour fill in the artwork.
@@ -353,8 +337,6 @@ class SceneRenderer {
    },150,center,R,camPos,projectFn,planetLandingColour,.72,.76);
  }
  if(planetStyle==='cratered')this.drawCraters(center,R,camPos,projectFn,planetCraters,tilt,spin,planetLandingColour,.66,.74);
- if(planetLandingColour===C.c)this.drawIceCracks(center,R,camPos,projectFn,planetFacets,tilt,spin);
- else if(planetLandingColour===C.m)this.drawCrystalFacets(center,R,camPos,projectFn,planetFacets,tilt,spin);
  this.drawPlanetRings(center,R,camPos,projectFn,true)
 }
   drawPlanetMoonSystem(center,R,camPos,projectFn){

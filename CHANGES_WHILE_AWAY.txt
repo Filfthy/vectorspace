@@ -216,7 +216,7 @@ tested muted, each its own commit.
 START HERE (overnight summary)
 ------------------------------
 What your brief asked for, and where it went. The details for each item are
-in the numbered entries below (v700 to v1280).
+in the numbered entries below (v700 to v1290).
 
 New land missions and locations (board jobs)
   Bunker Raid (OSD), Groundside Pickup (Compact, QuickBite, Red Jackal,
@@ -231,8 +231,7 @@ Planet and moon types
   The ground takes the colour of the world you saw from orbit, and each
   colour has its own ground: green forest, blue wetland (reed beds), cyan
   ice (ice shards), magenta crystal (spires), yellow and orange arid (rocks
-  and dead pines). From orbit, planets can be ringed, banded or cratered,
-  ice planets show white fracture lines and crystal planets faceted fields.
+  and dead pines). From orbit, planets can be ringed, banded or cratered.
   Land on a moon and its planet hangs in the sky. Land on a planet and you
   can see its moons. A short nav line on the plains says what the world (or
   moon) is like.
@@ -1120,3 +1119,16 @@ v1280 More quiet-run nav lines in space
       "GROUND CREW BEACON · ALREADY ANSWERED" and "MOON SHADOW CROSSING ·
       SENSORS ADJUSTING". 14 lines in that pool now. Tested muted: all five
       appear on generated contracts.
+
+v1290 Your feedback: orbit cracks and facets out, new shooter flowers
+      Removed the white ice cracks and cyan crystal facets from planets
+      seen from orbit (v1090). Rings, storm bands and craters stay, as do
+      the reed beds on blue worlds.
+      The swamp's shooter flowers (the spitters in the alien swamp
+      corridor) looked like toy windmills on sticks, a flat star of petals
+      on a thin pole. They are rebuilt as carnivorous pitcher plants: two
+      leaves at the base, a curved, tapering stalk, a fat bulb, a pinched
+      neck and a flared mouth ringed with teeth. They still lean to aim and
+      fire from the same point, so the fight plays the same. Tested muted:
+      a swamp relay run to the debrief with the new flowers firing, and no
+      errors.
