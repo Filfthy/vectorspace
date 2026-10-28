@@ -705,3 +705,21 @@ v1030 Contacts talk on their contracts
       the lore's open questions. A contract always shows the same line.
       The destination world line also names the ground now (ice, crystal or
       arid). Tested muted with a screenshot of the contract page.
+
+v1040 Ice Field Armour, and a review fix
+      New board job from level 9 (about one board in four): Ice Field Armour.
+      Partition War armour that sat out the armistice under the ice has woken
+      up and started moving. Same set piece as the dune armour field, but on
+      a cyan planet or moon, so the ground is ice shards and frozen pines.
+      Written for Kudo ("Seventy years under the ice and it still came out
+      fighting"), Navira (her drill "found something more interesting than
+      ice"), Corvella (her ice road convoys) and Nyxo (a research station
+      that orders forty burritos a week). A VOX Wire headline follows once
+      you have done one.
+      Review fix: an independent read-only review of v1000 to v1030 found
+      that swamp relay jobs, which always land on cyan worlds, were labelled
+      "ice" on the contract page. The ground label now only shows where that
+      ground is actually used (plains approaches and dune fields), and the
+      Guide says "Swamps stay swamps". The review found nothing else.
+      Tested muted: Ice Field Armour on a moon played to the debrief, board
+      generation checked, all five world labels checked.

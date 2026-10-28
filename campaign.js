@@ -2403,7 +2403,10 @@ class CampaignController {
     const hex={green:C.g,yellow:C.y,cyan:C.c,magenta:C.m,blue:C.u,orange:C.o}[col]||C.g;
     const body=req.landingBody==='moon'?'moon':(req.landingBody==='either'?'planet or moon':'planet');
     // v1030: name the ground the plains and dunes will show (see surfaceWorldKind).
-    const look={cyan:'ice',magenta:'crystal',yellow:'arid',orange:'arid'}[col];
+    // Only where that ground is actually shown: a forest or city plains approach, or a
+    // dune assault. Swamp and rock approaches keep their own scenery (review fix).
+    const shows=(m.modules||[]).some(x=>x.type==='dune_assault'||(x.type==='surface_destination_approach'&&!x.environment&&x.scenery!=='rocks'&&x.scenery!=='swamp'&&x.destination!=='swamp'));
+    const look=shows?{cyan:'ice',magenta:'crystal',yellow:'arid',orange:'arid'}[col]:null;
     return `<div class="worldLine">Destination world: <b style="color:${hex}">${col||'green'} ${body}</b>${look?` · ${look}`:''}</div>`
   }
   contactNoteHtml(m){
@@ -2420,7 +2423,7 @@ class CampaignController {
   }
   jobType(m){
     const map={fighters:'combat',combat_recovery:'recovery',asteroids:'asteroids',asteroid_delivery:'delivery',station_delivery:'delivery',penthouse_delivery:'delivery',
-      forest_cabin_delivery:'delivery',swamp_relay_delivery:'delivery',secure_terminal_intrusion:'infiltration',deep_core:'assault',dune_armour_clearance:'assault',bunker_raid:'assault',groundside_pickup:'delivery',nest_clearance:'assault',factory_strike:'assault',wreck_recovery:'recovery',station_defence:'combat',taco_run:'delivery',specimen_recovery:'recovery'};
+      forest_cabin_delivery:'delivery',swamp_relay_delivery:'delivery',secure_terminal_intrusion:'infiltration',deep_core:'assault',dune_armour_clearance:'assault',ice_field_armour:'assault',bunker_raid:'assault',groundside_pickup:'delivery',nest_clearance:'assault',factory_strike:'assault',wreck_recovery:'recovery',station_defence:'combat',taco_run:'delivery',specimen_recovery:'recovery'};
     return map[m?.templateId]||(m?.kind==='procedural'?'combat':'delivery')
   }
   jobTypeInfo(type){

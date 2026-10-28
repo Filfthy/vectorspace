@@ -2128,6 +2128,75 @@
     defaults:{destination:'dune belt',cargo:'none'}
   };
 
+  // v1040 ice field armour: the dune armour set piece on an ice world. Wartime armour
+  // that sat out the armistice under the ice has woken up and started moving, which
+  // is plain rogue-drone canon (loyal to orders nobody can cancel). Planet or moon,
+  // always cyan, so the ground shows ice shards (see surfaceWorldKind).
+  const iceFieldArmour={
+    id:'ice_field_armour',
+    version:1,
+    family:'dune_armour_clearance',
+    musicMode:'violent',
+    minLevel:9,
+    maxLevel:null,
+    allowedFactions:['trade','security','helix','quickbite'],
+    factionWeights:{security:5,helix:4,trade:2,quickbite:2},
+    board:{category:'combat',weight:.55,maxPerBoard:1},
+    risk:{base:6,min:5,levelsPerStep:2,max:10,jitter:1},
+    reward:{
+      basePay:2720,payPerRisk:920,payRiskSquare:185,randomPay:600,roundPay:50,
+      baseXp:440,xpPerRisk:124,xpRiskSquare:12
+    },
+    planetaryRequirements:{landingBody:{choices:['planet','moon'],weights:[55,45]},landingColour:'cyan',moonCount:{min:1,max:2}},
+    sections:[
+      {type:'planet_descent',label:'Ice World Descent',params:{difficulty:'$risk'}},
+      {type:'dune_assault',label:'Destroy the Thawed Armour',params:{difficulty:'$risk',startMessage:'THAWED ARMOUR'}}
+    ],
+    presentation:{
+      security:{
+        contactId:'kudo_shang',
+        titles:['Ice Field Interdiction','Thawed Armour','Cold Start'],
+        descriptions:['Partition War armour has been sitting under the ice on a frontier world since the armistice. It is moving again. Four groups. Descend and destroy all of them.','A survey drone recorded tracks in the ice where there should be none. Remnant armour, reactivated. Orbital strike is not authorised. Finish it on the ground.'],
+        completionSubjects:['Ice field clear','Thawed armour destroyed'],
+        completionBodies:['All four armour groups are confirmed destroyed. The ice can keep what is left. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Armour still active'],bodies:['The armour groups remain operational and your drone does not. Return to the ice and finish them.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left the ice with hostile armour still moving. That is not a withdrawal I authorised.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:6,chance:.18,subjects:['Re: ice field'],bodies:['Seventy years under the ice and it still came out fighting. So did you. Noted.']}
+      },
+      helix:{
+        contactId:'navira_derris',
+        titles:['Core Sample Protection','Armour on the Ice','Unexpected Thaw'],
+        descriptions:['My ice core team has found something more interesting than ice. Old military armour, waking up, four groups of it. It has noticed the drill rig. Please destroy it before it reaches my samples.','We drilled into an ice sheet and something drilled back. Wartime armour, reactivating in stages. I would love to study the process. I would prefer to study it from the wreckage.'],
+        completionSubjects:['Drill site safe','The thaw is over'],
+        completionBodies:['All four armour groups are destroyed and the core samples are intact. The team asked whether they can keep a track link. I said yes. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'navira_derris',subjects:['The armour reached the rig'],bodies:['Your drone was destroyed and the armour is still moving toward the drill site. The samples are at risk. So, to a lesser extent, is the team.']},
+        abandonMail:{contactId:'navira_derris',subjects:['The rig is still exposed'],bodies:['You withdrew before the armour was destroyed. The team is packing the samples very quickly.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:5,chance:.2,subjects:['About the thaw'],bodies:['The armour seems to have warmed its own systems for weeks before it moved. Patient machines. I find that more unsettling than the guns.']}
+      },
+      trade:{
+        contactId:'corvella_pallis',
+        titles:['Frozen Route Clearance','Armour on the Ice Road','Cold Feet'],
+        descriptions:['Sweetie, my ice road convoys have stopped because the ice has tanks in it. Old ones. Awake ones. Four groups. Go down and break them for me, babe.','Babe, something under the ice woke up and parked itself across my haul route. Military armour. Go and show it what a really big drone looks like.'],
+        completionSubjects:['Ice road open','You warmed my heart, babe'],
+        completionBodies:['All four armour groups are scrap and the convoys are rolling again. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the ice won'],bodies:['Oh sweetie. The armour is still on my ice road and your drone is in pieces on the ice. Go again for me.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, the tanks are still there'],bodies:['You went all the way down there and left me with tanks on my ice road, babe. Cold.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:5,chance:.22,subjects:['Thinking of you on the ice'],bodies:['The convoy drivers say the ice road has never looked so pretty. Mostly it is wreckage. I told them that was the point.']}
+      },
+      quickbite:{
+        contactId:'nyxo_malloc',
+        titles:['Frozen Franchise Problem','Tanks in the Ice','Brain Freeze'],
+        descriptions:['Dude. The research station on the ice orders like forty burritos a week and now there are tanks between us and them. Old war tanks. That were frozen. And now are not. Please fix this.','So our ice world franchise is closed because the parking lot is full of armour. Literal armour. It came out of the ice. I do not get paid enough to understand it. Go break it.'],
+        completionSubjects:['Burritos are moving, dude','Ice tanks deleted'],
+        completionBodies:['All four armour groups are scrap and the delivery drones are flying again. The station sent a thank you note. It was frozen. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'nyxo_malloc',subjects:['The ice tanks won'],bodies:['Dude, the tanks are still there and your drone is all over the ice. The station is eating emergency rations. They are sad.']},
+        abandonMail:{contactId:'nyxo_malloc',subjects:['You left the ice tanks?'],bodies:['You flew all the way down there and left the tanks just sitting there. Being cold. And armed.']},
+        personalFollowUp:{contactId:'nyxo_malloc',minRisk:5,chance:.24,subjects:['Dude, it was so cold'],bodies:['The station people said they watched the whole fight from the window. They made popcorn. They did not order it from us. Rude.']}
+      }
+    },
+    defaults:{destination:'ice field',cargo:'none'}
+  };
+
   // Generic discretionary reward correspondence lives beside the mission templates
   // because it is faction/contact presentation, even when the reward itself is not
   // tied to one particular mission family. Campaign owns the reward mechanics; these
@@ -2268,7 +2337,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();
