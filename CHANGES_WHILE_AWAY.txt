@@ -885,3 +885,12 @@ v1150 A closing letter from each contact
       Each follows on from that contact's epilogue and adds no world facts.
       Veto any details you do not like. Tested muted: the letter waits
       three contracts and arrives only once.
+
+v1160 Follow-ups for the closing letters and Survey Run
+      Each contact file gets a sixth note once their closing letter has
+      arrived. A new achievement, Cartographer (5 Survey Runs), brings the
+      total to 36. A new VOX Wire headline runs once you have done a Survey
+      Run: a delivery company admits a disputed lake on one of its routes
+      does exist, and has "apologised to its software". Tested muted: every
+      contact file fills to 6 of 6, and the headline and achievement open
+      correctly.

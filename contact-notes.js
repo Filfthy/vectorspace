@@ -109,37 +109,42 @@
       F('lore1','Served twenty-six years before taking his desk. Reads your file himself.'),
       F('lore2','Wrote the original Crossroads blockade order. The stand-down never reached the pickets in a form they would accept.'),
       F('lore3','Keeps a short list of operators he would send first. You are on it. His first commanding officer kept two words on her console: Finish it.'),
-      F('final','The command bunker that kept issuing his Crossroads order has been breached and its archive delivered. The order is closed.')]},
+      F('final','The command bunker that kept issuing his Crossroads order has been breached and its archive delivered. The order is closed.'),
+      F('lore4','Broke his own no-more-letters order to tell you the Crossroads pickets were stood down properly.')]},
     trade:{who:'Corvella Pallis',facts:[
       F('met','Free Traders Compact route coordinator. Overfamiliar, openly flirtatious, very good at the actual job.'),
       F('lore1','Worked in hospitality before route coordination. "Very personal service."'),
       F('lore2','Keeps the telemetry from your runs and replays the good bits when the depot is quiet.'),
       F('lore3','Built, not born. A former pleasure model, found in an inventory by a Compact auditor who gave her a desk instead of selling her for parts.'),
-      F('final','Her original ownership file was recovered from the old records ship. Nobody owns her.')]},
+      F('final','Her original ownership file was recovered from the old records ship. Nobody owns her.'),
+      F('lore4','Took her first holiday, as a guest, and brought you back a tiny model drone.')]},
     jackals:{who:'Cassian Erivan-Snade',facts:[
       F('met','Red Jackal Combine contact. Elegant, indirect, never says steal when he can say change of ownership.'),
       F('lore1','Collects quiet things. Paintings, mostly. Occasionally people.'),
       F('lore2','Born of an arranged marriage between the wealthy Erivans and the well-mannered Snades. Neither family has forgiven the other.'),
       F('lore3','Cannot decide whether you are an asset, a liability or furniture, and has decided to enjoy not knowing.'),
-      F('final','The Erivan ledger the Snades meant to read in public is in a friend\'s keeping. The family reading was postponed.')]},
+      F('final','The Erivan ledger the Snades meant to read in public is in a friend\'s keeping. The family reading was postponed.'),
+      F('lore4','Suspects he enjoys working with you. Keeps a door open for quiet favours.')]},
     helix:{who:'Navira Derris',facts:[
       F('met','Helix Industrial Group research contact. Strange results make her more interested, not less.'),
       F('lore1','Grew up on a mining moon. At fourteen she asked to keep a xeno tissue sample. She has been asking, more formally, ever since.'),
       F('lore2','Minds destroying a nest. She minds quietly, and takes notes at the same time.'),
       F('lore3','Learned hive chemistry from Teodor, who ran the deep-core field lab before her and retired somewhere he calls wonderfully boring.'),
-      F('final','Xenos reached Teodor\'s quiet station anyway. You cleared them. He has not been bored since.')]},
+      F('final','Xenos reached Teodor\'s quiet station anyway. You cleared them. He has not been bored since.'),
+      F('lore4','Teodor came out of retirement and took the office next to hers. He said to keep you.')]},
     quickbite:{who:'Nyxo Malloc',facts:[
       F('met','QuickBite Orbital night dispatch. Treats extreme danger as ordinary delivery nonsense.'),
       F('lore1','Six years on night dispatch. Says you are the only contractor who finishes his deliveries.'),
       F('lore2','Promoted to Senior Dispatch Associate. No extra money, a new badge and a meeting about meetings, on Tuesdays.'),
       F('lore3','Knows some mining crews do not eat if the run does not happen. Said so once, then went back to tacos.'),
-      F('final','Delivered lunch to the QuickBite leadership retreat, through the forest, on time.')]}
+      F('final','Delivered lunch to the QuickBite leadership retreat, through the forest, on time.'),
+      F('lore4','Was sent a plant by a vice president. He named it Contractor.')]}
   };
   // known(factionId, {flags, byFaction}) -> the facts the player has unlocked so far.
   function known(id,{flags={},byFaction={}}={}){
     const file=FILES[id];if(!file)return null;
     const lore=n=>id==='vox'?!!flags[`maraLore${n}`]:!!flags[`${id}Lore${n}`];
-    const open={met:id==='vox'?!!flags.mara1Done:(byFaction[id]||0)>0,lore1:lore(1),lore2:lore(2),lore3:lore(3),final:id!=='vox'&&!!flags[`${id}Agent4Done`]};
+    const open={met:id==='vox'?!!flags.mara1Done:(byFaction[id]||0)>0,lore1:lore(1),lore2:lore(2),lore3:lore(3),final:id!=='vox'&&!!flags[`${id}Agent4Done`],lore4:id!=='vox'&&lore(4)};
     return {who:file.who,facts:file.facts.filter(f=>open[f.k]).map(f=>f.text),total:file.facts.length}
   }
 
