@@ -283,7 +283,24 @@ class SceneRenderer {
    },130,center,R,camPos,projectFn,col,gridAlpha,width);
  }
 }
+  // v820: planetary rings in the body's own (inclined) equatorial plane. The far half is
+  // drawn before the occluding disc so the planet hides it; the near half after the grid.
+  // They fade out as the drone closes on the surface so the descent is never cluttered.
+  drawPlanetRings(center,R,camPos,projectFn,front){
+ const rg=planetRings;if(!rg)return;
+ const cd=v3len(v3sub(center,camPos)),fade=clamp((cd-2.4*R)/(2.5*R),0,1);if(fade<=0)return;
+ for(const k of rg.bands){
+   let prev=null,prevFront=null;
+   for(let i=0;i<=140;i++){
+     const th=i/140*Math.PI*2;let p=[k*R*Math.cos(th),0,k*R*Math.sin(th)];p=rx(p,rg.inc);p=rz(p,planetTilt);
+     const w=[center[0]+p[0],center[1]+p[1],center[2]+p[2]],isFront=v3len(v3sub(w,camPos))<cd,s=projectFn(w);
+     if(prev&&s&&isFront===front&&prevFront===front)line(prev.x,prev.y,s.x,s.y,planetLandingColour,.8,(front?.6:.34)*fade);
+     prev=s;prevFront=isFront
+   }
+ }
+}
   drawSphere(center,R,camPos,projectFn){
+ this.drawPlanetRings(center,R,camPos,projectFn,false);
  const limb=sphereLimb(center,R,camPos,projectFn);
  // Invisible black body provides real occlusion while the visible art remains outlines only.
  if(limb.length>2){
@@ -309,6 +326,7 @@ class SceneRenderer {
      return sphereGridPoint(center,R,lat,lon,tilt,spin);
    },150,center,R,camPos,projectFn,planetLandingColour,.72,.76);
  }
+ this.drawPlanetRings(center,R,camPos,projectFn,true)
 }
   drawPlanetMoonSystem(center,R,camPos,projectFn){
  const bodies=(planetMoons||[]).map(m=>{

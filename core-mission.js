@@ -44,6 +44,8 @@ class MissionController {
  // the same pole on every run.
  planetTilt=(Math.random()<.5?-1:1)*(.48+Math.random()*.92);
  planetSpin0=Math.random()*Math.PI*2;
+ // v820: about a quarter of planets are ringed, the rings inclined toward the camera.
+ planetRings=Math.random()<.28?{inc:(Math.random()<.5?-1:1)*(.30+Math.random()*.22),bands:Math.random()<.5?[1.42,1.60]:[1.40,1.58,1.84]}:null;
  const req=this.planetaryRequirements(),landingBody=String(req.landingBody||'planet').toLowerCase();
  planetLandingBody=landingBody==='moon'?'moon':(landingBody==='either'?(Math.random()<.5?'moon':'planet'):'planet');planetLandingMoonIndex=-1;
  const requiredLandingColour=this.moonColourToken(req.landingColour);planetLandingColour=planetLandingBody==='planet'?(requiredLandingColour||C.g):C.g;

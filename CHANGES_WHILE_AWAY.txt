@@ -404,3 +404,11 @@ v810  Named aces in pirate and mercenary fights
       xenos never have aces, because an ace is a person. The Guide mentions
       them. The arrival callout waits for the fight's opening voice line to
       finish so it isn't lost. Flight-tested muted.
+
+v820  Ringed planets
+      About a quarter of the planets you approach now carry two or three
+      rings in the planet's own colour, tilted with the planet. The planet
+      hides the far side of the rings and the near side crosses in front.
+      They fade out as you close in, so the final descent stays clean.
+      Purely visual, and it works with every mission that lands. Screenshot
+      checked on a cyan ringed world, through to the surface.
