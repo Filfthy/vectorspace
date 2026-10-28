@@ -488,3 +488,12 @@ v880  New board job: Specimen Recovery (Helix)
       The swarm grows with risk. At level 5 it pays CR 9,350 and 800 XP.
       Flown live and muted from the xeno fight to the biolab handoff and
       victory, then checked Navira's mail. No errors.
+
+      Full board sweep (no change needed). Every board template, 21 of
+      them, three generated contracts each with their random route fights
+      and diversions left in: 57 launches stepped stage by stage to the end.
+      No errors at all. Nine templates whose last stage plays an exit
+      sequence (depot, biolab, station, forest, city, hack escape) looked
+      stuck to my quick stepper. A second pass that waited for the ending
+      saw all nine finish in victory within 2.5 to 5.5 seconds, including
+      the original game's own templates, so it was the test, not the game.
