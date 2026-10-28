@@ -61,7 +61,13 @@
     {nav:'DEBRIS FROM EARLIER ENGAGEMENT',places:['asteroid','station','orbit']},
     {nav:'MINING DRONES WORKING · IGNORE',places:['asteroid']},
     {nav:'DISTANT DISTRESS CALL · ANSWERED',places:['orbit','station']},
-    {nav:'ROUTE CLEAR',places:['station','asteroid','orbit','departure']}
+    {nav:'ROUTE CLEAR',places:['station','asteroid','orbit','departure']},
+    // v1280: the places the new land work goes.
+    {nav:'ICE HAULER CONVOY ON ROUTE',places:['orbit','station']},
+    {nav:'CRYSTAL FREIGHT AHEAD · HANDLE WITH CARE',places:['station','orbit']},
+    {nav:'SURVEY DRONE ON PARALLEL ROUTE',places:['orbit','departure']},
+    {nav:'GROUND CREW BEACON · ALREADY ANSWERED',places:['orbit']},
+    {nav:'MOON SHADOW CROSSING · SENSORS ADJUSTING',places:['orbit','asteroid']}
   ];
 
   function placements(modules){

@@ -1112,3 +1112,11 @@ v1270 Moon chatter
       chatter rules, moon chatter, the two Codex entries and the new
       contact notes. Nothing significant. The beacon counts exactly once,
       and a failed mission now gives nothing for it, as intended.
+
+v1280 More quiet-run nav lines in space
+      Five more harmless nav-computer lines for quiet routes, about the
+      places the new land work goes: "ICE HAULER CONVOY ON ROUTE", "CRYSTAL
+      FREIGHT AHEAD · HANDLE WITH CARE", "SURVEY DRONE ON PARALLEL ROUTE",
+      "GROUND CREW BEACON · ALREADY ANSWERED" and "MOON SHADOW CROSSING ·
+      SENSORS ADJUSTING". 14 lines in that pool now. Tested muted: all five
+      appear on generated contracts.
