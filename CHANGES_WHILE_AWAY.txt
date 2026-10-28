@@ -5,6 +5,9 @@ Started 27 Oct 2026, 21:11. Loop set to stop after 23:00.
 Each entry is also its own git commit (git log shows the detail).
 Everything was tested muted in the browser, but none of it hand-flown.
 
+Overnight run (27 to 28 Oct): search for "START HERE" further down for a
+one-page summary of what was added for your brief.
+
 v520  Forest/swamp corridor now keeps its mission settings
       The corridor never stored the stage it was started with, so any mission
       that customised its ending (text, scan time, monolith layout) silently got
