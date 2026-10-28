@@ -8,8 +8,9 @@ A 3:12 music video made in the game itself, to "God Rest Ye Merry Starmen
   0:44  Into the snowy forest as the strings come in
   1:13  The cabin glade: a decorated tree outside, a present on the deck, lift-off
   1:35  Guitar solo: a rocky world and a team of reindeer mechs at the gallop
-  2:04  The breakdown: one xeno sings the aria in the asteroid field
-  2:18  Last verse, the key change; six more xenos fly in and join her
+  2:04  The breakdown: in a drifting green and yellow asteroid field a hornet
+        xeno sings the aria, her band behind her (two guitars and drums)
+  2:18  Last verse, the key change; six more hornets fly in and join her
   3:00  The choir and the end titles
 
 Nothing here changes the game. index.html only loads these files when the
@@ -27,7 +28,8 @@ Files
   promo-play.js       live playback with the song (?promo&play)
   xmasWords.mp3       the song, copied from the Oh Hell renders
   promo.js            frame capture, and the model viewer (?promo&view=...)
-  promo-models.js     the present, the Christmas tree, the reindeer mech, the singing xeno
+  promo-models.js     the present, the Christmas tree, the snowman, the reindeer mech,
+                      the hornet xenos (singers, guitarists, drummer) and the drum kit
   promo-director.js   fixed frame clock, the song-to-game time map, snow, titles
   promo-scenes.js     the three scenes: what is launched, how it is flown, the singers
   song-timing.js      every sung syllable's time (generated, do not edit)
@@ -45,7 +47,7 @@ To render it again
      One part can be redone, e.g. the reindeer:  renderRange('frames',94.55,123.64)
   4. bash promo/make-video.sh   ->   promo\out\vector-space-christmas.mp4
 
-Model stills: ?promo&view=present (or tree, reindeer, xeno), then
+Model stills: ?promo&view=present (or tree, reindeer, xeno, guitarist, drummer), then
 Promo.viewFrame(t,yaw) and Promo.save('stills','name.jpg').
 
 If the music changes, run make-song-timing.js again. The scene cues

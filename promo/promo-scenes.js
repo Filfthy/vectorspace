@@ -229,14 +229,16 @@ function track(keys,t){
 const SINGER=V3(0,1.2,0);
 const camKeys=[[T.breakdown,V3(6,3.4,-26)],[T.breakdown+7,V3(2.5,2.4,-13)],[T.verse3,V3(-3.4,2.1,-7.6)],[T.verse3+9,V3(-9,3.6,-5.5)],
   [T.verse3+17,V3(-7,3.4,-15)],[T.verse3+22.5,V3(0,3,-19)],[T.verse3+30,V3(10,3.4,-14)],[T.outro,V3(7,4.5,-20)],[T.end-4,V3(0,6,-28)],[T.end+4,V3(0,6.5,-31)]];
+// The band hovers on the stage behind her from the start: two guitarists and a drummer.
+const BAND=[{at:V3(-3.4,.4,3.4),play:'guitar',body:C.g,trim:C.y,s:.9},{at:V3(3.5,.5,3.6),play:'guitar',body:C.o,trim:C.y,s:.9},{at:V3(0,1.5,6.6),play:'drums',body:C.u,trim:C.c,s:.95}];
 // The chorus: where each one waits off-stage, its place on stage, when it arrives, and what it sings.
 const CHORUS=[
-  {from:V3(-46,8,-20),at:V3(-3.6,.4,2.2),arrive:T.verse3+16,sing:'crowd',body:C.g,frill:C.y,s:.85},
-  {from:V3(44,-6,-24),at:V3(3.8,.7,2.0),arrive:T.verse3+16.8,sing:'crowd',body:C.u,frill:C.c,s:.95},
-  {from:V3(-30,22,30),at:V3(-6.8,2.6,5.2),arrive:T.verse3+17.8,sing:'harmony',body:C.c,frill:C.m,s:.8},
-  {from:V3(34,24,26),at:V3(6.9,2.4,5.0),arrive:T.verse3+18.6,sing:'harmony',body:C.y,frill:C.g,s:.8},
-  {from:V3(-20,-26,40),at:V3(-9.5,-1.4,8.5),arrive:T.verse3+19.6,sing:'choir',body:C.o,frill:C.c,s:.75},
-  {from:V3(24,-24,42),at:V3(9.6,-1.1,8.8),arrive:T.verse3+20.4,sing:'choir',body:C.m,frill:C.y,s:.75}];
+  {from:V3(-46,8,-20),at:V3(-6.6,.9,1.4),arrive:T.verse3+16,sing:'crowd',body:C.g,trim:C.c,s:.85},
+  {from:V3(44,-6,-24),at:V3(6.8,1.1,1.6),arrive:T.verse3+16.8,sing:'crowd',body:C.u,trim:C.y,s:.9},
+  {from:V3(-30,22,30),at:V3(-9.2,3.0,4.6),arrive:T.verse3+17.8,sing:'harmony',body:C.c,trim:C.m,s:.8},
+  {from:V3(34,24,26),at:V3(9.3,2.9,4.4),arrive:T.verse3+18.6,sing:'harmony',body:C.y,trim:C.g,s:.8},
+  {from:V3(-20,-26,40),at:V3(-11,-.8,7.2),arrive:T.verse3+19.6,sing:'choir',body:C.o,trim:C.c,s:.75},
+  {from:V3(24,-24,42),at:V3(11.2,-.6,7.5),arrive:T.verse3+20.4,sing:'choir',body:C.m,trim:C.y,s:.75}];
 const voices={lead:[...SONG.notes,...SONG.aria].sort((a,b)=>a.t-b.t),crowd:SONG.notes.filter(n=>n.crowd),harmony:SONG.notes.filter(n=>n.harmony)};
 const VOWEL={a:1,o:.9,u:.6,e:.75,i:.55};
 // How far open the jaw is at time t, from the sung notes: a quick opening on each syllable,
@@ -250,20 +252,60 @@ function jawAt(list,t){
 }
 // The low chorus holds each chord for a bar in the biggest sections: a slow open and close.
 function choirJaw(t){const b=(t-SONG.start)/SONG.bar,bar=Math.floor(b),u=b%1;return bar>=88&&bar<104?.32+.12*Math.sin(u*Math.PI):0}
+
+// ---- What the band plays, from the arrangement (bars count from 0 at the song's start) ----
+// Breakdown (bars 68-75): the band falls away, a ringing chord a bar from bar 72, soft kick and
+// cymbal from 70, a snare build in 74 and a roll in 75. Last verse and outro (76-102): the full
+// band, guitars chugging eighths, kick and snare with eighth-note hats, a crash every other bar.
+// Bar 103: the last chord and a crash.
+const BEAT=SONG.beat,BAR=SONG.bar;
+const since=(t,step,off=0)=>{const x=(t-off)/step;return(x-Math.floor(x))*step};   // seconds since the last tick of a grid
+const hitEnv=age=>age<0?0:clamp(1-age/.14,0,1)**2;
+function bandAt(t){const b=t/BAR,bar=Math.floor(b),inBar=t-bar*BAR;return{bar,k:bar-68,inBar,full:bar>=76&&bar<103,last:bar>=103}}
+function guitarPose(t,i){
+  const s=bandAt(t);let strum=0,fret=((s.bar*3+i)%5)/4;
+  if(s.full)strum=hitEnv(since(t,BEAT/2));
+  else if(s.last||(s.k>=4&&s.k<8))strum=hitEnv(s.inBar)*1.2;
+  return{strum:clamp(strum,0,1.2),fret,jaw:0,mand:.1+.05*Math.sin(t*2+i)}
+}
+function drumPose(t){
+  const s=bandAt(t),K=P.drumKit.strikes;let L=K.snare,R=K.hat,hl=0,hr=0;
+  if(s.full){
+    const beatInBar=Math.floor(s.inBar/BEAT);
+    hr=hitEnv(since(t,BEAT/2));
+    if(beatInBar===1||beatInBar===3)hl=hitEnv(s.inBar-beatInBar*BEAT);
+    if(s.bar%2===0&&s.inBar<BEAT/2){R=K.crash;hr=hitEnv(s.inBar)}
+    if(s.bar%4===3&&s.inBar>BEAT*2){L=K.tomL;R=K.tomR;const q=since(t,BEAT/4);hl=hitEnv(q);hr=hitEnv(q-BEAT/8)}
+  }else if(s.last){R=K.crash;L=K.tomL;hr=hitEnv(s.inBar);hl=hitEnv(s.inBar)}
+  else if(s.k>=2&&s.k<6){R=K.hat;hr=hitEnv(since(t,BEAT))*.7}
+  else if(s.k===6){const q=since(t,BEAT/2);hl=hitEnv(q);hr=hitEnv(q-BEAT/4)}
+  else if(s.k===7){const q=since(t,BEAT/4);hl=hitEnv(q);hr=hitEnv(q-BEAT/8)}
+  return{hitL:hl,hitR:hr,leftTarget:L,rightTarget:R,jaw:0,mand:.1}
+}
+
 const aria={name:'aria',t0:T.breakdown,seed:2412,
   setup(){
     resetGame();groundAssault?.reset?.();D.snow=false;
     mode='play';phase='asteroids';phaseT=modeT=0;inputX=inputY=aimX=aimY=0;viewRoll=0;
     asteroidField.active=true;asteroidField.ringPlanet={x:-118,y:-13,z:255,r:12.5,spin0:.4,ringRadii:[21,25,30,37]};
     asteroids.length=0;
-    const rock=(x,y,z,s,col=C.w)=>{const a=asteroidField.makeAsteroid({x,y,z,s,hp:9,vx:0,vy:0,vz:0,col,objective:false,missionTarget:false});a.wx=x;a.wy=y;a.wz=z;a.spin=a.spin.map(v=>v*.25);asteroids.push(a);return a};
-    aria.home=rock(0,-8.2,9,6.2,C.o);aria.home.spin=[.01,.03,.005];
-    // The field, kept clear of every line of sight from the camera's path to the stage.
-    const sight=[];for(let t=T.breakdown;t<=T.end;t+=.5){const c=track(camKeys,t);for(const q of[SINGER,V3(-7,1.5,5),V3(7,1.5,5),V3(-9.5,-1.4,8.5),V3(9.6,-1.1,8.8)])sight.push([c,q])}
-    const blocks=(x,y,z,r)=>sight.some(([a,b])=>{const ab=vsub(b,a),ap=vsub([x,y,z],a),u=clamp((ap[0]*ab[0]+ap[1]*ab[1]+ap[2]*ab[2])/(ab[0]**2+ab[1]**2+ab[2]**2),0,1),d=vsub(ap,vmul(ab,u));return Math.hypot(...d)<r});
-    for(let n=0,i=0;n<75&&i<600;i++){const r=12+Math.random()*75,a=Math.random()*Math.PI*2,y=(Math.random()-.5)*36,x=Math.cos(a)*r,z=8+Math.sin(a)*r,s=.6+Math.random()*2.6;if(blocks(x,y,z,s*1.5+2.2))continue;rock(x,y,z,s);n++}
-    aria.singer={mesh:P.makeXeno(C.m,C.c),pos:SINGER,s:1,sing:'lead',body:C.m,frill:C.c,rings:[],lastJaw:0};
-    aria.chorus=CHORUS.map(c=>({...c,mesh:P.makeXeno(c.body,c.frill),rings:[],lastJaw:0}));
+    // The game's own asteroid look: green, about a quarter yellow, tumbling and drifting.
+    const rock=(x,y,z,s,v=[0,0,0],col=Math.random()<.23?C.y:C.g)=>{const a=asteroidField.makeAsteroid({x,y,z,s,hp:9,vx:0,vy:0,vz:0,col,objective:false,missionTarget:false});a.wx=x;a.wy=y;a.wz=z;a.drift=v;asteroids.push(a);return a};
+    aria.home=rock(0,-8.2,9,6.2,[0,0,0],C.y);aria.home.spin=[.01,.03,.005];
+    // Lines of sight from the camera to the stage, sampled through the scene, so no drifting
+    // rock ever passes in front of a singer or a player.
+    const marks=[SINGER,...BAND.map(b=>b.at),...CHORUS.map(c=>c.at)],sight=[];
+    for(let t=T.breakdown;t<=T.end;t+=.5){const c=track(camKeys,t);sight.push({t,lines:marks.map(q=>[c,q])})}
+    const near=(p,a,b,r)=>{const ab=vsub(b,a),ap=vsub(p,a),u=clamp((ap[0]*ab[0]+ap[1]*ab[1]+ap[2]*ab[2])/(ab[0]**2+ab[1]**2+ab[2]**2),0,1);return Math.hypot(...vsub(ap,vmul(ab,u)))<r};
+    const blocks=(p0,v,r)=>sight.some(({t,lines})=>{const dt=t-T.breakdown,p=[p0[0]+v[0]*dt,p0[1]+v[1]*dt,p0[2]+v[2]*dt];return lines.some(([a,b])=>near(p,a,b,r))});
+    // The field drifts slowly across the view, right to left, each rock at its own pace.
+    for(let n=0,i=0;n<80&&i<900;i++){
+      const r=12+Math.random()*75,a=Math.random()*Math.PI*2,y=(Math.random()-.5)*36,p=[Math.cos(a)*r,y,8+Math.sin(a)*r],s=.6+Math.random()*2.6;
+      const v=[-(.6+Math.random()*1.8),(Math.random()-.5)*.5,(Math.random()-.5)*.8];
+      if(blocks(p,v,s*1.5+2.2))continue;rock(p[0],p[1],p[2],s,v);n++}
+    aria.singer={mesh:P.makeHornet(C.m,C.y),pos:SINGER,s:1,sing:'lead',body:C.m,trim:C.y,rings:[],lastJaw:0};
+    aria.chorus=CHORUS.map(c=>({...c,mesh:P.makeHornet(c.body,c.trim),rings:[],lastJaw:0}));
+    aria.band=BAND.map((b,i)=>({...b,pos:b.at,i,mesh:P.makeHornet(b.body,b.trim,b.play)}));
     aria.cam=camKeys[0][1];window.update=aria.update;aria.update(0)   // place the camera before the first frame is drawn
   },
   update(dt){
@@ -271,7 +313,8 @@ const aria={name:'aria',t0:T.breakdown,seed:2412,
     aria.cam=cam;shipX=cam[0];shipY=cam[1];travel=cam[2];
     const F=vnorm(vsub(look,cam)),R=vnorm(vcross([0,1,0],F)),U=vcross(F,R);
     spaceForward=F;spaceRight=R;spaceUp=U;viewRoll=Math.sin(t*.21)*.035;
-    for(const a of asteroids){a.x=a.wx;a.y=a.wy;a.z=a.wz-cam[2];a.rot=a.rot.map((r,i)=>r+a.spin[i]*dt)}
+    const age=t-T.breakdown;
+    for(const a of asteroids){a.x=a.wx+a.drift[0]*age;a.y=a.wy+a.drift[1]*age;a.z=a.wz+a.drift[2]*age-cam[2];a.rot=a.rot.map((r,i)=>r+a.spin[i]*dt)}
     asteroidField.ringPlanet.z=255-cam[2]*.2;
     time+=dt;phaseT+=dt;modeT+=dt
   },
@@ -279,33 +322,39 @@ const aria={name:'aria',t0:T.breakdown,seed:2412,
   overlay(){}
 };
 function singerPos(c,t){
-  if(!c.arrive)return vadd(c.pos,V3(0,Math.sin(t*.8)*.12,0));
+  if(!c.arrive)return vadd(c.pos,V3(0,Math.sin(t*.8+(c.i||0)*2)*.12,0));
   const u=smooth(clamp((t-(c.arrive-5))/5,0,1));
   const mid=vadd(vmul(vadd(c.from,c.at),.5),V3(0,4,-6)),a=vadd(vmul(c.from,(1-u)*(1-u)),vadd(vmul(mid,2*u*(1-u)),vmul(c.at,u*u)));
   return vadd(a,V3(0,Math.sin(t*.8+c.at[0])*.14*u,0))
 }
 function voiceJaw(c,t){return c.sing==='choir'?choirJaw(t):jawAt(voices[c.sing],t)}
+// Everyone on stage turns to face the camera.
+function facing(pos){const cam=aria.cam;return Math.atan2(-(cam[0]-pos[0]),-(cam[2]-pos[2]))}
 function drawSinger(c,t){
-  const pos=singerPos(c,t),cam=aria.cam,dx=cam[0]-pos[0],dz=cam[2]-pos[2];
-  const jaw=voiceJaw(c,t),held=c.sing==='choir'?.3:clamp(jaw*1.1,0,1);
-  c.arms=lerp(c.arms||0,c.sing==='lead'?(t<T.verse3?.75:.45+.4*held):.25+.5*held,.05);
-  c.mesh.pose({jaw,arms:c.arms,t:t+(c.at?c.at[0]:0)});
-  const obj={x:pos[0],y:pos[1],z:pos[2]-cam[2],s:c.s,rot:[0,Math.atan2(-dx,-dz),0]};
-  drawMesh(obj,c.mesh,c.body,1);
+  const pos=singerPos(c,t),cam=aria.cam,jaw=voiceJaw(c,t);
+  c.mesh.pose({jaw,mand:jaw,t:t+(c.at?c.at[0]:0)});
+  drawMesh({x:pos[0],y:pos[1],z:pos[2]-cam[2],s:c.s,rot:[0,facing(pos),0]},c.mesh,c.body,1);
   // Sound rings from the mouth on every new syllable.
   if(jaw>.35&&c.lastJaw<=.35)c.rings.push({t0:t});c.lastJaw=jaw;
-  const mouth=[pos[0],pos[1]+1.72*c.s,pos[2]-cam[2]],mp=proj(mouth);c.rings=c.rings.filter(r=>t-r.t0<1.3);
-  if(mp)for(const r of c.rings){const age=t-r.t0,rad=mp.k*c.s*(.35+age*1.6);ctx.save();ctx.globalAlpha=.55*(1-age/1.3);ctx.strokeStyle=c.frill;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.beginPath();ctx.ellipse(mp.x,mp.y,rad,rad*.62,0,0,Math.PI*2);ctx.stroke();ctx.restore()}
+  const mouth=[pos[0],pos[1]+1.45*c.s,pos[2]-cam[2]],mp=proj(mouth);c.rings=c.rings.filter(r=>t-r.t0<1.3);
+  if(mp)for(const r of c.rings){const age=t-r.t0,rad=mp.k*c.s*(.3+age*1.5);ctx.save();ctx.globalAlpha=.55*(1-age/1.3);ctx.strokeStyle=c.trim;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.beginPath();ctx.ellipse(mp.x,mp.y,rad,rad*.62,0,0,Math.PI*2);ctx.stroke();ctx.restore()}
   // Arrival: propulsion waves trailing behind while they fly in.
-  if(c.arrive&&t<c.arrive){const p=proj([pos[0],pos[1]-1.6*c.s,pos[2]-cam[2]]);if(p)for(let j=0;j<3;j++){const u=(t*2.2+j/3)%1;ctx.save();ctx.globalAlpha=(1-u)*.5;ctx.strokeStyle=C.c;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.beginPath();ctx.ellipse(p.x,p.y+u*p.k*.8,p.k*(.25+u*.4),p.k*(.12+u*.2),0,0,Math.PI*2);ctx.stroke();ctx.restore()}}
+  if(c.arrive&&t<c.arrive){const p=proj([pos[0],pos[1]-2.2*c.s,pos[2]-cam[2]]);if(p)for(let j=0;j<3;j++){const u=(t*2.2+j/3)%1;ctx.save();ctx.globalAlpha=(1-u)*.5;ctx.strokeStyle=C.c;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.beginPath();ctx.ellipse(p.x,p.y+u*p.k*.8,p.k*(.25+u*.4),p.k*(.12+u*.2),0,0,Math.PI*2);ctx.stroke();ctx.restore()}}
 }
-// Singers go into the game's depth-sorted scene list beside the asteroids.
+function drawPlayer(b,t){
+  const pos=singerPos(b,t),cam=aria.cam,rot=[0,facing(pos),0];
+  b.mesh.pose({...(b.play==='drums'?drumPose(t):guitarPose(t,b.i)),t:t+b.i*1.3});
+  drawMesh({x:pos[0],y:pos[1],z:pos[2]-cam[2],s:b.s,rot},b.mesh,b.body,1);
+  if(b.play==='drums')drawMesh({x:pos[0],y:pos[1],z:pos[2]-cam[2],s:b.s,rot},P.drumKit,C.r,1)   // the kit stands in front of the drummer
+}
+// Singers and band go into the game's depth-sorted scene list beside the asteroids.
 const gameAppend=routeDiversion.appendScene?.bind(routeDiversion);
 routeDiversion.appendScene=function(scene){
   gameAppend?.(scene);
   if(D.scene!==aria||phase!=='asteroids')return;
-  const t=D.clock;
-  for(const c of[aria.singer,...aria.chorus]){if(c.arrive&&t<c.arrive-5)continue;const pos=singerPos(c,t),z=camPoint([pos[0],pos[1],pos[2]-aria.cam[2]])[2];if(z>.5)scene.push({z,draw:()=>drawSinger(c,t)})}
+  const t=D.clock,depth=pos=>camPoint([pos[0],pos[1],pos[2]-aria.cam[2]])[2];
+  for(const c of[aria.singer,...aria.chorus]){if(c.arrive&&t<c.arrive-5)continue;const z=depth(singerPos(c,t));if(z>.5)scene.push({z,draw:()=>drawSinger(c,t)})}
+  for(const b of aria.band){const z=depth(singerPos(b,t));if(z>.5)scene.push({z,draw:()=>drawPlayer(b,t)})}
 };
 const gameUpdate=window.update;
 

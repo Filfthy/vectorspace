@@ -102,55 +102,88 @@ const snowman=posedMesh(buildSnowman,{snow:C.w,coal:C.x,carrot:C.o,sticks:C.o,sc
     }};
 })();
 
-// ---------- The singing xeno ----------
-// Upright, floating, with a fan frill behind the head and a hinged jaw. pose: jaw (0..1),
-// arms (0..1, how far the arms are raised), t (time, for the drifting tail and frill).
-function buildXeno(m,p){
-  const jaw=p.jaw||0,arms=p.arms||0,t=p.t||0,sway=Math.sin(t*.9)*.05;
-  // Thorax and abdomen as one long loft: up through the chest, curling down and back into a tail.
-  const spine=[[0,-2.7,.95,.08],[0,-2.25,.75,.24],[0,-1.7,.45,.42],[0,-1.05,.2,.56],[0,-.4,.05,.62],[0,.25,0,.72],[0,.85,-.05,.66],[0,1.25,-.02,.42],[0,1.5,.02,.28]];
-  m.mark('body',()=>m.loft(spine.map(([x,y,z,r],i)=>m.ringXZ(x+sway*(1-i/8),y,z,r,r*.86,8,PI/8))));
-  // Armour ridges down the back.
-  m.mark('ridge',()=>{for(let i=2;i<7;i++){const[,y,z,r]=spine[i];m.beam([0,y-.15,z+r*.8],[0,y+.2,z+r*1.25],.07,.07,.3)}});
-  // Head: cranium lofted forward to a narrow snout; the jaw hinges under it.
-  // The head is scaled up and tipped back, snout raised, the way a singer lifts her chin,
-  // so the open jaw and the lit throat face the audience.
-  const hy=1.72,hz=0,open=jaw*1.1,HK=1.55,TILT=.42,ct=Math.cos(TILT),st=Math.sin(TILT),
-    headT=q=>{const y=q[1]-hy,z=q[2]-.15;return[q[0]*HK,hy+(y*ct-z*st)*HK,.15+(y*st+z*ct)*HK]};
-  m.T=headT;
-  m.mark('head',()=>m.loft([
-    [[-.3,hy-.02,hz+.36],[.3,hy-.02,hz+.36],[.36,hy+.32,hz+.28],[-.36,hy+.32,hz+.28]],
-    [[-.34,hy-.04,hz-.08],[.34,hy-.04,hz-.08],[.32,hy+.36,hz-.12],[-.32,hy+.36,hz-.12]],
-    [[-.16,hy+.02-open*.08,hz-.62],[.16,hy+.02-open*.08,hz-.62],[.12,hy+.16,hz-.66],[-.12,hy+.16,hz-.66]]]));
-  // Jaw rotates about the hinge (x axis through the back of the head).
-  const hinge=[0,hy-.04,hz+.22],ca=Math.cos(open),sa=Math.sin(open);
-  const J=q=>{const dy=q[1]-hinge[1],dz=q[2]-hinge[2];return[q[0],hinge[1]+dy*ca-dz*sa,hinge[2]+dy*sa+dz*ca]};
-  m.mark('jaw',()=>{m.loft([[[-.28,hy-.06,hz+.2],[.28,hy-.06,hz+.2],[.26,hy-.24,hz+.16],[-.26,hy-.24,hz+.16]],
-    [[-.13,hy-.02,hz-.56],[.13,hy-.02,hz-.56],[.1,hy-.12,hz-.54],[-.1,hy-.12,hz-.54]]].map(r=>r.map(J)));
-    // Teeth along the jaw's edge, pointing up into the mouth.
-    for(const s of[-1,1])for(const u of[.25,.5,.75]){const z=lerp(hz+.1,hz-.5,u),x=s*lerp(.25,.12,u);m.beam(J([x,hy-.05,z]),J([x,hy+.06,z]),.03,.03,.2)}});
-  // Upper teeth hanging from the snout, and the throat: a lit palate that shows when she opens up.
-  m.mark('teeth',()=>{for(const s of[-1,1])for(const u of[.3,.55,.8]){const z=lerp(hz+.05,hz-.58,u),x=s*lerp(.27,.12,u);m.beam([x,hy-.02,z],[x,hy-.13,z],.035,.035,.15)}});
-  m.mark('throat',()=>m.box([0,hy+.03,hz-.12],[.36,.1,.62]));
-  // Eyes: small yellow diamonds on the sides of the skull.
-  m.mark('eyes',()=>{for(const s of[-1,1])m.loft([pt4([s*.3,hy+.22,hz-.24]),m.ringXY(s*.31,hy+.22,hz-.2,.065,4),pt4([s*.32,hy+.22,hz-.12])],false,false)});
-  // Frill: six spines fanning up and back from the skull with membrane between them.
-  m.mark('frill',()=>{const base=[0,hy+.25,hz+.3],tips=[];
-    for(let i=0;i<6;i++){const a=lerp(-1.05,1.05,i/5),w=Math.sin(t*1.7+i)*.04;tips.push([Math.sin(a)*1.05,hy+.45+Math.cos(a)*.9+w,hz+.85+Math.abs(Math.sin(a))*.15])}
-    for(let i=0;i<5;i++)m.loft([[base,base,base],[tips[i],lerp3(tips[i],tips[i+1],.5,[0,.12,.05]),tips[i+1]]],false,false);
-    for(const tp of tips)m.beam(base,tp,.04,.04,.3)});
-  m.T=null;
-  // Arms: shoulder, elbow, a three-clawed hand. Raised for the long notes, like a singer.
-  m.mark('arms',()=>{for(const s of[-1,1]){const sh=[s*.62,1.0,-.05],el=[s*lerp(1.25,1.45,arms),lerp(.1,1.0,arms),lerp(-.3,-.35,arms)],hd=[s*lerp(1.45,2.2,arms),lerp(.35,1.9,arms),lerp(-.85,-.7,arms)];
-    m.beam(sh,el,.16,.16,.8);m.beam(el,hd,.12,.12,.7);
-    for(const c of[-1,0,1])m.beam(hd,[hd[0]+s*.3,hd[1]+.14+c*.16,hd[2]-.16],.05,.05,.2)}});
-  // Tail tendrils drifting behind.
-  m.mark('tendrils',()=>{for(const s of[-1,0,1]){const pts=[];for(let i=0;i<6;i++){const u=i/5;pts.push([s*.12+Math.sin(t*1.3+u*3+s)*.18*u,-2.65-u*1.3,.95+u*.5+Math.cos(t*1.1+u*2.5)*.12*u])}polyline(m,pts)}})
-}
+// ---------- The xenos: the game's Stinger Hornet, standing up to sing ----------
+// The hornet's segmented body, its two pairs of buzzing wings and its stinger, hovering
+// upright with the head tipped towards the audience. Added for the promo: big compound
+// eyes, antennae, mandibles that part and a jaw that drops, and a lit throat inside.
+// Band players also get a pair of arms. Model faces -z. pose: jaw (0..1), t (time),
+// mand (mandible spread 0..1), and for the band: strum (0..1), hitL / hitR (0..1),
+// leftTarget / rightTarget (where the drumsticks strike).
+const HORNET_SPINE=[[-2.0,.03,.3],[-1.75,.1,.28],[-1.4,.32,.24],[-.95,.46,.16],[-.45,.44,.08],[-.12,.26,.02],[.05,.12,0],[.25,.3,0],[.6,.4,-.02],[.95,.34,-.04],[1.15,.18,-.05],[1.26,.12,-.06]];
+function hornetRing(y,w,z){const d=w*.82;return[[-w,y,z],[-w*.55,y,z-d],[w*.55,y,z-d],[w,y,z],[w*.55,y,z+d],[-w*.55,y,z+d]]}
 function pt4(p){return[p,p,p,p]}
-function lerp3(a,b,u,off=[0,0,0]){return[lerp(a[0],b[0],u)+off[0],lerp(a[1],b[1],u)+off[1],lerp(a[2],b[2],u)+off[2]]}
-const xenoColours=(body,frill)=>({body,ridge:body,head:body,jaw:body,teeth:C.w,throat:C.y,eyes:C.y,frill,arms:body,tendrils:frill});
-function makeXeno(body=C.m,frill=C.c){return posedMesh(buildXeno,xenoColours(body,frill))}
+function pt6(c,s,dx){const p=[c[0]+s*dx,c[1],c[2]];return[p,p,p,p,p,p]}
+function ringYZ(x,y,z,ry,rz,n){return Array.from({length:n},(_,i)=>{const a=i*TAU/n;return[x,y+Math.cos(a)*ry,z+Math.sin(a)*rz]})}
+function vnorm3(a){const l=Math.hypot(a[0],a[1],a[2])||1;return[a[0]/l,a[1]/l,a[2]/l]}
+function buildHornet(m,p){
+  const t=p.t||0,jaw=clamp(p.jaw||0,0,1),band=p.band||null;
+  m.mark('body',()=>m.loft(HORNET_SPINE.map(([y,w,z])=>hornetRing(y,w,z))));
+  m.mark('sting',()=>m.beam([0,-1.98,.3],[0,-2.5,.42],.08,.06,.1));
+  // Abdomen bands, like the game hornet's waist ring.
+  m.mark('bands',()=>{for(const[y,w,z]of[[-1.4,.33,.24],[-.95,.47,.16],[-.45,.45,.08]])m.loft([hornetRing(y-.015,w,z),hornetRing(y+.015,w,z)],false,false)});
+  // Head, tipped forward towards the audience.
+  const hy=1.3,lean=.38,cl=Math.cos(lean),sl=Math.sin(lean);
+  m.T=q=>{const y=q[1]-hy,z=q[2];return[q[0],hy+y*cl+z*sl,-y*sl+z*cl]};
+  m.mark('head',()=>m.loft([hornetRing(hy,.24,.02),hornetRing(hy+.22,.38,-.04),hornetRing(hy+.5,.36,-.06),hornetRing(hy+.72,.22,-.04),hornetRing(hy+.8,.06,-.02)]));
+  // Compound eyes: big faceted ovals on the sides of the face.
+  m.mark('eyes',()=>{for(const s of[-1,1]){const c=[s*.3,hy+.44,-.2];m.loft([pt6(c,s,-.02),ringYZ(c[0]+s*.03,c[1],c[2],.16,.2,6),pt6(c,s,.1)],false,false)}});
+  // Antennae, elbowed, springing a little as she sings.
+  m.mark('antennae',()=>{for(const s of[-1,1]){const a=[s*.08,hy+.74,-.18],b=[s*.24,hy+1.15,-.45-jaw*.05],c=[s*.4,hy+1.32+Math.sin(t*3+s)*.03,-.2];m.beam(a,b,.035,.035,.8);m.beam(b,c,.03,.03,.5)}});
+  // Mouth: mandibles part sideways, the jaw plate drops, the throat glows behind.
+  const open=jaw*.75,spread=(p.mand??jaw)*.7;
+  m.mark('mandibles',()=>{for(const s of[-1,1]){const root=[s*.16,hy+.12,-.24],ang=s*spread,c=Math.cos(ang),si=Math.sin(ang);
+    const R=q=>{const dx=q[0]-root[0],dz=q[2]-root[2];return[root[0]+dx*c-dz*si,q[1],root[2]+dx*si+dz*c]};
+    m.loft([[R([s*.16,hy+.06,-.24]),R([s*.16,hy+.2,-.24]),R([s*.2,hy+.13,-.22])],[R([s*.04,hy+.02,-.56]),R([s*.04,hy+.12,-.54]),R([s*.08,hy+.07,-.52])]])}});
+  const hinge=[0,hy+.06,-.08],ca=Math.cos(open),sa=Math.sin(open),J=q=>{const dy=q[1]-hinge[1],dz=q[2]-hinge[2];return[q[0],hinge[1]+dy*ca-dz*sa,hinge[2]+dy*sa+dz*ca]};
+  m.mark('jaw',()=>m.loft([[[-.2,hy+.04,-.08],[.2,hy+.04,-.08],[.18,hy-.06,-.1],[-.18,hy-.06,-.1]].map(J),[[-.1,hy+.06,-.46],[.1,hy+.06,-.46],[.08,hy,-.44],[-.08,hy,-.44]].map(J)]));
+  m.mark('throat',()=>m.box([0,hy+.16,-.22],[.24,.08,.36]));
+  m.T=null;
+  // Two pairs of wings off the back of the thorax, buzzing like the game hornet's.
+  m.mark('wings',()=>{for(const s of[-1,1])for(const[root,tip,trail,ph]of[[[.2,.85,.22],[1.75,1.35,.85],[1.0,.5,1.0],0],[[.18,.6,.22],[1.25,.3,.95],[.62,.12,.82],.55]]){
+    const a=Math.sin(t*16.5+ph)*.5*s,c=Math.cos(a),si=Math.sin(a),r=[s*root[0],root[1],root[2]],lift=Math.sin(t*16.5+ph);
+    const Wg=q=>{const dx=q[0]-r[0],dz=q[2]-r[2];return[r[0]+dx*c-dz*si,q[1]+Math.abs(dx)*.12*lift,r[2]+dx*si+dz*c]};
+    m.loft([[r,r,r],[Wg([s*tip[0],tip[1],tip[2]]),Wg([s*(tip[0]+trail[0])/2,(tip[1]+trail[1])/2+.06,(tip[2]+trail[2])/2+.08]),Wg([s*trail[0],trail[1],trail[2]])]],false,false)}});
+  if(band)buildBandArms(m,p,band)
+}
+// Arms from the front of the thorax: shoulder, elbow, a three-fingered claw.
+function hornetArm(m,s,hand,fingers=true){const sh=[s*.34,.85,-.12],mid=[(sh[0]+hand[0])/2+s*.22,(sh[1]+hand[1])/2-.2,(sh[2]+hand[2])/2+.05];
+  m.beam(sh,mid,.1,.1,.8);m.beam(mid,hand,.08,.08,.7);if(fingers)for(const c of[-1,0,1])m.beam(hand,[hand[0]+s*.1,hand[1]+.06+c*.07,hand[2]-.1],.03,.03,.2)}
+// A flat shape (2D points in the plane through O spanned by U and V), with thickness along N.
+function flatShape(m,pts,O,U,V,N,th){const at=(q,k)=>[O[0]+U[0]*q[0]+V[0]*q[1]+N[0]*k,O[1]+U[1]*q[0]+V[1]*q[1]+N[1]*k,O[2]+U[2]*q[0]+V[2]*q[1]+N[2]*k];m.loft([pts.map(q=>at(q,-th/2)),pts.map(q=>at(q,th/2))])}
+const GUITAR_BODY=[[-.42,0],[-.36,.2],[-.18,.26],[-.02,.16],[.12,.22],[.24,.14],[.26,-.02],[.2,-.18],[0,-.26],[-.24,-.24],[-.4,-.14]].map(([u,v])=>[u*1.45,v*1.45]);
+const GUITAR={O:[.18,.42,-.62],U:vnorm3([-1,.62,.05]),V:vnorm3([.62,1,0]),N:[0,0,-1]};
+function guitarPoint(u,v=0,dz=0){const{O,U,V}=GUITAR;return[O[0]+U[0]*u+V[0]*v,O[1]+U[1]*u+V[1]*v,O[2]+U[2]*u+V[2]*v+dz]}
+function buildBandArms(m,p,band){
+  if(band==='guitar'){
+    // The guitar slung across the front, neck rising to her left; strumming at the body, a claw on the frets.
+    const{O,U,V,N}=GUITAR;
+    m.mark('guitar',()=>{flatShape(m,GUITAR_BODY,O,U,V,N,.08);m.beam(guitarPoint(.3),guitarPoint(1.6),.08,.05);flatShape(m,[[0,-.07],[.28,-.1],[.28,.09],[0,.06]],guitarPoint(1.6),U,V,N,.05)});
+    m.mark('strings',()=>{for(const k of[-.025,.025])polyline(m,[guitarPoint(-.15,k,-.06),guitarPoint(1.58,k,-.06)])});
+    const st=p.strum||0,fret=p.fret||0;
+    m.mark('arms',()=>{hornetArm(m,1,[.3,.48+st*.16,-.72]);const f=guitarPoint(.9+fret*.45,.05,-.09);hornetArm(m,-1,f)})
+  }else if(band==='drums'){
+    const L=p.leftTarget||[-.5,.3,-.9],R=p.rightTarget||[.5,.35,-.9],hl=p.hitL||0,hr=p.hitR||0;
+    const handL=[L[0]*.75,lerp(L[1]+.55,L[1]+.14,hl),lerp(-.55,L[2]+.25,hl)],handR=[R[0]*.75,lerp(R[1]+.55,R[1]+.14,hr),lerp(-.55,R[2]+.25,hr)];
+    const tip=(h,T)=>[h[0]+(T[0]-h[0])*1.15,h[1]+(T[1]-h[1])*1.15,h[2]+(T[2]-h[2])*1.15];
+    m.mark('arms',()=>{hornetArm(m,-1,handL,false);hornetArm(m,1,handR,false)});
+    m.mark('sticks',()=>{m.beam(handL,tip(handL,L),.035,.035,.6);m.beam(handR,tip(handR,R),.035,.035,.6)})
+  }
+}
+const hornetColours=(body,trim)=>({body,sting:trim,bands:trim,head:body,eyes:C.y,antennae:trim,mandibles:C.w,jaw:body,throat:C.y,wings:C.c,arms:body,guitar:C.r,strings:C.w,sticks:C.w});
+function makeHornet(body=C.m,trim=C.y,band=null){const mesh=posedMesh((m,p)=>buildHornet(m,{...p,band}),hornetColours(body,trim));mesh.band=band;return mesh}
 
-globalThis.PromoModels={present,xmasTree,snowman,makeXeno,posedMesh,edgeColours};
+const KIT_T=p=>[p[0]*1.35,p[1]*1.35-.1,p[2]*1.25-.05];
+// The drum kit: bass drum facing the audience, snare and two toms, hi-hat and a crash
+// cymbal on stands. Strike points (in the drummer's model space) for the sticks.
+function buildDrumKit(m){
+  m.T=KIT_T;
+  const drum=(c,r,h,axis)=>m.loft([-h/2,h/2].map(k=>axis==='z'?m.ringXY(c[0],c[1],c[2]+k,r,12):m.ringXZ(c[0],c[1]+k,c[2],r,r,12)));
+  m.mark('shells',()=>{drum([0,-.45,-.4],.5,.42,'z');drum([-.55,.22,-.8],.22,.16,'y');drum([-.22,.42,-.62],.18,.16,'y');drum([.22,.44,-.62],.2,.18,'y')});
+  m.mark('metal',()=>{const cym=(c,r)=>m.loft([m.ringXZ(c[0],c[1],c[2],r,r,12),m.ringXZ(c[0],c[1]+.05,c[2],.04,.04,12)]);cym([.62,.62,-.78],.26);cym([-.7,.95,-.45],.34);
+    for(const[x,z,y]of[[.62,-.78,.62],[-.7,-.45,.95],[-.55,-.8,.14]])m.beam([x,-.9,z],[x,y,z],.03,.03)});
+}
+const drumKit=posedMesh(buildDrumKit,{shells:C.r,metal:C.y});
+drumKit.strikes=Object.fromEntries(Object.entries({snare:[-.55,.32,-.8],tomL:[-.22,.52,-.62],tomR:[.22,.54,-.62],hat:[.62,.66,-.78],crash:[-.7,1.0,-.45]}).map(([k,v])=>[k,KIT_T(v)]));
+
+globalThis.PromoModels={present,xmasTree,snowman,makeHornet,drumKit,posedMesh,edgeColours};
 })();

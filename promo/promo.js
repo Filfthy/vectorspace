@@ -33,7 +33,7 @@ const Promo=globalThis.Promo={Q,CAP,composite,save,saveText,get pending(){return
 // ---------- Model viewer ----------
 const view=Q.get('view');
 if(view){
-  const M=PromoModels,xeno=M.makeXeno();
+  const M=PromoModels,xeno=M.makeHornet(C.m,C.y),guitarist=M.makeHornet(C.g,C.y,'guitar'),drummer=M.makeHornet(C.u,C.c,'drums');
   const reindeerMesh=(()=>{const b=gaBuilder(true);const u={K:GA_KINDS.reindeer};
     // Rest pose straight from the kind's leg design, like the audition sheet.
     GA_KINDS.reindeer.body(b);for(const[i,L]of GA_KINDS.reindeer.legs.entries())gaLeg(b,L,L.t,i);
@@ -42,7 +42,9 @@ if(view){
     present:{mesh:M.present,col:C.r,s:1.2,y:0,dist:3.6,tilt:.35},
     tree:{mesh:M.xmasTree,col:C.g,s:1,y:-1.5,dist:6.6,tilt:.12,anim:t=>M.xmasTree.twinkle(t)},
     reindeer:{mesh:reindeerMesh,col:C.w,s:.62,y:-1.3,dist:6,tilt:.12},
-    xeno:{mesh:xeno,col:C.m,s:.72,y:.25,dist:7.4,tilt:.05,anim:t=>xeno.pose({jaw:.5+.5*Math.sin(t*3),arms:.5+.5*Math.sin(t*.7),t})}
+    xeno:{mesh:xeno,col:C.m,s:.9,y:-.1,dist:7.4,tilt:.05,anim:t=>xeno.pose({jaw:.5+.5*Math.sin(t*3),t})},
+    guitarist:{mesh:guitarist,col:C.g,s:.9,y:-.1,dist:7.4,tilt:.05,anim:t=>guitarist.pose({jaw:0,t,strum:.5+.5*Math.sin(t*12)})},
+    drummer:{mesh:drummer,col:C.u,s:.9,y:-.1,dist:7.4,tilt:.05,extra:M.drumKit,anim:t=>drummer.pose({t,hitL:Math.max(0,Math.sin(t*6)),hitR:Math.max(0,-Math.sin(t*6)),leftTarget:M.drumKit.strikes.snare,rightTarget:M.drumKit.strikes.hat})}
   };
   const S=subjects[view]||subjects.present;
   const ang=Q.has('yaw')?+Q.get('yaw'):null;
@@ -54,7 +56,8 @@ if(view){
     ctx.restore();gpuBloom.render(canvas,glowStrength/100);
     requestAnimationFrame(window.render)
   };
+  // A drum kit (extra) is drawn after its player: it stands in front of him.
   Promo.viewFrame=(t,yaw)=>{const keep=ang;S.anim?.(t);mode='promoView';phase='promo';shipX=shipY=0;viewYaw=viewPitch=viewRoll=0;
-    viewPitch=-S.tilt;ctx.save();ctx.fillStyle='#000';ctx.fillRect(-20,-20,W+40,H+40);drawMesh({x:0,y:S.y+Math.tan(S.tilt)*S.dist*0,z:S.dist,s:S.s,rot:[0,yaw,0]},S.mesh,S.col,1);ctx.restore();gpuBloom.render(canvas,.35)};
+    viewPitch=-S.tilt;ctx.save();ctx.fillStyle='#000';ctx.fillRect(-20,-20,W+40,H+40);drawMesh({x:0,y:S.y,z:S.dist,s:S.s,rot:[0,yaw,0]},S.mesh,S.col,1);if(S.extra)drawMesh({x:0,y:S.y,z:S.dist,s:S.s,rot:[0,yaw,0]},S.extra,C.r,1);ctx.restore();gpuBloom.render(canvas,.35)};
 }
 })();
