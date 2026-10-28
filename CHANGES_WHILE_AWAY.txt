@@ -216,7 +216,7 @@ tested muted, each its own commit.
 START HERE (overnight summary)
 ------------------------------
 What your brief asked for, and where it went. The details for each item are
-in the numbered entries below (v700 to v1250).
+in the numbered entries below (v700 to v1270).
 
 New land missions and locations (board jobs)
   Bunker Raid (OSD), Groundside Pickup (Compact, QuickBite, Red Jackal,
@@ -234,8 +234,8 @@ Planet and moon types
   and dead pines). From orbit, planets can be ringed, banded or cratered,
   ice planets show white fracture lines and crystal planets faceted fields.
   Land on a moon and its planet hangs in the sky. Land on a planet and you
-  can see its moons. A short nav line on the plains says what the world is
-  like.
+  can see its moons. A short nav line on the plains says what the world (or
+  moon) is like.
 
 New opponents
   Hijacked military drones (orange, tougher, they stall in "loyalty
@@ -266,7 +266,7 @@ Also
 How it was checked
   Every change was tested muted in the browser pane. There were three
   full sweeps of every board template, a board mix check and an economy
-  check, and eight independent read-only code reviews. All their real
+  check, and nine independent read-only code reviews. All their real
   findings are fixed, and the one wrong finding is noted.
 
 Things only you can do
@@ -1104,3 +1104,11 @@ v1270 Moon chatter
       moon itself: "LOW GRAVITY · TRIM ADJUSTED", "PARENT PLANET OFF THE
       PORT BOW" (it is, see v1210) and "THIN ATMOSPHERE · SOUND WILL CARRY
       POORLY". Tested muted: 40 sampled landings give the expected mix.
+
+(no code change) Fifth independent review (v1240 to v1270)
+      A last read-only review checked the beacon-as-diversion change
+      against everything that reads a mission's diversions (completion,
+      standing, stats, the debrief, the Codex and the VOX Wire), plus the
+      chatter rules, moon chatter, the two Codex entries and the new
+      contact notes. Nothing significant. The beacon counts exactly once,
+      and a failed mission now gives nothing for it, as intended.
