@@ -8,3 +8,6 @@ voices unprocessed/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# Promo render output (frames and videos)
+promo/out/

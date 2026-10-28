@@ -1132,3 +1132,15 @@ v1290 Your feedback: orbit cracks and facets out, new shooter flowers
       fire from the same point, so the fight plays the same. Tested muted:
       a swamp relay run to the debrief with the new flowers firing, and no
       errors.
+
+v1300 Christmas promo video (promo folder)
+      A 3:12 music video made in the game, to "God Rest Ye Merry
+      Starmen (In Her Own Words)": the descent to a green world, snowy
+      plains and forest, a cabin with a decorated tree outside and a
+      present (a box with crossed ribbons) delivered to its deck, lift-off
+      as the guitar solo starts, a team of reindeer mechs galloping on a
+      rocky world, then the asteroid field where a xeno sings the aria and
+      six more fly in for the ending. Her mouth follows every syllable of
+      the song's score. Everything is in promo/ (see promo/README.txt).
+      The game only loads it when the address has ?promo, so normal play
+      is unchanged.

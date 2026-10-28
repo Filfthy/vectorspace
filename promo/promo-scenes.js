@@ -1,0 +1,256 @@
+'use strict';
+// The three promo scenes. Each has t0 (song time it starts), setup(), pilot(dt,t)
+// (sets the game's inputs before its frame) and overlay(t) (drawn over the world).
+(()=>{
+const D=globalThis.PromoDirector;if(!D)return;
+const T=D.T,P=globalThis.PromoModels;
+
+// Clear whatever the previous scene left running, without the debrief screens.
+function resetGame(){
+  try{campaign.currentMission=null;campaign.pendingMission=null;campaign.currentStageIndex=0}catch(_){}
+  try{forest.active=false;surfaceDestination.stopForJump();groundAssault?.active&&(groundAssault.active=false);asteroidField.stop?.()}catch(_){}
+  fighters.length=0;asteroids.length=0;groundTargets.length=0;bolts.length=0;hazards.length=0;shots.length=0;playerMissiles.length=0;
+  paused=false;document.body.classList.remove('paused');if(campaign.isOpen())campaign.hideHub()
+}
+function launch(templateId,faction,edit){
+  resetGame();
+  const m=campaign.makeDevTemplatePreview(templateId,faction);edit(m);
+  campaign.launchDevTemplateTest(templateId,faction,{mission:m});
+  paused=false;document.body.classList.remove('paused');invulnerable=true;
+  // Skip the black mission-transit seconds: open on the planet itself.
+  for(let i=0;i<400&&mode==='missionTransit';i++)update(1/30)
+}
+
+// ---------- Scene 1: the cabin in the snowy woods ----------
+const cabin={name:'cabin',t0:0,seed:1225,
+  // Song cues: the descent over the titles, the forest as the strings come in, lift-off to end on the solo.
+  marks:[{ev:'plains',at:18},{ev:'forest',at:T.riff},{ev:'glade',at:T.riff+29},{ev:'exit',at:T.solo-6.2},{ev:'done',at:T.solo}],
+  event(){if(mode==='victory'||(mode==='surfaceExit'&&modeT>5.9))return'done';if(mode==='surfaceExit')return'exit';
+    if(phase==='forest'&&forest.active)return forest.terminalState==='run'?'forest':'glade';
+    if(phase==='destinationApproach')return'plains';if(mode==='approach')return'approach';return null},
+  setup(){
+    D.snow=true;
+    launch('forest_cabin_delivery','quickbite',m=>{
+      m.planetaryRequirements={landingBody:'planet',landingColour:'green',moonCount:{min:1,max:1}};
+      // No orbital ambush: straight to the descent.
+      m.modules=m.modules.filter(x=>['planet_descent','surface_destination_approach','forest_corridor'].includes(x.type));m.stages=m.modules.map(x=>x.label);m.routeEncounter=null;
+      const approach=m.modules.find(x=>x.type==='surface_destination_approach'),run=m.modules.find(x=>x.type==='forest_corridor');
+      approach.routeLength=cabin.routeLength;approach.treeClumps=18;run.length=cabin.forestLength;
+    });
+    planetStyle='grid';planetRings=null;
+    cabin.xmasTreeAdded=false
+  },
+  routeLength:430,forestLength:650,
+  pilot(dt){
+    if(mode==='play'&&phase==='destinationApproach'&&surfaceDestination.active){
+      const e=wrapAngle(surfaceDestination.bearing()-viewYaw);inputX=moveToward(inputX,clamp(e*1.8,-.75,.75),dt*2.2);inputY=moveToward(inputY,.22,dt*2)
+    }else if(mode==='play'&&phase==='forest'&&forest.active){
+      if(!cabin.xmasTreeAdded&&forest.cabin)addXmasTree();
+      if(forest.terminalState==='run'||forest.terminalState==='glade')forestPilot(dt)
+    }
+  },
+  overlay(){if(phase==='forest'||phase==='destinationApproach'||mode==='surfaceExit'||mode==='trenchEntry')D.drawSnowfall(.15)}
+};
+// Steer down the forest path around the standing hazards, and lift over the fallen ones.
+function forestPilot(dt){
+  const p=forest.pathAtWorld(travel+1.2),reach=Math.max(.55,p.half-.62);
+  let tx=p.x,lift=0;
+  for(const t of forest.obstacles){
+    const z=t.worldZ-travel;if(z<-.5||z>26)continue;const of=t.obstacle||{};
+    if(of.kind==='fallen'){if(z<12)lift=1;continue}
+    const r=(of.radius||.85)+.75,pz=forest.pathAtWorld(t.worldZ),left=t.x-r,right=t.x+r;
+    // Pass on the side with more room; nearer hazards win.
+    const goLeft=(left-(pz.x-pz.half))>((pz.x+pz.half)-right);const want=goLeft?left:right;
+    if(z<18){tx=want;break}
+  }
+  const want=clamp((tx-p.x)/reach,-1,1);
+  inputX=moveToward(inputX,want,dt*2.6);inputY=moveToward(inputY,lift?-.95:-.15,dt*2.4)
+}
+// The decorated tree, standing on the cabin's left in the glade.
+function addXmasTree(){
+  cabin.xmasTreeAdded=true;
+  const w=forest.cabinLocalToWorld([-4.3,0,-1.6]);if(!w)return;
+  const y=forest.floorAt(w[2],w[0]);
+  forest.trees.push({type:'forestTree',id:'promo-xmas',assetId:null,mesh:P.xmasTree,worldZ:w[2],x:w[0],y,z:w[2]-travel,s:1.7,rot:[0,.4,0],col:C.g,dead:false,obstacle:null,passed:true,
+    promoDraw:(o,a)=>{P.xmasTree.twinkle(D.clock);drawMesh(o,P.xmasTree,C.g,a)}})
+}
+// The parcel is a present: same flight, same landing spot.
+const gameCargo=forest.drawCabinCargo.bind(forest);
+forest.drawCabinCargo=function(){
+  const state=this.cabinCargoState?.();if(!state||!D.snow)return gameCargo();
+  const cp=proj(state.point);
+  if(state.beam&&cp){const keep=drawMesh;window.drawMesh=()=>{};try{gameCargo()}finally{window.drawMesh=keep}}   // keep the tractor waves, skip the box
+  drawMesh({type:'promoPresent',x:state.point[0],y:state.point[1]+.2,z:state.point[2],s:state.landed?.4:lerp(.16,.4,forest.deliveryProgress||0),rot:[0,.35+(state.landed?0:D.clock*.8),0]},P.present,C.r,.98)
+};
+
+// ---------- Scene 2: reindeer mechs on a rocky world (the guitar solo) ----------
+const HERD=7;
+const herd={name:'reindeer',t0:T.solo,seed:2512,
+  marks:[{ev:'dunes',at:T.solo+9}],
+  event(){return groundAssault?.active&&mode==='play'&&phase==='surface'?'dunes':null},
+  setup(){
+    D.snow=false;herd.herdBuilt=false;herd.path=null;herd.wantSpd=0;
+    launch('dune_armour_clearance','security',m=>{
+      m.planetaryRequirements={landingBody:'planet',landingColour:'orange',moonCount:{min:0,max:0}};
+      m.modules=m.modules.filter(x=>['planet_descent','dune_assault'].includes(x.type));m.stages=m.modules.map(x=>x.label);m.routeEncounter=null;m.risk=3
+    });
+    planetStyle='cratered';planetCraters=makeCraters(9);planetRings=null
+  },
+  pilot(dt,t){
+    if(!(groundAssault?.active&&mode==='play'&&phase==='surface'))return;
+    if(!herd.herdBuilt)buildHerd();
+    const H=herd.path,F=[Math.sin(H.h),Math.cos(H.h)],R=[Math.cos(H.h),-Math.sin(H.h)];
+    // Chase from behind and to the left, then climb and cross over the herd to its right.
+    const u=clamp((t-(T.solo+19))/(T.breakdown-1-(T.solo+19)),0,1),k=u*u*(3-2*u);
+    const side=lerp(-8,11,k),back=lerp(-27,-15,k);
+    const px=H.x+R[0]*side+F[0]*back,pz=H.z+R[1]*side+F[1]*back;
+    const aimX=lerp(px+F[0]*14,H.x+F[0]*4,.8),aimZ=lerp(pz+F[1]*14,H.z+F[1]*4,.8),want=wrapAngle(Math.atan2(aimX-shipX,aimZ-travel)-viewYaw);
+    inputX=moveToward(inputX,clamp(want*1.6,-.6,.6),dt*2.2);
+    const along=(px-shipX)*Math.sin(viewYaw)+(pz-travel)*Math.cos(viewYaw);
+    herd.wantSpd=clamp(H.v+along*.7,4,24);
+    const altWant=lerp(4,7,Math.sin(k*Math.PI));inputY=moveToward(inputY,clamp((groundAssault.alt-altWant)*.35,-.7,.7),dt*3)
+  },
+  overlay(){}
+};
+// The herd's path: one point galloping a wide arc; each reindeer keeps its place in a
+// two-by-three team with a leader out in front, like a sleigh team.
+const TEAM=[[0,13],[-1.7,6.5],[1.7,6.5],[-1.7,0],[1.7,0],[-1.7,-6.5],[1.7,-6.5]];
+function buildHerd(){
+  herd.herdBuilt=true;const G=groundAssault;
+  G.units.length=0;G.groups.length=0;
+  const a=viewYaw+.35,cx=shipX+Math.sin(viewYaw)*48,cwz=travel+Math.cos(viewYaw)*48;
+  herd.path={x:cx,z:cwz,h:a,v:10.5,turn:.07};
+  const grp={name:'HERD',letter:'H',cx,cwz,navX:cx,navWZ:cwz,radius:40,cleared:false,ids:[]};
+  TEAM.forEach(([r,f],j)=>{const x=cx+Math.cos(a)*r*2.1+Math.sin(a)*f,z=cwz-Math.sin(a)*r*2.1+Math.cos(a)*f,u=G.spawn('reindeer',x,z,a,grp);u.team=[r*2.1,f];u.speed=10;grp.ids.push(u.id)});
+  G.groups.push(grp)
+}
+groundAssault.drawMarker=(game=>function(){if(D.scene===herd)return;return game.call(this)})(groundAssault.drawMarker);
+const gameThink=groundAssault.think.bind(groundAssault);
+groundAssault.think=function(u,dt){
+  if(u.kind!=='reindeer'||!herd.path)return gameThink(u,dt);
+  const H=herd.path,c=Math.cos(H.h),s=Math.sin(H.h),tx=H.x+c*u.team[0]+s*(u.team[1]+5),tz=H.z-s*u.team[0]+c*(u.team[1]+5);
+  const want=Math.atan2(tx-u.x,tz-u.wz),dist=Math.hypot(tx-u.x,tz-u.wz);
+  u.h=wrapAngle(u.h+clamp(wrapAngle(want-u.h),-2.2*dt,2.2*dt));u.aggro=false;
+  u.speed=moveToward(u.speed,clamp(H.v+(dist-5)*.9,3,15),dt*6)
+};
+const gameSteer=groundAssault.updateSteering.bind(groundAssault);
+groundAssault.updateSteering=function(dt,mx,my){
+  // The herd moves first each frame, then the ship holds its own speed beside it.
+  if(D.scene===herd&&herd.path&&!this.leadIn){const H=herd.path;H.h=wrapAngle(H.h+H.turn*dt);H.x+=Math.sin(H.h)*H.v*dt;H.z+=Math.cos(H.h)*H.v*dt}
+  const r=gameSteer(dt,mx,my);
+  if(D.scene===herd&&herd.wantSpd&&!this.leadIn){const extra=herd.wantSpd-this.spd;shipX+=Math.sin(viewYaw)*extra*dt;travel+=Math.cos(viewYaw)*extra*dt;this.spd=herd.wantSpd}
+  return r
+};
+// Reindeer keep their own colours: a red nose and yellow antlers on a white body.
+const gameDrawUnit=groundAssault.drawUnit.bind(groundAssault);
+const reindeerColours=new WeakMap();
+groundAssault.drawUnit=function(u){
+  if(u.kind!=='reindeer')return gameDrawUnit(u);
+  this.pose(u);
+  if(!reindeerColours.has(u.mesh)){const b=gaBuilder(true);this.emit(b,u);u.mesh.edgeColors=P.edgeColours(b,{nose:C.r,antlers:C.y});reindeerColours.set(u.mesh,true)}
+  const wreck=u.state==='wreck',col=wreck?C.x:objectHitColor(u,u.K.col);
+  const dist=this.planarToShip(u),haze=clamp((GA_UNIT_SIGHT-dist)/40,0,1),depth=camPoint([u.x,this.ug(u),u.wz-travel])[2];
+  drawMesh({x:u.x,y:this.ug(u),z:u.wz-travel,s:u.s,rot:[0,u.h+Math.PI,0],fadeZ:Math.max(0,depth)*.8},u.mesh,col,(wreck?.55:1)*haze)
+};
+
+// ---------- Scene 3: the aria in the asteroid field ----------
+// This scene is staged rather than flown: the game draws its stars, asteroids and
+// cockpit, and the promo moves the camera and the singers itself.
+const SONG=PROMO_SONG,V3=(x,y,z)=>[x,y,z],vsub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],vadd=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],vmul=(a,k)=>[a[0]*k,a[1]*k,a[2]*k];
+const vnorm=a=>{const l=Math.hypot(a[0],a[1],a[2])||1;return[a[0]/l,a[1]/l,a[2]/l]},vcross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const smooth=u=>u*u*(3-2*u);
+// Catmull-Rom through keyframes [t,[x,y,z]].
+function track(keys,t){
+  if(t<=keys[0][0])return keys[0][1];if(t>=keys[keys.length-1][0])return keys[keys.length-1][1];
+  let i=1;while(keys[i][0]<t)i++;
+  const p0=keys[Math.max(0,i-2)][1],p1=keys[i-1][1],p2=keys[i][1],p3=keys[Math.min(keys.length-1,i+1)][1],u=(t-keys[i-1][0])/(keys[i][0]-keys[i-1][0]),u2=u*u,u3=u2*u;
+  return[0,1,2].map(k=>.5*(2*p1[k]+(-p0[k]+p2[k])*u+(2*p0[k]-5*p1[k]+4*p2[k]-p3[k])*u2+(-p0[k]+3*p1[k]-3*p2[k]+p3[k])*u3))
+}
+const SINGER=V3(0,1.2,0);
+const camKeys=[[T.breakdown,V3(6,3.4,-26)],[T.breakdown+7,V3(2.5,2.4,-13)],[T.verse3,V3(-3.4,2.1,-7.6)],[T.verse3+9,V3(-9,3.6,-5.5)],
+  [T.verse3+17,V3(-7,3.4,-15)],[T.verse3+22.5,V3(0,3,-19)],[T.verse3+30,V3(10,3.4,-14)],[T.outro,V3(7,4.5,-20)],[T.end-4,V3(0,6,-28)],[T.end+4,V3(0,6.5,-31)]];
+// The chorus: where each one waits off-stage, its place on stage, when it arrives, and what it sings.
+const CHORUS=[
+  {from:V3(-46,8,-20),at:V3(-3.6,.4,2.2),arrive:T.verse3+16,sing:'crowd',body:C.g,frill:C.y,s:.85},
+  {from:V3(44,-6,-24),at:V3(3.8,.7,2.0),arrive:T.verse3+16.8,sing:'crowd',body:C.u,frill:C.c,s:.95},
+  {from:V3(-30,22,30),at:V3(-6.8,2.6,5.2),arrive:T.verse3+17.8,sing:'harmony',body:C.c,frill:C.m,s:.8},
+  {from:V3(34,24,26),at:V3(6.9,2.4,5.0),arrive:T.verse3+18.6,sing:'harmony',body:C.y,frill:C.g,s:.8},
+  {from:V3(-20,-26,40),at:V3(-9.5,-1.4,8.5),arrive:T.verse3+19.6,sing:'choir',body:C.o,frill:C.c,s:.75},
+  {from:V3(24,-24,42),at:V3(9.6,-1.1,8.8),arrive:T.verse3+20.4,sing:'choir',body:C.m,frill:C.y,s:.75}];
+const voices={lead:[...SONG.notes,...SONG.aria].sort((a,b)=>a.t-b.t),crowd:SONG.notes.filter(n=>n.crowd),harmony:SONG.notes.filter(n=>n.harmony)};
+const VOWEL={a:1,o:.9,u:.6,e:.75,i:.55};
+// How far open the jaw is at time t, from the sung notes: a quick opening on each syllable,
+// easing to a held shape, shut between syllables.
+function jawAt(list,t){
+  let lo=0,hi=list.length-1,k=-1;while(lo<=hi){const m=(lo+hi)>>1;if(list[m].t<=t){k=m;lo=m+1}else hi=m-1}
+  if(k<0)return 0;const n=list[k],age=t-n.t,end=n.d;if(age>end+.09)return 0;
+  const v=VOWEL[(n.syl||'a').replace(/[^aeiou]/g,'').slice(-1)]||.8,peak=(n.legato?.95:.8)*v*(n.stress?1.15:1);
+  const open=clamp(age/.05,0,1),close=age>end-.06?clamp((end+.09-age)/.15,0,1):1,hold=lerp(1,.72,clamp((age-.08)/.3,0,1));
+  return clamp(peak*open*close*hold,0,1)
+}
+// The low chorus holds each chord for a bar in the biggest sections: a slow open and close.
+function choirJaw(t){const b=(t-SONG.start)/SONG.bar,bar=Math.floor(b),u=b%1;return bar>=88&&bar<104?.32+.12*Math.sin(u*Math.PI):0}
+const aria={name:'aria',t0:T.breakdown,seed:2412,
+  setup(){
+    resetGame();groundAssault?.reset?.();D.snow=false;
+    mode='play';phase='asteroids';phaseT=modeT=0;inputX=inputY=aimX=aimY=0;viewRoll=0;
+    asteroidField.active=true;asteroidField.ringPlanet={x:-118,y:-13,z:255,r:12.5,spin0:.4,ringRadii:[21,25,30,37]};
+    asteroids.length=0;
+    const rock=(x,y,z,s,col=C.w)=>{const a=asteroidField.makeAsteroid({x,y,z,s,hp:9,vx:0,vy:0,vz:0,col,objective:false,missionTarget:false});a.wx=x;a.wy=y;a.wz=z;a.spin=a.spin.map(v=>v*.25);asteroids.push(a);return a};
+    aria.home=rock(0,-8.2,9,6.2,C.o);aria.home.spin=[.01,.03,.005];
+    // The field, kept clear of every line of sight from the camera's path to the stage.
+    const sight=[];for(let t=T.breakdown;t<=T.end;t+=.5){const c=track(camKeys,t);for(const q of[SINGER,V3(-7,1.5,5),V3(7,1.5,5),V3(-9.5,-1.4,8.5),V3(9.6,-1.1,8.8)])sight.push([c,q])}
+    const blocks=(x,y,z,r)=>sight.some(([a,b])=>{const ab=vsub(b,a),ap=vsub([x,y,z],a),u=clamp((ap[0]*ab[0]+ap[1]*ab[1]+ap[2]*ab[2])/(ab[0]**2+ab[1]**2+ab[2]**2),0,1),d=vsub(ap,vmul(ab,u));return Math.hypot(...d)<r});
+    for(let n=0,i=0;n<75&&i<600;i++){const r=12+Math.random()*75,a=Math.random()*Math.PI*2,y=(Math.random()-.5)*36,x=Math.cos(a)*r,z=8+Math.sin(a)*r,s=.6+Math.random()*2.6;if(blocks(x,y,z,s*1.5+2.2))continue;rock(x,y,z,s);n++}
+    aria.singer={mesh:P.makeXeno(C.m,C.c),pos:SINGER,s:1,sing:'lead',body:C.m,frill:C.c,rings:[],lastJaw:0};
+    aria.chorus=CHORUS.map(c=>({...c,mesh:P.makeXeno(c.body,c.frill),rings:[],lastJaw:0}));
+    aria.cam=camKeys[0][1];window.update=aria.update
+  },
+  update(dt){
+    const t=D.clock,cam=track(camKeys,t),look=vadd(SINGER,vmul(V3(0,.6,4),smooth(clamp((t-T.verse3-14)/8,0,1))));
+    aria.cam=cam;shipX=cam[0];shipY=cam[1];travel=cam[2];
+    const F=vnorm(vsub(look,cam)),R=vnorm(vcross([0,1,0],F)),U=vcross(F,R);
+    spaceForward=F;spaceRight=R;spaceUp=U;viewRoll=Math.sin(t*.21)*.035;
+    for(const a of asteroids){a.x=a.wx;a.y=a.wy;a.z=a.wz-cam[2];a.rot=a.rot.map((r,i)=>r+a.spin[i]*dt)}
+    asteroidField.ringPlanet.z=255-cam[2]*.2;
+    time+=dt;phaseT+=dt;modeT+=dt
+  },
+  pilot(){},
+  overlay(){}
+};
+function singerPos(c,t){
+  if(!c.arrive)return vadd(c.pos,V3(0,Math.sin(t*.8)*.12,0));
+  const u=smooth(clamp((t-(c.arrive-5))/5,0,1));
+  const mid=vadd(vmul(vadd(c.from,c.at),.5),V3(0,4,-6)),a=vadd(vmul(c.from,(1-u)*(1-u)),vadd(vmul(mid,2*u*(1-u)),vmul(c.at,u*u)));
+  return vadd(a,V3(0,Math.sin(t*.8+c.at[0])*.14*u,0))
+}
+function voiceJaw(c,t){return c.sing==='choir'?choirJaw(t):jawAt(voices[c.sing],t)}
+function drawSinger(c,t){
+  const pos=singerPos(c,t),cam=aria.cam,dx=cam[0]-pos[0],dz=cam[2]-pos[2];
+  const jaw=voiceJaw(c,t),held=c.sing==='choir'?.3:clamp(jaw*1.1,0,1);
+  c.arms=lerp(c.arms||0,c.sing==='lead'?(t<T.verse3?.75:.45+.4*held):.25+.5*held,.05);
+  c.mesh.pose({jaw,arms:c.arms,t:t+(c.at?c.at[0]:0)});
+  const obj={x:pos[0],y:pos[1],z:pos[2]-cam[2],s:c.s,rot:[0,Math.atan2(-dx,-dz),0]};
+  drawMesh(obj,c.mesh,c.body,1);
+  // Sound rings from the mouth on every new syllable.
+  if(jaw>.35&&c.lastJaw<=.35)c.rings.push({t0:t});c.lastJaw=jaw;
+  const mouth=[pos[0],pos[1]+1.72*c.s,pos[2]-cam[2]],mp=proj(mouth);c.rings=c.rings.filter(r=>t-r.t0<1.3);
+  if(mp)for(const r of c.rings){const age=t-r.t0,rad=mp.k*c.s*(.35+age*1.6);ctx.save();ctx.globalAlpha=.55*(1-age/1.3);ctx.strokeStyle=c.frill;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.beginPath();ctx.ellipse(mp.x,mp.y,rad,rad*.62,0,0,Math.PI*2);ctx.stroke();ctx.restore()}
+  // Arrival: propulsion waves trailing behind while they fly in.
+  if(c.arrive&&t<c.arrive){const p=proj([pos[0],pos[1]-1.6*c.s,pos[2]-cam[2]]);if(p)for(let j=0;j<3;j++){const u=(t*2.2+j/3)%1;ctx.save();ctx.globalAlpha=(1-u)*.5;ctx.strokeStyle=C.c;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.beginPath();ctx.ellipse(p.x,p.y+u*p.k*.8,p.k*(.25+u*.4),p.k*(.12+u*.2),0,0,Math.PI*2);ctx.stroke();ctx.restore()}}
+}
+// Singers go into the game's depth-sorted scene list beside the asteroids.
+const gameAppend=routeDiversion.appendScene?.bind(routeDiversion);
+routeDiversion.appendScene=function(scene){
+  gameAppend?.(scene);
+  if(D.scene!==aria||phase!=='asteroids')return;
+  const t=D.clock;
+  for(const c of[aria.singer,...aria.chorus]){if(c.arrive&&t<c.arrive-5)continue;const pos=singerPos(c,t),z=camPoint([pos[0],pos[1],pos[2]-aria.cam[2]])[2];if(z>.5)scene.push({z,draw:()=>drawSinger(c,t)})}
+};
+const gameUpdate=window.update;
+
+D.scenes.push(cabin,herd,aria);
+// The flown scenes hand the frame back to the game's own update.
+for(const s of[cabin,herd]){const set=s.setup;s.setup=function(){window.update=gameUpdate;asteroidField.active=false;return set.call(this)}}
+globalThis.PromoScenes={cabin,herd,aria,resetGame,launch};
+})();
