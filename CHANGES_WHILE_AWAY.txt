@@ -679,3 +679,15 @@ v1010 Ice, crystal and desert ground
       count as rocks if you clip one. The Guide's land-work line says so.
       Tested muted: a full cabin run on an ice world, plus screenshots of all
       three looks.
+
+v1020 World types on the dune and bunker ground too
+      The clumps in the dune troughs of the dune armour and bunker assault
+      missions now follow the world type, like the plains do: ice shards on
+      cyan worlds, crystal spires on magenta ones, and rocks among dead pines
+      on yellow and orange ones (yellow rocks on an orange world, so they
+      still stand out). The factory moon keeps its own orange boulders.
+      Also fixed a test-menu bug: a DEV template test of a dune mission
+      never finished, it dropped you on the Options page with the mission
+      still in flight. It now ends with the normal test debrief. Board
+      contracts were never affected. Tested muted: dune runs on cyan,
+      magenta and orange worlds, the orange one played to the debrief.

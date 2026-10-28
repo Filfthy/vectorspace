@@ -626,7 +626,20 @@ class GroundAssaultController{
   }
   seedTrees(){
     if(this.variant==='factory'){this.seedBoulders();return}
-    const reg=globalThis.AgentXForestScenery,ids=['pineTall','pineBroad','pineYoung','pineDeadSparse'];
+    // v1020: the trough clumps follow the world type like the plains do (ice shards,
+    // crystal spires, or rocks among dead pines on arid worlds).
+    const world=typeof surfaceWorldKind==='function'?surfaceWorldKind():'temperate',mix=typeof SURFACE_WORLD_MIX!=='undefined'?(SURFACE_WORLD_MIX[world]||0):0;
+    const reg=globalThis.AgentXForestScenery,ids=world==='ice'?['pineTall','pineYoung','pineDeadSparse','pineDeadSparse']:(world==='arid'?['pineDeadSparse','pineDeadSparse','pineYoung']:['pineTall','pineBroad','pineYoung','pineDeadSparse']);
+    let rockLo=1e9;for(const v of asteroidMesh.v)rockLo=Math.min(rockLo,v[1]);
+    const addFeature=(x,wz,s)=>{
+      if(world==='arid'){
+        const mx=1.05+Math.random()*1.25,my=.45+Math.random()*.62,mz=.95+Math.random()*1.1,bury=.12+Math.random()*.18;
+        this.trees.push({kind:'rock',mesh:asteroidMesh,x,wz,s,mx,my,mz,bury,base:rockLo,col:landingWorldColour()===C.o?C.y:C.o,rot:[(Math.random()-.5)*.28,Math.random()*6.28,(Math.random()-.5)*.24],r:s*Math.max(mx,mz)*.85,top:s*my*(1-bury)*.9});
+        return
+      }
+      const crystal=world==='crystal',mesh=crystal?surfaceCrystalMesh:surfaceIceShardMesh,mx=.78+Math.random()*.42,my=.72+Math.random()*.74;
+      this.trees.push({kind:'rock',feature:world,mesh,x,wz,s,mx,my,mz:mx,bury:.10,base:0,col:crystal?C.c:C.w,rot:[(Math.random()-.5)*.24,Math.random()*6.28,(Math.random()-.5)*.24],r:s*mx*.6,top:s*my*(crystal?3.35:2.55)*.9})
+    };
     const meshFor=id=>{const base=reg?.get?.(id)||(typeof forestSceneryMesh==='function'?forestSceneryMesh(id):null);if(!base)return null;
       const mesh=typeof forestShortTrunkMesh==='function'?forestShortTrunkMesh(base,id):base;let lo=1e9,hi=-1e9;for(const v of base.v){lo=Math.min(lo,v[1]);hi=Math.max(hi,v[1])}return{mesh,base:lo,top:hi-lo}};
     const cache={};this.trees=[];
@@ -638,6 +651,7 @@ class GroundAssaultController{
       c++;
       const n=3+Math.floor(Math.random()*4);
       for(let k=0;k<n;k++){
+        if(mix>0&&Math.random()<mix){addFeature(cx+(Math.random()-.5)*11,cz+(Math.random()-.5)*11,.9+Math.random()*.4);continue}
         const id=ids[Math.floor(Math.random()*ids.length)],m=cache[id]||(cache[id]=meshFor(id));if(!m)continue;
         const x=cx+(Math.random()-.5)*11,z=cz+(Math.random()-.5)*11,s=.9+Math.random()*.35;
         this.trees.push({assetId:id,mesh:m.mesh,base:m.base,top:m.top*s,r:.7*s,x,wz:z,s,rot:[0,Math.random()*6.28,0]})
@@ -714,7 +728,7 @@ class GroundAssaultController{
       const haze=clamp((GA_UNIT_SIGHT-dist)/40,0,1);
       if(t.kind==='rock'){
         const y=gy-(t.base+t.bury)*t.s*t.my;
-        scene.push({z:Math.max(.2,q[2]),draw:()=>drawMesh({type:'duneRock',x:t.x,y,z:t.wz-travel,s:t.s,mx:t.mx,my:t.my,mz:t.mz,rot:t.rot,fadeZ:Math.max(0,q[2])*.7},t.mesh,C.o,clamp(1.02-q[2]/220,.28,.84)*haze)});
+        scene.push({z:Math.max(.2,q[2]),draw:()=>drawMesh({type:'duneRock',x:t.x,y,z:t.wz-travel,s:t.s,mx:t.mx,my:t.my,mz:t.mz,rot:t.rot,fadeZ:Math.max(0,q[2])*.7},t.mesh,t.col||C.o,clamp(1.02-q[2]/220,.28,.84)*haze)});
         continue
       }
       const y=gy-t.base*t.s-.12;
@@ -1394,6 +1408,7 @@ class GroundAssaultController{
     // way out, but the loss still goes through the insurance claims (Dave).
     const m=campaign.currentMission;
     if(m?.devGroundTest){campaign.finishDevGroundTest(success,lost);return}
+    if(m?.devTemplateTest){campaign.finishDevTemplateTest(success,lost?'Drone destroyed.':'');return}
     if(m&&!m.devTest&&!m.devTemplateTest){if(success)campaign.completeCurrentMission({droneLost:lost});else campaign.failCurrentMission(lost?'Drone destroyed':'Mission failed');return}
     campaign.showHub('options');
     say(f?(success?(lost?'FACTORY TEST COMPLETE · REACTOR DOWN · DRONE LOST (INSURANCE CLAIM)':'FACTORY TEST COMPLETE'):'FACTORY TEST ENDED'):(success?'DUNE TRIAL COMPLETE':'DUNE TRIAL ENDED'),1.2)
