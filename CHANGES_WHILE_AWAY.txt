@@ -792,3 +792,19 @@ v1090 Ice and crystal worlds look different from orbit
       so the caps were invisible and I replaced them with the fractures.
       Tested muted: a screenshot of both, plus an ice and a crystal mission
       through their descent with no errors.
+
+v1100 New opponent: shield tenders
+      From level 6, about three in ten rogue or hijacked drone fights now
+      include a shield tender. It is a white wartime support drone that
+      projects a shield over the rest of its wing. While it is alive, your
+      lasers do only 40% damage to the drones it covers. Faint white tether
+      lines show who is covered, and missiles get through at full strength.
+      "SHIELD TENDER · DESTROY IT FIRST" announces it. Killing it shows
+      "SHIELD TENDER DOWN · WING EXPOSED" and pays a bounty (3 units, on top
+      of the kill). The tender is tougher than its wing (1.6x hull) but no
+      deadlier. Also added: a Codex entry that opens on first meeting, a
+      Guide line, a "Shield tenders destroyed" row on the Operator record,
+      and one more voice request ("Shield tender detected. Take it out
+      first.", 24 in VOICE_REQUESTS.txt). Tested muted: a forced tender in a
+      rogue Station Defence, the damage cut, tethers (screenshot), the kill
+      callout and the mission finishing.

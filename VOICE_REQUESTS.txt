@@ -165,3 +165,13 @@ Spoken text:
 
 Expected filename:
     loyaltyconflictdetected.mp3
+
+
+SHIELD TENDERS
+--------------
+
+Spoken text:
+    Shield tender detected. Take it out first.
+
+Expected filename:
+    shieldtenderdetectedtakeitoutfirst.mp3

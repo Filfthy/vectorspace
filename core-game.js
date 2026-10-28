@@ -3,7 +3,7 @@ class Game {
   reset({deferMissionStart=false}={}){
     cancelAbandonHold();if(abandonBlockedTimer){clearTimeout(abandonBlockedTimer);abandonBlockedTimer=0}
     // v910: a deferred ace callout or an armed ace never carries into the next run.
-    if(globalThis.AgentXAces){AgentXAces.pending=null;AgentXAces.armed=false}
+    if(globalThis.AgentXAces){AgentXAces.pending=null;AgentXAces.armed=false}if(globalThis.AgentXTenders){AgentXTenders.pending=null;AgentXTenders.armed=false}
     if(deathDebriefTimer){clearTimeout(deathDebriefTimer);deathDebriefTimer=0}
     deathFxStart=0;last=performance.now();
     document.body.classList.add('playing');

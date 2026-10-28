@@ -35,7 +35,9 @@ globalThis.AgentXVoiceRequests={
   cargoCacheDetected:'Unmarked cargo cache detected.',
   aceContact:'Ace contact. Watch yourself.',
   aceDown:'Ace down.',
-  loyaltyConflict:'Loyalty conflict detected.'
+  loyaltyConflict:'Loyalty conflict detected.',
+  // v1100: shield tenders.
+  shieldTenderContact:'Shield tender detected. Take it out first.'
 };
 // Expected filename: the spoken text in lower case with spaces and punctuation removed.
 globalThis.AgentXVoiceRequestFile=text=>String(text).toLowerCase().replace(/[^a-z0-9]/g,'')+'.mp3';
