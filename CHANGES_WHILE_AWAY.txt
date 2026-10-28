@@ -509,3 +509,12 @@ v890  Personal favours after a contact's capstone
       sent as favours. The Guide mentions them. Tested muted: Corvella's
       favour arrived four jobs after her capstone, was played to victory,
       was marked done and the next one scheduled.
+
+v900  Achievements for the new work
+      Six new achievements give tonight's jobs something to aim for: Tunnel
+      Rat (5 Bunker Raids), Hive Burner (3 Nest Clearances), Factory Closer
+      (a Factory Strike), Lunch Hero (10 Taco Runs), Station Guard (5
+      Station Defences) and Everyone's Favourite (5 personal favours). The
+      game now counts finished contracts per job type, so more goals can be
+      added later easily. 31 achievements in all, counting from now (older
+      completions can't be counted back). Tested muted.

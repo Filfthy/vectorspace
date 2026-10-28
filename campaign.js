@@ -193,7 +193,7 @@ class CampaignController {
       ...(globalThis.AgentXFactionContent?.chains||[]).map(c=>arc(c.arcName,c.steps.map(s=>s.flag)))]
   }
   achievementDefs(){
-    const s=this.stats(),k=s.kills,heavy=(k.armour.strider||0)+(k.armour.crab||0)+(k.armour.tesla||0),f=this.state.mailFlags||{};
+    const s=this.stats(),bt=s.contracts.byTemplate||{},k=s.kills,heavy=(k.armour.strider||0)+(k.armour.crab||0)+(k.armour.tesla||0),f=this.state.mailFlags||{};
     const minRep=Math.min(...Object.values(this.factions).map(x=>x.rep));
     const chains=globalThis.AgentXFactionContent?.chains||[];
     const agentDone=chains.reduce((n,c)=>n+c.steps.filter(st=>f[st.flag+'Done']).length,0),capstones=chains.filter(c=>f[c.steps[2].flag+'Done']).length;
@@ -223,7 +223,14 @@ class CampaignController {
       {id:'goodSamaritan',name:'Good Samaritan',text:'Investigate 10 route diversions.',v:s.diversionsInvestigated||0,goal:10},
       {id:'remnantHunter',name:'Remnant Hunter',text:'Finish a Black Contract at threat 5.',v:Number(f.blackThreat)||0,goal:5},
       {id:'networkBreaker',name:'Network Breaker',text:'Finish a Black Contract at threat 10.',v:Number(f.blackThreat)||0,goal:10},
-      {id:'aceHunter',name:'Ace Hunter',text:'Destroy 5 named aces.',v:k.aces||0,goal:5}
+      {id:'aceHunter',name:'Ace Hunter',text:'Destroy 5 named aces.',v:k.aces||0,goal:5},
+      // v900: goals for the overnight board work and favours (stats.contracts.byTemplate).
+      {id:'tunnelRat',name:'Tunnel Rat',text:'Complete 5 Bunker Raids.',v:bt.bunker_raid||0,goal:5},
+      {id:'hiveBurner',name:'Hive Burner',text:'Complete 3 Nest Clearances.',v:bt.nest_clearance||0,goal:3},
+      {id:'factoryCloser',name:'Factory Closer',text:'Complete a Factory Strike.',v:bt.factory_strike||0,goal:1},
+      {id:'lunchHero',name:'Lunch Hero',text:'Complete 10 Taco Runs.',v:bt.taco_run||0,goal:10},
+      {id:'stationGuard',name:'Station Guard',text:'Complete 5 Station Defences.',v:bt.station_defence||0,goal:5},
+      {id:'favourite',name:"Everyone's Favourite",text:'Complete 5 personal favours.',v:s.favoursDone||0,goal:5}
     ]
   }
   checkAchievements(){
@@ -2887,7 +2894,7 @@ class CampaignController {
     for(const d of diversions)if(d.rep&&d.repFaction&&this.factions[d.repFaction])this.applyRep(d.repFaction,d.rep);
     asteroidField.stop();
     this.state.money+=actualPay+hazardPay+diversionPay+bountyCr;this.state.xp+=m.xp+diversionXp+bountyXp;this.state.completed++;
-    {const st=this.stats();st.bountyEarned=(st.bountyEarned||0)+bountyCr;if(!m.private&&m.risk>=10)st.contracts.elite=(st.contracts.elite||0)+1;st.diversionsInvestigated=(st.diversionsInvestigated||0)+diversions.length;if(m.routeEncounter)st.routeEncounters=(st.routeEncounters||0)+1;st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay+bountyCr;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
+    {const st=this.stats();st.bountyEarned=(st.bountyEarned||0)+bountyCr;if(!m.private&&m.risk>=10)st.contracts.elite=(st.contracts.elite||0)+1;st.diversionsInvestigated=(st.diversionsInvestigated||0)+diversions.length;if(m.routeEncounter)st.routeEncounters=(st.routeEncounters||0)+1;if(m.templateId){const bt=st.contracts.byTemplate||(st.contracts.byTemplate={});bt[m.templateId]=(bt[m.templateId]||0)+1}if(m.favourFaction)st.favoursDone=(st.favoursDone||0)+1;st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay+bountyCr;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
     let repGain=0;
     if(faction){
       const normalRepGain=Math.max(1,Math.round(8*this.positiveRepMultiplier()));
