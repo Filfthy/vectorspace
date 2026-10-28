@@ -2139,8 +2139,8 @@
     musicMode:'violent',
     minLevel:9,
     maxLevel:null,
-    allowedFactions:['trade','security','helix','quickbite'],
-    factionWeights:{security:5,helix:4,trade:2,quickbite:2},
+    allowedFactions:['trade','security','helix','quickbite','jackals'],
+    factionWeights:{security:5,helix:4,trade:2,quickbite:2,jackals:2},
     board:{category:'combat',weight:.55,maxPerBoard:1},
     risk:{base:6,min:5,levelsPerStep:2,max:10,jitter:1},
     reward:{
@@ -2192,6 +2192,16 @@
         failureMail:{contactId:'nyxo_malloc',subjects:['The ice tanks won'],bodies:['Dude, the tanks are still there and your drone is all over the ice. The station is eating emergency rations. They are sad.']},
         abandonMail:{contactId:'nyxo_malloc',subjects:['You left the ice tanks?'],bodies:['You flew all the way down there and left the tanks just sitting there. Being cold. And armed.']},
         personalFollowUp:{contactId:'nyxo_malloc',minRisk:5,chance:.24,subjects:['Dude, it was so cold'],bodies:['The station people said they watched the whole fight from the window. They made popcorn. They did not order it from us. Rude.']}
+      },
+      jackals:{
+        contactId:'cassian_erivan_snade',
+        titles:['A Frozen Asset','Claim Clearance','The Thaw'],
+        descriptions:['A rival holds a mining claim on the ice that it cannot use, because old war armour has woken up on it. Four groups. Should the armour be removed, the claim may become available. I would like it to become available.','There is a valuable ice claim with an unfortunate infestation of wartime tanks. Its owners have fled. Its next owners would be grateful for a clean field.'],
+        completionSubjects:['The claim is clear','A thaw in relations'],
+        completionBodies:['The armour is scrap and the claim has, as I hoped, become available. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'cassian_erivan_snade',subjects:['Still frozen'],bodies:['The armour remains and your drone does not. The claim stays unavailable, which suits nobody but the tanks.']},
+        abandonMail:{contactId:'cassian_erivan_snade',subjects:['A cold withdrawal'],bodies:['You left the ice with the armour still moving. The claim is no more available than it was.']},
+        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:5,chance:.2,subjects:['On ice'],bodies:['The new owners of the claim have sent a case of something very cold and very expensive. I have kept it for you. Naturally I have tried it first.']}
       }
     },
     defaults:{destination:'ice field',cargo:'none'}
@@ -2326,8 +2336,8 @@
     musicMode:'calm',
     minLevel:4,
     maxLevel:null,
-    allowedFactions:['helix','security','trade','quickbite'],
-    factionWeights:{helix:5,security:4,trade:3,quickbite:2},
+    allowedFactions:['helix','security','trade','quickbite','jackals'],
+    factionWeights:{helix:5,security:4,trade:3,quickbite:2,jackals:2},
     board:{category:'delivery',weight:.7,maxPerBoard:1},
     risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
     reward:{
@@ -2398,6 +2408,21 @@
         failureMail:{contactId:'nyxo_malloc',subjects:['The survey exploded'],bodies:['Dude, your drone went down and the maps did not make it. Corporate says use the old route. The old route has the lake.']},
         abandonMail:{contactId:'nyxo_malloc',subjects:['You skipped the markers?'],bodies:['You left before the survey was done. Now we still do not know about the lake.']},
         personalFollowUp:{contactId:'nyxo_malloc',minRisk:3,chance:.24,subjects:['The lake thing'],bodies:['So the routing system and I are not speaking. It knows what it did.']}
+      },
+      jackals:{
+        contactId:'cassian_erivan_snade',cargoStyle:'case',
+        titles:['A Quiet Survey','Land of Opportunity','Prospective Ownership'],
+        cargo:['a sealed survey case','the surveyor\'s private notes','a case of very interesting boundary readings'],
+        destinations:['the Compact freight depot','a quiet locker at the Compact depot'],
+        descriptions:[
+          'There is a stretch of land on this world that my family may shortly come to own. Before anyone else notices it, I would like it surveyed. Fly every marker, then collect {cargo} from {origin} and see it to {destination}.',
+          'A surveyor of my acquaintance has left her work unfinished, through no fault of her own. Please complete the survey points on the plains, then collect {cargo} from {origin} and deliver it to {destination}. Discreetly.'
+        ],
+        completionSubjects:['The land is spoken for','A valuable survey'],
+        completionBodies:['The survey is complete and the readings are delightful. The land will be changing hands in due course. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'cassian_erivan_snade',subjects:['An incomplete picture'],bodies:['The survey did not reach the depot. Someone else may notice the land first. I would find that tiresome.']},
+        abandonMail:{contactId:'cassian_erivan_snade',subjects:['Markers left unflown'],bodies:['You left before the survey was finished. Half a map is worth rather less than half the price.']},
+        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:3,chance:.2,subjects:['On property'],bodies:['The land is now mine. I have no idea what to do with it. Owning it was the point.']}
       }
     }
   };
