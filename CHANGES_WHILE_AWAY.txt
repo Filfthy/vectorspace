@@ -723,3 +723,12 @@ v1040 Ice Field Armour, and a review fix
       Guide says "Swamps stay swamps". The review found nothing else.
       Tested muted: Ice Field Armour on a moon played to the debrief, board
       generation checked, all five world labels checked.
+
+v1050 Codex entry for world types
+      The Codex has a 15th entry, "Survey colours". It explains the world
+      colours: forest on green and blue worlds, ice on cyan, crystal on
+      magenta, dry and rocky ground on yellow and orange. It opens the first
+      time you land on an ice, crystal or arid world in a real contract (DEV
+      tests and training do not count). It uses the existing seen-contacts
+      record in the save, so old saves need nothing new. Tested muted with a
+      screenshot of the Guide.

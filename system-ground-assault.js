@@ -629,6 +629,7 @@ class GroundAssaultController{
     // v1020: the trough clumps follow the world type like the plains do (ice shards,
     // crystal spires, or rocks among dead pines on arid worlds).
     const world=typeof surfaceWorldKind==='function'?surfaceWorldKind():'temperate',mix=typeof SURFACE_WORLD_MIX!=='undefined'?(SURFACE_WORLD_MIX[world]||0):0;
+    if(typeof noteSurfaceWorld==='function')noteSurfaceWorld(world);
     const reg=globalThis.AgentXForestScenery,ids=world==='ice'?['pineTall','pineYoung','pineDeadSparse','pineDeadSparse']:(world==='arid'?['pineDeadSparse','pineDeadSparse','pineYoung']:['pineTall','pineBroad','pineYoung','pineDeadSparse']);
     let rockLo=1e9;for(const v of asteroidMesh.v)rockLo=Math.min(rockLo,v[1]);
     const addFeature=(x,wz,s)=>{

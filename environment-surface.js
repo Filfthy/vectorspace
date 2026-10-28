@@ -26,6 +26,11 @@ function surfaceShardMesh(sides,r,mid,top,lean){
 const surfaceIceShardMesh=surfaceShardMesh(5,.62,1.55,2.55,.34);
 const surfaceCrystalMesh=surfaceShardMesh(6,.42,2.35,3.35,.08);
 const SURFACE_WORLD_MIX=Object.freeze({ice:.42,crystal:.46,arid:.58});
+// v1050: remember which world types the player has landed on (Guide codex).
+function noteSurfaceWorld(kind){
+  if(kind==='temperate'||typeof campaign==='undefined'||!campaign?.currentMission||campaign.currentMission.devTemplateTest||campaign.currentMission.training)return;
+  const seen=campaign.state.seenProfiles||(campaign.state.seenProfiles={});seen[`world_${kind}`]=true
+}
 function surfaceWorldKind(){
   const c=typeof landingWorldColour==='function'?landingWorldColour():C.gd;
   if(c===C.c)return 'ice';
@@ -178,7 +183,7 @@ class SurfaceDestinationApproachController {
     const swamp=this.scenery==='swamp';
     const registry=swamp?globalThis.AgentXAlienSwampScenery:globalThis.AgentXForestScenery;
     const world=(!rockMode&&!swamp&&this.stage?.worldScenery!==false)?surfaceWorldKind():'temperate';
-    this.worldKind=world;
+    this.worldKind=world;noteSurfaceWorld(world);
     const ids=swamp
       ?['swampReedTall','swampReedFan','swampReedWide','swampReedSpike','alienBulbPlantConnected','alienUmbrellaPlantConnected','alienEggPodFat','alienEggClusterFat']
       :(world==='ice'?['pineTall','pineYoung','pineDeadSparse','pineDeadSparse']:(world==='arid'?['pineDeadSparse','pineDeadSparse','pineYoung']:['pineTall','pineBroad','pineYoung','pineDeadSparse']));
