@@ -15,7 +15,17 @@ A 3:12 music video made in the game itself, to "God Rest Ye Merry Starmen
 Nothing here changes the game. index.html only loads these files when the
 address has ?promo in it.
 
+To watch it live in the game (no rendering)
+  Open the game with ?promo&play on the end of the address, e.g.
+  http://127.0.0.1:8798/?promo&play (or the GitHub Pages copy once it is on),
+  press the PLAY button, and it runs full screen with the song.
+  Space pauses. Add &from=94.5 to start at a song time (94.5 is the solo).
+  It keeps time with the music, so a slower computer skips frames rather
+  than drifting. For the smoothest picture use a 1920x1080 screen.
+
 Files
+  promo-play.js       live playback with the song (?promo&play)
+  xmasWords.mp3       the song, copied from the Oh Hell renders
   promo.js            frame capture, and the model viewer (?promo&view=...)
   promo-models.js     the present, the Christmas tree, the reindeer mech, the singing xeno
   promo-director.js   fixed frame clock, the song-to-game time map, snow, titles

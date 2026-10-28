@@ -1144,3 +1144,6 @@ v1300 Christmas promo video (promo folder)
       the song's score. Everything is in promo/ (see promo/README.txt).
       The game only loads it when the address has ?promo, so normal play
       is unchanged.
+      Watch it live in the game with ?promo&play: a play button starts
+      the song and the promo runs full screen in time with it, skipping
+      frames on a slow computer rather than drifting from the music.

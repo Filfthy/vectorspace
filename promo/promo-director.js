@@ -15,7 +15,7 @@ const T={solo:secT('solo'),breakdown:secT('breakdown'),verse3:secT('verse 3'),ou
 let seedState=1;
 const rand=()=>{seedState|=0;seedState=seedState+0x6D2B79F5|0;let t=Math.imul(seedState^seedState>>>15,1|seedState);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
 const realRandom=Math.random,realNow=performance.now.bind(performance),realRAF=window.requestAnimationFrame;
-const D=Promo.D={clock:0,gclock:0,frame:0,scene:null,log:[],T,FPS,
+const D=Promo.D={clock:0,gclock:0,frame:0,scene:null,log:[],T,FPS,realRAF:realRAF.bind(window),
   seed(n){seedState=n>>>0;Math.random=rand},
   // The game keeps its own animation clocks off performance.now; drive it from the frame clock.
   takeControl(){performance.now=()=>1e6+D.gclock*1000;window.requestAnimationFrame=()=>0;
