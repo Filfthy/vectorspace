@@ -127,5 +127,14 @@
     quickbite:{hostile:L('Dude. What did you do',['Dude. Corporate flagged your account. Like, repo drones flagged. I did not even know we had repo drones.','If you do some QuickBite jobs they will probably unflag you. Probably. Corporate is weird.']),
       repaired:L('You are unflagged',['Good news, you are unflagged. Corporate says sorry. Corporate does not actually say sorry. I am saying it for them.'])}
   };
-  globalThis.AgentXFactionLore={LETTERS,due,MARA,STANDING};
+  // v890: after a capstone the contact occasionally sends a personal favour, one of
+  // their own board jobs at a favour rate. These are the opening lines.
+  const FAVOURS={
+    security:['X. A job I would rather not post publicly. You are the operator I trust with it.','Directorate business. Off the board, paid properly. Do not make me regret the choice.'],
+    trade:['Sweetie, I saved this one for you. The board does not deserve it.','Babe, a personal favour. I always pay my favourites extra.'],
+    jackals:['X. A private matter, handled privately. The fee reflects that.','I find myself in need of your particular talents again. Discreetly, of course.'],
+    helix:['X. I have a job that needs someone who will not panic. I thought of you.','A private Helix request. I asked for you specifically, which I am told is unusual for me.'],
+    quickbite:['Dude, Corporate gave me a budget for trusted contractors. That is you. Here is a job.','This one is off the board and pays way more. Do not tell Dispatch.']
+  };
+  globalThis.AgentXFactionLore={LETTERS,due,MARA,STANDING,FAVOURS};
 })();

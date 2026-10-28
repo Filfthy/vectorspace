@@ -2019,6 +2019,34 @@ class CampaignController {
     if(Math.random()<.55)this.queueVoxContractMail();else this.queueVoxGiftMail()
   }
   voxPick(a){return a[(Math.random()*a.length)|0]}
+  // v890: personal favours. Once a network's capstone is done, its contact sends one of
+  // their own board jobs every five to eight contracts, at 1.6x pay and 1.3x XP, with an
+  // opening line in voice. One open favour per contact; completing it clears the slot.
+  maybeQueueFavour(m){
+    const C=globalThis.AgentXFactionContent,F=globalThis.AgentXFactionLore?.FAVOURS;if(!C||!F)return;
+    const flags=this.state.mailFlags,done=Number(this.state.completed)||0;
+    if(m?.favourFaction)flags[`${m.favourFaction}FavourOpen`]=false;
+    for(const chain of C.chains){
+      const f=chain.faction,cap=chain.steps[2].flag,key=`${f}FavourNextAt`;
+      if(!flags[cap+'Done']||flags[`${f}FavourOpen`]||!F[f])continue;
+      if(!Number.isFinite(flags[key]))flags[key]=(Number(flags[cap+'CompletedAt'])||done)+4;
+      if(done<flags[key])continue;
+      if(this.queueFavourMail(chain)){flags[`${f}FavourOpen`]=true;flags[key]=done+5+((Math.random()*4)|0);return}
+    }
+  }
+  queueFavourMail(chain){
+    const f=chain.faction,templates=this.eligibleMissionTemplates().filter(t=>(t.allowedFactions||[]).includes(f)&&t.presentation?.[f]&&!t.board?.major);
+    if(!templates.length)return false;
+    const c=this.makeTemplateContract(templates[(Math.random()*templates.length)|0],0,{faction:f});if(!c)return false;
+    const flags=this.state.mailFlags,n=flags.favourSeq=(flags.favourSeq||0)+1;
+    Object.assign(c,{id:`favour_${f}_${n}_${Date.now().toString(36)}`,private:true,voxContract:true,favourFaction:f,
+      pay:Math.round(c.pay*1.6/50)*50,xp:Math.round(c.xp*1.3)});
+    this.enqueueMail({id:`favour_offer_${f}_${n}`,from:chain.from,category:'vox',priority:'high',contract:c,
+      subject:this.voxPick(['A personal favour','Off the board','Just for you','A private job']),
+      body:[this.voxPick(globalThis.AgentXFactionLore.FAVOURS[f]),`${c.title}. ${c.description}`,`Favour rate: CR ${c.pay.toLocaleString()} and ${c.xp} XP.`],
+      action:{type:'vox',label:'OPEN PERSONAL CONTRACT'}});
+    return true
+  }
   queueVoxContractMail(){
     const template=this.pickMissionTemplate([],{remainingSlots:1});if(!template)return false;
     const c=this.makeTemplateContract(template,0);if(!c)return false;
@@ -2876,6 +2904,7 @@ class CampaignController {
     }
     if(m.private)this.handleStoryCompletion(m);
     this.maybeQueueVoxFollowUp(m);
+    this.maybeQueueFavour(m);
     this.checkAchievements();
     if(droneLost){
       if(lostFrameId!=='AX-1'){this.state.ownedFrames=this.state.ownedFrames.filter(id=>id!==lostFrameId);if(!this.state.ownedFrames.includes('AX-1'))this.state.ownedFrames.unshift('AX-1');this.state.drone='AX-1'}

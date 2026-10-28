@@ -497,3 +497,15 @@ v880  New board job: Specimen Recovery (Helix)
       stuck to my quick stepper. A second pass that waited for the ending
       saw all nine finish in victory within 2.5 to 5.5 seconds, including
       the original game's own templates, so it was the test, not the game.
+
+v890  Personal favours after a contact's capstone
+      Something to do with a network after its three agent missions: the
+      contact now sends a personal favour by mail every five to eight
+      contracts. It's one of their own board jobs, briefed in their voice, at
+      1.6x pay and 1.3x XP. Openers include Kudo's "A job I would rather not
+      post publicly", Corvella's "I always pay my favourites extra", and
+      Nyxo's "Do not tell Dispatch". There's one open favour per contact, and
+      finishing it frees the slot for the next. Major set pieces are never
+      sent as favours. The Guide mentions them. Tested muted: Corvella's
+      favour arrived four jobs after her capstone, was played to victory,
+      was marked done and the next one scheduled.
