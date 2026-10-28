@@ -463,3 +463,16 @@ v860  Bulletin, Guide and README brought up to date
       contacts' letters. The Guide's contracts section mentions the land
       work and the destination world line. The README lists the three new
       files. Docs only.
+
+v870  New board job: Taco Run (QuickBite)
+      QuickBite's orbital Taco Beacon used to appear only in Nyxo's story and
+      agent missions. Taco Run is now a QuickBite board delivery from level
+      2: collect the order at the Taco Beacon, cross to an asteroid mine,
+      deal with the pirates who camp the lunch route ("they know when lunch
+      goes out. Which is honestly smart"), then fly the order into the mine.
+      Orders range from forty boxes of tacos to "an order with very specific
+      sauce instructions". The miners once sent a thank-you rock with a
+      smiley face, which Nyxo keeps on his desk. The pirate ambush grows with
+      risk. Its built-in fight means no extra route fight is added on top.
+      At level 4 it pays CR 6,400 and 550 XP. Flown fully live and muted,
+      from pickup to tunnel delivery to victory and Nyxo's mail. No errors.

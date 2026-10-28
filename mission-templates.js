@@ -1526,6 +1526,53 @@
     defaults:{destination:'swamp relay clearing',cargo:'sealed delivery package'}
   };
 
+  // v870 taco run: collect an order at QuickBite's orbital Taco Beacon, cross to an
+  // asteroid mine and deliver it through whoever is waiting there. Same proven chain
+  // as Hot Delivery and The Big Order. The Taco Beacon is QuickBite's, so is the job.
+  const tacoRun={
+    id:'taco_run',
+    version:1,
+    family:'taco_run',
+    musicMode:'calm',
+    minLevel:2,
+    maxLevel:null,
+    allowedFactions:['quickbite'],
+    factionWeights:{quickbite:1},
+    board:{category:'delivery',weight:.7,maxPerBoard:1},
+    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
+    reward:{
+      basePay:1800,payPerRisk:1100,payRiskSquare:120,randomPay:300,roundPay:50,
+      baseXp:260,xpPerRisk:70,xpRiskSquare:8
+    },
+    sections:[
+      {type:'taco_beacon_pickup',label:'Taco Beacon Pickup',params:{spawnDistance:520,spawnX:-78,spawnY:-14,scale:18,pitch:-.04,yaw:.50,roll:.025,
+        revealRadius:220,captureRadius:92,stageDistance:92,standOff:17,transferSeconds:2.5,pickupSeconds:2.15,turnSeconds:1.65,clearDistance:54,
+        startMessage:'Proceed to Taco Beacon',hud:'TACO BEACON',markerLabel:'TACO BEACON'}},
+      {type:'space_transit',label:'Asteroid Base Transit',params:{duration:3.35,voice:'headingToAsteroidMine',waitForVoice:true,message:'HEADING TO ASTEROID MINE',hud:'TO ASTEROID BASE',playZoomSound:true}},
+      {type:'taco_asteroid_delivery',label:'Asteroid Base Delivery',params:{routeSeconds:22,cargoStyle:'food',
+        target:{base:3,perRisk:1,min:4,max:10,round:true},fighterHp:12,difficulty:'$risk',profile:'pirate',combatVoice:'destroyThePirates',ambushMessage:'Destroy the pirates.',
+        startMessage:'Destroy the pirates.',hud:'ASTEROID DELIVERY'}}
+    ],
+    presentation:{
+      quickbite:{
+        contactId:'nyxo_malloc',
+        titles:['Taco Run','Mine Lunch Order','Shift Catering','Asteroid Lunch Rush'],
+        cargo:['forty boxes of tacos','the late shift lunch order','a crate of breakfast burritos','an order with very specific sauce instructions'],
+        destinations:['Belt Mine 7','a deep-rock mining base','the Kessler Ridge mine'],
+        descriptions:[
+          'Dude, {destination} ordered {cargo}. Grab it from the Taco Beacon and fly it out. Heads up, there are usually pirates hanging around the mines, so maybe bring the guns.',
+          'Taco Beacon has {cargo} ready for {destination}. Pirates keep camping that route because they know when lunch goes out. Which is honestly smart. Deliver it anyway.',
+          'Easy one. Pick up {cargo}, take it to {destination}. If anybody shoots at the tacos, shoot back. I believe in you.'
+        ],
+        completionSubjects:['Lunch delivered, dude','The miners are fed'],
+        completionBodies:['{destination} got {cargo} and only complained a little. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'nyxo_malloc',subjects:['The tacos did not make it'],bodies:['Dude, the order never made it and now there is a mine full of hungry people. Hungry miners are scary. Please go again.']},
+        abandonMail:{contactId:'nyxo_malloc',subjects:['You turned around with the tacos?'],bodies:['You had the whole order on board and turned around. The miners can see the Taco Beacon from there, dude. They saw.']},
+        personalFollowUp:{contactId:'nyxo_malloc',minRisk:3,chance:.26,subjects:['The miners sent a thing'],bodies:['The miners sent a thank you. It is a rock with a smiley face scratched on it. I am keeping it on my desk.']}
+      }
+    }
+  };
+
   // v830 station defence (style guide T03 at a station): a station is under attack.
   // Destroy the attackers, search their wrecks for anything that says who sent them,
   // and upload it through the station's terminal. Same proven module as Kudo's
@@ -2172,7 +2219,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();
