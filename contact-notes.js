@@ -142,5 +142,30 @@
     const open={met:id==='vox'?!!flags.mara1Done:(byFaction[id]||0)>0,lore1:lore(1),lore2:lore(2),lore3:lore(3),final:id!=='vox'&&!!flags[`${id}Agent4Done`]};
     return {who:file.who,facts:file.facts.filter(f=>open[f.k]).map(f=>f.text),total:file.facts.length}
   }
-  globalThis.AgentXContactNotes={NOTES,WARM,CLOSE,pick,FILES,known};
+
+  // v1110 STANDING TIERS: one line from the contact on the standing mail when you
+  // reach Favoured or Trusted, or fall to Distrusted (Hostile has its own letter).
+  const TIERS={
+    security:{Favoured:"Your file has moved to the short pile. That is not a compliment yet.",
+      Trusted:"You are now cleared for work I do not give to contractors. Do not make me regret the paperwork.",
+      Distrusted:"Your reliability rating has dropped. I noticed. Fix it."},
+    trade:{Favoured:"Look at you, sweetie. Favoured. I always knew you had it in you.",
+      Trusted:"Trusted, babe. Do you know how rarely I get to type that? Come and collect your compliments.",
+      Distrusted:"Babe, the board is grumbling about you. I am defending you, but give me something to work with."},
+    jackals:{Favoured:"The Combine has begun to remember your name. In our circles that is usually a warning. In yours, a promotion.",
+      Trusted:"You now have the Combine's trust, which is rarer than its money and considerably harder to steal.",
+      Distrusted:"There has been some unflattering talk about you. I have not yet decided whether to correct it."},
+    helix:{Favoured:"Your results are now considered reproducible. At Helix that is very high praise.",
+      Trusted:"The board has rated you Trusted. I reached the same conclusion earlier, with a smaller sample.",
+      Distrusted:"Your recent results are inconsistent. I would like to understand why. So would the board, less kindly."},
+    quickbite:{Favoured:"Dude, the system says you are Favoured now. I did not know it could say that.",
+      Trusted:"Trusted, dude. Corporate wants a photo for the wall. I said you are a drone. They said fine, photo of the drone.",
+      Distrusted:"So, uh, the system flagged you as unreliable. I am not saying it is right. I am saying it noticed."}
+  };
+  function tierLine(id,label,up){
+    const t=TIERS[id]?.[label],n=NOTES[id];if(!t||!n)return null;
+    if((label==='Distrusted')===!!up)return null; // praise only on the way up, the warning only on the way down
+    return `${n.who}: "${t}"`
+  }
+  globalThis.AgentXContactNotes={NOTES,WARM,CLOSE,pick,FILES,known,TIERS,tierLine};
 })();

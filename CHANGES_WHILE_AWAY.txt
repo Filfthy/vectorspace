@@ -819,3 +819,14 @@ v1100 New opponent: shield tenders
       wrong: VOX is added as a sixth network when the game runs. I checked
       in game and her file shows under VOX once you have met her. Nothing
       needed fixing.
+
+v1110 Contacts react when your standing changes
+      The "Standing improved" and "Standing dropped" mails used to come only
+      from the network office. Now the contact adds a line of their own
+      when you reach Favoured or Trusted, or fall to Distrusted. Kudo: "Your
+      file has moved to the short pile. That is not a compliment yet."
+      Nyxo, at Trusted: "Corporate wants a photo for the wall. I said you
+      are a drone. They said fine, photo of the drone." Praise comes only on
+      the way up, the warning only on the way down. Hostile keeps its own
+      letter, as before. 15 lines, written to the style guide's voices.
+      Tested muted with every tier change for QuickBite.

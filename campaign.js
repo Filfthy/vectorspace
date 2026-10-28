@@ -2923,7 +2923,7 @@ class CampaignController {
     const before=f.rep,oldLabel=this.repLabel(before);f.rep=clamp(f.rep+delta,-100,100);const newLabel=this.repLabel(f.rep);
     if(oldLabel!==newLabel){
       const direction=f.rep>before?'improved':'dropped';
-      this.enqueueMail({id:`rep_${f.id}_${this.state.completed}_${f.rep}_${Date.now().toString(36)}`,from:`${f.name} · Network Office`,subject:`Standing ${direction}: ${newLabel}`,category:'network',priority:'normal',body:[`Your standing with ${f.name} has ${direction}.`,`Current status: ${newLabel} (${f.rep>0?'+':''}${f.rep}).`]})
+      this.enqueueMail({id:`rep_${f.id}_${this.state.completed}_${f.rep}_${Date.now().toString(36)}`,from:`${f.name} · Network Office`,subject:`Standing ${direction}: ${newLabel}`,category:'network',priority:'normal',body:[`Your standing with ${f.name} has ${direction}.`,`Current status: ${newLabel} (${f.rep>0?'+':''}${f.rep}).`,...[globalThis.AgentXContactNotes?.tierLine?.(f.id,newLabel,f.rep>before)].filter(Boolean)]})
     }
   }
   makeDevTemplatePreview(templateId,factionId){
