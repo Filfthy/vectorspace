@@ -781,3 +781,14 @@ v1080 Gear prompts you can see, and three achievements
       end in the earlier full game sweep. Dune and Ice Field Armour first
       slowed down while the test pane was in the background, and both
       finished in about 40 s each when rerun.
+
+v1090 Ice and crystal worlds look different from orbit
+      The world types now show before you land, too. Cyan (ice) planets
+      have white fracture lines across their face, and magenta (crystal)
+      planets carry diamond-shaped cyan facet fields. They sit on top of the
+      existing grid, band and crater styles and turn with the planet. The
+      positions are rolled once per mission, like the rings. I tried polar
+      caps first, but the game always shows the poles edge-on at the rim,
+      so the caps were invisible and I replaced them with the fractures.
+      Tested muted: a screenshot of both, plus an ice and a crystal mission
+      through their descent with no errors.
