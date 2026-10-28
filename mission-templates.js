@@ -2315,6 +2315,93 @@
     }
   };
 
+  // v1140 survey run: the groundside pickup run with survey markers on the plains
+  // (environment-surface.js buildSurvey). Fly over every marker, then the town opens:
+  // collect the ground team's case, launch and hand it over at the depot. Any world
+  // colour, so it shows the world types off.
+  const surveyRun={
+    id:'survey_run',
+    version:1,
+    family:'groundside_pickup',
+    musicMode:'calm',
+    minLevel:4,
+    maxLevel:null,
+    allowedFactions:['helix','security','trade','quickbite'],
+    factionWeights:{helix:5,security:4,trade:3,quickbite:2},
+    board:{category:'delivery',weight:.7,maxPerBoard:1},
+    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
+    reward:{
+      basePay:2600,payPerRisk:1820,payRiskSquare:112,randomPay:400,roundPay:50,
+      baseXp:360,xpPerRisk:80,xpRiskSquare:8
+    },
+    defaults:{origin:'the survey team\'s field office',destination:'the Compact freight depot',cargo:'a sealed survey case'},
+    planetaryRequirements:{landingBody:'planet',landingColour:{choices:['green','cyan','magenta','yellow','orange','blue'],weights:[22,18,16,16,14,14]},moonCount:{min:0,max:2}},
+    civilianTrafficPolicy:groundsidePickup.civilianTrafficPolicy,
+    sections:groundsidePickup.sections.map((s,i)=>i===1?{...s,label:'Survey Run',params:{...s.params,routeLength:520,treeClumps:8,surveyPoints:{base:2,perRisk:.25,min:2,max:4,round:true}}}:s),
+    presentation:{
+      helix:{
+        contactId:'navira_derris',cargoStyle:'case',
+        titles:['Field Survey','Ground Truth','Survey Sweep'],
+        cargo:['a sealed survey case','soil and tissue cores','the ground team\'s survey logs'],
+        destinations:['the Compact freight depot','a Helix collection point at the depot'],
+        descriptions:[
+          'My orbital scans of this world disagree with each other, which is wonderful. Fly the survey points on the plains so I can check them against the ground, then collect {cargo} from {origin} and bring it to {destination}.',
+          'I need low, slow readings from the plains, every survey point, no shortcuts. Then pick up {cargo} from {origin} and hand it over at {destination}. The ground team has been out there a while. Be nice to them.'
+        ],
+        completionSubjects:['Survey received','Ground truth logged'],
+        completionBodies:['Every survey point is logged and {cargo} reached the depot. The scans agree now. Slightly disappointing, scientifically. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'navira_derris',subjects:['The survey is incomplete'],bodies:['Your drone was lost before the survey reached the depot. The readings you did take arrived. The rest of them are still on that world.']},
+        abandonMail:{contactId:'navira_derris',subjects:['Survey abandoned'],bodies:['You left before the survey was finished. The ground team is still waiting for its pickup.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:3,chance:.22,subjects:['About your flight line'],bodies:['Your survey track was very straight. The ground team asked if you were an autopilot. I said no, just very good.']}
+      },
+      security:{
+        contactId:'kudo_shang',cargoStyle:'case',
+        titles:['Track Survey','Ground Sweep','Remnant Check'],
+        cargo:['a sealed survey case','the patrol team\'s track logs','a remnant track report'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'Satellite passes show tracks on the plains of this world. Fly every survey point at low level and confirm or deny remnant movement. Then collect {cargo} from {origin} and deliver it to {destination}.',
+          'Ground survey. Every marker, no exceptions. If it is remnant armour I want to know before it knows we are looking. Collect {cargo} from {origin} after, and deliver it to {destination}.'
+        ],
+        completionSubjects:['Survey complete','Ground sweep logged'],
+        completionBodies:['All survey points are confirmed and the report is in. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Survey incomplete'],bodies:['The survey was not completed and the report did not arrive. Return and finish it.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left the survey unfinished. I do not accept half a picture.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.18,subjects:['Re: track survey'],bodies:['Your survey matched the satellite to within a metre. Adequate.']}
+      },
+      trade:{
+        contactId:'corvella_pallis',cargoStyle:'case',
+        titles:['Route Survey','New Road Survey','Plains Mapping'],
+        cargo:['a sealed survey case','the road crew\'s plans','a case of route charts'],
+        destinations:['the Compact freight depot','a Compact depot in high orbit'],
+        descriptions:[
+          'Sweetie, I want to put a freight road across these plains. Fly the survey points for me, low and lovely, then pick up {cargo} from {origin} and bring it to {destination}.',
+          'Babe, the road crew needs real readings before they pour anything. Every survey point, then collect {cargo} from {origin} and drop it at {destination}. I will be watching the tracker. Obviously.'
+        ],
+        completionSubjects:['Road survey in','My road has a route, babe'],
+        completionBodies:['The survey is in and {cargo} is logged at the depot. My road crew says the line is perfect. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the survey'],bodies:['Sweetie, the survey never reached the depot and neither did you. My road is going to be very wiggly.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, the markers'],bodies:['You left with markers still unflown, babe. The road crew is just standing there.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['Thinking about my road'],bodies:['The road crew want to name the new road after the contractor who surveyed it. I said I would ask. I am asking, sweetie.']}
+      },
+      quickbite:{
+        contactId:'nyxo_malloc',cargoStyle:'case',
+        titles:['Delivery Route Survey','Map the Shortcut','GPS Is Lying'],
+        cargo:['a sealed survey case','the franchise\'s route box','a box of route maps labelled DO NOT LOSE'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'Dude. Our routing system says there is a lake on this route. There is no lake. Fly the survey points so we can prove it, then grab {cargo} from {origin} and take it to {destination}.',
+          'So corporate wants a new shortcut across these plains, and somebody has to actually look at them. That is you. Hit every marker, collect {cargo} from {origin}, drop it at {destination}.'
+        ],
+        completionSubjects:['There was no lake, dude','Shortcut mapped'],
+        completionBodies:['Survey done, maps delivered. Turns out there was a lake. A small one. The routing system is insufferable now. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'nyxo_malloc',subjects:['The survey exploded'],bodies:['Dude, your drone went down and the maps did not make it. Corporate says use the old route. The old route has the lake.']},
+        abandonMail:{contactId:'nyxo_malloc',subjects:['You skipped the markers?'],bodies:['You left before the survey was done. Now we still do not know about the lake.']},
+        personalFollowUp:{contactId:'nyxo_malloc',minRisk:3,chance:.24,subjects:['The lake thing'],bodies:['So the routing system and I are not speaking. It knows what it did.']}
+      }
+    }
+  };
+
   // Generic discretionary reward correspondence lives beside the mission templates
   // because it is faction/contact presentation, even when the reward itself is not
   // tied to one particular mission family. Campaign owns the reward mechanics; these
@@ -2455,7 +2542,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();

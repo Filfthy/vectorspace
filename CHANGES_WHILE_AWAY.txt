@@ -849,3 +849,22 @@ v1130 Blue worlds are wetlands
       Dune fields on blue worlds keep their trees, since the reed meshes are
       not built for dune terrain. Tested muted: a blue cabin run with 115
       reeds on the plains (screenshot) and no errors.
+
+v1140 Survey Run, a new kind of land mission
+      New board job from level 4 (about one board in five): Survey Run, for
+      Helix, OSD, the Compact and QuickBite, on any world colour. The plains
+      after landing carry 2 to 4 survey markers (more at higher risk). Each
+      one is a diamond on a faint pole. The yellow nav points at the nearest
+      open marker, and the others show as small cyan diamonds. Fly within
+      about 8 m of each to log it ("SURVEY POINT 2 OF 3 LOGGED"). The town
+      stays closed until all are logged ("SURVEY INCOMPLETE · 2 POINTS
+      LEFT"). Then it is the Groundside Pickup run: collect the ground
+      team's case, launch, and hand it over at the depot. The HUD reads
+      SURVEY 1/3 until you are done, and trees are cleared round each marker
+      so you can fly through low. The writing: Navira's orbital scans
+      "disagree with each other, which is wonderful". Kudo wants remnant
+      tracks confirmed. Corvella is planning a freight road. Nyxo's routing
+      system insists there is a lake. The marker logic is new code in the
+      plains approach, and it does nothing unless a stage asks for markers.
+      Tested muted: the gate, every marker logging, a full run to the
+      debrief, the board mix and a screenshot.

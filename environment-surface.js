@@ -123,7 +123,7 @@ class SurfaceDestinationApproachController {
   reset(){
     this.active=false;this.stage=null;this.terrain='plains';this.destination='city';this.scenery='forest';
     this.groundY=-3.50;this.routeLength=430;this.targetWorldZ=430;this.targetX=0;
-    this.speed=22.0;this.navPulse=0;this.seed=0x504c4149;this.trees=[];this.skyline=[];this.forestBands=[];this.forestFront=[];this.treeHitCD=0;
+    this.speed=22.0;this.navPulse=0;this.seed=0x504c4149;this.trees=[];this.survey=[];this.skyline=[];this.forestBands=[];this.forestFront=[];this.treeHitCD=0;
     this.visibleTrees=[];this.visibleForestFront=[];
     this.baseCache=new WeakMap();this.finishing=false;this.finishT=0;this.entryRadius=36;
     this.lastHandoff=null;this.manualComplete=false
@@ -168,7 +168,7 @@ class SurfaceDestinationApproachController {
     this.targetWorldZ=Number.isFinite(Number(resolved?.targetWorldZ))?Number(resolved.targetWorldZ):this.routeLength;
     this.targetX=Number.isFinite(Number(resolved?.targetX))?Number(resolved.targetX):0;
     this.entryRadius=clamp(Number(resolved?.entryRadius)||36,24,60);
-    this.buildScenery();
+    this.buildScenery();this.buildSurvey(resolved?.surveyPoints);
     if(this.destination==='forest')this.buildForestBoundary();
     else if(this.destination==='swamp')this.buildSwampBoundary();
     else if(this.destination==='bunker'||this.destination==='osd'){this.skyline.length=0;this.forestBands.length=0;this.forestFront.length=0}
@@ -269,6 +269,30 @@ class SurfaceDestinationApproachController {
       addClump(centreX,centreWZ,rockMode?(4+Math.floor(this.rand()*3)):(6+Math.floor(this.rand()*4)),rockMode?(18+this.rand()*16):(12+this.rand()*10),rockMode?(22+this.rand()*24):(18+this.rand()*20),rockMode?(1.08+this.rand()*.44):(.96+this.rand()*.24),false)
     }
   }
+  // v1140 SURVEY RUN: optional survey markers on the plains (stage.surveyPoints, 2-4).
+  // Pass close to each one before the destination accepts you. Until then the yellow
+  // nav diamond points at the nearest open marker and the destination stays closed.
+  // Scenery is cleared round each marker so it can always be flown through low.
+  buildSurvey(n){
+    this.survey=[];this.surveyNagT=0;
+    const count=clamp(Math.round(Number(n)||0),0,4);if(!count)return;
+    for(let i=0;i<count;i++){
+      const u=.22+(.58*(i+.5)/count)+(this.rand()-.5)*.08,side=i%2?1:-1;
+      this.survey.push({x:this.targetX+side*(20+this.rand()*26),worldZ:this.routeLength*u,done:false})
+    }
+    this.trees=this.trees.filter(t=>!this.survey.some(p=>Math.hypot(t.x-p.x,t.worldZ-p.worldZ)<9))
+  }
+  surveyLeft(){return (this.survey||[]).filter(p=>!p.done)}
+  surveyNext(){return this.surveyLeft().sort((a,b)=>Math.hypot(a.x-shipX,a.worldZ-travel)-Math.hypot(b.x-shipX,b.worldZ-travel))[0]||null}
+  updateSurvey(dt){
+    if(!this.survey?.length)return;
+    this.surveyNagT=Math.max(0,this.surveyNagT-dt);
+    for(const p of this.survey)if(!p.done&&Math.hypot(p.x-shipX,p.worldZ-travel)<8.5){
+      p.done=true;const total=this.survey.length,got=total-this.surveyLeft().length;
+      if(typeof callout==='function')callout(got<total?`SURVEY POINT ${got} OF ${total} LOGGED`:'SURVEY COMPLETE · PROCEED TO DESTINATION',1.8);
+      SoundFX.objectiveComplete?.()
+    }
+  }
   buildSkyline(){
     this.skyline.length=0;
     const all=globalThis.AgentXCityBuildings?.list||[];
@@ -353,7 +377,8 @@ class SurfaceDestinationApproachController {
     shipX=side*(17+this.rand()*13);shipY=-1.42;
     viewYaw=side*(.28+this.rand()*.28);viewPitch=.015;viewRoll=0;
     audio.music.setMode('calm');
-    if(this.destination==='swamp')say('PROCEED TO SWAMP',.85);
+    if(this.survey?.length){if(typeof callout==='function')callout(`FLY THE ${this.survey.length} SURVEY POINTS · THEN THE ${this.destination==='forest'?'FOREST':'CITY'}`,2.6)}
+    else if(this.destination==='swamp')say('PROCEED TO SWAMP',.85);
     else if(this.destination==='osd')say('PROCEED TO OSD FACILITY',.85);
     else audio.playVoice(this.destination==='forest'?'proceedToForest':'proceedToCity',{once:false,priority:true})
   }
@@ -391,7 +416,12 @@ class SurfaceDestinationApproachController {
         if(Math.abs(dz)<1.15&&Math.abs(dx)<radius&&shipY<top){t.hit=true;this.treeHitCD=.82;damage(t.kind==='rock'?'ROCK':'TREE');if(mode==='dead')return;break}
       }
     }
+    this.updateSurvey(dt);
     const d=this.distance();
+    if(!this.finishing&&d<78&&this.surveyLeft?.().length){
+      if(this.surveyNagT<=0&&typeof callout==='function'&&callout(`SURVEY INCOMPLETE · ${this.surveyLeft().length} POINT${this.surveyLeft().length>1?'S':''} LEFT`,1.6))this.surveyNagT=5;
+      return
+    }
     if(!this.finishing&&d<78){this.finishing=true;this.finishT=0;say(this.destination==='forest'?'FOREST EDGE':(this.destination==='swamp'?'SWAMP EDGE':(this.destination==='osd'?'OSD FACILITY AHEAD':'CITY LIMITS')),.60)}
     if(this.finishing){
       this.finishT+=dt;
@@ -467,14 +497,27 @@ class SurfaceDestinationApproachController {
   drawSkyline(){const scene=[];this.appendSkyline(scene);this.drawObjectScene(scene)}
   appendEnvironmentObjects(scene){this.appendSkyline(scene);this.appendScenery(scene);return scene}
   drawNavigation(){
-    const q=camPoint([this.targetX,this.groundY+6.8,this.targetWorldZ-travel]);
+    const next=this.surveyNext?.();
+    // Each open marker stands on a faint pole so its range reads against the ground.
+    for(const p of this.surveyLeft?.()||[]){
+      const g=camPoint([p.x,this.groundY,p.worldZ-travel]),t=camPoint([p.x,this.groundY+3.2,p.worldZ-travel]);
+      if(g[2]>.3&&t[2]>.3&&g[2]<260){const a=projectCam(g),b=projectCam(t);if(a&&b)line(a.x,a.y,b.x,b.y,C.c,1,clamp(1.1-g[2]/260,.25,.7))}
+    }
+    if(next){
+      for(const p of this.surveyLeft()){
+        if(p===next)continue;const sq=camPoint([p.x,this.groundY+3.2,p.worldZ-travel]),sp=sq[2]>.2?projectCam(sq):null;
+        if(sp&&sp.x>=0&&sp.x<=W&&sp.y>=0&&sp.y<=viewH){const r=5;line(sp.x,sp.y-r,sp.x+r,sp.y,C.c,1,.7);line(sp.x+r,sp.y,sp.x,sp.y+r,C.c,1,.7);line(sp.x,sp.y+r,sp.x-r,sp.y,C.c,1,.7);line(sp.x-r,sp.y,sp.x,sp.y-r,C.c,1,.7)}
+      }
+    }
+    const tx=next?next.x:this.targetX,twz=next?next.worldZ:this.targetWorldZ;
+    const q=camPoint([tx,this.groundY+(next?3.2:6.8),twz-travel]);
     const p=q[2]>.2?projectCam(q):null,on=!!(p&&p.x>=0&&p.x<=W&&p.y>=0&&p.y<=viewH);
     if(on){
       const pulse=1.5+Math.sin(this.navPulse*4.2)*1.5,r=9+pulse;
       line(p.x,p.y-r,p.x+r,p.y,C.y,1.15,.92);line(p.x+r,p.y,p.x,p.y+r,C.y,1.15,.92);
       line(p.x,p.y+r,p.x-r,p.y,C.y,1.15,.92);line(p.x-r,p.y,p.x,p.y-r,C.y,1.15,.92);
       line(p.x-3,p.y,p.x+3,p.y,C.c,1,.9);line(p.x,p.y-3,p.x,p.y+3,C.c,1,.9);
-      const navLabel=this.destination==='bunker'?'BUNKER NAV':(this.destination==='forest'?'FOREST NAV':(this.destination==='swamp'?'SWAMP NAV':(this.destination==='osd'?'OSD NAV':'CITY NAV')));
+      const navLabel=next?'SURVEY POINT':this.destination==='bunker'?'BUNKER NAV':(this.destination==='forest'?'FOREST NAV':(this.destination==='swamp'?'SWAMP NAV':(this.destination==='osd'?'OSD NAV':'CITY NAV')));
       ctx.textAlign='center';ctx.font='400 8px Consolas,monospace';ctx.strokeStyle=C.y;ctx.strokeText(navLabel,p.x,p.y-r-7);ctx.textAlign='left'
     }else{
       const edge=hudEdgeCue(q,0),x=edge.x,y=edge.y,dx=edge.dx,dy=edge.dy,tx=-dy,ty=dx,depth=8,width=12,bx=x-dx*depth;
@@ -488,6 +531,8 @@ class SurfaceDestinationApproachController {
   }
   hudRight(){
     const label=this.destination==='bunker'?'BUNKER':(this.destination==='forest'?'FOREST':(this.destination==='swamp'?'SWAMP':(this.destination==='osd'?'OSD':'CITY')));
+    const left=this.surveyLeft?.().length||0;
+    if(this.active&&left)return `SURVEY ${this.survey.length-left}/${this.survey.length}`;
     return this.active?`${label} ${Math.max(0,Math.round(this.distance()))}`:''
   }
 }
