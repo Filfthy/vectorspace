@@ -646,3 +646,13 @@ v990  More news, and the title picker in the Guide
       lunch", a hospitality firm's records ship lost, and the Snades
       postponing their public reading. The Guide now says every title is
       kept and you choose which to show.
+
+      Full game sweep (no change needed). Every mission in the game was
+      launched and stepped through to the end: the 12 story missions, the
+      15 agent missions, the 5 epilogues, all 8 Black Contracts and the
+      board templates. 59 missions, no errors. 23 were slow to finish their
+      exit sequence in one long run of the test page; 20 of those finished in
+      victory on a longer wait. The last three (Corvella's forest wreck, the
+      Deep Core Black Contract and the swamp relay) all finished in victory
+      within 6 seconds after a fresh page reload. Hours of back-to-back
+      testing had slowed the hidden page down. Nothing was wrong in the game.
