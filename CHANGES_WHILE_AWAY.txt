@@ -1011,3 +1011,13 @@ v1250 Two more Codex entries
       entries now. Neither entry touches any open lore question. Tested
       muted: both stay locked on a fresh save, and Ground crews opens on the
       test save after its beacon run.
+
+(no code change) Final board template sweep
+      All 22 board templates were driven to the end on a fresh, muted page,
+      with a distress beacon forced onto every plains approach and Survey
+      Run markers flown. There were no script errors anywhere. 18 finished
+      first time. Groundside Pickup (Red Jackal), Station Delivery and
+      Specimen Recovery stalled while the test page was hidden and
+      throttled, and all three finished when rerun one at a time.
+      Groundside was rerun both with and without a beacon. Factory Strike
+      stops, as before, where the harness cannot fly into the bunker.
