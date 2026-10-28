@@ -23,6 +23,20 @@
     H('helix_hiring','Helix Industrial is hiring field technicians. Applicants must be "comfortable around the unexpected".'),
     H('compact_beacons','The Compact rolls out new freight beacon codes after a spoofing scandal it describes as "fully resolved".'),
     H('vox_record','VOX reports its busiest quarter for independent contract work since the armistice.'),
+    // v990 additions.
+    H('compact_insurance','Compact insurers raise premiums on asteroid-belt freight, blaming "rocks, mostly".'),
+    H('quickbite_menu','QuickBite trials a new orbital menu. Early reviews describe the burrito as "structurally ambitious".'),
+    H('osd_recruiting','OSD recruitment posters return to station corridors. The slogan is two words long.'),
+    H('jackal_art','An anonymous buyer pays a record price for a painting at auction. The Red Jackal Combine declined to comment, very politely.'),
+    H('helix_paper','A Helix paper on xeno homing tissue is withdrawn before publication "for further study".'),
+    H('customs_drones','The Customs Authority confirms its interceptor drones will now carry larger warning lights.'),
+    H('relay_traffic','Relay traffic is up a third on last year as independent haulers move into the outer routes.'),
+    // v990 reactive: epilogues and titles.
+    H('crossroads_closed','OSD formally closes a blockade order issued years ago at Crossroads. A spokesperson called it "overdue".',c=>!!c.flags.securityAgent4Done),
+    H('teodor_station','A retired Helix researcher describes a recent xeno incident at his station as "the most fun I have had in years".',c=>!!c.flags.helixAgent4Done),
+    H('corporate_retreat','QuickBite leadership returns from a forest retreat reporting "an excellent lunch".',c=>!!c.flags.quickbiteAgent4Done),
+    H('ownership_files','The old records ship of a defunct hospitality firm is reported lost in an asteroid field. Nobody has asked for it back.',c=>!!c.flags.tradeAgent4Done),
+    H('snade_ledger','The Snade family postpones a much-advertised public reading. No reason was given.',c=>!!c.flags.jackalsAgent4Done),
     // Reactive headlines: they run once the player has done the thing, never naming X.
     H('bunker_cleared','OSD says an abandoned military bunker has been cleared by "an independent contractor". Details withheld.',c=>(c.bt.bunker_raid||0)>0),
     H('nest_destroyed','Shipping lanes near a former xeno nest reopen. Helix calls the clearance "a tidy piece of work".',c=>(c.bt.nest_clearance||0)>0||!!c.flags.helixAgent2Done),

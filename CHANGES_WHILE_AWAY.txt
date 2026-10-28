@@ -635,3 +635,14 @@ v980  Two more Black Contract set pieces
       Tested muted through the real Black Contract mail path: both played
       to victory and were marked done, and Stolen Remnants spawned hijacked
       drones with 74 hull at threat 7. No errors.
+
+v990  More news, and the title picker in the Guide
+      The VOX Wire has 31 headlines now. New ones include Compact insurers
+      blaming "rocks, mostly", a QuickBite burrito described as
+      "structurally ambitious", and an OSD poster slogan that is two words
+      long. Five new ones react to the epilogues: OSD closing the old
+      Crossroads order, Teodor calling his xeno incident "the most fun I
+      have had in years", QuickBite leadership reporting "an excellent
+      lunch", a hospitality firm's records ship lost, and the Snades
+      postponing their public reading. The Guide now says every title is
+      kept and you choose which to show.
