@@ -31,6 +31,20 @@ const routeDiversion={
         {id:'stripped',weight:22,say:'DERELICT ALREADY STRIPPED',text:'Derelict stripped'},
         {id:'dormant',weight:20,say:'DORMANT DRONES ACTIVATED',voice:'dormantDronesActivated',fight:{profile:'rogue',hud:'DORMANT DRONES',min:4,max:5},pay:.08,text:'Dormant drones destroyed'}
       ]},
+    // v920: a drifting escape pod, and an unmarked smuggler cache that pays well and
+    // pleases Red Jackal, at the cost of OSD standing (alsoRep adds a second entry).
+    pod:{nav:'ESCAPE POD SIGNAL',hud:'ESCAPE POD',marker:'ESCAPE POD',label:'escape pod',window:18,
+      outcomes:[
+        {id:'rescued',weight:46,say:'POD RECOVERED · SURVIVOR ALIVE',pay:.06,rep:3,repFaction:'security',text:'Escape pod survivor rescued'},
+        {id:'empty',weight:24,say:'POD EMPTY · LIFE SUPPORT FAILED',text:'Escape pod, no survivor'},
+        {id:'bait',weight:30,say:'THE POD WAS BAIT',fight:{profile:'pirate',hud:'POD AMBUSH',min:3,max:5},pay:.06,text:'Pod ambush survived'}
+      ]},
+    cache:{nav:'UNMARKED CARGO CACHE',hud:'SMUGGLER CACHE',marker:'CARGO CACHE',label:'smuggler cache',window:18,
+      outcomes:[
+        {id:'goods',weight:55,say:'CACHE CLAIMED · OSD WILL NOT LIKE THIS',pay:.18,rep:2,repFaction:'jackals',alsoRep:{faction:'security',amount:-3,text:'OSD noticed the cache'},text:'Smuggler cache claimed'},
+        {id:'guarded',weight:30,say:'THE CACHE IS GUARDED',fight:{profile:'hostile',hud:'CACHE GUARDS',min:3,max:5},pay:.14,rep:2,repFaction:'jackals',alsoRep:{faction:'security',amount:-3,text:'OSD noticed the cache'},text:'Guarded cache claimed'},
+        {id:'tracker',weight:15,say:'TRACKER IN THE CACHE · CUSTOMS INBOUND',fight:{profile:'customs',hud:'CUSTOMS INTERCEPT',min:3,max:4},pay:.1,text:'Cache tracker, Customs fought off'}
+      ]},
     civilian:{nav:'CIVILIAN CRAFT UNDER PURSUIT',voice:'civilianCraftUnderAttack',hud:'CIVILIAN UNDER ATTACK',window:24,
       helped:{say:'CIVILIAN SAFE',voice:'civilianSafe',pay:.1,rep:3,repFaction:'security',text:'Civilian rescued'},
       ignored:{say:'CIVILIAN CONTACT LOST',voice:'civilianContactLost'}}
@@ -142,6 +156,7 @@ const routeDiversion={
     const pay=o.pay?Math.round((m.pay*o.pay)/50)*50:0,xp=o.xp?Math.round(m.xp*o.xp):0;
     const repFaction=o.rep?(o.repFaction||m.faction||null):null;
     (m.diversions||(m.diversions=[])).push({kind:this.kind,outcome:o.id,text:o.text,pay,xp,rep:o.rep||0,repFaction});
+    if(o.alsoRep)m.diversions.push({kind:this.kind,outcome:o.id,side:true,text:o.alsoRep.text,pay:0,xp:0,rep:o.alsoRep.amount,repFaction:o.alsoRep.faction});
   },
   recordIgnored(){const m=campaign.currentMission;if(m)(m.diversions||(m.diversions=[])).push({kind:this.kind,outcome:'ignored',text:'Ignored',pay:0,xp:0,rep:0})},
   end(){

@@ -532,3 +532,16 @@ v910  Three small fixes from a third independent review
       The reviewer also confirmed aces never appear in drone or xeno fights,
       there are no double bounties, favours complete and clear properly on
       every path, and the new stats load fine on old saves.
+
+v920  Two new diversions: escape pods and smuggler caches
+      - Escape pod signal: steer in to pick it up. Usually a survivor (OSD
+        standing goes up), sometimes nobody made it, and sometimes the pod
+        is pirate bait.
+      - Unmarked cargo cache: a small moral choice. Claiming it pays well and
+        pleases Red Jackal, but OSD notices (Jackal +2, OSD -3). Sometimes
+        the cache is guarded, and sometimes it holds a tracker that brings
+        Customs drones down on you.
+      The debrief shows both standing changes. Diversions now come in five
+      kinds. The Guide mentions the new ones. Flown muted: the cache prompt
+      showed, the claim paid CR 850, Jackal went up 2 and OSD down 3, and the
+      debrief listed "OSD noticed the cache". No errors.
