@@ -412,3 +412,21 @@ v820  Ringed planets
       They fade out as you close in, so the final descent stays clean.
       Purely visual, and it works with every mission that lands. Screenshot
       checked on a cyan ringed world, through to the surface.
+
+v830  New board job: Station Defence (OSD, Compact, Helix, QuickBite)
+      A station is under attack: destroy the attackers, search their wrecks
+      for records of who sent them, and upload them at the station terminal.
+      It's the module from Kudo's Emergency Defence story mission, now a
+      board COMBAT job from level 2. The attackers vary per contract: pirates
+      (sometimes with a named ace), rogue drones or hijacked drones. The
+      attack grows with risk.
+      - Kudo: "Hold the line, break them."
+      - Corvella: the dock crews are hiding under the cargo.
+      - Navira: three experiments are running on that station. Her follow-up
+        notices the attackers knew which module held them.
+      - Nyxo: someone is shooting at the truck stop during the lunch rush.
+        The staff offer you free tacos forever. "I told them you are a drone.
+        They said forever."
+      At level 5 it pays CR 7,200 and 625 XP (a plain fighter job pays about
+      CR 4,000). Flown muted against hijacked drones, through to the wreckage
+      search, then stepped to victory and Nyxo's mail. No errors.

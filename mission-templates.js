@@ -1526,6 +1526,79 @@
     defaults:{destination:'swamp relay clearing',cargo:'sealed delivery package'}
   };
 
+  // v830 station defence (style guide T03 at a station): a station is under attack.
+  // Destroy the attackers, search their wrecks for anything that says who sent them,
+  // and upload it through the station's terminal. Same proven module as Kudo's
+  // Emergency Defence story mission. The attackers vary per contract.
+  const stationDefence={
+    id:'station_defence',
+    version:1,
+    family:'station_defence',
+    musicMode:'violent',
+    minLevel:2,
+    maxLevel:null,
+    allowedFactions:['security','trade','helix','quickbite'],
+    factionWeights:{security:4,trade:3,helix:2,quickbite:3},
+    board:{category:'combat',weight:.75,maxPerBoard:1},
+    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
+    reward:{
+      basePay:2000,payPerRisk:1250,payRiskSquare:130,randomPay:400,roundPay:50,
+      baseXp:280,xpPerRisk:85,xpRiskSquare:9
+    },
+    sections:[
+      {type:'station_defence_recovery',label:'Defend the Station',params:{stationModel:'relay',approachDistance:275,
+        encounterChance:1,target:{base:3,perRisk:1,min:5,max:11,round:true},fighterHp:13,difficulty:'$risk',
+        profile:{choices:['pirate','rogue','hijacked'],weights:[45,35,20]},startMessage:'Defend the station',
+        wreckageSearch:true,useCombatWrecks:true,stationAnchor:true,wreckageCount:6,inspectSeconds:1.70,markerGrowRange:110,captureRadius:26,
+        searchPromptText:'Search the attackers\' wreckage for anything useful',missText:'Nothing useful in this one',foundText:'Attack records recovered',
+        foundHud:'Attack records recovered',foundHold:1.15,wreckageSearchFlow:{firstResultAlwaysMiss:true},
+        wreckagePresentation:{searchingText:'SEARCHING WRECKAGE',searchingHold:.58,markerLabel:'WRECKAGE',contactsPrefix:'WRECKAGE CONTACTS'},
+        externalDataTerminal:true,terminalCaptureRadius:30,terminalStandOff:13,transferSeconds:3.2}}
+    ],
+    presentation:{
+      security:{
+        contactId:'kudo_shang',
+        titles:['Station Under Attack','Relay Defence','Hold the Station'],
+        descriptions:['A relay station is under attack. Destroy the attackers. Search their wreckage for anything that says who sent them, then upload it through the station terminal.','Hostiles are hitting a Directorate relay. Hold the line, break them, and bring me their records through the station uplink.'],
+        completionSubjects:['Station secure','Attack records received'],
+        completionBodies:['The station is secure and the attack records are uploaded. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Station lost ground'],bodies:['The attackers outlasted your drone. The station is still taking fire. Go back and finish it.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['You left the station'],bodies:['You withdrew from a station under attack. Somebody else had to hold that line.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:5,chance:.16,subjects:['Re: relay defence'],bodies:['Station held. Records clean. That is the job, done properly.']}
+      },
+      trade:{
+        contactId:'corvella_pallis',
+        titles:['Save My Station','Dockside Defence','Uninvited Guests'],
+        descriptions:['Sweetie, somebody is shooting at one of my stations and the dock crews are hiding under the cargo. Go and make them stop. Then dig through the wreckage and upload whatever you find at the station terminal.','Babe, a Compact relay is under attack. I need my favourite gunship there now. Break them up, search the wrecks, send me the records through the terminal.'],
+        completionSubjects:['My station is safe','The crews came out'],
+        completionBodies:['The station is safe and I have the attack records. The dock crews want to buy you a drink. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the station'],bodies:['Sweetie, they are still shooting at my station and your drone is in very small pieces. Go back. Please.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, you left them'],bodies:['You left my dock crews hiding under the cargo, babe. They noticed. So did I.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:4,chance:.22,subjects:['The dock crews are talking'],bodies:['Sweetie, the dock crews watched you take those attackers apart and now they will not stop talking about you. I am a little jealous.']}
+      },
+      helix:{
+        contactId:'navira_derris',
+        titles:['Research Station Defence','Interrupted Experiment','Station Under Fire'],
+        descriptions:['X. A Helix research relay is under attack and I have three experiments running on it. Please end the attack, then search the wreckage. I would like to know who considers my work worth shooting at.','The station is under attack. Defend it, recover any records from the attackers, and upload them at the terminal. The station staff are fine. The experiments are what worry me.'],
+        completionSubjects:['Station and experiments intact','Records received'],
+        completionBodies:['The station is secure and all three experiments survived. The attack records are interesting. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'navira_derris',subjects:['The attack continued'],bodies:['The attackers are still there and one of my experiments has stopped reporting. Please try again before the others do.']},
+        abandonMail:{contactId:'navira_derris',subjects:['Station still under fire'],bodies:['You left while the station was still under fire. I do not understand the calculation that led to that.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:5,chance:.2,subjects:['About the attackers'],bodies:['The records you recovered show the attackers knew which module held the experiments. That is either a coincidence or someone reads my reports. I am not sure which I prefer.']}
+      },
+      quickbite:{
+        contactId:'nyxo_malloc',
+        titles:['Truck Stop Under Attack','Defend the Drive-Thru','Lunch Rush Defence'],
+        descriptions:['Dude. Somebody is shooting at the truck stop. During the lunch rush. Go blow them up, then poke through the wreckage and upload whatever you find so Security can yell at the right people.','The truck stop is under attack again. Corporate wants it defended and Security wants the attackers\' records uploaded at the terminal. I just want lunch to happen.'],
+        completionSubjects:['Lunch rush saved','Truck stop is fine'],
+        completionBodies:['The truck stop is fine, the attackers are scrap, and Security has their records. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'nyxo_malloc',subjects:['They are still shooting'],bodies:['Dude, they are still shooting at the truck stop. Nobody is getting lunch. Please go back.']},
+        abandonMail:{contactId:'nyxo_malloc',subjects:['You left during the rush?'],bodies:['You left in the middle of the lunch rush. With people shooting. That is the worst time to leave anywhere.']},
+        personalFollowUp:{contactId:'nyxo_malloc',minRisk:3,chance:.24,subjects:['Free tacos'],bodies:['The truck stop staff want you to know you have free tacos forever. I told them you are a drone. They said forever.']}
+      }
+    }
+  };
+
   // v790 wreck recovery (style guide T07): cross an asteroid field to a known wreck,
   // fight off whoever is picking at it, enter, pull the recorder and hand the data
   // over at a Compact freight depot. Same proven module chain as Missing Manifest and
@@ -2099,7 +2172,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();
