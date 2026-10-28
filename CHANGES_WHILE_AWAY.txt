@@ -251,7 +251,7 @@ Lore and the faction agents
   that grants a title. Once you are on good terms, many of their contracts
   carry a short line from them, and they react in person when your standing
   changes tier. The Networks page keeps a contact file on each of them that
-  fills in as you learn more. A VOX Wire news digest (41 headlines, many
+  fills in as you learn more. A VOX Wire news digest (42 headlines, many
   reacting to what you have done) arrives every few jobs.
 
 Also
