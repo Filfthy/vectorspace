@@ -25,6 +25,14 @@ function surfaceShardMesh(sides,r,mid,top,lean){
 }
 const surfaceIceShardMesh=surfaceShardMesh(5,.62,1.55,2.55,.34);
 const surfaceCrystalMesh=surfaceShardMesh(6,.42,2.35,3.35,.08);
+// v1230: one nav-computer line about the world, a few seconds after landing (plains only).
+const SURFACE_WORLD_CHATTER=Object.freeze({
+  ice:['SURFACE TEMPERATURE · MINUS 80','ICE SHELF STABLE · NO ACTION','FROST ON SENSORS · CLEARING'],
+  crystal:['SPIRE RESONANCE DETECTED · HARMLESS','CRYSTAL FIELD · SENSOR GLARE MINOR','MINING TRAFFIC ON LOCAL BAND'],
+  arid:['DUST LOW · VISIBILITY GOOD','SURFACE TEMPERATURE · PLUS 52','DRY WIND FROM THE WEST'],
+  wet:['STANDING WATER BELOW · KEEP ALTITUDE','HUMIDITY HIGH · NO ACTION','REED BEDS AHEAD · LOW CLEARANCE'],
+  temperate:['LOCAL WEATHER CALM','WILDLIFE ON THE PLAINS · IGNORE','ATMOSPHERE NOMINAL']
+});
 const SURFACE_WORLD_MIX=Object.freeze({ice:.42,crystal:.46,arid:.58,wet:.45});
 // v1050: remember which world types the player has landed on (Guide codex).
 function noteSurfaceWorld(kind){
@@ -144,7 +152,7 @@ class SurfaceDestinationApproachController {
   reset(){
     this.active=false;this.stage=null;this.terrain='plains';this.destination='city';this.scenery='forest';
     this.groundY=-3.50;this.routeLength=430;this.targetWorldZ=430;this.targetX=0;
-    this.speed=22.0;this.navPulse=0;this.seed=0x504c4149;this.trees=[];this.survey=[];this.surveyIntro=null;this.beacon=null;this.skyline=[];this.forestBands=[];this.forestFront=[];this.treeHitCD=0;
+    this.speed=22.0;this.navPulse=0;this.seed=0x504c4149;this.trees=[];this.survey=[];this.surveyIntro=null;this.beacon=null;this.chatter=null;this.skyline=[];this.forestBands=[];this.forestFront=[];this.treeHitCD=0;
     this.visibleTrees=[];this.visibleForestFront=[];
     this.baseCache=new WeakMap();this.finishing=false;this.finishT=0;this.entryRadius=36;
     this.lastHandoff=null;this.manualComplete=false
@@ -435,6 +443,8 @@ class SurfaceDestinationApproachController {
     viewYaw=side*(.28+this.rand()*.28);viewPitch=.015;viewRoll=0;
     audio.music.setMode('calm');
     // The survey instruction waits (up to six seconds) for any spoken line to clear.
+    {const lines=SURFACE_WORLD_CHATTER[this.worldKind||'temperate'],m=typeof campaign!=='undefined'?campaign.currentMission:null;
+      this.chatter=(lines&&m&&!m.training&&!m.devGroundTest&&Math.random()<.7)?{text:lines[Math.floor(Math.random()*lines.length)],wait:7,delay:4.5}:null}
     if(this.survey?.length)this.surveyIntro={text:`FLY THE ${this.survey.length} SURVEY POINTS · THEN THE ${this.destination==='forest'?'FOREST':'CITY'}`,wait:6};
     else if(this.destination==='swamp')say('PROCEED TO SWAMP',.85);
     else if(this.destination==='osd')say('PROCEED TO OSD FACILITY',.85);
@@ -475,6 +485,7 @@ class SurfaceDestinationApproachController {
       }
     }
     this.updateSurvey(dt);this.updateBeacon();
+    const ch=this.chatter;if(ch){if(ch.delay>0)ch.delay-=dt;else{ch.wait-=dt;if(ch.wait<=0||(typeof callout==='function'&&callout(ch.text,1.8)))this.chatter=null}}
     const d=this.distance();
     if(!this.finishing&&d<78&&this.surveyLeft?.().length){
       if(this.surveyNagT<=0&&typeof callout==='function'&&callout(`SURVEY INCOMPLETE · ${this.surveyLeft().length} POINT${this.surveyLeft().length>1?'S':''} LEFT`,1.6))this.surveyNagT=5;

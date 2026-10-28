@@ -968,3 +968,18 @@ v1220 Moons in a planet's sky
       bearing, in the colours and craters they had from orbit. A world with
       two moons shows two. Tested muted: a yellow planet with an orange and
       a blue moon (screenshot), played to the debrief.
+
+v1230 World chatter on the plains, and more news
+      About seven landings in ten, a few seconds after the plains approach
+      begins (and after any spoken line), the nav computer adds one line
+      about the world: "SURFACE TEMPERATURE · MINUS 80" on ice, "SPIRE
+      RESONANCE DETECTED · HARMLESS" on crystal worlds, "DUST LOW ·
+      VISIBILITY GOOD" on arid ones, "STANDING WATER BELOW · KEEP ALTITUDE"
+      on wetlands, and "LOCAL WEATHER CALM" or similar on green worlds.
+      Fifteen lines in all. Also seven more VOX Wire headlines about these
+      places: an ice moon's coldest night, crystal prices, a wetland's
+      low-flying ban, dust season, survey season, tourists watching a
+      planet rise from its moon, and, once you have answered a distress
+      beacon, a rescued ground crew thanking "a drone that went out of its
+      way". 41 headlines now. Tested muted: chatter on a blue world after
+      the voice line, and none on a roll that skipped it.

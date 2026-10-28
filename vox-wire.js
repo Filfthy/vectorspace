@@ -31,6 +31,14 @@
     H('helix_paper','A Helix paper on xeno homing tissue is withdrawn before publication "for further study".'),
     H('customs_drones','The Customs Authority confirms its interceptor drones will now carry larger warning lights.'),
     H('relay_traffic','Relay traffic is up a third on last year as independent haulers move into the outer routes.'),
+    // v1230 additions: the places the new land work goes.
+    H('ice_moon_record','An ice moon research station logs its coldest night on record. Staff describe morale as "brisk".'),
+    H('crystal_prices','Spire crystal prices dip after a strong assay season. Mining towns say they will "simply cut more".'),
+    H('wetland_reeds','A wetland world bans low flying over its reed beds after complaints from people who live in them.'),
+    H('dust_season','Dust season begins on the dry worlds. Convoys are asked to keep their filters clean and their tempers cleaner.'),
+    H('survey_season','Survey firms report record bookings as networks race to map the outer worlds before their rivals do.'),
+    H('moonrise','Tourists on a frontier moon pay to watch its planet rise. The planet has not commented.'),
+    H('distress_rescue','A stranded ground crew credits "a drone that went out of its way" for their rescue. The drone has not been named.',c=>(c.stats.landBeacons||0)>0),
     // v990 reactive: epilogues and titles.
     H('crossroads_closed','OSD formally closes a blockade order issued years ago at Crossroads. A spokesperson called it "overdue".',c=>!!c.flags.securityAgent4Done),
     H('teodor_station','A retired Helix researcher describes a recent xeno incident at his station as "the most fun I have had in years".',c=>!!c.flags.helixAgent4Done),
