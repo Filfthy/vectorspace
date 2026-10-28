@@ -983,3 +983,21 @@ v1230 World chatter on the plains, and more news
       beacon, a rescued ground crew thanking "a drone that went out of its
       way". 41 headlines now. Tested muted: chatter on a blue world after
       the voice line, and none on a roll that skipped it.
+
+v1240 Fourth independent review (v1170 to v1230), fixes
+      A read-only review of the beacons, sky planets, chatter and new
+      network writing found one real bug and two small issues, all fixed:
+        The new world chatter could replace the Survey Run instruction or
+        the DISTRESS BEACON sighting line on screen. Chatter now only shows
+        when the subtitle line is empty, and never on Survey Runs.
+        Swamp and rocky OSD plains could get green-world chatter ("WILDLIFE
+        ON THE PLAINS"). Chatter is now only on forest-type plains.
+        The distress beacon's standing and stats counted straight away, even
+        if the mission then failed. It is now recorded like a space
+        diversion. The +1 standing and the counts land on success, and the
+        debrief lists "Diversion · Stranded crew located · standing +1".
+      Everything else checked out, including where the sky planet is drawn
+      (never over the ground or scenery), its cost per frame (about the same
+      as the planet seen from orbit) and all the new mission text. Tested
+      muted: a real board cabin contract with a forced beacon, played to the
+      debrief, standing and stats correct.

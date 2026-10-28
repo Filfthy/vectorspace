@@ -330,9 +330,9 @@ class SurfaceDestinationApproachController {
     const d=Math.hypot(b.x-shipX,b.worldZ-travel);
     if(!this.beaconSeen&&d<150&&typeof callout==='function'&&callout('DISTRESS BEACON · OFF ROUTE',1.8))this.beaconSeen=true;
     if(d<8.5){
+      // Recorded like a space diversion: the standing and the stats land on success (review fix).
       b.done=true;const m=campaign?.currentMission;
-      if(m?.faction&&campaign.factions?.[m.faction])campaign.applyRep(m.faction,1);
-      campaign.bumpStat?.('diversionsInvestigated');campaign.bumpStat?.('landBeacons');
+      if(m)(m.diversions||(m.diversions=[])).push({kind:'landBeacon',outcome:'relayed',text:'Stranded crew located',pay:0,xp:0,rep:campaign.factions?.[m.faction]?1:0,repFaction:m.faction});
       if(typeof callout==='function')callout('STRANDED CREW LOCATED · POSITION RELAYED',2);SoundFX.objectiveComplete?.()
     }
   }
@@ -444,7 +444,7 @@ class SurfaceDestinationApproachController {
     audio.music.setMode('calm');
     // The survey instruction waits (up to six seconds) for any spoken line to clear.
     {const lines=SURFACE_WORLD_CHATTER[this.worldKind||'temperate'],m=typeof campaign!=='undefined'?campaign.currentMission:null;
-      this.chatter=(lines&&m&&!m.training&&!m.devGroundTest&&Math.random()<.7)?{text:lines[Math.floor(Math.random()*lines.length)],wait:7,delay:4.5}:null}
+      this.chatter=(lines&&m&&!m.training&&!m.devGroundTest&&this.scenery!=='rocks'&&this.scenery!=='swamp'&&!this.survey?.length&&Math.random()<.7)?{text:lines[Math.floor(Math.random()*lines.length)],wait:7,delay:4.5}:null}
     if(this.survey?.length)this.surveyIntro={text:`FLY THE ${this.survey.length} SURVEY POINTS · THEN THE ${this.destination==='forest'?'FOREST':'CITY'}`,wait:6};
     else if(this.destination==='swamp')say('PROCEED TO SWAMP',.85);
     else if(this.destination==='osd')say('PROCEED TO OSD FACILITY',.85);
@@ -485,7 +485,7 @@ class SurfaceDestinationApproachController {
       }
     }
     this.updateSurvey(dt);this.updateBeacon();
-    const ch=this.chatter;if(ch){if(ch.delay>0)ch.delay-=dt;else{ch.wait-=dt;if(ch.wait<=0||(typeof callout==='function'&&callout(ch.text,1.8)))this.chatter=null}}
+    const ch=this.chatter;if(ch){if(ch.delay>0)ch.delay-=dt;else{ch.wait-=dt;if(ch.wait<=0)this.chatter=null;else if(!(speechSubtitleT>0)&&typeof callout==='function'&&callout(ch.text,1.8))this.chatter=null}}
     const d=this.distance();
     if(!this.finishing&&d<78&&this.surveyLeft?.().length){
       if(this.surveyNagT<=0&&typeof callout==='function'&&callout(`SURVEY INCOMPLETE · ${this.surveyLeft().length} POINT${this.surveyLeft().length>1?'S':''} LEFT`,1.6))this.surveyNagT=5;
