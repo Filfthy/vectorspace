@@ -587,3 +587,20 @@ v950  The Networks page points to what comes after the capstone
       final mission at standing 80 and level 16", then "final mission
       waiting in Mail", and finally "title earned · Corvella's Favourite"
       (or whichever title it is). Tested muted.
+
+v960  Fixes from a fourth independent review, and a title collection
+      A fresh reviewer checked v920 to v950: nothing broke play, but it
+      found five things, all fixed:
+      - The epilogue missions skipped the risk toughness scaling, so their
+        enemies were about 2.75x weaker than the capstone before them. Now
+        scaled the same (Corvella's and Navira's epilogues were affected).
+      - The debrief showed "standing +-3" for the smuggler cache's OSD row.
+        It now reads "-3".
+      - Titles overwrote each other, including Moonbreaker. Titles are now a
+        collection: every one you earn is kept, the newest is worn, and the
+        Operator page lists them as buttons so you can pick which to show.
+        Your existing title is carried in.
+      - The "missing smuggler cache" news headline ran after any three
+        diversions. It now needs a cache you actually claimed (new stat).
+      - The Networks line now says the final mission comes "a few jobs on",
+        matching the five-job wait.

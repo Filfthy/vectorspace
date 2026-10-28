@@ -27,7 +27,7 @@
     H('bunker_cleared','OSD says an abandoned military bunker has been cleared by "an independent contractor". Details withheld.',c=>(c.bt.bunker_raid||0)>0),
     H('nest_destroyed','Shipping lanes near a former xeno nest reopen. Helix calls the clearance "a tidy piece of work".',c=>(c.bt.nest_clearance||0)>0||!!c.flags.helixAgent2Done),
     H('factory_down','A rogue drone factory on an outer moon has gone dark. OSD declined to say who did it.',c=>!!c.flags.kudo3Done||(c.bt.factory_strike||0)>0),
-    H('cache_missing','Customs is investigating a smuggler cache that went missing before officers could reach it.',c=>(c.stats.diversionsInvestigated||0)>=3),
+    H('cache_missing','Customs is investigating a smuggler cache that went missing before officers could reach it.',c=>(c.stats.cachesClaimed||0)>0),
     H('aces_falling','Pirate crews are said to be putting bounties of their own on a contractor who keeps downing their best pilots.',c=>(c.stats.kills?.aces||0)>=2),
     H('truck_stop','Relay Truck Stop reports record lunch sales and "far fewer bugs".',c=>(c.bt.station_defence||0)+(c.bt.taco_run||0)>0),
     H('hijack_warning','OSD warns that stolen military drones are turning up in criminal hands. Pilots report they "hesitate, then fire".',c=>!!c.state?.seenProfiles?.hijacked)

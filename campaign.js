@@ -1390,7 +1390,7 @@ class CampaignController {
     const c=globalThis.AgentXStoryContent.contract(id);
     // Faction agent missions sit in the mid/late game, so their hostiles use the same
     // risk-band toughness as board contracts instead of the fixed early-story values.
-    if(c?.factionChain){
+    if(c?.factionChain||c?.factionEpilogue){
       const k=this.contractToughnessScale(c.risk);
       for(const m of c.modules||[])if(Number.isFinite(m.fighterHp)&&!m.toughnessScaled){m.fighterHp=Math.round(m.fighterHp*k);m.toughnessScaled=true}
     }
@@ -1717,7 +1717,18 @@ class CampaignController {
     const e=(globalThis.AgentXFactionContent?.epilogues||[]).find(x=>x.flag===m.storyFlag),flags=this.state.mailFlags;if(!e||flags[e.flag+'Done'])return;
     flags[e.flag+'Done']=true;flags[e.flag+'CompletedAt']=this.state.completed;
     const authored=globalThis.AgentXStoryContent.completionMail(e.id);if(authored)this.enqueueMail(authored);
-    this.state.title=e.titleReward;this.renderHeader?.()
+    this.earnTitle(e.titleReward)
+  }
+  // v960: titles are collected, not overwritten. The newest becomes the one worn; the
+  // Operator page lists every earned title and lets the player pick which to show.
+  earnedTitles(){
+    const list=Array.isArray(this.state.titles)?this.state.titles.slice():[];
+    if(this.state.title&&!list.includes(this.state.title))list.unshift(this.state.title);
+    return list
+  }
+  earnTitle(t){
+    if(!t)return;const list=this.earnedTitles();if(!list.includes(t))list.push(t);
+    this.state.titles=list;this.state.title=t;this.renderHeader?.()
   }
   // v700: personal letters from the five contacts as X gets to know them (faction-lore.js).
   // At most one per finished contract, the earliest-due first, so nothing arrives in a flood.
@@ -1903,7 +1914,7 @@ class CampaignController {
       if(authored)this.enqueueMail(authored);
       // Story reward (Dave): a standing boost with every network and a nominal title.
       for(const f of Object.values(this.factions))this.applyRep(f.id,15);
-      this.state.title='Moonbreaker';
+      this.earnTitle('Moonbreaker');
       const epilogue=globalThis.AgentXStoryContent.epilogueMail?.('kudo_factory_3');
       if(epilogue)this.enqueueMail(epilogue);
       flags.voxNextAt=this.state.completed+2
@@ -2475,7 +2486,7 @@ class CampaignController {
       const e=(C.epilogues||[]).find(x=>x.faction===factionId);let tail='personal favours by mail';
       if(e&&flags[e.flag+'Done'])tail=`title earned · ${esc(e.titleReward)}`;
       else if(e&&flags[e.flag+'Offer'])tail='final mission waiting in Mail';
-      else if(e)tail+=` · final mission at standing ${e.rep} and level ${e.level}`;
+      else if(e)tail+=` · final mission at standing ${e.rep} and level ${e.level}, a few jobs on`;
       return `<div class="netNext done">Reward earned · ${esc(reward?.name||'')} · ${tail}</div>`
     }
     const i=chain.steps.findIndex(s=>!flags[s.flag+'Done']),step=chain.steps[i];
@@ -2513,6 +2524,10 @@ class CampaignController {
       <div class="opBlock"><h4>Record</h4><div class="opStats">${rec.map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('')}</div></div>
       <div class="opBlock"><h4>Achievements <span>${ach.filter(a=>got[a.id]!=null).length}/${ach.length}</span></h4><div class="opAch">${ach.map(a=>{const on=got[a.id]!=null;
         return `<div class="achBadge${on?' on':''}" title="${esc(a.text)}"><b>${esc(a.name)}</b><span>${on?esc(a.text):`${n(Math.min(a.v,a.goal))} / ${n(a.goal)}`}</span></div>`}).join('')}</div></div>`;
+    {const titles=this.earnedTitles();if(titles.length>1){
+      const row=document.createElement('div');row.className='opTitles';row.innerHTML='<span>Titles</span>'+titles.map(t=>`<button type="button" class="opTitle${t===this.state.title?' on':''}" data-title="${esc(t)}">${esc(t)}</button>`).join('');
+      row.addEventListener('click',ev=>{const b=ev.target.closest('[data-title]');if(!b)return;this.state.title=b.dataset.title;this.state.titles=titles;this.save();this.renderHeader?.();this.renderFactions()});
+      op.querySelector('.opIdent')?.appendChild(row)}}
     factionGridEl.append(nets,op)
   }
   itemIcon(id){
@@ -2935,7 +2950,7 @@ class CampaignController {
     for(const d of diversions)if(d.rep&&d.repFaction&&this.factions[d.repFaction])this.applyRep(d.repFaction,d.rep);
     asteroidField.stop();
     this.state.money+=actualPay+hazardPay+diversionPay+bountyCr;this.state.xp+=m.xp+diversionXp+bountyXp;this.state.completed++;
-    {const st=this.stats();st.bountyEarned=(st.bountyEarned||0)+bountyCr;if(!m.private&&m.risk>=10)st.contracts.elite=(st.contracts.elite||0)+1;st.diversionsInvestigated=(st.diversionsInvestigated||0)+diversions.filter(d=>!d.side).length;if(m.routeEncounter)st.routeEncounters=(st.routeEncounters||0)+1;if(m.templateId){const bt=st.contracts.byTemplate||(st.contracts.byTemplate={});bt[m.templateId]=(bt[m.templateId]||0)+1}if(m.favourFaction)st.favoursDone=(st.favoursDone||0)+1;st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay+bountyCr;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
+    {const st=this.stats();st.bountyEarned=(st.bountyEarned||0)+bountyCr;if(!m.private&&m.risk>=10)st.contracts.elite=(st.contracts.elite||0)+1;st.diversionsInvestigated=(st.diversionsInvestigated||0)+diversions.filter(d=>!d.side).length;st.cachesClaimed=(st.cachesClaimed||0)+diversions.filter(d=>d.kind==='cache'&&!d.side&&d.outcome!=='tracker').length;if(m.routeEncounter)st.routeEncounters=(st.routeEncounters||0)+1;if(m.templateId){const bt=st.contracts.byTemplate||(st.contracts.byTemplate={});bt[m.templateId]=(bt[m.templateId]||0)+1}if(m.favourFaction)st.favoursDone=(st.favoursDone||0)+1;st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay+bountyCr;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
     let repGain=0;
     if(faction){
       const normalRepGain=Math.max(1,Math.round(8*this.positiveRepMultiplier()));
@@ -3083,7 +3098,7 @@ class CampaignController {
       ${d.reason?`<div class="missionStatus bad">${d.reason}</div>`:''}
       <div class="debriefRow"><span>Contract payment</span><span>CR ${d.pay.toLocaleString()}</span></div>
       ${d.bounty?`<div class="debriefRow"><span>Bounties · ${this.escapeHtml(d.bounty.text)}${d.hazardLabel?` · ${this.escapeHtml(d.hazardLabel)}`:''} · +${d.bounty.xp} XP</span><span>CR ${d.bounty.cr.toLocaleString()}</span></div>`:''}
-      ${(d.diversions||[]).map(v=>`<div class="debriefRow"><span>Diversion · ${this.escapeHtml(v.text)}${v.rep?` · standing +${v.rep}`:''}${v.xp?` · +${v.xp} XP`:''}</span><span>${v.pay?'CR '+v.pay.toLocaleString():'-'}</span></div>`).join('')}
+      ${(d.diversions||[]).map(v=>`<div class="debriefRow"><span>Diversion · ${this.escapeHtml(v.text)}${v.rep?` · standing ${v.rep>0?'+':''}${v.rep}`:''}${v.xp?` · +${v.xp} XP`:''}</span><span>${v.pay?'CR '+v.pay.toLocaleString():'-'}</span></div>`).join('')}
       ${d.hazardPay>0?`<div class="debriefRow"><span>Hazard pay · ${this.escapeHtml(d.hazardLabel||'route encounter')}</span><span>CR ${d.hazardPay.toLocaleString()}</span></div>`:''}
       <div class="debriefRow"><span>Experience</span><span>${d.xp} XP</span></div>
       ${(d.standing||[]).map(v=>`<div class="debriefRow"><span>Standing · ${this.escapeHtml(v.name)}</span><span class="${v.delta>0?'standUp':'standDown'}">${v.delta>0?'+':''}${v.delta} · now ${v.rep} ${this.escapeHtml(v.label)}</span></div>`).join('')}
