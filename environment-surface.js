@@ -31,7 +31,9 @@ const SURFACE_WORLD_CHATTER=Object.freeze({
   crystal:['SPIRE RESONANCE DETECTED · HARMLESS','CRYSTAL FIELD · SENSOR GLARE MINOR','MINING TRAFFIC ON LOCAL BAND'],
   arid:['DUST LOW · VISIBILITY GOOD','SURFACE TEMPERATURE · PLUS 52','DRY WIND FROM THE WEST'],
   wet:['STANDING WATER BELOW · KEEP ALTITUDE','HUMIDITY HIGH · NO ACTION','REED BEDS AHEAD · LOW CLEARANCE'],
-  temperate:['LOCAL WEATHER CALM','WILDLIFE ON THE PLAINS · IGNORE','ATMOSPHERE NOMINAL']
+  temperate:['LOCAL WEATHER CALM','WILDLIFE ON THE PLAINS · IGNORE','ATMOSPHERE NOMINAL'],
+  // On a moon, half the time the line is about the moon (the planet hangs to port, see drawSurfaceSkyPlanet).
+  moon:['LOW GRAVITY · TRIM ADJUSTED','PARENT PLANET OFF THE PORT BOW','THIN ATMOSPHERE · SOUND WILL CARRY POORLY']
 });
 const SURFACE_WORLD_MIX=Object.freeze({ice:.42,crystal:.46,arid:.58,wet:.45});
 // v1050: remember which world types the player has landed on (Guide codex).
@@ -443,7 +445,7 @@ class SurfaceDestinationApproachController {
     viewYaw=side*(.28+this.rand()*.28);viewPitch=.015;viewRoll=0;
     audio.music.setMode('calm');
     // The survey instruction waits (up to six seconds) for any spoken line to clear.
-    {const lines=SURFACE_WORLD_CHATTER[this.worldKind||'temperate'],m=typeof campaign!=='undefined'?campaign.currentMission:null;
+    {const lines=(planetLandingBody==='moon'&&Math.random()<.5)?SURFACE_WORLD_CHATTER.moon:SURFACE_WORLD_CHATTER[this.worldKind||'temperate'],m=typeof campaign!=='undefined'?campaign.currentMission:null;
       this.chatter=(lines&&m&&!m.training&&!m.devGroundTest&&this.scenery!=='rocks'&&this.scenery!=='swamp'&&!this.survey?.length&&Math.random()<.7)?{text:lines[Math.floor(Math.random()*lines.length)],wait:7,delay:4.5}:null}
     if(this.survey?.length)this.surveyIntro={text:`FLY THE ${this.survey.length} SURVEY POINTS · THEN THE ${this.destination==='forest'?'FOREST':'CITY'}`,wait:6};
     else if(this.destination==='swamp')say('PROCEED TO SWAMP',.85);

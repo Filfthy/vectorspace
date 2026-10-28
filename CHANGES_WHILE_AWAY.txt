@@ -1098,3 +1098,9 @@ v1260 More contract notes from the contacts
       say the food is not a weapon. None of the new lines gives away
       anything from a later letter. Tested muted: every line comes up, and
       the punctuation is clean.
+
+v1270 Moon chatter
+      On a moon landing, half the plains chatter lines are now about the
+      moon itself: "LOW GRAVITY · TRIM ADJUSTED", "PARENT PLANET OFF THE
+      PORT BOW" (it is, see v1210) and "THIN ATMOSPHERE · SOUND WILL CARRY
+      POORLY". Tested muted: 40 sampled landings give the expected mix.
