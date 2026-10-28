@@ -942,3 +942,12 @@ v1200 Kudo joins Crystal Consignment
       there". It has its own completion, failure, abandon and traffic mails.
       Every network now has at least one of tonight's world-type jobs.
       Tested muted: the text, plus an OSD run to the debrief.
+
+(no code change) Board mix check after five new jobs
+      Generated 120 boards at each of levels 3, 6, 9, 12, 16 and 20. Every
+      board still has 6 jobs. No template shows up more than about 0.7
+      times per board. Tonight's new jobs (Survey Run, Crystal Consignment,
+      Ice Field Armour) each sit at 0.17 to 0.29 per board, in the same
+      band as the older jobs rather than crowding them out. Assault work
+      opens from level 6 and holds at about a sixth of the board after
+      level 9. No weights changed.
