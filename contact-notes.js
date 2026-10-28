@@ -92,5 +92,55 @@
     const pool=rep>=CLOSE?n.close.concat(n.warm.slice(0,2)):n.warm;
     return {who:n.who,text:pool[(h>>>3)%pool.length]}
   }
-  globalThis.AgentXContactNotes={NOTES,WARM,CLOSE,pick};
+
+  // v1060 CONTACT FILES: what VOX has noted about each contact, on the Networks page.
+  // Every fact is a summary of something the player has already been told (a letter,
+  // an agent mission, an epilogue), opened by the same flag, so nothing new is
+  // revealed here. k: 'met', 'lore1'..'lore3' (letters) or 'final' (epilogue done).
+  const F=(k,text)=>({k,text});
+  const FILES={
+    vox:{who:'Mara Venn',facts:[
+      F('met','Your principal contact at VOX Contractor Services. Direct, informal, keeps private work off the board.'),
+      F('lore1','Picked you from forty contractors because you read the brief and did not ask for more money first.'),
+      F('lore2','Sent you to Cassian and owns what he asked of you. She would make the same call again.'),
+      F('lore3','When the next factory wakes, she wants it to be you she calls.')]},
+    security:{who:'Kudo Shang',facts:[
+      F('met','Orbital Security Directorate contact. Clipped, hardline, praise short and rare.'),
+      F('lore1','Served twenty-six years before taking his desk. Reads your file himself.'),
+      F('lore2','Wrote the original Crossroads blockade order. The stand-down never reached the pickets in a form they would accept.'),
+      F('lore3','Keeps a short list of operators he would send first. You are on it. His first commanding officer kept two words on her console: Finish it.'),
+      F('final','The command bunker that kept issuing his Crossroads order has been breached and its archive delivered. The order is closed.')]},
+    trade:{who:'Corvella Pallis',facts:[
+      F('met','Free Traders Compact route coordinator. Overfamiliar, openly flirtatious, very good at the actual job.'),
+      F('lore1','Worked in hospitality before route coordination. "Very personal service."'),
+      F('lore2','Keeps the telemetry from your runs and replays the good bits when the depot is quiet.'),
+      F('lore3','Built, not born. A former pleasure model, found in an inventory by a Compact auditor who gave her a desk instead of selling her for parts.'),
+      F('final','Her original ownership file was recovered from the old records ship. Nobody owns her.')]},
+    jackals:{who:'Cassian Erivan-Snade',facts:[
+      F('met','Red Jackal Combine contact. Elegant, indirect, never says steal when he can say change of ownership.'),
+      F('lore1','Collects quiet things. Paintings, mostly. Occasionally people.'),
+      F('lore2','Born of an arranged marriage between the wealthy Erivans and the well-mannered Snades. Neither family has forgiven the other.'),
+      F('lore3','Cannot decide whether you are an asset, a liability or furniture, and has decided to enjoy not knowing.'),
+      F('final','The Erivan ledger the Snades meant to read in public is in a friend\'s keeping. The family reading was postponed.')]},
+    helix:{who:'Navira Derris',facts:[
+      F('met','Helix Industrial Group research contact. Strange results make her more interested, not less.'),
+      F('lore1','Grew up on a mining moon. At fourteen she asked to keep a xeno tissue sample. She has been asking, more formally, ever since.'),
+      F('lore2','Minds destroying a nest. She minds quietly, and takes notes at the same time.'),
+      F('lore3','Learned hive chemistry from Teodor, who ran the deep-core field lab before her and retired somewhere he calls wonderfully boring.'),
+      F('final','Xenos reached Teodor\'s quiet station anyway. You cleared them. He has not been bored since.')]},
+    quickbite:{who:'Nyxo Malloc',facts:[
+      F('met','QuickBite Orbital night dispatch. Treats extreme danger as ordinary delivery nonsense.'),
+      F('lore1','Six years on night dispatch. Says you are the only contractor who finishes his deliveries.'),
+      F('lore2','Promoted to Senior Dispatch Associate. No extra money, a new badge and a meeting about meetings, on Tuesdays.'),
+      F('lore3','Knows some mining crews do not eat if the run does not happen. Said so once, then went back to tacos.'),
+      F('final','Delivered lunch to the QuickBite leadership retreat, through the forest, on time.')]}
+  };
+  // known(factionId, {flags, byFaction}) -> the facts the player has unlocked so far.
+  function known(id,{flags={},byFaction={}}={}){
+    const file=FILES[id];if(!file)return null;
+    const lore=n=>id==='vox'?!!flags[`maraLore${n}`]:!!flags[`${id}Lore${n}`];
+    const open={met:id==='vox'?!!flags.mara1Done:(byFaction[id]||0)>0,lore1:lore(1),lore2:lore(2),lore3:lore(3),final:id!=='vox'&&!!flags[`${id}Agent4Done`]};
+    return {who:file.who,facts:file.facts.filter(f=>open[f.k]).map(f=>f.text),total:file.facts.length}
+  }
+  globalThis.AgentXContactNotes={NOTES,WARM,CLOSE,pick,FILES,known};
 })();

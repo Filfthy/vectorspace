@@ -2496,6 +2496,13 @@ class CampaignController {
     requestAnimationFrame(()=>this.contractScrollbar?.update?.())
   }
   // v430: one short line per network saying what standing unlocks next.
+  // v1060: the contact file under each network row. Short summary, details on click.
+  contactFileHtml(factionId,st=this.stats()){
+    const k=globalThis.AgentXContactNotes?.known?.(factionId,{flags:this.state.mailFlags||{},byFaction:st.contracts?.byFaction||{}});
+    if(!k||!k.facts.length)return '';
+    const esc=t=>this.escapeHtml(String(t));
+    return `<details class="netFile"><summary>Contact file · ${esc(k.who)} · ${k.facts.length} of ${k.total} noted</summary><ul>${k.facts.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></details>`
+  }
   networkNextHtml(factionId){
     const C=globalThis.AgentXFactionContent,chain=C?.chains?.find(c=>c.faction===factionId);if(!chain)return '';
     const f=this.factions[factionId],rep=Number(f?.rep)||0,flags=this.state.mailFlags||{},lvl=this.levelForXP(),esc=t=>this.escapeHtml(String(t));
@@ -2525,7 +2532,7 @@ class CampaignController {
     factionGridEl.innerHTML='';const st=this.stats(),esc=t=>this.escapeHtml(String(t)),n=v=>Number(v||0).toLocaleString();
     const nets=document.createElement('section');nets.className='netColumn';
     nets.innerHTML='<h3 class="opHeading">Networks</h3>'+Object.values(this.factions).map(f=>{const rep=clamp(f.rep,-100,100),jobs=st.contracts.byFaction[f.id]||0;
-      return `<div class="netRow"><div class="netName">${esc(f.name)}</div><div class="repTrack"><span style="left:${(rep+100)/2}%"></span></div><div class="netMeta"><span>${rep>0?'+':''}${rep} · ${esc(this.repLabel(rep))}</span><span>${jobs} contract${jobs===1?'':'s'}</span></div>${this.networkNextHtml(f.id)}</div>`}).join('');
+      return `<div class="netRow"><div class="netName">${esc(f.name)}</div><div class="repTrack"><span style="left:${(rep+100)/2}%"></span></div><div class="netMeta"><span>${rep>0?'+':''}${rep} · ${esc(this.repLabel(rep))}</span><span>${jobs} contract${jobs===1?'':'s'}</span></div>${this.networkNextHtml(f.id)}${this.contactFileHtml(f.id,st)}</div>`}).join('');
     const op=document.createElement('section');op.className='opColumn';
     const arcs=this.storyArcs(),main=arcs.reduce((a,x)=>a+x.done,0),mainT=arcs.reduce((a,x)=>a+x.total,0),k=st.kills;
     // v620: tonight's systems (agent missions, elite work, bounties, route events) on the record too.

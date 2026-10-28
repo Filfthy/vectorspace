@@ -732,3 +732,14 @@ v1050 Codex entry for world types
       tests and training do not count). It uses the existing seen-contacts
       record in the save, so old saves need nothing new. Tested muted with a
       screenshot of the Guide.
+
+v1060 Contact files on the Networks page
+      Each network row on the Networks page now has a "Contact file" line
+      (click to open) for its contact, and Mara has one under VOX. It lists
+      what you have learned about them so far, one short note per thing
+      they have told you: meeting them, each of their three letters, and
+      their final mission. For example, Kudo's fills in with his twenty-six
+      years, the Crossroads order and his short list. Corvella's third note
+      only appears after her third letter, so her past stays a surprise.
+      Every note summarises something the game has already told you, so
+      nothing new is revealed. Tested muted with a screenshot.
