@@ -45,6 +45,8 @@
     H('aces_falling','Pirate crews are said to be putting bounties of their own on a contractor who keeps downing their best pilots.',c=>(c.stats.kills?.aces||0)>=2),
     H('truck_stop','Relay Truck Stop reports record lunch sales and "far fewer bugs".',c=>(c.bt.station_defence||0)+(c.bt.taco_run||0)>0),
     H('ice_thaw','Frontier surveyors are told to report any tracks in the ice. OSD says old armour "does not stay asleep".',c=>(c.bt.ice_field_armour||0)>0),
+    H('crystal_rush','Crystal mining towns report record assay traffic. One town has named a sandwich after a contractor, against their wishes.',c=>(c.bt.crystal_consignment||0)>0),
+    H('tender_warning','OSD advises pilots that some old drone wings fly with a shield tender. "Shoot the white one," a spokesperson said, unusually helpfully.',c=>(c.stats.kills?.tenders||0)>0),
     H('hijack_warning','OSD warns that stolen military drones are turning up in criminal hands. Pilots report they "hesitate, then fire".',c=>!!c.state?.seenProfiles?.hijacked)
   ];
   globalThis.AgentXVoxWire={HEADLINES};

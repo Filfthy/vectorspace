@@ -236,6 +236,7 @@ class CampaignController {
       // v1080: world-type content (ice, crystal and arid ground).
       {id:'coldStart',name:'Cold Start',text:'Complete 3 Ice Field Armour contracts.',v:bt.ice_field_armour||0,goal:3},
       {id:'crystalCourier',name:'Crystal Courier',text:'Complete 3 Crystal Consignments.',v:bt.crystal_consignment||0,goal:3},
+      {id:'tenderBreaker',name:'Tender Breaker',text:'Destroy 10 shield tenders.',v:k.tenders||0,goal:10},
       {id:'surveyor',name:'Surveyor',text:'Land on an ice, a crystal and an arid world.',v:['ice','crystal','arid'].filter(w=>this.state.seenProfiles?.[`world_${w}`]).length,goal:3}
     ]
   }

@@ -830,3 +830,12 @@ v1110 Contacts react when your standing changes
       the way up, the warning only on the way down. Hostile keeps its own
       letter, as before. 15 lines, written to the style guide's voices.
       Tested muted with every tier change for QuickBite.
+
+v1120 Follow-ups for the new content
+      Two more reactive VOX Wire headlines (34 in all): crystal towns
+      reporting record assay traffic once you have run a Crystal
+      Consignment, and OSD advising pilots to "shoot the white one" once you
+      have killed a shield tender. Also a new achievement, Tender Breaker
+      (destroy 10 shield tenders), for 35 in all. Tested muted: both
+      headlines open only after the thing has happened, and the achievement
+      counts.
