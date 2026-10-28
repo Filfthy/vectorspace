@@ -62,6 +62,20 @@ xmasTree.twinkle=t=>{const ec=xmasTree.edgeColors,base=xmasTree._base||(xmasTree
   Object.keys(xmasTree.marks).forEach((k,n)=>{if(k[0]!=='b')return;const[a,b]=xmasTree.marks[k],on=Math.sin(t*2.3+n*1.7)>.82;
     xmasTree.e.forEach((e,ei)=>{if(e[0]>=a&&e[0]<b)ec[ei]=on?C.w:base[ei]})})};
 
+// ---------- The snowman beside the cabin ----------
+// Three stacked snowballs, coal eyes and buttons, a carrot nose, stick arms, a scarf and a
+// top hat. He faces -z, like the other models.
+function buildSnowman(m){
+  const ball=(y,r)=>{const rings=[];for(let i=0;i<=8;i++){const a=-Math.PI/2+i*Math.PI/8,rr=Math.max(.02,Math.cos(a)*r);rings.push(m.ringXZ(0,y+Math.sin(a)*r,0,rr,rr,10,PI/10))}m.loft(rings,false,false)};
+  m.mark('snow',()=>{ball(.55,.58);ball(1.36,.42);ball(1.95,.29)});
+  m.mark('coal',()=>{for(const x of[-.1,.1])m.box([x,2.02,-.27],[.06,.06,.04]);for(const y of[1.22,1.38,1.54])m.box([0,y,-.405],[.07,.07,.04])});
+  m.mark('carrot',()=>m.beam([0,1.95,-.28],[0,1.9,-.62],.08,.08,.05));
+  m.mark('sticks',()=>{for(const sx of[-1,1]){const a=[sx*.36,1.45,0],b=[sx*.95,1.78,-.05];m.beam(a,b,.04,.04,.6);m.beam([sx*.78,1.7,-.04],[sx*.9,1.95,-.08],.03,.03,.5);m.beam([sx*.84,1.73,-.04],[sx*1.08,1.74,-.02],.03,.03,.5)}});
+  m.mark('scarf',()=>{m.loft([m.ringXZ(0,1.7,0,.32,.32,10),m.ringXZ(0,1.79,0,.3,.3,10)]);m.beam([.18,1.72,-.24],[.26,1.38,-.33],.13,.03,.8)});
+  m.mark('hat',()=>{m.loft([m.ringXZ(0,2.17,0,.34,.34,10),m.ringXZ(0,2.21,0,.34,.34,10)]);m.loft([m.ringXZ(0,2.21,0,.2,.2,10),m.ringXZ(0,2.56,0,.21,.21,10)])})
+}
+const snowman=posedMesh(buildSnowman,{snow:C.w,coal:C.x,carrot:C.o,sticks:C.o,scarf:C.r,hat:C.m});
+
 // ---------- Reindeer mech: the HOUND walker's legs and gait, a reindeer's body ----------
 (()=>{
   const H=GA_KINDS.hound,Y=1.9;
@@ -138,5 +152,5 @@ function lerp3(a,b,u,off=[0,0,0]){return[lerp(a[0],b[0],u)+off[0],lerp(a[1],b[1]
 const xenoColours=(body,frill)=>({body,ridge:body,head:body,jaw:body,teeth:C.w,throat:C.y,eyes:C.y,frill,arms:body,tendrils:frill});
 function makeXeno(body=C.m,frill=C.c){return posedMesh(buildXeno,xenoColours(body,frill))}
 
-globalThis.PromoModels={present,xmasTree,makeXeno,posedMesh,edgeColours};
+globalThis.PromoModels={present,xmasTree,snowman,makeXeno,posedMesh,edgeColours};
 })();

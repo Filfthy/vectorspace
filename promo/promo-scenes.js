@@ -58,7 +58,7 @@ function forestPilot(dt){
   for(const t of forest.obstacles){
     const z=t.worldZ-travel;if(z<-.5||z>26)continue;const of=t.obstacle||{};
     if(of.kind==='fallen'){if(z<12)lift=1;continue}
-    const r=(of.radius||.85)+.75,pz=forest.pathAtWorld(t.worldZ),left=t.x-r,right=t.x+r;
+    const r=(of.radius||.85)+.65+.55*(t.s||1),pz=forest.pathAtWorld(t.worldZ),left=t.x-r,right=t.x+r;   // clear the branches, not just the trunk
     // Pass on the side with more room; nearer hazards win.
     const goLeft=(left-(pz.x-pz.half))>((pz.x+pz.half)-right);const want=goLeft?left:right;
     if(z<18){tx=want;break}
@@ -72,8 +72,31 @@ function addXmasTree(){
   const w=forest.cabinLocalToWorld([-4.3,0,-1.6]);if(!w)return;
   const y=forest.floorAt(w[2],w[0]);
   forest.trees.push({type:'forestTree',id:'promo-xmas',assetId:null,mesh:P.xmasTree,worldZ:w[2],x:w[0],y,z:w[2]-travel,s:1.7,rot:[0,.4,0],col:C.g,dead:false,obstacle:null,passed:true,
-    promoDraw:(o,a)=>{P.xmasTree.twinkle(D.clock);drawMesh(o,P.xmasTree,C.g,a)}})
+    promoDraw:(o,a)=>{P.xmasTree.twinkle(D.clock);drawMesh(o,P.xmasTree,C.g,a)}});
+  // And a snowman on the other side, out past the deck, looking back down the lane.
+  const m=forest.cabinLocalToWorld([4.6,0,-1.4]);if(!m)return;
+  forest.trees.push({type:'forestTree',id:'promo-snowman',assetId:null,mesh:P.snowman,worldZ:m[2],x:m[0],y:forest.floorAt(m[2],m[0]),z:m[2]-travel,s:1.05,rot:[0,-.35,0],col:C.w,dead:false,obstacle:null,passed:true,
+    promoDraw:(o,a)=>drawMesh(o,P.snowman,C.w,a)})
 }
+// Hills. The game's forest preset holds the floor flat; for the promo the route rolls over
+// hills and the ground climbs either side of the lane, so the grid shows the contours. Trees
+// are seated on floorAt, so they stand on the slopes.
+const gameRawPath=forest.rawPathAtWorld.bind(forest),gameFloorAt=forest.floorAt.bind(forest);
+forest.rawPathAtWorld=function(worldZ){
+  const p=gameRawPath(worldZ);if(!D.snow||this.isSwampVariant())return p;
+  const u=worldZ-this.startWorld,gate=ease(clamp(Math.max(0,u)/30,0,1))*hillFade(this,u);
+  const hill=(Math.sin(u*.043+.2)*.82+Math.sin(u*.091+1.1)*.38+Math.sin(u*.158+.35)*.18+Math.sin(u*.024+2.0)*.24)*gate*1.7,floor=-3.5+hill;
+  return{...p,floor,centerY:floor+1.62}
+};
+forest.floorAt=function(worldZ,x){
+  const y=gameFloorAt(worldZ,x);if(!D.snow||this.isSwampVariant())return y;
+  const p=this.pathAtWorld(worldZ),g=this.gladeBlend(worldZ),dx=Math.abs(x-p.x),rise=ease(clamp((dx-(p.half+.6))/12,0,1));
+  // Kept below eye height: the game draws each strip of ground as a solid black occluder, and
+  // ground above the camera right beside it would black out the screen.
+  return y+rise*1.15*(1-g)*hillFade(this,worldZ-this.startWorld)
+};
+// The hills die away over the run-in to the clearing, so the cabin's glade is level ground.
+function hillFade(f,u){return f.hasGladeDestination()?1-ease(clamp((u-(f.gladeStartU-80))/70,0,1)):1}
 // The parcel is a present: same flight, same landing spot.
 const gameCargo=forest.drawCabinCargo.bind(forest);
 forest.drawCabinCargo=function(){
@@ -84,12 +107,12 @@ forest.drawCabinCargo=function(){
 };
 
 // ---------- Scene 2: reindeer mechs on a rocky world (the guitar solo) ----------
-const HERD=7;
+const HERD=7,smoothstep=u=>u*u*(3-2*u);
 const herd={name:'reindeer',t0:T.solo,seed:2512,
   marks:[{ev:'dunes',at:T.solo+9}],
   event(){return groundAssault?.active&&mode==='play'&&phase==='surface'?'dunes':null},
   setup(){
-    D.snow=false;herd.herdBuilt=false;herd.path=null;herd.wantSpd=0;
+    D.snow=false;herd.herdBuilt=false;herd.path=null;herd.wantSpd=0;herd.from=null;herd.hold=null;herd.lastYaw=null;
     launch('dune_armour_clearance','security',m=>{
       m.planetaryRequirements={landingBody:'planet',landingColour:'orange',moonCount:{min:0,max:0}};
       m.modules=m.modules.filter(x=>['planet_descent','dune_assault'].includes(x.type));m.stages=m.modules.map(x=>x.label);m.routeEncounter=null;m.risk=3
@@ -100,18 +123,40 @@ const herd={name:'reindeer',t0:T.solo,seed:2512,
     if(!(groundAssault?.active&&mode==='play'&&phase==='surface'))return;
     if(!herd.herdBuilt)buildHerd();
     const H=herd.path,F=[Math.sin(H.h),Math.cos(H.h)],R=[Math.cos(H.h),-Math.sin(H.h)];
-    // Chase from behind and to the left, then climb and cross over the herd to its right.
-    const u=clamp((t-(T.solo+19))/(T.breakdown-1-(T.solo+19)),0,1),k=u*u*(3-2*u);
-    const side=lerp(-8,11,k),back=lerp(-27,-15,k);
+    if(t>=PAN_START){panCamera(t,H,F,R);return}
+    // Chase from behind and to the left until the pan takes over.
+    const side=-8,back=-27;
     const px=H.x+R[0]*side+F[0]*back,pz=H.z+R[1]*side+F[1]*back;
     const aimX=lerp(px+F[0]*14,H.x+F[0]*4,.8),aimZ=lerp(pz+F[1]*14,H.z+F[1]*4,.8),want=wrapAngle(Math.atan2(aimX-shipX,aimZ-travel)-viewYaw);
     inputX=moveToward(inputX,clamp(want*1.6,-.6,.6),dt*2.2);
     const along=(px-shipX)*Math.sin(viewYaw)+(pz-travel)*Math.cos(viewYaw);
     herd.wantSpd=clamp(H.v+along*.7,4,24);
-    const altWant=lerp(4,7,Math.sin(k*Math.PI));inputY=moveToward(inputY,clamp((groundAssault.alt-altWant)*.35,-.7,.7),dt*3)
+    inputY=moveToward(inputY,clamp((groundAssault.alt-4)*.35,-.7,.7),dt*3)
   },
   overlay(){}
 };
+// The pan: the camera leaves the chase and swings round the galloping herd, from behind,
+// along their left flank to the front, then holds still low on the ground as the team
+// thunders past. It sets the view directly; the drone's own flight is ignored meanwhile.
+const PAN_START=T.solo+13,PAN_HOLD=T.breakdown-2.7;
+function panCamera(t,H,F,R){
+  const G=groundAssault,u=smoothstep(clamp((t-PAN_START)/(PAN_HOLD-PAN_START),0,1));
+  let cx,cz,h;
+  if(t<PAN_HOLD||!herd.hold){
+    const a=lerp(-2.75,-.62,u),r=lerp(27,16,u);h=lerp(4.6,2.3,u);
+    cx=H.x+R[0]*Math.sin(a)*r+F[0]*Math.cos(a)*r;cz=H.z+R[1]*Math.sin(a)*r+F[1]*Math.cos(a)*r;
+    if(t>=PAN_HOLD)herd.hold={x:cx,z:cz,h}
+  }else({x:cx,z:cz,h}=herd.hold);
+  const cy=GA_GROUND_Y+G.groundH(cx,cz)+h,ty=GA_GROUND_Y+G.groundH(H.x,H.z)+2.6;
+  const lx=H.x+F[0]*3,lz=H.z+F[1]*3,yaw=Math.atan2(lx-cx,lz-cz),pitch=Math.atan2(cy-ty,Math.hypot(lx-cx,lz-cz));
+  // Ease out of the chase view over the first second and a half.
+  if(!herd.from)herd.from={x:shipX,y:shipY,z:travel,yaw:viewYaw,pitch:viewPitch,roll:viewRoll};
+  const b=smoothstep(clamp((t-PAN_START)/1.5,0,1)),f=herd.from;
+  shipX=lerp(f.x,cx,b);shipY=lerp(f.y,cy,b);travel=lerp(f.z,cz,b);
+  viewYaw=wrapAngle(f.yaw+wrapAngle(yaw-f.yaw)*b);viewPitch=lerp(f.pitch,pitch,b);
+  const turn=herd.lastYaw==null?0:wrapAngle(viewYaw-herd.lastYaw);herd.lastYaw=viewYaw;
+  viewRoll=lerp(f.roll*(1-b),clamp(-turn*6,-.18,.18),b);inputX=inputY=0;herd.wantSpd=0
+}
 // The herd's path: one point galloping a wide arc; each reindeer keeps its place in a
 // two-by-three team with a leader out in front, like a sleigh team.
 const TEAM=[[0,13],[-1.7,6.5],[1.7,6.5],[-1.7,0],[1.7,0],[-1.7,-6.5],[1.7,-6.5]];
@@ -122,7 +167,22 @@ function buildHerd(){
   herd.path={x:cx,z:cwz,h:a,v:10.5,turn:.07};
   const grp={name:'HERD',letter:'H',cx,cwz,navX:cx,navWZ:cwz,radius:40,cleared:false,ids:[]};
   TEAM.forEach(([r,f],j)=>{const x=cx+Math.cos(a)*r*2.1+Math.sin(a)*f,z=cwz-Math.sin(a)*r*2.1+Math.cos(a)*f,u=G.spawn('reindeer',x,z,a,grp);u.team=[r*2.1,f];u.speed=10;grp.ids.push(u.id)});
-  G.groups.push(grp)
+  G.groups.push(grp);
+  scatterRocks(G,herd.path)
+}
+// Rocks along the herd's run, on either side of their line and clear of the camera's moves
+// (the chase and the pan stay within about 28 of the herd, on its left).
+function scatterRocks(G,start){
+  let rockLo=1e9;for(const v of asteroidMesh.v)rockLo=Math.min(rockLo,v[1]);
+  const col=landingWorldColour()===C.o?C.y:C.o,rock=(x,wz,s)=>{const mx=1.05+Math.random()*1.25,my=.45+Math.random()*.62,mz=.95+Math.random()*1.1,bury=.12+Math.random()*.18;
+    G.trees.push({kind:'rock',mesh:asteroidMesh,x,wz,s,mx,my,mz,bury,base:rockLo,col,rot:[(Math.random()-.5)*.28,Math.random()*6.28,(Math.random()-.5)*.24],r:s*Math.max(mx,mz)*.85,top:s*my*(1-bury)*.9})};
+  let x=start.x,z=start.z,h=start.h;
+  for(let i=0;i<34;i++){
+    h+=start.turn*1.1;x+=Math.sin(h)*start.v*1.1;z+=Math.cos(h)*start.v*1.1;
+    const rx=Math.cos(h),rz=-Math.sin(h),side=(o,f=0)=>[x+rx*o+Math.sin(h)*f,z+rz*o+Math.cos(h)*f];
+    for(let k=0;k<2;k++){const[a,b]=side(11+Math.random()*34,(Math.random()-.5)*10);rock(a,b,.9+Math.random()*2.3)}
+    if(Math.random()<.7){const[a,b]=side(-(34+Math.random()*30),(Math.random()-.5)*10);rock(a,b,1.2+Math.random()*2.8)}
+  }
 }
 groundAssault.drawMarker=(game=>function(){if(D.scene===herd)return;return game.call(this)})(groundAssault.drawMarker);
 const gameThink=groundAssault.think.bind(groundAssault);
@@ -204,7 +264,7 @@ const aria={name:'aria',t0:T.breakdown,seed:2412,
     for(let n=0,i=0;n<75&&i<600;i++){const r=12+Math.random()*75,a=Math.random()*Math.PI*2,y=(Math.random()-.5)*36,x=Math.cos(a)*r,z=8+Math.sin(a)*r,s=.6+Math.random()*2.6;if(blocks(x,y,z,s*1.5+2.2))continue;rock(x,y,z,s);n++}
     aria.singer={mesh:P.makeXeno(C.m,C.c),pos:SINGER,s:1,sing:'lead',body:C.m,frill:C.c,rings:[],lastJaw:0};
     aria.chorus=CHORUS.map(c=>({...c,mesh:P.makeXeno(c.body,c.frill),rings:[],lastJaw:0}));
-    aria.cam=camKeys[0][1];window.update=aria.update
+    aria.cam=camKeys[0][1];window.update=aria.update;aria.update(0)   // place the camera before the first frame is drawn
   },
   update(dt){
     const t=D.clock,cam=track(camKeys,t),look=vadd(SINGER,vmul(V3(0,.6,4),smooth(clamp((t-T.verse3-14)/8,0,1))));

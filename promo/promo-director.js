@@ -59,7 +59,7 @@ window.drawLayeredForestTree=function(obj,mesh,assetId,alphaScale=1){
   if(!D.snow||!mesh)return r;
   const caps=snowCaps(mesh,assetId);if(!caps.length)return r;
   const rot=obj.rot||[0,0,0],mx=obj.mx||1,my=obj.my||1,mz=obj.mz||1,depth=camPoint([obj.x,obj.y,obj.z])[2],alpha=clamp(1.12-depth/120,.32,.96)*alphaScale;
-  const P=v=>{const q=rotate([v[0]*obj.s*mx,v[1]*obj.s*my,v[2]*obj.s*mz],rot),c=camPoint([q[0]+obj.x,q[1]+obj.y,q[2]+obj.z]);return c[2]>.18?projectCam(c):null};
+  const P=v=>{const q=rotate([v[0]*obj.s*mx,v[1]*obj.s*my,v[2]*obj.s*mz],rot),c=camPoint([q[0]+obj.x,q[1]+obj.y,q[2]+obj.z]);return c[2]>1.2?projectCam(c):null};   // a cap brushing the camera would fill the screen
   // Caps are drawn after the tree, back to front by their own depth, only where they face the camera.
   const items=[];
   for(const cap of caps){const pp=cap.map(P);if(pp.some(p=>!p))continue;
@@ -74,12 +74,18 @@ window.drawLayeredForestTree=function(obj,mesh,assetId,alphaScale=1){
 
 // Gentle snowfall: flakes in a box around the camera, drawn as tiny crosses.
 const flakes=Array.from({length:650},(_,i)=>({x:(realRandom()-.5)*60,y:realRandom()*14-4,z:realRandom()*60,ph:realRandom()*6.3}));
+// The flakes are drawn over the finished frame, so in the forest they only fall in the open
+// lane between the trees and not too far down it: a flake can never sit behind a trunk there.
 function drawSnowfall(wind=0){
+  const inForest=phase==='forest'&&forest.active,depth=inForest?18:60;let n=0;
   ctx.save();ctx.strokeStyle=C.w;ctx.lineWidth=VECTOR_LINE_WIDTH;
   for(const f of flakes){
-    const y=((f.y-D.clock*1.1+f.ph)%14+14)%14-4.5,x=f.x+Math.sin(D.clock*.7+f.ph)*.4+wind*D.clock,z=((f.z-(travel*1)%60)%60+60)%60+.5;
-    const q=camPoint([shipX+((x%60)+90)%60-30,y,z]);if(q[2]<.5)continue;const p=projectCam(q);if(!p)continue;
-    const s=Math.max(1.3,Math.min(4.5,p.k*.045));ctx.globalAlpha=clamp(1.1-q[2]/55,.08,.8);
+    if(inForest&&(n++)%3)continue;   // the lane is a small space: a third of the flakes is the same snowfall
+    const fall=((f.y-D.clock*1.1+f.ph)%14+14)%14,x=f.x+Math.sin(D.clock*.7+f.ph)*.4+wind*D.clock,z=(((f.z*depth/60)-travel%depth)%depth+depth)%depth+.5;
+    let y=fall-4.5;const wx=shipX+(((x%60)+90)%60-30)*(inForest?.22:1);
+    if(inForest){const p=forest.pathAtWorld(travel+z);y=p.floor+fall*.32;if(Math.abs(wx-p.x)>p.half-.7||y<forest.floorAt(travel+z,wx)+.1)continue}
+    const q=camPoint([wx,y,z]);if(q[2]<.5)continue;const p=projectCam(q);if(!p)continue;
+    const s=Math.max(1.3,Math.min(4.5,p.k*.045));ctx.globalAlpha=clamp(1.1-q[2]/(inForest?20:55),.08,.8);
     ctx.beginPath();ctx.moveTo(p.x-s,p.y);ctx.lineTo(p.x+s,p.y);ctx.moveTo(p.x,p.y-s);ctx.lineTo(p.x,p.y+s);ctx.stroke()}
   ctx.restore()
 }
