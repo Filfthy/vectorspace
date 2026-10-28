@@ -1526,6 +1526,55 @@
     defaults:{destination:'swamp relay clearing',cargo:'sealed delivery package'}
   };
 
+  // v880 specimen recovery: xenos are attacking a station on the edge of their
+  // territory. Clear them, tractor fresh material from one of the bodies, and deliver
+  // it to the Helix orbital biolab. Same proven chain and voice lines as Field Samples.
+  // Individual xenos are the hive's immune response (lore 4.2); Navira wants tissue,
+  // not trophies.
+  const specimenRecovery={
+    id:'specimen_recovery',
+    version:1,
+    family:'specimen_recovery',
+    musicMode:'violent',
+    minLevel:3,
+    maxLevel:null,
+    allowedFactions:['helix'],
+    factionWeights:{helix:1},
+    board:{category:'recovery',weight:.65,maxPerBoard:1},
+    risk:{base:3,min:3,levelsPerStep:2,max:9,jitter:1},
+    reward:{
+      basePay:2100,payPerRisk:1200,payRiskSquare:130,randomPay:400,roundPay:50,
+      baseXp:300,xpPerRisk:85,xpRiskSquare:9
+    },
+    sections:[
+      {type:'station_defence_recovery',label:'Xeno Clearance and Sample Recovery',params:{stationModel:'relay',approachDistance:305,
+        encounterChance:1,target:{base:4,perRisk:1,min:6,max:12,round:true},fighterHp:12,difficulty:'$risk',profile:'xeno',startMessage:'Xeno attack. Clear the station',
+        combatVoiceSequence:['helixArrivingAtStation','helixDestroyXenos'],recoveryPromptVoice:'helixCollectTissueSample',
+        stationAnchor:true,useCombatWrecks:true,biologicalRecovery:true,recoveryLabel:'xeno material',markerLabel:'XENO SAMPLE',
+        recoveryHudPrefix:'XENO SAMPLE',captureRadius:21,markerGrowRange:105,tractorSeconds:2.2,recoveredMessage:'XENO MATERIAL SECURED'}},
+      {type:'space_transit',label:'Return to Helix',params:{duration:3.25,message:'HEADING TO HELIX LAB',hud:'TO HELIX LAB',playZoomSound:true,voice:'helixDeliverTissueSampleToBiolab',waitForVoice:true}},
+      {type:'helix_biolab_approach',label:'Helix Orbital Biolab',params:{navDistance:720,navX:48,navY:-12,labScale:34,planetRadius:290,
+        revealRadius:220,hatchCaptureRadius:92,hatchStandOff:15.5,hatchOpenSeconds:.82,deliverySeconds:2.35,hatchCloseSeconds:.74,turnSeconds:1.78,clearDistance:58,
+        message:'PROCEED TO HELIX ORBITAL BIOLAB',hud:'HELIX BIOLAB',markerLabel:'HELIX BIOLAB',deliveryVoice:'helixSampleDelivered'}}
+    ],
+    presentation:{
+      helix:{
+        contactId:'navira_derris',
+        titles:['Specimen Recovery','Fresh Material','Comparative Sample','Station Xeno Clearance'],
+        descriptions:[
+          'A station near xeno territory is under attack again. Clear the xenoforms, tractor intact material from one of them, and bring it to the biolab. Fresh tissue tells us far more than anything frozen.',
+          'Xenos are attacking a relay at the edge of their range. That is interesting in itself. Defend it, collect a sample from the bodies and deliver it to the orbital biolab.',
+          'I need comparative material from a different hive. A swarm has reached a station, which is unfortunate for the station and very convenient for me. Clear them and bring me a sample.'
+        ],
+        completionSubjects:['Sample received','The tissue is excellent'],
+        completionBodies:['The biolab has the sample and it is in remarkable condition. CR {credits} released. Standing: +{rep}.','Sample received and already under analysis. It differs from the last one in three ways I did not expect. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'navira_derris',subjects:['No sample this time'],bodies:['The xenos overwhelmed your drone before the sample could be recovered. The station is still under attack. I would like you to try again.']},
+        abandonMail:{contactId:'navira_derris',subjects:['The sample is still out there'],bodies:['You left without the sample. The bodies will degrade within hours, and the station is still being attacked. Both of those bother me.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:4,chance:.22,subjects:['About the sample'],bodies:['The tissue carried traces of a homing response, as if the xeno had been trying to return somewhere. I cannot tell yet where. I will let you know if it matters.']}
+      }
+    }
+  };
+
   // v870 taco run: collect an order at QuickBite's orbital Taco Beacon, cross to an
   // asteroid mine and deliver it through whoever is waiting there. Same proven chain
   // as Hot Delivery and The Big Order. The Taco Beacon is QuickBite's, so is the job.
@@ -2219,7 +2268,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();

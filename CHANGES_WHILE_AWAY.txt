@@ -476,3 +476,15 @@ v870  New board job: Taco Run (QuickBite)
       risk. Its built-in fight means no extra route fight is added on top.
       At level 4 it pays CR 6,400 and 550 XP. Flown fully live and muted,
       from pickup to tunnel delivery to victory and Nyxo's mail. No errors.
+
+v880  New board job: Specimen Recovery (Helix)
+      Xenos are attacking a station on the edge of their range. Clear them,
+      tractor fresh tissue from one of the bodies, and deliver it to the
+      Helix orbital biolab. It's the chain from Navira's Field Samples story
+      mission, with its recorded Helix voice lines, now a Helix RECOVERY job
+      from level 3. Navira finds the attack "unfortunate for the station and
+      very convenient for me". Her follow-up notices a homing response in
+      the tissue (lore 4.3), without settling anything the lore leaves open.
+      The swarm grows with risk. At level 5 it pays CR 9,350 and 800 XP.
+      Flown live and muted from the xeno fight to the biolab handoff and
+      victory, then checked Navira's mail. No errors.
