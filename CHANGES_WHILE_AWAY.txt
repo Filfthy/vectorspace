@@ -456,3 +456,10 @@ v850  Planet and moon surface styles
       side like the grid. Together with v710 colours and v820 rings, the
       worlds you fly to now differ in colour, style and rings. Visual only.
       Screenshots checked: a banded orange world, a cratered cyan world.
+
+v860  Bulletin, Guide and README brought up to date
+      The one-time bulletin your save will get now also covers tonight: new
+      board work, hijacked drones and named aces, world types, and the
+      contacts' letters. The Guide's contracts section mentions the land
+      work and the destination world line. The README lists the three new
+      files. Docs only.
