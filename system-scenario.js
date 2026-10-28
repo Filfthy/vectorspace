@@ -208,7 +208,7 @@ class ScenarioFlowController {
     drawHudMarkerLabel(String(nav.stage?.markerLabel||nav.stage?.hud||'DELIVERY').toUpperCase(),x,y,s,col)
   }
   startFighterStage(stage,profile='standard',{preservePhase=false}={}){
-    this.encounterProfile=profile;
+    this.encounterProfile=profile;globalThis.AgentXAces?.arm(profile);
     // v410 route encounters: one short nav line, and a first meeting with an enemy
     // type stays UNKNOWN CONTACTS until it has been seen once.
     const seen=campaign.state.seenProfiles||(campaign.state.seenProfiles={});

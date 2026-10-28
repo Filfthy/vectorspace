@@ -162,6 +162,7 @@ class CampaignController {
     if(kind==='fighters')return 1;
     if(kind==='generators')return 2;
     if(kind==='reactors')return 5;
+    if(kind==='aces')return 5; // v810: on top of the fighter kill itself
     // Armour fields are large (15-27 units), so each unit is worth less than a fighter duel.
     if(kind==='armour')return ['strider','crab','tesla'].includes(sub)?3:1;
     return 0
@@ -180,7 +181,7 @@ class CampaignController {
   bountyTag(){const b=this.lastBounty;return b&&performance.now()-b.at<400&&b.cr>0?` · +CR ${b.cr.toLocaleString()}`:''}
   bountySummary(){
     const b=this.missionBounty;if(!b||b.cr<=0)return null;
-    const names={fighters:['fighter','fighters'],armour:['armour unit','armour units'],'heavy walkers':['heavy walker','heavy walkers'],generators:['generator','generators'],reactors:['reactor','reactors']};
+    const names={fighters:['fighter','fighters'],armour:['armour unit','armour units'],'heavy walkers':['heavy walker','heavy walkers'],generators:['generator','generators'],reactors:['reactor','reactors'],aces:['named ace','named aces']};
     const text=Object.entries(b.counts).map(([k,v])=>`${v} ${(names[k]||[k,k])[v===1?0:1]}`).join(', ');
     return {cr:Math.round(b.cr/50)*50,xp:Math.round(b.xp),text}
   }
@@ -221,7 +222,8 @@ class CampaignController {
       {id:'eliteOperator',name:'Elite Operator',text:'Complete 10 elite contracts.',v:s.contracts.elite||0,goal:10},
       {id:'goodSamaritan',name:'Good Samaritan',text:'Investigate 10 route diversions.',v:s.diversionsInvestigated||0,goal:10},
       {id:'remnantHunter',name:'Remnant Hunter',text:'Finish a Black Contract at threat 5.',v:Number(f.blackThreat)||0,goal:5},
-      {id:'networkBreaker',name:'Network Breaker',text:'Finish a Black Contract at threat 10.',v:Number(f.blackThreat)||0,goal:10}
+      {id:'networkBreaker',name:'Network Breaker',text:'Finish a Black Contract at threat 10.',v:Number(f.blackThreat)||0,goal:10},
+      {id:'aceHunter',name:'Ace Hunter',text:'Destroy 5 named aces.',v:k.aces||0,goal:5}
     ]
   }
   checkAchievements(){
@@ -235,11 +237,11 @@ class CampaignController {
     fx.overchargeT=Math.max(0,fx.overchargeT-dt);fx.flareT=Math.max(0,fx.flareT-dt);fx.graceT=Math.max(0,fx.graceT-dt);fx.hotCD=Math.max(0,fx.hotCD-dt);
     if(fx.naniteLeft>0){fx.naniteT-=dt;if(fx.naniteT<=0){fx.naniteT=1.2;if(shield<this.maxShield()){shield++;hud()}fx.naniteLeft--;}}
     if(typeof fighters!=='undefined')for(const f of fighters)if(f.stunT>0)f.stunT=Math.max(0,f.stunT-dt);
-    globalThis.AgentXHijacked?.update(dt)
+    globalThis.AgentXHijacked?.update(dt);globalThis.AgentXAces?.update(dt)
   }
   onFighterKilled(f){
     globalThis.AgentXHijacked?.onKilled(f);
-    this.fx.streak++;this.bumpStat('kills.fighters');
+    this.fx.streak++;this.bumpStat('kills.fighters');globalThis.AgentXAces?.onKilled(f);
     // Field Lattice (Helix reward): every kill feeds the shield back by one.
     const gain=this.currentMission?this.internalSum('killShield'):0;
     if(gain>0&&typeof shield!=='undefined'&&shield<this.maxShield()){shield=Math.min(this.maxShield(),shield+gain);hud()}
@@ -2405,7 +2407,7 @@ class CampaignController {
       ['Elite contracts',n(st.contracts.elite)],['Agent missions',`${agent} / ${agentT}`],
       ['Credits earned',`CR ${n(st.creditsEarned)}`],['Bounties earned',`CR ${n(st.bountyEarned)}`],['Insurance paid',`CR ${n(st.insurancePaid)}`],['Drones lost',n(st.dronesLost)],['Projectiles shot down',n(st.shotDown)],
       ['Fighters destroyed',n(k.fighters)],['Ground armour destroyed',n(this.armourKills())],['Walker knees broken',n(k.knees)],['Generators destroyed',n(k.generators)],
-      ['Reactors destroyed',n(k.reactors)],['Moons destroyed',n(k.moons)],['Route encounters survived',n(st.routeEncounters)],['Diversions answered',n(st.diversionsInvestigated)],
+      ['Reactors destroyed',n(k.reactors)],['Aces destroyed',n(k.aces)],['Moons destroyed',n(k.moons)],['Route encounters survived',n(st.routeEncounters)],['Diversions answered',n(st.diversionsInvestigated)],
       ['Black contracts',`${n(st.blackDone)}${this.state.mailFlags?.blackThreat?` · threat ${this.state.mailFlags.blackThreat}`:''}`],
       ['Veteran bonus',this.veteranBonus()>0?`+${Math.round(this.veteranBonus()*100)}% pay`:'from level 21']];
     const got=this.state.achievements||{},ach=this.achievementDefs();

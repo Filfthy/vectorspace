@@ -110,7 +110,7 @@ class MissionController {
      pursuitAcquireT:0,pursuitStrength:0,pursuitBreakUsed:false,pursuitBreakStart:0,pursuitBreakDuration:0,lastBreakSide:0,lastBreakVert:0,
      route:[],routeIndex:0,routeState:'',routeAge:0,routeSpeed:0,routeTurnRate:0,attackAge:0
    };
-   f.hullName=f.mesh?.name||'Legacy Fighter';if(hijacked)f.hijacked=true;
+   f.hullName=f.mesh?.name||'Legacy Fighter';if(hijacked)f.hijacked=true;globalThis.AgentXAces?.maybeMark(f,rosterIndex);
    fighters.push(f);fighterGroupSpawned++;
    // The opening cast establishes the battle visually. Later reserves join as
    // purposeful attack entries rather than spending a pass meandering in front.

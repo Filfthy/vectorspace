@@ -392,3 +392,15 @@ v800  Fixes from a second independent review
         city ground, instead of snapping back to green.
       - Hijacked-drone fights are acknowledged as drones in follow-up mail,
         not as pirates.
+
+v810  Named aces in pirate and mercenary fights
+      About one pirate or mercenary fight in five (risk 3 and up) now includes
+      a named pilot: a red hull, three times as tough, announced with "ACE
+      CONTACT · OLD TEETH" (or Red Mags, Knifejaw, The Accountant, The Quiet
+      Contract, Iron Juno and others). Killing one pays a large extra bounty
+      ("SIX-FINGER ORD DOWN · +CR 2,300" at risk 4) and the debrief lists
+      "1 named ace". The Operator record counts aces destroyed, and there is
+      a new achievement, Ace Hunter, for five of them. Drones, Customs and
+      xenos never have aces, because an ace is a person. The Guide mentions
+      them. The arrival callout waits for the fight's opening voice line to
+      finish so it isn't lost. Flight-tested muted.
