@@ -934,3 +934,11 @@ v1190 Cassian joins the new jobs
       the claim "may become available". Each comes with its own titles,
       completion, failure and abandon mails and a follow-up. Tested muted:
       the text, plus a Red Jackal Survey Run to the debrief.
+
+v1200 Kudo joins Crystal Consignment
+      OSD now offers Crystal Consignments too. A crystal mining town has
+      been "selling to buyers the Directorate does not recognise", and Kudo
+      wants its assay case collected for inspection, delivered "straight
+      there". It has its own completion, failure, abandon and traffic mails.
+      Every network now has at least one of tonight's world-type jobs.
+      Tested muted: the text, plus an OSD run to the debrief.

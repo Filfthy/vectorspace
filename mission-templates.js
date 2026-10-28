@@ -2217,8 +2217,8 @@
     musicMode:'calm',
     minLevel:6,
     maxLevel:null,
-    allowedFactions:['helix','jackals','trade','quickbite'],
-    factionWeights:{helix:5,jackals:4,trade:3,quickbite:2},
+    allowedFactions:['helix','jackals','trade','quickbite','security'],
+    factionWeights:{helix:5,jackals:4,trade:3,quickbite:2,security:2},
     board:{category:'delivery',weight:.6,maxPerBoard:1},
     risk:{base:3,min:2,levelsPerStep:2,max:9,jitter:1},
     reward:{
@@ -2321,6 +2321,29 @@
         failureMail:{contactId:'nyxo_malloc',subjects:['The rocks stayed rocks'],bodies:['Dude, your drone exploded and the crystal is still in town. Accounts is crying again. I bought them a muffin.']},
         abandonMail:{contactId:'nyxo_malloc',subjects:['You left the tip jar?'],bodies:['You flew all the way down there and left the tip jar. That is our tip jar, dude.']},
         personalFollowUp:{contactId:'nyxo_malloc',minRisk:3,chance:.24,subjects:['Crystal town loves you'],bodies:['The miners asked who flew the pickup. I said the best contractor we have. They want to name a sandwich after you. I said no. They did it anyway.']}
+      },
+      security:{
+        contactId:'kudo_shang',cargoStyle:'case',
+        titles:['Assay Seizure','Crystal Inspection','Mining Town Collection'],
+        cargo:['a sealed assay case','seized crystal samples','an assay office\'s records'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'A crystal mining town has been selling to buyers the Directorate does not recognise. Collect {cargo} from {origin} and deliver it to {destination} for inspection. Do not discuss it with the miners.',
+          'Collect {cargo} from {origin}. The Directorate wants to know who has been buying this town\'s crystal and why. Deliver it to {destination}. Straight there.'
+        ],
+        completionSubjects:['Assay received','Samples logged'],
+        completionBodies:['The case is with the inspectors. Payment: CR {credits}. Standing: +{rep}.'],
+        civilianTrafficMail:{
+          contactId:'kudo_shang',
+          assaultSubjects:['Weapons near civilians'],incidentSubjects:['Traffic incident logged'],
+          assaultBodies:['You fired near civilian traffic in a mining town. The Directorate does not need the miners against it. Settlement reduced from CR {fullCredits} to CR {credits}.'],
+          incidentBodies:['The case arrived. Town control logged a traffic incident. Settlement adjusted to CR {credits}.'],
+          failureAddenda:['The traffic report is also on file.'],
+          abandonAddenda:['There was also a traffic incident.']
+        },
+        failureMail:{contactId:'kudo_shang',subjects:['Case not delivered'],bodies:['The case did not arrive. Someone in that town will be pleased. Return and collect it.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left the town with the case still in the assay office. That was not the order.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.18,subjects:['Re: assay'],bodies:['The inspectors found what they expected. Your delivery made that possible. Noted.']}
       }
     }
   };
