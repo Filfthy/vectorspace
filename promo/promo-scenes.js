@@ -117,7 +117,7 @@ const herd={name:'reindeer',t0:T.solo,seed:2512,
       m.planetaryRequirements={landingBody:'planet',landingColour:'orange',moonCount:{min:0,max:0}};
       m.modules=m.modules.filter(x=>['planet_descent','dune_assault'].includes(x.type));m.stages=m.modules.map(x=>x.label);m.routeEncounter=null;m.risk=3
     });
-    planetStyle='cratered';planetCraters=makeCraters(9);planetRings=null
+    planetStyle='cratered';planetCraters=makeCraters(9);planetRings=null;planetLandingColour=C.w   // a snow world
   },
   pilot(dt,t){
     if(!(groundAssault?.active&&mode==='play'&&phase==='surface'))return;
@@ -201,7 +201,7 @@ groundAssault.updateSteering=function(dt,mx,my){
   if(D.scene===herd&&herd.wantSpd&&!this.leadIn){const extra=herd.wantSpd-this.spd;shipX+=Math.sin(viewYaw)*extra*dt;travel+=Math.cos(viewYaw)*extra*dt;this.spd=herd.wantSpd}
   return r
 };
-// Reindeer keep their own colours: a red nose and yellow antlers on a white body.
+// Reindeer keep their own colours: a red nose and yellow antlers on a brown (orange) body.
 const gameDrawUnit=groundAssault.drawUnit.bind(groundAssault);
 const reindeerColours=new WeakMap();
 groundAssault.drawUnit=function(u){
@@ -230,7 +230,7 @@ const SINGER=V3(0,1.2,0);
 const camKeys=[[T.breakdown,V3(6,3.4,-26)],[T.breakdown+7,V3(2.5,2.4,-13)],[T.verse3,V3(-3.4,2.1,-7.6)],[T.verse3+9,V3(-9,3.6,-5.5)],
   [T.verse3+17,V3(-7,3.4,-15)],[T.verse3+22.5,V3(0,3,-19)],[T.verse3+30,V3(10,3.4,-14)],[T.outro,V3(7,4.5,-20)],[T.end-4,V3(0,6,-28)],[T.end+4,V3(0,6.5,-31)]];
 // The band hovers on the stage behind her from the start: two guitarists and a drummer.
-const BAND=[{at:V3(-3.4,.4,3.4),play:'guitar',body:C.g,trim:C.y,s:.9},{at:V3(3.5,.5,3.6),play:'guitar',body:C.o,trim:C.y,s:.9},{at:V3(0,1.5,6.6),play:'drums',body:C.u,trim:C.c,s:.95}];
+const BAND=[{at:V3(-3.4,.4,3.4),play:'guitar',axe:'strat',body:C.g,trim:C.y,s:.9},{at:V3(3.5,.5,3.6),play:'guitar',axe:'lespaul',body:C.o,trim:C.y,s:.9},{at:V3(0,1.5,6.6),play:'drums',body:C.u,trim:C.c,s:.95}];
 // The chorus: where each one waits off-stage, its place on stage, when it arrives, and what it sings.
 const CHORUS=[
   {from:V3(-46,8,-20),at:V3(-6.6,.9,1.4),arrive:T.verse3+16,sing:'crowd',body:C.g,trim:C.c,s:.85},
@@ -305,7 +305,7 @@ const aria={name:'aria',t0:T.breakdown,seed:2412,
       if(blocks(p,v,s*1.5+2.2))continue;rock(p[0],p[1],p[2],s,v);n++}
     aria.singer={mesh:P.makeHornet(C.m,C.y),pos:SINGER,s:1,sing:'lead',body:C.m,trim:C.y,rings:[],lastJaw:0};
     aria.chorus=CHORUS.map(c=>({...c,mesh:P.makeHornet(c.body,c.trim),rings:[],lastJaw:0}));
-    aria.band=BAND.map((b,i)=>({...b,pos:b.at,i,mesh:P.makeHornet(b.body,b.trim,b.play)}));
+    aria.band=BAND.map((b,i)=>({...b,pos:b.at,i,mesh:P.makeHornet(b.body,b.trim,b.play,b.axe)}));
     aria.cam=camKeys[0][1];window.update=aria.update;aria.update(0)   // place the camera before the first frame is drawn
   },
   update(dt){
@@ -328,11 +328,14 @@ function singerPos(c,t){
   return vadd(a,V3(0,Math.sin(t*.8+c.at[0])*.14*u,0))
 }
 function voiceJaw(c,t){return c.sing==='choir'?choirJaw(t):jawAt(voices[c.sing],t)}
+// The trill in the aria: she strains on it (0 to 1, easing in and out at the note's ends).
+const TRILLS=SONG.aria.filter(n=>/tr/.test(n.fl||''));
+function strainAt(t){let s=0;for(const n of TRILLS)s=Math.max(s,clamp((t-n.t-.08)/.2,0,1)*clamp((n.t+n.d+.12-t)/.25,0,1));return s}
 // Everyone on stage turns to face the camera.
 function facing(pos){const cam=aria.cam;return Math.atan2(-(cam[0]-pos[0]),-(cam[2]-pos[2]))}
 function drawSinger(c,t){
   const pos=singerPos(c,t),cam=aria.cam,jaw=voiceJaw(c,t);
-  c.mesh.pose({jaw,mand:jaw,t:t+(c.at?c.at[0]:0)});
+  c.mesh.pose({jaw,mand:jaw,t:t+(c.at?c.at[0]:0),strain:c.sing==='lead'?strainAt(t):0});
   drawMesh({x:pos[0],y:pos[1],z:pos[2]-cam[2],s:c.s,rot:[0,facing(pos),0]},c.mesh,c.body,1);
   // Sound rings from the mouth on every new syllable.
   if(jaw>.35&&c.lastJaw<=.35)c.rings.push({t0:t});c.lastJaw=jaw;

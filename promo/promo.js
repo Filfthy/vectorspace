@@ -33,7 +33,7 @@ const Promo=globalThis.Promo={Q,CAP,composite,save,saveText,get pending(){return
 // ---------- Model viewer ----------
 const view=Q.get('view');
 if(view){
-  const M=PromoModels,xeno=M.makeHornet(C.m,C.y),guitarist=M.makeHornet(C.g,C.y,'guitar'),drummer=M.makeHornet(C.u,C.c,'drums');
+  const M=PromoModels,xeno=M.makeHornet(C.m,C.y),guitarist=M.makeHornet(C.g,C.y,'guitar','strat'),guitarist2=M.makeHornet(C.o,C.y,'guitar','lespaul'),drummer=M.makeHornet(C.u,C.c,'drums');
   const reindeerMesh=(()=>{const b=gaBuilder(true);const u={K:GA_KINDS.reindeer};
     // Rest pose straight from the kind's leg design, like the audition sheet.
     GA_KINDS.reindeer.body(b);for(const[i,L]of GA_KINDS.reindeer.legs.entries())gaLeg(b,L,L.t,i);
@@ -41,9 +41,11 @@ if(view){
   const subjects={
     present:{mesh:M.present,col:C.r,s:1.2,y:0,dist:3.6,tilt:.35},
     tree:{mesh:M.xmasTree,col:C.g,s:1,y:-1.5,dist:6.6,tilt:.12,anim:t=>M.xmasTree.twinkle(t)},
-    reindeer:{mesh:reindeerMesh,col:C.w,s:.62,y:-1.3,dist:6,tilt:.12},
+    reindeer:{mesh:reindeerMesh,col:C.o,s:.62,y:-1.3,dist:6,tilt:.12},
     xeno:{mesh:xeno,col:C.m,s:.9,y:-.1,dist:7.4,tilt:.05,anim:t=>xeno.pose({jaw:.5+.5*Math.sin(t*3),t})},
     guitarist:{mesh:guitarist,col:C.g,s:.9,y:-.1,dist:7.4,tilt:.05,anim:t=>guitarist.pose({jaw:0,t,strum:.5+.5*Math.sin(t*12)})},
+    guitarist2:{mesh:guitarist2,col:C.o,s:.9,y:-.1,dist:7.4,tilt:.05,anim:t=>guitarist2.pose({jaw:0,t,strum:.5+.5*Math.sin(t*12)})},
+    singer:{mesh:xeno,col:C.m,s:.9,y:-.1,dist:7.4,tilt:.05,anim:t=>xeno.pose({jaw:.6,t,strain:1})},
     drummer:{mesh:drummer,col:C.u,s:.9,y:-.1,dist:7.4,tilt:.05,extra:M.drumKit,anim:t=>drummer.pose({t,hitL:Math.max(0,Math.sin(t*6)),hitR:Math.max(0,-Math.sin(t*6)),leftTarget:M.drumKit.strikes.snare,rightTarget:M.drumKit.strikes.hat})}
   };
   const S=subjects[view]||subjects.present;
