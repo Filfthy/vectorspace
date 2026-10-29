@@ -107,7 +107,8 @@ const snowman=posedMesh(buildSnowman,{snow:C.w,coal:C.x,carrot:C.o,sticks:C.o,sc
 // upright with the head tipped towards the audience. Added for the promo: big compound
 // eyes, antennae, mandibles that part and a jaw that drops, and a lit throat inside.
 // Band players also get a pair of arms. Model faces -z. pose: jaw (0..1), t (time),
-// mand (mandible spread 0..1), strain (0..1, the antennae
+// mand (mandible spread 0..1), waggle (abdomen swing, radians), nod (head,
+// radians), spread (wings up, 0..1), strain (0..1, the antennae
 // stiffen and quiver with the trill), and for the band: strum (0..1), hitL / hitR (0..1),
 // leftTarget / rightTarget (where the drumsticks strike).
 const HORNET_SPINE=[[-2.0,.03,.3],[-1.75,.1,.28],[-1.4,.32,.24],[-.95,.46,.16],[-.45,.44,.08],[-.12,.26,.02],[.05,.12,0],[.25,.3,0],[.6,.4,-.02],[.95,.34,-.04],[1.15,.18,-.05],[1.26,.12,-.06]];
@@ -118,12 +119,15 @@ function ringYZ(x,y,z,ry,rz,n){return Array.from({length:n},(_,i)=>{const a=i*TA
 function vnorm3(a){const l=Math.hypot(a[0],a[1],a[2])||1;return[a[0]/l,a[1]/l,a[2]/l]}
 function buildHornet(m,p){
   const t=p.t||0,jaw=clamp(p.jaw||0,0,1),band=p.band||null;
+  // The waggle: the abdomen swings sideways from the waist, bending more towards the sting.
+  const wg=p.waggle||0,pv=.05;
+  m.T=wg?q=>{const a=wg*clamp((pv-q[1])/.45,0,1),c=Math.cos(a),si=Math.sin(a),dy=q[1]-pv;return[q[0]*c-dy*si,pv+q[0]*si+dy*c,q[2]]}:null;
   m.mark('body',()=>m.loft(HORNET_SPINE.map(([y,w,z])=>hornetRing(y,w,z))));
   m.mark('sting',()=>m.beam([0,-1.98,.3],[0,-2.5,.42],.08,.06,.1));
   // Abdomen bands, like the game hornet's waist ring.
   m.mark('bands',()=>{for(const[y,w,z]of[[-1.4,.33,.24],[-.95,.47,.16],[-.45,.45,.08]])m.loft([hornetRing(y-.015,w,z),hornetRing(y+.015,w,z)],false,false)});
-  // Head, tipped forward towards the audience.
-  const hy=1.3,lean=.38,cl=Math.cos(lean),sl=Math.sin(lean);
+  // Head, tipped forward towards the audience (further on a nod).
+  const hy=1.3,lean=.38+(p.nod||0),cl=Math.cos(lean),sl=Math.sin(lean);
   m.T=q=>{const y=q[1]-hy,z=q[2];return[q[0],hy+y*cl+z*sl,-y*sl+z*cl]};
   m.mark('head',()=>m.loft([hornetRing(hy,.24,.02),hornetRing(hy+.22,.38,-.04),hornetRing(hy+.5,.36,-.06),hornetRing(hy+.72,.22,-.04),hornetRing(hy+.8,.06,-.02)]));
   // Compound eyes: big faceted ovals on the sides of the face.
@@ -140,10 +144,12 @@ function buildHornet(m,p){
   m.mark('jaw',()=>m.loft([[[-.2,hy+.04,-.08],[.2,hy+.04,-.08],[.18,hy-.06,-.1],[-.18,hy-.06,-.1]].map(J),[[-.1,hy+.06,-.46],[.1,hy+.06,-.46],[.08,hy,-.44],[-.08,hy,-.44]].map(J)]));
   m.mark('throat',()=>m.box([0,hy+.16,-.22],[.24,.08,.36]));
   m.T=null;
-  // Two pairs of wings off the back of the thorax, buzzing like the game hornet's.
+  // Two pairs of wings off the back of the thorax, buzzing like the game hornet's; spread
+  // (0..1) raises them into a wide V.
+  const sp=clamp(p.spread||0,0,1);
   m.mark('wings',()=>{for(const s of[-1,1])for(const[root,tip,trail,ph]of[[[.2,.85,.22],[1.75,1.35,.85],[1.0,.5,1.0],0],[[.18,.6,.22],[1.25,.3,.95],[.62,.12,.82],.55]]){
-    const a=Math.sin(t*16.5+ph)*.5*s,c=Math.cos(a),si=Math.sin(a),r=[s*root[0],root[1],root[2]],lift=Math.sin(t*16.5+ph);
-    const Wg=q=>{const dx=q[0]-r[0],dz=q[2]-r[2];return[r[0]+dx*c-dz*si,q[1]+Math.abs(dx)*.12*lift,r[2]+dx*si+dz*c]};
+    const a=Math.sin(t*16.5+ph)*.5*(1-.6*sp)*s,c=Math.cos(a),si=Math.sin(a),r=[s*root[0],root[1],root[2]],lift=Math.sin(t*16.5+ph);
+    const Wg=q=>{const dx=q[0]-r[0],dz=q[2]-r[2];return[r[0]+dx*c-dz*si,q[1]+Math.abs(dx)*(.12*lift*(1-sp)+.5*sp),r[2]+dx*si+dz*c]};
     m.loft([[r,r,r],[Wg([s*tip[0],tip[1],tip[2]]),Wg([s*(tip[0]+trail[0])/2,(tip[1]+trail[1])/2+.06,(tip[2]+trail[2])/2+.08]),Wg([s*trail[0],trail[1],trail[2]])]],false,false)}});
   if(band)buildBandArms(m,p,band)
 }
