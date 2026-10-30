@@ -91,15 +91,17 @@ function drawSnowfall(wind=0){
 }
 D.drawSnowfall=drawSnowfall;
 
-// ---- Titles in the game's own vector type ----
-function vtext(s,x,y,size,col,alpha){ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=col;ctx.lineWidth=VECTOR_LINE_WIDTH*1.4;ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`400 ${size}px Consolas,monospace`;ctx.strokeText(s,x,y);ctx.restore()}
+// ---- Titles in the Agent X lettering (the game's Facet display face) ----
+// A line too wide for the screen is drawn smaller to fit.
+function vtext(s,x,y,size,col,alpha){const F=AgentXVectorFont,w=F.measure(s,size,null,'display');if(w>W*.88)size*=W*.88/w;
+  ctx.save();ctx.globalAlpha=alpha;F.draw(ctx,s,x,y,size,{role:'display',align:'center',baseline:'middle',color:col});ctx.restore()}
 function window01(t,a,b,fade=.8){return clamp(Math.min((t-a)/fade,(b-t)/fade),0,1)}
 function drawTitles(t){
   const a=window01(t,1.0,6.9,1.1);
-  if(a>0){vtext('VECTOR SPACE',W*.5,viewH*.3,Math.round(W/16),C.g,a);vtext('AGENT X',W*.5,viewH*.3+W/18,Math.round(W/40),C.w,a*.9)}
-  const e=window01(t,T.end-9.5,T.end+5,1.4);
-  if(e>0){vtext('VECTOR SPACE',W*.5,viewH*.15,Math.round(W/16),C.g,e);vtext('AGENT X',W*.5,viewH*.15+W/18,Math.round(W/40),C.w,e*.9);
-    vtext('MERRY CHRISTMAS FROM BUGVICTIM',W*.5,viewH*.92,Math.round(W/60),C.y,e*.85)}
+  if(a>0){vtext('Vector Space',W*.5,viewH*.27,Math.round(W/36),C.g,a);vtext('Agent X wishes you all a Merry Christmas',W*.5,viewH*.27+W/22,Math.round(W/26),C.w,a*.95)}
+  const e=window01(t,T.end-9.5,T.end+20,1.4);   // held to the very end, while the bells ring on
+  if(e>0){vtext('Vector Space',W*.5,viewH*.15,Math.round(W/16),C.g,e);vtext('Agent X',W*.5,viewH*.15+W/18,Math.round(W/40),C.w,e*.9);
+    vtext('Merry Christmas from BugVictim',W*.5,viewH*.92,Math.round(W/50),C.y,e*.85)}
 }
 
 // ---- Stepping ----

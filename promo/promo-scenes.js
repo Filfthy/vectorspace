@@ -101,9 +101,13 @@ function hillFade(f,u){return f.hasGladeDestination()?1-ease(clamp((u-(f.gladeSt
 const gameCargo=forest.drawCabinCargo.bind(forest);
 forest.drawCabinCargo=function(){
   const state=this.cabinCargoState?.();if(!state||!D.snow)return gameCargo();
-  const cp=proj(state.point);
-  if(state.beam&&cp){const keep=drawMesh;window.drawMesh=()=>{};try{gameCargo()}finally{window.drawMesh=keep}}   // keep the tractor waves, skip the box
-  drawMesh({type:'promoPresent',x:state.point[0],y:state.point[1]+.2,z:state.point[2],s:state.landed?.4:lerp(.16,.4,forest.deliveryProgress||0),rot:[0,.35+(state.landed?0:D.clock*.8),0]},P.present,C.r,.98)
+  // Out of the cargo bay: the present rises into view from below the screen and the tractor
+  // carries it down to the deck (the game's own beam is drawn to wherever it is).
+  let point=state.point;
+  if(!state.landed){const q=ease(clamp(forest.deliveryProgress||0,0,1)),from=cameraPointToWorld([0,-1.35,2.1]),to=[this.deliveryWorld[0],this.deliveryWorld[1],this.deliveryWorld[2]-travel];
+    point=[lerp(from[0],to[0],q),lerp(from[1],to[1],q),lerp(from[2],to[2],q)];const real=this.cabinCargoState;this.cabinCargoState=()=>({...state,point});
+    if(state.beam){const keep=drawMesh;window.drawMesh=()=>{};try{gameCargo()}finally{window.drawMesh=keep;this.cabinCargoState=real}}else this.cabinCargoState=real}   // keep the tractor waves, skip the box
+  drawMesh({type:'promoPresent',x:point[0],y:point[1]+.2,z:point[2],s:.4,rot:[0,.35+(state.landed?0:D.clock*.8),0]},P.present,C.r,.98)
 };
 
 // ---------- Scene 2: reindeer mechs on a rocky world (the guitar solo) ----------
@@ -117,7 +121,7 @@ const herd={name:'reindeer',t0:T.solo,seed:2512,
       m.planetaryRequirements={landingBody:'planet',landingColour:'orange',moonCount:{min:0,max:0}};
       m.modules=m.modules.filter(x=>['planet_descent','dune_assault'].includes(x.type));m.stages=m.modules.map(x=>x.label);m.routeEncounter=null;m.risk=3
     });
-    planetStyle='cratered';planetCraters=makeCraters(9);planetRings=null;planetLandingColour=C.w   // a snow world
+    planetStyle='cratered';planetCraters=makeCraters(9);planetRings=null;planetLandingColour=C.c   // an ice world
   },
   pilot(dt,t){
     if(!(groundAssault?.active&&mode==='play'&&phase==='surface'))return;
@@ -201,13 +205,14 @@ groundAssault.updateSteering=function(dt,mx,my){
   if(D.scene===herd&&herd.wantSpd&&!this.leadIn){const extra=herd.wantSpd-this.spd;shipX+=Math.sin(viewYaw)*extra*dt;travel+=Math.cos(viewYaw)*extra*dt;this.spd=herd.wantSpd}
   return r
 };
-// Reindeer keep their own colours: a red nose and yellow antlers on a brown (orange) body.
+// Reindeer keep their own colours: a red nose, yellow antlers, white cannon barrels, knees and
+// feet on a brown (orange) body.
 const gameDrawUnit=groundAssault.drawUnit.bind(groundAssault);
 const reindeerColours=new WeakMap();
 groundAssault.drawUnit=function(u){
   if(u.kind!=='reindeer')return gameDrawUnit(u);
   this.pose(u);
-  if(!reindeerColours.has(u.mesh)){const b=gaBuilder(true);this.emit(b,u);u.mesh.edgeColors=P.edgeColours(b,{nose:C.r,antlers:C.y});reindeerColours.set(u.mesh,true)}
+  if(!reindeerColours.has(u.mesh)){const b=gaBuilder(true);this.emit(b,u);u.mesh.edgeColors=P.edgeColours(b,P.reindeerColours(b));reindeerColours.set(u.mesh,true)}
   const wreck=u.state==='wreck',col=wreck?C.x:objectHitColor(u,u.K.col);
   const dist=this.planarToShip(u),haze=clamp((GA_UNIT_SIGHT-dist)/40,0,1),depth=camPoint([u.x,this.ug(u),u.wz-travel])[2];
   drawMesh({x:u.x,y:this.ug(u),z:u.wz-travel,s:u.s,rot:[0,u.h+Math.PI,0],fadeZ:Math.max(0,depth)*.8},u.mesh,col,(wreck?.55:1)*haze)

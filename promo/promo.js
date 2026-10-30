@@ -37,7 +37,7 @@ if(view){
   const reindeerMesh=(()=>{const b=gaBuilder(true);const u={K:GA_KINDS.reindeer};
     // Rest pose straight from the kind's leg design, like the audition sheet.
     GA_KINDS.reindeer.body(b);for(const[i,L]of GA_KINDS.reindeer.legs.entries())gaLeg(b,L,L.t,i);
-    return{v:b.v,e:b.e,faces:b.faces,edgeColors:M.edgeColours(b,{nose:C.r,antlers:C.y})}})();
+    return{v:b.v,e:b.e,faces:b.faces,edgeColors:M.edgeColours(b,M.reindeerColours(b))}})();
   const subjects={
     present:{mesh:M.present,col:C.r,s:1.2,y:0,dist:3.6,tilt:.35},
     tree:{mesh:M.xmasTree,col:C.g,s:1,y:-1.5,dist:6.6,tilt:.12,anim:t=>M.xmasTree.twinkle(t)},

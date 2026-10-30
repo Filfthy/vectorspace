@@ -97,10 +97,22 @@ const snowman=posedMesh(buildSnowman,{snow:C.w,coal:C.x,carrot:C.o,sticks:C.o,sc
         m.beam(a,b,.08,.08);m.beam(b,c,.07,.07);m.beam(c,d,.06,.06,.5);
         m.beam(b,[sx*.36,Y+2.45,-1.95],.05,.05,.4);m.beam(c,[sx*.5,Y+3.05,-1.5],.05,.05,.4);m.beam([sx*.64,Y+2.82,-.92],[sx*.98,Y+3.12,-.95],.045,.045,.4)}});
       // The mech part: a twin cannon pod on the shoulders, under the antlers' reach.
-      m.box([0,Y+.48,-.55],[.6,.28,.8]);for(const x of[-.22,.22])m.barrel(x,Y+.62,-.6,-1.9,.06);
+      m.box([0,Y+.48,-.55],[.6,.28,.8]);m.mark('barrels',()=>{for(const x of[-.22,.22])m.barrel(x,Y+.62,-.6,-1.9,.06)});
       m.beam([0,Y+.28,1.0],[0,Y+.55,1.25],.14,.14,.5)                       // tail
     }};
 })();
+
+// The game's leg builder with the feet marked too, so the reindeer can have white feet.
+window.gaLeg=function(m,L,t,i){
+  m.beam(L.hip,L.knee,t,t*1.3);
+  m.mark('knee'+i,()=>m.box(L.knee,[t*1.6,t*1.6,t*1.6]));
+  m.beam(L.knee,L.ankle,t*.8,t*1.1);
+  m.box(L.ankle,[t*1.25,t*1.25,t*1.25]);
+  const f=L.foot;
+  m.mark('foot'+i,()=>m.loft([m.ringXZ(f[0],f[1],f[2],t*2.1,t*2.4,6),m.ringXZ(f[0],f[1]+t*.55,f[2],t*1.4,t*1.6,6)]));
+  m.beam(L.ankle,[f[0],f[1]+t*.5,f[2]],t*.6,t*.6);
+};
+const reindeerColours=m=>{const map={nose:C.r,antlers:C.y,barrels:C.w};for(const k of Object.keys(m.marks))if(/^(knee|foot)\d/.test(k))map[k]=C.w;return map};
 
 // ---------- The xenos: the game's Stinger Hornet, standing up to sing ----------
 // The hornet's segmented body, its two pairs of buzzing wings and its stinger, hovering
@@ -203,5 +215,5 @@ function buildDrumKit(m){
 const drumKit=posedMesh(buildDrumKit,{shells:C.r,metal:C.y});
 drumKit.strikes=Object.fromEntries(Object.entries({snare:[-.55,.32,-.8],tomL:[-.22,.52,-.62],tomR:[.22,.54,-.62],hat:[.62,.66,-.78],crash:[-.7,1.0,-.45]}).map(([k,v])=>[k,KIT_T(v)]));
 
-globalThis.PromoModels={present,xmasTree,snowman,makeHornet,drumKit,posedMesh,edgeColours};
+globalThis.PromoModels={reindeerColours,present,xmasTree,snowman,makeHornet,drumKit,posedMesh,edgeColours};
 })();
