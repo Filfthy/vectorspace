@@ -63,8 +63,9 @@ function cabinLiftOff(){
 }
 // Rolling hills on the snowy plains. The ship rides the ground along its line from where it
 // lands to the forest's way in (crests and dips every hundred or so), and the land swells
-// into higher hills either side, flattening again far out (so distant trees stand on the
-// game's flat horizon band) and at both ends of the run (the landing and the tree line).
+// into hills either side within about 40 of the line, where the grid shows the slopes under the
+// trees, and is flat beyond (a tree on a far hill floats above the game's flat horizon band). It is
+// flat at both ends of the run too (the landing and the tree line).
 function plainsHills(sd){
   const ax=shipX,az=travel,bx=sd.targetX,bz=sd.targetWorldZ,dx=bx-ax,dz=bz-az,len=Math.hypot(dx,dz)||1,len2=len*len;
   return(x,wz)=>{
@@ -72,15 +73,17 @@ function plainsHills(sd){
     const ends=ease(clamp(along/50,0,1))*ease(clamp((de-40)/50,0,1));if(ends<=0)return 0;
     const n=.5*Math.sin(x*.034+wz*.011+.4)+.32*Math.sin(wz*.029-x*.019+1.3)+.2*Math.sin(x*.071+wz*.053+.7)+.18*Math.sin(x*.013-wz*.021+2.1);
     const route=2.6*(.5+.5*Math.sin(along*.052+x*.012-1.2))*(.75+.25*Math.sin(along*.13+.4));
-    const side=ease(clamp((dl-5)/20,0,1)),far=1-ease(clamp((dl-60)/45,0,1));
-    return(route*(1-side)+(route*.5+4.6*clamp(.45+.55*n,0,1.3))*side*far)*ends
+    const side=ease(clamp((dl-5)/16,0,1)),far=1-ease(clamp((dl-34)/18,0,1));
+    return(route*(1-side)+(route*.5+3.6*clamp(.45+.55*n,0,1.3))*side)*far*ends
   }
 }
 const gameSdBegin=surfaceDestination.begin.bind(surfaceDestination),gameSdGround=surfaceDestination.drawGround.bind(surfaceDestination);
 surfaceDestination.begin=function(stage){
   const r=gameSdBegin(stage);this.promoHills=null;
   if(D.snow&&this.destination==='forest'){
-    const H=this.promoHills=plainsHills(this);for(const t of this.trees)t.y+=Math.max(0,H(t.x,t.worldZ)-.3);   // set a little into the slope
+    const H=this.promoHills=plainsHills(this);// The hills are bare: seen through the wire ground, a tree on a slope stands above the flat
+    // horizon band behind it and looks as if it floats. Trees keep to the level ground.
+    this.trees=this.trees.filter(t=>H(t.x,t.worldZ)<.35)
     this.entryRadius=5   // carry on to the tree line before the forest takes over
   }
   return r
