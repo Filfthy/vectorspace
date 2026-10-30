@@ -38,7 +38,8 @@ const cabin={name:'cabin',t0:0,seed:1225,
       approach.routeLength=cabin.routeLength;approach.treeClumps=18;run.length=cabin.forestLength;
     });
     planetStyle='grid';planetRings=null;
-    cabin.xmasTreeAdded=false
+    cabin.xmasTreeAdded=false;
+    window.update=dt=>{gameUpdate(dt);cabinLiftOff()}
   },
   routeLength:430,forestLength:650,
   pilot(dt){
@@ -50,6 +51,50 @@ const cabin={name:'cabin',t0:0,seed:1225,
     }
   },
   overlay(){if(phase==='forest'||phase==='destinationApproach'||mode==='surfaceExit'||mode==='trenchEntry')D.drawSnowfall(.15)}
+};
+// Lift-off from the glade: the game climbs 7.2 while pitching up over 2.35s, still flying
+// forward, which carries the ship into the trees ahead. Here it climbs harder early and
+// pitches up sooner, so it rises clear of the treetops before the zoom.
+function cabinLiftOff(){
+  if(mode!=='surfaceExit'||D.scene!==cabin)return;
+  const early=ease(clamp(modeT/1.3,0,1));
+  shipY+=7*early;
+  if(modeT<SURFACE_EXIT_PITCH_TIME)viewPitch=lerp(mission.surfaceExitStartPitch,EXIT_VERTICAL_PITCH,Math.max(surfaceExitPitchProgress(),ease(clamp(modeT/1.5,0,1))))
+}
+// Gentle hills on the snowy plains. The ship flies a flat valley from where it lands to the
+// forest edge; the ground swells either side of that line and levels out again before the
+// tree line, which stands on the game's flat ground.
+function plainsHills(sd){   // the flight line runs from where the ship lands to the forest's way in
+  const ax=shipX,az=travel,bx=sd.targetX,bz=sd.targetWorldZ,dx=bx-ax,dz=bz-az,len2=dx*dx+dz*dz||1;
+  return(x,wz)=>{
+    const u=clamp(((x-ax)*dx+(wz-az)*dz)/len2,0,1),lx=ax+dx*u,lz=az+dz*u,dl=Math.hypot(x-lx,wz-lz),de=Math.hypot(x-bx,wz-bz);
+    const fade=ease(clamp((de-40)/50,0,1));if(fade<=0)return 0;
+    const n=.5*Math.sin(x*.034+wz*.011+.4)+.32*Math.sin(wz*.029-x*.019+1.3)+.2*Math.sin(x*.071+wz*.053+.7)+.18*Math.sin(x*.013-wz*.021+2.1);
+    // Low swells under the flight line (the ship flies 2 above the ground), rising into real
+    // hills from about 4 to 22 out.
+    const side=ease(clamp((dl-4)/18,0,1)),swell=1.0*(.5+.5*Math.sin(wz*.06+x*.045+.9))*(.6+.4*Math.sin(x*.11-wz*.037));
+    return(swell*(1-side)+3.2*clamp(.45+.55*n,0,1.3)*side)*fade
+  }
+}
+const gameSdBegin=surfaceDestination.begin.bind(surfaceDestination),gameSdGround=surfaceDestination.drawGround.bind(surfaceDestination);
+surfaceDestination.begin=function(stage){
+  const r=gameSdBegin(stage);this.promoHills=null;
+  if(D.snow&&this.destination==='forest'){
+    const H=this.promoHills=plainsHills(this);for(const t of this.trees)t.y+=H(t.x,t.worldZ);
+    this.entryRadius=5   // carry on to the tree line before the forest takes over
+  }
+  return r
+};
+surfaceDestination.drawGround=function(){
+  const H=this.promoHills;if(!H||!D.snow)return gameSdGround();
+  surfaceMask(this.groundY,560);
+  const sp=6,step=3,far=250,gy=this.groundY,x0=Math.floor((shipX-far)/sp)*sp,x1=shipX+far,z0=Math.floor((travel-far)/sp)*sp,z1=travel+far,col=landingWorldColour();
+  const seg=(ax,az,bx,bz)=>drawFlatSampledGridLine([ax,gy+H(ax,az),az-travel],[bx,gy+H(bx,bz),bz-travel],1);
+  ctx.save();ctx.strokeStyle=col;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.globalAlpha=.55;ctx.beginPath();
+  for(let x=x0;x<=x1;x+=sp)for(let z=z0;z<z1;z+=step)seg(x,z,x,z+step);
+  for(let z=z0;z<=z1;z+=sp)for(let x=x0;x<x1;x+=step)seg(x,z,x+step,z);
+  ctx.stroke();ctx.restore();
+  drawSharedSurfaceHorizon(gy,405,1,col,col)
 };
 // Steer down the forest path around the standing hazards, and lift over the fallen ones.
 function forestPilot(dt){
@@ -104,7 +149,7 @@ forest.drawCabinCargo=function(){
   // Out of the cargo bay: the present rises into view from below the screen and the tractor
   // carries it down to the deck (the game's own beam is drawn to wherever it is).
   let point=state.point;
-  if(!state.landed){const q=ease(clamp(forest.deliveryProgress||0,0,1)),from=cameraPointToWorld([0,-1.35,2.1]),to=[this.deliveryWorld[0],this.deliveryWorld[1],this.deliveryWorld[2]-travel];
+  if(!state.landed){const q=ease(clamp(forest.deliveryProgress||0,0,1)),from=cameraPointToWorld([0,-2.9,2.2]),to=[this.deliveryWorld[0],this.deliveryWorld[1],this.deliveryWorld[2]-travel];
     point=[lerp(from[0],to[0],q),lerp(from[1],to[1],q),lerp(from[2],to[2],q)];const real=this.cabinCargoState;this.cabinCargoState=()=>({...state,point});
     if(state.beam){const keep=drawMesh;window.drawMesh=()=>{};try{gameCargo()}finally{window.drawMesh=keep;this.cabinCargoState=real}}else this.cabinCargoState=real}   // keep the tractor waves, skip the box
   drawMesh({type:'promoPresent',x:point[0],y:point[1]+.2,z:point[2],s:.4,rot:[0,.35+(state.landed?0:D.clock*.8),0]},P.present,C.r,.98)

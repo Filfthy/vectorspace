@@ -97,8 +97,8 @@ function vtext(s,x,y,size,col,alpha){const F=AgentXVectorFont,w=F.measure(s,size
   ctx.save();ctx.globalAlpha=alpha;F.draw(ctx,s,x,y,size,{role:'display',align:'center',baseline:'middle',color:col});ctx.restore()}
 function window01(t,a,b,fade=.8){return clamp(Math.min((t-a)/fade,(b-t)/fade),0,1)}
 function drawTitles(t){
-  const a=window01(t,1.0,6.9,1.1);
-  if(a>0){vtext('Vector Space',W*.5,viewH*.27,Math.round(W/36),C.g,a);vtext('Agent X wishes you all a Merry Christmas',W*.5,viewH*.27+W/22,Math.round(W/26),C.w,a*.95)}
+  const a=window01(t,1.0,9.9,1.1);
+  if(a>0){vtext('Vector Space',W*.5,viewH*.15,Math.round(W/26),C.g,a);vtext('Agent X wishes you all a Merry Christmas',W*.5,viewH*.15+W/19,Math.round(W/26),C.w,a*.95)}
   const e=window01(t,T.end-9.5,T.end+20,1.4);   // held to the very end, while the bells ring on
   if(e>0){vtext('Vector Space',W*.5,viewH*.15,Math.round(W/16),C.g,e);vtext('Agent X',W*.5,viewH*.15+W/18,Math.round(W/40),C.w,e*.9);
     vtext('Merry Christmas from BugVictim',W*.5,viewH*.92,Math.round(W/50),C.y,e*.85)}
