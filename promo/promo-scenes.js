@@ -61,29 +61,36 @@ function cabinLiftOff(){
   shipY+=7*early;
   if(modeT<SURFACE_EXIT_PITCH_TIME)viewPitch=lerp(mission.surfaceExitStartPitch,EXIT_VERTICAL_PITCH,Math.max(surfaceExitPitchProgress(),ease(clamp(modeT/1.5,0,1))))
 }
-// Gentle hills on the snowy plains. The ship flies a flat valley from where it lands to the
-// forest edge; the ground swells either side of that line and levels out again before the
-// tree line, which stands on the game's flat ground.
-function plainsHills(sd){   // the flight line runs from where the ship lands to the forest's way in
-  const ax=shipX,az=travel,bx=sd.targetX,bz=sd.targetWorldZ,dx=bx-ax,dz=bz-az,len2=dx*dx+dz*dz||1;
+// Rolling hills on the snowy plains. The ship rides the ground along its line from where it
+// lands to the forest's way in (crests and dips every hundred or so), and the land swells
+// into higher hills either side, flattening again far out (so distant trees stand on the
+// game's flat horizon band) and at both ends of the run (the landing and the tree line).
+function plainsHills(sd){
+  const ax=shipX,az=travel,bx=sd.targetX,bz=sd.targetWorldZ,dx=bx-ax,dz=bz-az,len=Math.hypot(dx,dz)||1,len2=len*len;
   return(x,wz)=>{
-    const u=clamp(((x-ax)*dx+(wz-az)*dz)/len2,0,1),lx=ax+dx*u,lz=az+dz*u,dl=Math.hypot(x-lx,wz-lz),de=Math.hypot(x-bx,wz-bz);
-    const fade=ease(clamp((de-40)/50,0,1));if(fade<=0)return 0;
+    const u=clamp(((x-ax)*dx+(wz-az)*dz)/len2,0,1),lx=ax+dx*u,lz=az+dz*u,dl=Math.hypot(x-lx,wz-lz),de=Math.hypot(x-bx,wz-bz),along=u*len;
+    const ends=ease(clamp(along/50,0,1))*ease(clamp((de-40)/50,0,1));if(ends<=0)return 0;
     const n=.5*Math.sin(x*.034+wz*.011+.4)+.32*Math.sin(wz*.029-x*.019+1.3)+.2*Math.sin(x*.071+wz*.053+.7)+.18*Math.sin(x*.013-wz*.021+2.1);
-    // Low swells under the flight line (the ship flies 2 above the ground), rising into real
-    // hills from about 4 to 22 out.
-    const side=ease(clamp((dl-4)/18,0,1)),swell=1.0*(.5+.5*Math.sin(wz*.06+x*.045+.9))*(.6+.4*Math.sin(x*.11-wz*.037));
-    return(swell*(1-side)+3.2*clamp(.45+.55*n,0,1.3)*side)*fade
+    const route=2.6*(.5+.5*Math.sin(along*.052+x*.012-1.2))*(.75+.25*Math.sin(along*.13+.4));
+    const side=ease(clamp((dl-5)/20,0,1)),far=1-ease(clamp((dl-60)/45,0,1));
+    return(route*(1-side)+(route*.5+4.6*clamp(.45+.55*n,0,1.3))*side*far)*ends
   }
 }
 const gameSdBegin=surfaceDestination.begin.bind(surfaceDestination),gameSdGround=surfaceDestination.drawGround.bind(surfaceDestination);
 surfaceDestination.begin=function(stage){
   const r=gameSdBegin(stage);this.promoHills=null;
   if(D.snow&&this.destination==='forest'){
-    const H=this.promoHills=plainsHills(this);for(const t of this.trees)t.y+=H(t.x,t.worldZ);
+    const H=this.promoHills=plainsHills(this);for(const t of this.trees)t.y+=Math.max(0,H(t.x,t.worldZ)-.3);   // set a little into the slope
     this.entryRadius=5   // carry on to the tree line before the forest takes over
   }
   return r
+};
+// The ship keeps its height above the ground: the game steers as if the land were flat, and
+// the hill under the ship is added on top.
+const gameSdSteer=surfaceDestination.updateSteering.bind(surfaceDestination);
+surfaceDestination.updateSteering=function(dt,mx,my){
+  const H=this.promoHills;if(!H||!D.snow||phase!=='destinationApproach')return gameSdSteer(dt,mx,my);
+  shipY-=H(shipX,travel);const r=gameSdSteer(dt,mx,my);shipY+=H(shipX,travel);return r
 };
 surfaceDestination.drawGround=function(){
   const H=this.promoHills;if(!H||!D.snow)return gameSdGround();

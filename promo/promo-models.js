@@ -166,7 +166,7 @@ function buildHornet(m,p){
   if(band)buildBandArms(m,p,band)
 }
 // Arms from the front of the thorax: shoulder, elbow, a three-fingered claw.
-function hornetArm(m,s,hand,fingers=true){const sh=[s*.34,.85,-.12],mid=[(sh[0]+hand[0])/2+s*.22,(sh[1]+hand[1])/2-.2,(sh[2]+hand[2])/2+.05];
+function hornetArm(m,s,hand,fingers=true,elbow=null){const sh=[s*.34,.85,-.12],mid=elbow||[(sh[0]+hand[0])/2+s*.22,(sh[1]+hand[1])/2-.2,(sh[2]+hand[2])/2+.05];
   m.beam(sh,mid,.1,.1,.8);m.beam(mid,hand,.08,.08,.7);if(fingers)for(const c of[-1,0,1])m.beam(hand,[hand[0]+s*.1,hand[1]+.06+c*.07,hand[2]-.1],.03,.03,.2)}
 // A flat shape (2D points in the plane through O spanned by U and V), with thickness along N.
 function flatShape(m,pts,O,U,V,N,th){const at=(q,k)=>[O[0]+U[0]*q[0]+V[0]*q[1]+N[0]*k,O[1]+U[1]*q[0]+V[1]*q[1]+N[1]*k,O[2]+U[2]*q[0]+V[2]*q[1]+N[2]*k];m.loft([pts.map(q=>at(q,-th/2)),pts.map(q=>at(q,th/2))])}
@@ -190,7 +190,8 @@ function buildBandArms(m,p,band){
     m.mark('pickups',()=>{for(const[u,w,tilt]of axe.pickups){const h=w/2,q=(dv,du)=>guitarPoint(u+du+dv*tilt,dv,-.05);polyline(m,[q(-.1,-h/2),q(.1,-h/2),q(.1,h/2),q(-.1,h/2),q(-.1,-h/2)])}});
     m.mark('strings',()=>{for(const k of[-.03,0,.03])polyline(m,[guitarPoint(-.5,k,-.06),guitarPoint(1.58,k,-.06)])});
     const st=p.strum||0,fret=p.fret||0;
-    m.mark('arms',()=>{hornetArm(m,-1,[-.3,.48+st*.16,-.72]);const f=guitarPoint(.9+fret*.45,.05,-.09);hornetArm(m,1,f)})
+    // The strumming arm comes forward over the top edge of the body, as over a guitar's arm rest.
+    m.mark('arms',()=>{hornetArm(m,-1,[-.3,.48+st*.16,-.74],true,[-.64,.78+st*.04,-.88]);const f=guitarPoint(.9+fret*.45,.05,-.09);hornetArm(m,1,f)})
   }else if(band==='drums'){
     const L=p.leftTarget||[-.5,.3,-.9],R=p.rightTarget||[.5,.35,-.9],hl=p.hitL||0,hr=p.hitR||0;
     const handL=[L[0]*.75,lerp(L[1]+.55,L[1]+.14,hl),lerp(-.55,L[2]+.25,hl)],handR=[R[0]*.75,lerp(R[1]+.55,R[1]+.14,hr),lerp(-.55,R[2]+.25,hr)];
