@@ -338,13 +338,15 @@ function facing(pos){const cam=aria.cam;return Math.atan2(-(cam[0]-pos[0]),-(cam
 // every beat and bob, the drummer nods on the backbeat. The singer joins in for the refrain,
 // each of the choir once it has landed: a bob on every beat, and a lean every two beats,
 // mirrored either side of the singer and rippling along the line. In the outro the abdomens
-// waggle, one side a beat. On the last chord everyone stops, wings up in a V, and rises.
+// waggle, one side a beat. On the last chord everyone stops, wings up in a V, and rises; as
+// it dies away they all take a bow together (the singer deepest), and straighten up for the titles.
 const atBar=b=>SONG.start+b*BAR,ramp=(t,t0,d=BAR)=>smooth(clamp((t-t0)/d,0,1));
 function danceAt(c,t){
   const ph=(t-SONG.start)/BEAT,u=ph-Math.floor(ph),fin=ramp(t,atBar(103),.5),go=1-fin,x=(c.at||c.pos)[0];
-  const d={bob:0,sway:0,waggle:0,nod:0,spread:fin,rise:fin*.4};
-  if(c.play==='drums'){d.rise=0;d.nod=go*ramp(t,atBar(76),.3)*(Math.floor(ph)%2?.22:.06)*(1-u)**2;return d}
-  if(c.play){const k=go*ramp(t,atBar(76),.3);d.nod=k*.34*(1-u)**2;d.bob=k*.08*Math.abs(Math.sin(Math.PI*ph));return d}
+  const bow=ramp(t,atBar(103)+1.15,.6)*(1-ramp(t,atBar(103)+2.45,.7));
+  const d={bob:0,sway:0,waggle:0,nod:bow*.3,spread:fin*(1-.6*bow),rise:fin*.4*(1-.6*bow),bow:bow*(c.sing==='lead'?.7:.55)};
+  if(c.play==='drums'){d.rise=0;d.nod+=go*ramp(t,atBar(76),.3)*(Math.floor(ph)%2?.22:.06)*(1-u)**2;return d}
+  if(c.play){const k=go*ramp(t,atBar(76),.3);d.nod+=k*.34*(1-u)**2;d.bob=k*.08*Math.abs(Math.sin(Math.PI*ph));return d}
   const k=go*(c.arrive?ramp(t,c.arrive+.3):ramp(t,atBar(88))),side=x<-.5?1:x>.5?-1:1;
   d.bob=k*.14*Math.abs(Math.sin(Math.PI*ph));
   d.sway=k*.13*side*Math.sin(Math.PI*ph/2-Math.abs(x)*.12);
@@ -354,7 +356,7 @@ function danceAt(c,t){
 function drawSinger(c,t){
   const d=danceAt(c,t),pos=vadd(singerPos(c,t),V3(0,d.bob+d.rise,0)),cam=aria.cam,jaw=voiceJaw(c,t);
   c.mesh.pose({jaw,mand:jaw,t:t+(c.at?c.at[0]:0),strain:c.sing==='lead'?strainAt(t):0,waggle:d.waggle,nod:d.nod,spread:d.spread});
-  drawMesh({x:pos[0],y:pos[1],z:pos[2]-cam[2],s:c.s,rot:[0,facing(pos),d.sway]},c.mesh,c.body,1);
+  drawMesh({x:pos[0],y:pos[1],z:pos[2]-cam[2],s:c.s,rot:[-d.bow,facing(pos),d.sway]},c.mesh,c.body,1);
   // Sound rings from the mouth on every new syllable.
   if(jaw>.35&&c.lastJaw<=.35)c.rings.push({t0:t});c.lastJaw=jaw;
   const mouth=[pos[0],pos[1]+1.45*c.s,pos[2]-cam[2]],mp=proj(mouth);c.rings=c.rings.filter(r=>t-r.t0<1.3);
@@ -363,10 +365,10 @@ function drawSinger(c,t){
   if(c.arrive&&t<c.arrive){const p=proj([pos[0],pos[1]-2.2*c.s,pos[2]-cam[2]]);if(p)for(let j=0;j<3;j++){const u=(t*2.2+j/3)%1;ctx.save();ctx.globalAlpha=(1-u)*.5;ctx.strokeStyle=C.c;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.beginPath();ctx.ellipse(p.x,p.y+u*p.k*.8,p.k*(.25+u*.4),p.k*(.12+u*.2),0,0,Math.PI*2);ctx.stroke();ctx.restore()}}
 }
 function drawPlayer(b,t){
-  const d=danceAt(b,t),pos=singerPos(b,t),cam=aria.cam,rot=[0,facing(pos),0];
+  const d=danceAt(b,t),pos=singerPos(b,t),cam=aria.cam,rot=[-d.bow,facing(pos),0],kitRot=[0,rot[1],0];
   b.mesh.pose({...(b.play==='drums'?drumPose(t):guitarPose(t,b.i)),t:t+b.i*1.3,nod:d.nod,spread:d.spread});
   drawMesh({x:pos[0],y:pos[1]+d.bob+d.rise,z:pos[2]-cam[2],s:b.s,rot},b.mesh,b.body,1);
-  if(b.play==='drums')drawMesh({x:pos[0],y:pos[1],z:pos[2]-cam[2],s:b.s,rot},P.drumKit,C.r,1)   // the kit stands in front of the drummer
+  if(b.play==='drums')drawMesh({x:pos[0],y:pos[1],z:pos[2]-cam[2],s:b.s,rot:kitRot},P.drumKit,C.r,1)   // the kit stands in front of the drummer
 }
 // Singers and band go into the game's depth-sorted scene list beside the asteroids.
 const gameAppend=routeDiversion.appendScene?.bind(routeDiversion);
