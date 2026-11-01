@@ -205,8 +205,6 @@ const herd={name:'reindeer',t0:T.solo,seed:2512,
     if(!(groundAssault?.active&&mode==='play'&&phase==='surface'))return;
     if(!herd.herdBuilt)buildHerd();
     const H=herd.path,F=[Math.sin(H.h),Math.cos(H.h)],R=[Math.cos(H.h),-Math.sin(H.h)];
-    // The solo ends on one big hit: the team pulls up and stands as it rings.
-    if(t>=T.breakdown-PROMO_SONG.bar){H.v=moveToward(H.v,0,dt*28);H.turn=0}
     if(t>=PAN_START){panCamera(t,H,F,R);return}
     // Chase from behind and to the left until the pan takes over.
     const side=-8,back=-27;
