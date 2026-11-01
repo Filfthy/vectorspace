@@ -77,13 +77,12 @@ function plainsHills(sd){
     return(route*(1-side)+(route*.5+3.6*clamp(.45+.55*n,0,1.3))*side)*far*ends
   }
 }
-const gameSdBegin=surfaceDestination.begin.bind(surfaceDestination),gameSdGround=surfaceDestination.drawGround.bind(surfaceDestination);
+const gameSdBegin=surfaceDestination.begin.bind(surfaceDestination);
 surfaceDestination.begin=function(stage){
   const r=gameSdBegin(stage);this.promoHills=null;
   if(D.snow&&this.destination==='forest'){
-    const H=this.promoHills=plainsHills(this);// The hills are bare: seen through the wire ground, a tree on a slope stands above the flat
-    // horizon band behind it and looks as if it floats. Trees keep to the level ground.
-    this.trees=this.trees.filter(t=>H(t.x,t.worldZ)<.35)
+    const H=this.promoHills=plainsHills(this);
+    for(const t of this.trees){t.baseY??=t.y;t.y=t.baseY+Math.max(0,H(t.x,t.worldZ)-.25)}   // on the slopes (once, however often begin runs)
     this.entryRadius=5   // carry on to the tree line before the forest takes over
   }
   return r
@@ -95,16 +94,32 @@ surfaceDestination.updateSteering=function(dt,mx,my){
   const H=this.promoHills;if(!H||!D.snow||phase!=='destinationApproach')return gameSdSteer(dt,mx,my);
   shipY-=H(shipX,travel);const r=gameSdSteer(dt,mx,my);shipY+=H(shipX,travel);return r
 };
-surfaceDestination.drawGround=function(){
-  const H=this.promoHills;if(!H||!D.snow)return gameSdGround();
+// The hilly ground is solid: black strips painted far to near with the grid stroked on top,
+// sorted in with the trees by depth (as the forest floor is). A hill hides the mountains, the
+// horizon band and anything else behind it, so nothing seems to float or show through.
+const gameSdDraw=surfaceDestination.draw.bind(surfaceDestination);
+surfaceDestination.draw=function(){
+  const H=this.promoHills;if(!H||!D.snow)return gameSdDraw();
   surfaceMask(this.groundY,560);
-  const sp=6,step=3,far=250,gy=this.groundY,x0=Math.floor((shipX-far)/sp)*sp,x1=shipX+far,z0=Math.floor((travel-far)/sp)*sp,z1=travel+far,col=landingWorldColour();
-  const seg=(ax,az,bx,bz)=>drawFlatSampledGridLine([ax,gy+H(ax,az),az-travel],[bx,gy+H(bx,bz),bz-travel],1);
-  ctx.save();ctx.strokeStyle=col;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.globalAlpha=.55;ctx.beginPath();
-  for(let x=x0;x<=x1;x+=sp)for(let z=z0;z<z1;z+=step)seg(x,z,x,z+step);
-  for(let z=z0;z<=z1;z+=sp)for(let x=x0;x<x1;x+=step)seg(x,z,x+step,z);
-  ctx.stroke();ctx.restore();
-  drawSharedSurfaceHorizon(gy,405,1,col,col)
+  const col=landingWorldColour(),gy=this.groundY;
+  drawSharedSurfaceHorizon(gy,405,1,col,col);
+  const strip=3,grid=6,far=250,span=230,x0=Math.floor((shipX-span)/grid)*grid,x1=shipX+span,yawT=Math.tan(clamp(viewYaw,-1.2,1.2));
+  // Points right by the camera or far outside the view project to huge screen positions that
+  // can turn a strip inside out over the whole screen; they are left out.
+  const items=[],at=(x,wz)=>{const q=camPoint([x,gy+H(x,wz),wz-travel]);return q[2]>.8&&Math.abs(q[0])<q[2]*2.5?projectCam(q):null};
+  const stripDraw=(wz0,wz1)=>()=>{
+    const a=[],b=[];for(let x=x0;x<=x1+.001;x+=grid){const p=at(x,wz0),q=at(x,wz1);if(p)a.push(p);if(q)b.push(q)}
+    if(a.length>=2&&b.length>=2){ctx.save();ctx.fillStyle='#000';ctx.beginPath();ctx.moveTo(a[0].x,a[0].y);for(const p of a)ctx.lineTo(p.x,p.y);for(let i=b.length-1;i>=0;i--)ctx.lineTo(b[i].x,b[i].y);ctx.closePath();ctx.fill();ctx.restore()}
+    ctx.save();ctx.strokeStyle=col;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.globalAlpha=.55;ctx.beginPath();
+    if(Math.abs(wz0/grid-Math.round(wz0/grid))<1e-4){let prev=null;for(let x=x0;x<=x1+.001;x+=grid){const p=at(x,wz0);if(prev&&p){ctx.moveTo(prev.x,prev.y);ctx.lineTo(p.x,p.y)}prev=p}}
+    for(let x=x0;x<=x1+.001;x+=grid){const p=at(x,wz0),q=at(x,wz1);if(p&&q){ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y)}}
+    ctx.stroke();ctx.restore()
+  };
+  for(let wz=Math.floor((travel-6)/strip)*strip;wz<travel+far;wz+=strip){
+    const mid=wz+strip/2,ax=shipX+yawT*(mid-travel),d=camPoint([ax,gy+H(ax,mid),mid-travel])[2];
+    if(d>.18)items.push({z:d,draw:stripDraw(wz,wz+strip)})
+  }
+  this.appendEnvironmentObjects(items);this.drawObjectScene(items);this.drawNavigation()
 };
 // Steer down the forest path around the standing hazards, and lift over the fallen ones.
 function forestPilot(dt){
@@ -152,17 +167,25 @@ forest.floorAt=function(worldZ,x){
 };
 // The hills die away over the run-in to the clearing, so the cabin's glade is level ground.
 function hillFade(f,u){return f.hasGladeDestination()?1-ease(clamp((u-(f.gladeStartU-80))/70,0,1)):1}
-// The parcel is a present: same flight, same landing spot.
+// The parcel is a present, lowered on the game's tractor waves made wider. It comes up out of
+// the bay right under the camera, big, then sinks away to the deck, getting smaller with
+// distance, the bowed wave fronts flowing down with it.
 const gameCargo=forest.drawCabinCargo.bind(forest);
 forest.drawCabinCargo=function(){
   const state=this.cabinCargoState?.();if(!state||!D.snow)return gameCargo();
-  // Out of the cargo bay: the present rises into view from below the screen and the tractor
-  // carries it down to the deck (the game's own beam is drawn to wherever it is).
-  let point=state.point;
-  if(!state.landed){const q=ease(clamp(forest.deliveryProgress||0,0,1)),from=cameraPointToWorld([0,-2.9,2.2]),to=[this.deliveryWorld[0],this.deliveryWorld[1],this.deliveryWorld[2]-travel];
-    point=[lerp(from[0],to[0],q),lerp(from[1],to[1],q),lerp(from[2],to[2],q)];const real=this.cabinCargoState;this.cabinCargoState=()=>({...state,point});
-    if(state.beam){const keep=drawMesh;window.drawMesh=()=>{};try{gameCargo()}finally{window.drawMesh=keep;this.cabinCargoState=real}}else this.cabinCargoState=real}   // keep the tractor waves, skip the box
-  drawMesh({type:'promoPresent',x:point[0],y:point[1]+.2,z:point[2],s:.4,rot:[0,.35+(state.landed?0:D.clock*.8),0]},P.present,C.r,.98)
+  const deck=[this.deliveryWorld[0],this.deliveryWorld[1],this.deliveryWorld[2]-travel],S=.45;
+  if(state.landed){drawMesh({type:'promoPresent',x:deck[0],y:deck[1]+.2,z:deck[2],s:S,rot:[0,.35,0]},P.present,C.r,.98);return}
+  const q=clamp(forest.deliveryProgress||0,0,1),u=ease(q),a=cameraPointToWorld([0,-1.75,1.25]),c=cameraPointToWorld([0,-.5,2.6]);
+  const point=[0,1,2].map(i=>(1-u)*(1-u)*a[i]+2*u*(1-u)*c[i]+u*u*deck[i]);
+  const ob=proj(cameraPointToWorld([0,-.34,.62])),cp=proj(point);   // the game's own bay point, at the foot of the screen
+  if(ob&&cp&&q>.01){
+    const dx=cp.x-ob.x,dy=cp.y-ob.y,len=Math.hypot(dx,dy)||1,ux=dx/len,uy=dy/len,px=-uy,py=ux,waves=clamp(Math.round(len/50),1,10),flow=(D.clock*.9)%1,wide=Math.max(40,cp.k*S*2.2),fade=clamp((1-q)/.08,0,1);
+    ctx.save();ctx.strokeStyle=C.c;ctx.lineWidth=VECTOR_LINE_WIDTH*1.3;ctx.globalAlpha=.75*fade;
+    for(let i=0;i<waves;i++){const t=.06+(((i/waves)+flow)%1)*.9,x=lerp(ob.x,cp.x,t),y=lerp(ob.y,cp.y,t),half=lerp(wide*1.25,wide,t),bow=half*.42;
+      ctx.beginPath();ctx.moveTo(x+px*half,y+py*half);ctx.quadraticCurveTo(x+ux*bow,y+uy*bow,x-px*half,y-py*half);ctx.stroke()}
+    ctx.restore()
+  }
+  drawMesh({type:'promoPresent',x:point[0],y:point[1]+.2,z:point[2],s:S,rot:[0,.35+D.clock*.8,0]},P.present,C.r,.98)
 };
 
 // ---------- Scene 2: reindeer mechs on a rocky world (the guitar solo) ----------
@@ -182,6 +205,8 @@ const herd={name:'reindeer',t0:T.solo,seed:2512,
     if(!(groundAssault?.active&&mode==='play'&&phase==='surface'))return;
     if(!herd.herdBuilt)buildHerd();
     const H=herd.path,F=[Math.sin(H.h),Math.cos(H.h)],R=[Math.cos(H.h),-Math.sin(H.h)];
+    // The solo ends on one big hit: the team pulls up and stands as it rings.
+    if(t>=T.breakdown-PROMO_SONG.bar){H.v=moveToward(H.v,0,dt*28);H.turn=0}
     if(t>=PAN_START){panCamera(t,H,F,R);return}
     // Chase from behind and to the left until the pan takes over.
     const side=-8,back=-27;
@@ -347,7 +372,9 @@ const aria={name:'aria',t0:T.breakdown,seed:2412,
   setup(){
     resetGame();groundAssault?.reset?.();D.snow=false;
     mode='play';phase='asteroids';phaseT=modeT=0;inputX=inputY=aimX=aimY=0;viewRoll=0;
-    asteroidField.active=true;asteroidField.ringPlanet={x:-118,y:-13,z:255,r:12.5,spin0:.4,ringRadii:[21,25,30,37]};
+    asteroidField.active=true;asteroidField.ringPlanet={x:-175,y:-14,z:255,r:21,spin0:.4,ringRadii:[35,41,49,60]};
+    // Seen from just above the ring plane, the rings a thin slanting band across the globe.
+    asteroidField.ringTilt=-.32;asteroidField.ringOpening=.27;
     asteroids.length=0;
     // The game's own asteroid look: green, about a quarter yellow, tumbling and drifting.
     const rock=(x,y,z,s,v=[0,0,0],col=Math.random()<.23?C.y:C.g)=>{const a=asteroidField.makeAsteroid({x,y,z,s,hp:9,vx:0,vy:0,vz:0,col,objective:false,missionTarget:false});a.wx=x;a.wy=y;a.wz=z;a.drift=v;asteroids.push(a);return a};
@@ -380,6 +407,18 @@ const aria={name:'aria',t0:T.breakdown,seed:2412,
   },
   pilot(){},
   overlay(){}
+};
+// The game sets the rings' angle for a camera looking straight ahead; ours looks down on the
+// stage from above, which opened them right out. Here the angle is taken from where the
+// camera really is: the ring plane nearly edge-on to it (ringOpening above the plane) and
+// slanted across the view by ringTilt.
+const gameRingFrame=asteroidField.ringFrame.bind(asteroidField);
+asteroidField.ringFrame=function(){
+  if(D.scene!==aria)return gameRingFrame();
+  const c=this.ringPlanet,dir=vnorm(vsub([c.x,c.y,c.z],[shipX,shipY,0])),k=dir[1],up=vnorm([-dir[0]*k,1-dir[1]*k,-dir[2]*k]),right=vnorm(vcross(up,dir));
+  const t=this.ringTilt,o=this.ringOpening,ct=Math.cos(t),st=Math.sin(t);
+  const u=vadd(vmul(right,ct),vmul(up,st)),upT=vsub(vmul(up,ct),vmul(right,st)),n=vnorm(vsub(vmul(upT,Math.cos(o)),vmul(dir,Math.sin(o))));
+  return{u,v:vnorm(vcross(n,u)),n}
 };
 function singerPos(c,t){
   if(!c.arrive)return vadd(c.pos,V3(0,Math.sin(t*.8+(c.i||0)*2)*.12,0));
