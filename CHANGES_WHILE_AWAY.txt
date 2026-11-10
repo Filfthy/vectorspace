@@ -1570,3 +1570,13 @@ v1570 Fixes from a second review (v1470 to v1520)
       - Survey points clear big cinder cones by their footprint.
       - Volcanic fissures are cheaper to draw (embers in one stroke per
         colour, fissures off to the side skipped): about 0.9 ms.
+
+v1580 Four more first-meeting notes from the contacts
+      - Your first named ace kill: Corvella, "A little bird told me".
+      - Your first shield tender down: Navira, "Shield projection".
+      - Your first hijacked drones: Cassian, "On borrowed loyalty".
+      - Your first stranded ground crew relayed: Nyxo, "you stopped for
+        them?".
+      Same rules as v1490 (only from a contact you have worked for, one per
+      finished contract). A save that has already done these things will get
+      them one at a time over the next few contracts.

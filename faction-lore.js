@@ -183,7 +183,24 @@
     {id:'storm',faction:'jackals',when:c=>!!c.flags.metStorm,letter:L('On weather',[
       'I am told you flew through a storm on the plains. How very dramatic.',
       'I have always admired weather. It ruins everyone equally and never apologises, a quality one rarely finds in people.',
-      'Do take care. Instruments lie less often than witnesses, but they do lie.'])}
+      'Do take care. Instruments lie less often than witnesses, but they do lie.'])},
+    // v1580: more first meetings.
+    {id:'ace',faction:'trade',when:c=>(c.stats.kills?.aces||0)>0,letter:L('A little bird told me',[
+      'Sweetie, a little bird told me you shot down a named pirate. The haulers are talking about nothing else.',
+      'Those aces have been robbing my convoys for years. They have names because they want people to be scared of them. Now people are scared of you instead. I find that very attractive in a contractor.',
+      'Be careful, babe. Pirates hold grudges, and some of them have friends.'])},
+    {id:'tender',faction:'helix',when:c=>(c.stats.kills?.tenders||0)>0,letter:L('Shield projection',[
+      'Your debrief mentions a shield tender. Projected shielding at that range was meant to be impossible. Somebody built it during the war anyway, and then everybody forgot how.',
+      'If you ever bring one down in a state I could study, I would pay for the pieces. I know that is unlikely. You tend to be thorough.',
+      'Missiles get through the shield. You probably worked that out. I am mentioning it in case you had not.'])},
+    {id:'hijacked',faction:'jackals',when:c=>!!c.seen.hijacked,letter:L('On borrowed loyalty',[
+      'I understand you have met some of the military drones that criminals have been borrowing lately.',
+      'Such a vulgar business. One cannot simply steal loyalty. It has to be cultivated, preferably over dinner.',
+      'I am told they hesitate before they fire. So do most people who work for the wrong employer. Do aim for the hesitation.'])},
+    {id:'groundCrew',faction:'quickbite',when:c=>(c.stats.landBeacons||0)>0,letter:L('you stopped for them?',[
+      'Dude, Dispatch heard you stopped to relay a stranded ground crew. Nobody stops. I have the data. Nobody.',
+      'One of them was a QuickBite customer, it turns out. Her order was four days late because she was stuck in a field. We refunded the delivery fee. That is the most generous thing corporate has ever done.',
+      'Anyway. That was decent of you. Do not tell anyone I said decent.'])}
   ];
   globalThis.AgentXFactionLore={LETTERS,due,MARA,STANDING,FAVOURS,REACTIONS};
 })();

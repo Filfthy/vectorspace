@@ -1780,7 +1780,7 @@ class CampaignController {
     const R=globalThis.AgentXFactionLore?.REACTIONS,C=globalThis.AgentXFactionContent;if(!R||!C)return;
     const flags=this.state.mailFlags,completed=Number(this.state.completed)||0;
     if(flags.loreSentAt===completed||flags.reactSentAt===completed)return;
-    const byFaction=this.stats().contracts?.byFaction||{},ctx={flags,seen:this.state.seenProfiles||{}};
+    const st=this.stats(),byFaction=st.contracts?.byFaction||{},ctx={flags,seen:this.state.seenProfiles||{},stats:st};
     for(const r of R){
       const key=`react_${r.id}`;if(flags[key]||!(byFaction[r.faction]>0)||!r.when(ctx))continue;
       const chain=C.chains.find(c=>c.faction===r.faction);if(!chain)continue;
