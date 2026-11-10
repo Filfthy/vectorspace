@@ -1988,3 +1988,63 @@ v1850 Every diversion, story mission and Black Contract under the pilot (no game
       that threat would be 17 hulls of 62 and take about 145 s, so the
       fewer, weaker ghosts come out level with it. No change.
 
+v1860 Every mission in the game finished by a pilot. One finding for you.
+      The pilot learned the last stage types: the station door and pad
+      approaches (so the minefield station too), asteroid clearance, the
+      deep core (shield pylons, the bunker door, trench and reactor), the
+      bunker raid, and the xeno nest (it holds fire on the way in, shoots
+      the regulator, follows the observation marker out).
+      Result, at 1280x720 with a Mk V laser, nothing skipped:
+        all 26 board jobs             finish, 27 s to 356 s each
+        all 9 Black Contracts         finish, 74 s to 237 s
+        all 32 story and faction      finish
+      So every mission can be completed from launch to debrief by something
+      that only steers and shoots. `await __flyAll()` on the self-test page
+      repeats the board sweep (about fifteen minutes).
+
+      How dangerous the v1810 fights are (you kept that change). The same
+      pilot, now able to be shot down, matched Mk V laser, risk 9, never
+      dodging, at 1280x720:
+        plain dogfight      lost 3 of 10    5 to 16 shield points spent
+        station defence     lost 1 of 10    4 to 12
+        combat recovery     lost 4 of 10    9 to 12
+        wreck recovery      lost 2 of 7     5 to 11
+      Taken together the three jobs lose the drone about as often as a
+      dogfight does (7 of 27 against 3 of 10). Combat recovery is the
+      sharpest of them, but on these numbers I cannot tell it from chance.
+      At risk 5, on a smaller window where aiming is easier, the five jobs
+      lost none of 20 and the dogfight 1 of 4. Nothing stands out.
+
+      Earnings check. With real durations I compared credits per minute
+      across all the jobs at risk 9. Most sit between 17,000 and 30,000 a
+      minute, and the short deliveries that pay more go through forest or
+      swamp corridors that can kill you. One job is far outside that:
+        ASTEROID CLEARANCE. The pilot clears it in 14 to 18 s at risk 1
+        and 26 to 29 s at risk 9, losing no shield at all (0 to 2 points
+        in 21 flights). It pays about CR 3,500 at risk 1 and CR 34,000 at
+        risk 9 (45,000 at risk 10). For the same pilot that is about 2.7
+        times what a dogfight earns per second at risk 9, with none of
+        the danger. Its XP is in line with a dogfight. The rocks get only
+        2 more hit points across the whole risk range and the count goes
+        from 8 to 14, while the fee grows with the square of the risk.
+      This one is your original job, not something I added, so I have NOT
+      changed it. Options if you want it brought in line: trim the fee,
+      or make it a bigger job at high risk (more marked rocks, tougher
+      ones, rocks that have to be reached). Say which and I will do it.
+
+      Also in this build:
+      - Codex: "Lattice structure", unlocked by your first Lattice Survey,
+        and a matching line in the world lore (section 3.4) on the three
+        shells and what wakes a core.
+      - The pilots' aim tolerance now scales with the size of the window.
+        I had let the test window shrink to 320 pixels for part of this
+        run, where everything is easier to hit. The numbers above were
+        redone at 1280x720 except where they say otherwise.
+      - Something I checked and cleared: three story bunker missions hung
+        at the bunker door. The door is fine (the drone is held 3 units
+        off and it opens within half a second of firing). The pilot had
+        refused to shoot anything that close. The same kind of thing in
+        wreck recovery: leaving the wreck has no marker on purpose, and a
+        drone that can be hurt bumps the hull if it does not steer, so the
+        pilot now aims for the torn mouth.
+

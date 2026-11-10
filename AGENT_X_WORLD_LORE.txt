@@ -152,6 +152,7 @@ CANON: The Partition War also left area-denial systems that are neither drones n
 - Lattices were sown through lanes, approaches and wreck fields. Left alone, the fragments drift and look like ordinary debris.
 - When something passes, the fragments gather into a weapon (a construct). A construct is only solid while gathered. It breaks apart after a few seconds and re-forms nearby.
 - Some constructs carry wartime counter-targeting suites (JAMMERS) that break missile locks. They do not fire.
+- A dormant lattice is laid in SHELLS round its controller: a wide outer shell, an inner shell of paired cores, and a tight heart close to the line of approach. A core wakes when something comes within about 22 units of it or fires nearby, and one waking core wakes the whole lattice. Surveyors scan from just outside that range (the Lattice Survey contracts, Helix and OSD).
 - Lattices do NOT self-replicate and nobody builds new ones. Unlike rogue-drone enclaves they do not grow: they are simply still there, and "ghost" is what traffic calls them.
 
 They sit between the two threats in section 5: human-made like rogue drones, but with no industry and no allegiance anyone can name. "Someone left this problem behind."

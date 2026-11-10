@@ -120,8 +120,27 @@
   let trigT=0;
   const fightStep=(skill=.9,mark=null)=>{
     const dt=1/30;let best=null,bd=1e9,any=null,ad=1e9,tx=0,ty=0,on=false;
-    for(const x of fighters){if(x.dead||x.dying||x.t<0)continue;const q=camPoint([x.x,x.y,x.z]),d=Math.hypot(q[0],q[1],q[2]);if(d<ad){ad=d;any={x,q}}if(q[2]>2&&d<bd){bd=d;best={x,q}}}
-    if(best){const pp=projectCam(best.q);if(pp){tx=clamp((pp.x-W*.5)/(W*.5-22),-1,1);ty=clamp((pp.y-viewH*.48)/(viewH*.46-18),-1,1);const a=aimScreen();on=Math.hypot(a.x-pp.x,a.y-pp.y)<Math.max(14,best.x.s*pp.k*.8)}}
+    let pool=fighters.filter(x=>!x.dead&&!x.dying&&!(x.t<0));
+    // v1860 Xeno nest: fly at the hive and hold fire on the way in (shooting rouses the
+    // swarm), shoot the regulator in its chamber, then follow the observation marker out.
+    const nest=typeof xenoNest!=='undefined'&&xenoNest.active?xenoNest:null,toMark=pt=>{const q=camPoint([pt.x,pt.y,pt.z]);return q[2]>.2?projectCam(q):{x:q[0]<0?0:W,y:viewH*.48}};
+    if(nest&&nest.state==='approach'&&nest.core){pool=[];mark=toMark(nest.core)}
+    else if(nest&&nest.state==='observationRun'&&nest.nav){pool=[];mark=toMark(nest.nav)}
+    else if(nest&&nest.state==='coreChamber'&&nest.objective&&!nest.objective.dead)pool=[nest.objective];
+    const nestQuiet=!!(nest&&(nest.state==='approach'||nest.state==='observationRun'));
+    // v1860: with no hostiles in an asteroid clearance, the rocks are the targets (the
+    // marked ones if the job marks them), nearest in front first.
+    if(!pool.length&&!nestQuiet&&phase==='asteroids'&&campaign.currentStage?.()?.type==='asteroids'&&typeof asteroidField!=='undefined'&&asteroidField.active&&!asteroidField.courierMode&&asteroidField.state==='active'&&typeof asteroids!=='undefined')
+      pool=asteroids.filter(a=>a&&!a.dead&&!a.dying&&(!asteroidField.markedTargets||a.missionTarget===true)).filter(a=>{const z=camPoint([a.x,a.y,a.z])[2];return z>3&&z<260});
+    // Deep core: on the surface the targets are the caps of the shield pylons, and in the
+    // trench and reactor hall the wall guns and the live reactor.
+    if(!pool.length&&!nest&&typeof groundTargets!=='undefined'&&(groundTargets.length||mode==='trenchEntry')&&!(typeof groundAssault!=='undefined'&&groundAssault.active)){
+      if(mode==='trenchEntry')pool=bunkerDoorOpen?[]:[{x:entryBunkerX,y:-2.2,z:entryBunkerZ(),s:1.5,near:.2}];   // blast the door (the drone is held 3 units from it, so it counts at point blank)
+      else if(phase==='surface')pool=groundTargets.filter(g=>g.doorPylon&&!g.dead&&!g.capDead&&!g.capDying).map(g=>({x:g.x,y:towerCapY(g),z:g.worldZ-travel,s:g.s||1}));
+      else if(phase==='trench'||phase==='reactor'||phase==='escape')pool=groundTargets.filter(g=>!g.dead&&!g.dying&&(g.type==='reactor'?g.active:g.type==='wallgun')).map(g=>({x:g.x,y:g.y+(g.yOff||0),z:g.worldZ-travel,s:g.s||1})).filter(o=>o.z>2&&o.z<120)
+    }
+    for(const x of pool){const q=camPoint([x.x,x.y,x.z]),d=Math.hypot(q[0],q[1],q[2]);if(d<ad){ad=d;any={x,q}}if(q[2]>(x.near||2)&&d<bd){bd=d;best={x,q}}}
+    if(best){const pp=projectCam(best.q);if(pp){tx=clamp((pp.x-W*.5)/(W*.5-22),-1,1);ty=clamp((pp.y-viewH*.48)/(viewH*.46-18),-1,1);const a=aimScreen();on=Math.hypot(a.x-pp.x,a.y-pp.y)<Math.max(14*W/1280,best.x.s*pp.k*.8)}}   // the 14 px floor is for a 1280 wide view
     else if(any){const q=any.q;tx=clamp(q[0]/(Math.abs(q[2])+8)*2+(q[2]<0?Math.sign(q[0]||1):0),-1,1);ty=clamp(-q[1]/(Math.abs(q[2])+8)*2,-1,1)}
     else if(mark){tx=clamp((mark.x-W*.5)/(W*.5)*1.4,-1,1);ty=clamp((mark.y-viewH*.48)/(viewH*.46)*1.4,-1,1)}
     const rate=2.6*skill*dt;inputX=clamp(inputX+clamp(tx-inputX,-rate,rate),-1,1);inputY=clamp(inputY+clamp(ty-inputY,-rate,rate),-1,1);
@@ -180,21 +199,28 @@
     window.drawHudMarkerLabel=function(text,x,y,...r){hud.mark={x,y,f:hudFrame};return d0.call(this,text,x,y,...r)};
     window.hudEdgeCue=function(q,...r){const v=e0.call(this,q,...r);hud.edge={x:v.x,y:v.y,f:hudFrame};return v}
   };
-  const flyJob=(id,{maxSecs=900,stageCap=240,skill=.9,weapon='laser5',frame='AX-5A',level=20,prepare=null,launch=null}={})=>{
+  const flyJob=(id,{maxSecs=900,stageCap=240,skill=.9,weapon='laser5',frame='AX-5A',level=20,prepare=null,launch=null,risk=null,mortal=false}={})=>{
     const c=campaign,T=AgentXMissionData.templates;hookHud();reset();
     c.state.xp=c.xpForLevel(level);if(!c.state.ownedFrames.includes(frame))c.state.ownedFrames.push(frame);c.state.drone=frame;c.state.inventory[weapon]=1;c.state.weaponLoadout=weapon;
     // prepare(mission) may edit a preview before it launches (say, to splice a diversion in).
     // launch() may start any mission itself (a story mission or a Black Contract).
     if(launch)launch();
-    else{const fac=(T[id].allowedFactions||['trade'])[0];let pre=null;if(prepare){pre=c.makeDevTemplatePreview(id,fac);prepare(pre);pre.stages=pre.modules.map(x=>x.label)}
+    // risk: keep rolling previews until one of that risk comes up. mortal: the drone can
+    // be hurt and lost, so the line ends with the shield points it cost (v1860).
+    else{const fac=(T[id].allowedFactions||['trade'])[0];let pre=null;
+      if(risk)for(let k=0;k<300;k++){const x=c.makeDevTemplatePreview(id,fac);if(x&&x.risk===risk){pre=x;break}}
+      if(prepare){pre=pre||c.makeDevTemplatePreview(id,fac);prepare(pre);pre.stages=pre.modules.map(x=>x.label)}
+      if(risk&&!pre)return `${id} has no risk ${risk} contract at level ${level}`;
       c.launchDevTemplateTest(id,fac,pre?{mission:pre}:{})}
-    if(!c.currentMission)return `${id} did not launch`;invulnerable=true;inputX=inputY=0;gTarget=null;gExtend=false;
-    const m=c.currentMission,stages=[],dt=1/30;let idx=-1,sf=0,frames=0,ended=false;
+    if(!c.currentMission)return `${id} did not launch`;invulnerable=!mortal;inputX=inputY=0;gTarget=null;gExtend=false;
+    const m=c.currentMission,stages=[],dt=1/30;let idx=-1,sf=0,frames=0,ended=false,hits=0,lastShield=shield,died=false;
     for(let f=0;f<maxSecs*30&&c.currentMission;f++){
       if(c.currentStageIndex!==idx){if(stages.length)stages[stages.length-1].secs=Math.round(sf/30);idx=c.currentStageIndex;sf=0;stages.push({type:c.currentStage()?.type})}
       if(exiting()&&c.currentStageIndex>=m.modules.length-1){ended=true;break}
       if(sf>stageCap*30&&!exiting()){stages[stages.length-1].stuck=`${mode}/${phase}`;scenarioFlow.completeCurrentStage?.();for(let k=0;k<5;k++)update(dt);continue}
-      hudFrame=f;if(f%2===0)render(performance.now());
+      if(mode==='dead'){died=true;break}
+      // The picture is only needed to read the HUD marker, so not while there is a fight on.
+      hudFrame=f;if(f%2===0&&!fighters.some(x=>!x.dead&&!x.dying&&x.t>=0))render(performance.now());
       if(phase==='destinationApproach'&&surfaceDestination.active){
         const S=surfaceDestination,left=S.surveyLeft().sort((a,b)=>a.worldZ-b.worldZ),t=left[0]?{x:left[0].x,z:left[0].worldZ}:{x:S.targetX,z:S.targetWorldZ};
         inputX=clamp(wrapAngle(Math.atan2(t.x-shipX,t.z-travel)-viewYaw)*2.2,-1,1);inputY=0
@@ -204,15 +230,22 @@
         // HUD hooks never see it there: take its point from the courier directly.
         let mk=(hud.mark&&f-hud.mark.f<=2)?hud.mark:((hud.edge&&f-hud.edge.f<=2)?hud.edge:null);
         if(!mk&&typeof courier!=='undefined'&&courier.mine&&!courier.docking&&!courier.navLocked){const q=camPoint(courier.manualNavigationTarget?.()||courier.doorCentre?.()||[courier.mine.x,courier.mine.y,courier.mine.z]);if(q[2]>.2)mk=projectCam(q)}
+        // The station door and pad markers are the same: unlabelled while on screen.
+        if(!mk&&typeof stationDelivery!=='undefined'&&stationDelivery.active){const sd=stationDelivery,pt=sd.state==='padApproach'?sd.padApproachPoint?.():(((sd.state==='approach'||sd.state==='clearedApproach')&&!sd.docking)?sd.navigationTarget?.():null);
+          if(pt){const q=camPoint(pt);if(q[2]>.2)mk=projectCam(q)}}
+        // Leaving a wreck has no marker by design (the torn mouth is the guide): aim for the mouth.
+        if(!mk&&typeof asteroidWreckRun!=='undefined'&&asteroidWreckRun.active&&asteroidWreckRun.state==='exitNav'){const g=asteroidWreckRun.gapPoint?.();if(g){const q=camPoint([g.x,g.y,g.z]);if(q[2]>.2)mk=projectCam(q)}}
+        // Deep core surface with the pylons down: head for the bunker.
+        if(!mk&&phase==='surface'&&typeof surfaceBunkerActive!=='undefined'&&surfaceBunkerActive){const q=camPoint([entryBunkerX,-2.2,entryBunkerZ()]);mk=q[2]>.2?projectCam(q):{x:q[0]<0?0:W,y:viewH*.48}}
         fightStep(skill,mk)
       }
-      update(dt);frames++;sf++
+      update(dt);frames++;sf++;if(shield<lastShield)hits+=lastShield-shield;lastShield=shield
     }
     if(stages.length)stages[stages.length-1].secs=Math.round(sf/30);
-    ceaseFire();
-    const finished=ended||!c.currentMission;
+    ceaseFire();invulnerable=true;
+    const finished=!died&&(ended||!c.currentMission);
     const div=(m.diversions||[]).map(d=>`${d.kind}:${d.outcome}`).join(', ');
-    return `${id} risk ${m.risk} ${finished?'finished':'cut off at '+c.currentStage?.()?.type} in ${Math.round(frames/30)} s :: ${stages.map(x=>`${x.type} ${x.secs}s${x.stuck?' STUCK('+x.stuck+')':''}`).join(' > ')}${div?' :: diversions '+div:''}`
+    return `${id} risk ${m.risk} ${died?'DRONE LOST at '+stages[stages.length-1]?.type:(finished?'finished':'cut off at '+c.currentStage?.()?.type)} in ${Math.round(frames/30)} s${mortal?`, ${Math.round(hits)} shield lost of ${c.maxShield()}`:''} :: ${stages.map(x=>`${x.type} ${x.secs}s${x.stuck?' STUCK('+x.stuck+')':''}`).join(' > ')}${div?' :: diversions '+div:''}`
   };
   window.__flyJob=flyJob;
   // Story and faction missions, and the Black Contracts, under the same pilot.
@@ -472,7 +505,7 @@
       let best=null,bd=1e9,any=null,ad=1e9;
       for(const x of fighters){if(x.dead||x.dying||x.t<0)continue;const q=camPoint([x.x,x.y,x.z]),d=Math.hypot(q[0],q[1],q[2]);if(d<ad){ad=d;any={x,q}}if(x.ghost&&!AgentXGhosts.solid(x))continue;if(q[2]>2&&d<bd){bd=d;best={x,q}}}
       let tx=0,ty=0,on=false;
-      if(best){const p=projectCam(best.q);if(p){tx=clamp((p.x-W*.5)/(W*.5-22),-1,1);ty=clamp((p.y-viewH*.48)/(viewH*.46-18),-1,1);const a=aimScreen();on=Math.hypot(a.x-p.x,a.y-p.y)<Math.max(14,best.x.s*p.k*.8)}}
+      if(best){const p=projectCam(best.q);if(p){tx=clamp((p.x-W*.5)/(W*.5-22),-1,1);ty=clamp((p.y-viewH*.48)/(viewH*.46-18),-1,1);const a=aimScreen();on=Math.hypot(a.x-p.x,a.y-p.y)<Math.max(14*W/1280,best.x.s*p.k*.8)}}
       else if(any){const q=any.q;tx=clamp(q[0]/(Math.abs(q[2])+8)*2+(q[2]<0?Math.sign(q[0]||1):0),-1,1);ty=clamp(-q[1]/(Math.abs(q[2])+8)*2,-1,1)}
       const rate=2.6*skill*dt,wob=.035/skill;
       inputX=clamp(inputX+clamp(tx-inputX,-rate,rate)+(Math.random()-.5)*wob,-1,1);inputY=clamp(inputY+clamp(ty-inputY,-rate,rate)+(Math.random()-.5)*wob,-1,1);
