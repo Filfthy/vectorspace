@@ -201,7 +201,14 @@
       if(bad.length)return bad.slice(0,4).join(' | ')+(bad.length>4?` (+${bad.length-4} more)`:'')
     });
 
-    await group('data',['achievements','codex','wire','letters','written text'],what=>{
+    await group('data',['achievements','codex','wire','letters','written text','hull follows risk'],what=>{
+      // v1810: every board job's fight uses the risk hull band the card promises.
+      if(what==='hull follows risk'){
+        const xp0=c.state.xp;c.state.xp=c.xpForLevel(20);const bad=new Set();
+        for(const id in T)for(let i=0;i<12;i++){const m=c.makeDevTemplatePreview(id,(T[id].allowedFactions||['trade'])[0]);if(!m||m.risk<3)continue;
+          for(const x of m.modules||[])if(x.type!=='route_diversion'&&Number(x.target)>0&&Number.isFinite(Number(x.fighterHp))&&Number(x.fighterHp)<12*c.contractToughnessScale(m.risk)-.5)bad.add(`${id} ${x.type} hull ${x.fighterHp} at risk ${m.risk}`)}
+        c.state.xp=xp0;if(bad.size)return [...bad].slice(0,5).join(' | ')
+      }
       const st=c.stats(),ctx={flags:c.state.mailFlags||{},seen:c.state.seenProfiles||{},stats:st,byFaction:st.contracts?.byFaction||{},bt:st.contracts?.byTemplate||{},state:c.state,level:c.levelForXP()};
       if(what==='achievements'){const d=c.achievementDefs();if(d.some(a=>!a.id||!a.name||typeof a.goal!=='number'||Number.isNaN(Number(a.v))))return 'a malformed achievement';if(new Set(d.map(a=>a.id)).size!==d.length)return 'duplicate achievement id'}
       if(what==='codex')for(const e of AgentXCodex.ENTRIES)e.unlocked(ctx);

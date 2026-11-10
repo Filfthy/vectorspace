@@ -315,7 +315,12 @@ class CampaignController {
   }
   scaleContractToughness(modules,risk){
     const k=this.contractToughnessScale(risk);
-    for(const m of modules||[])if((m.type==='fighters'||m.type==='customs_drones')&&!m.toughnessScaled){
+    // v1810: the same rule for fights that live inside another stage (station defence, wreck
+    // ambush, taco run, combat recovery). They were added after v300 and kept hull 12 at
+    // every risk, so a risk 9 station fight took 4 pulses a kill where a risk 9 dogfight
+    // took 14, while the card promised the same weapon grade for both.
+    const scaled=new Set(['fighters','customs_drones','combat_recovery','station_defence_recovery','asteroid_wreck_recovery','taco_asteroid_delivery']);
+    for(const m of modules||[])if(scaled.has(m.type)&&Number(m.target)>0&&!m.toughnessScaled){
       const base=Math.max(12,Number(m.fighterHp)||12);m.fighterHp=Math.round((12+(base-12)*.5)*k);m.toughnessScaled=true;
       // Elite risk adds bodies rather than more hull: +10% hostiles per point above 9, at most 22.
       if(risk>9&&Number.isFinite(Number(m.target)))m.target=Math.min(22,Math.round(Number(m.target)*(1+.1*(risk-9))))

@@ -102,7 +102,11 @@ class MissionController {
    const bugKind=xenoforms?((rosterIndex%3===2)?'larva':'hornet'):'';
    const ghostKind=scenarioFlow?.encounterProfile==='ghost'&&globalThis.AgentXGhosts?AgentXGhosts.kindFor(rosterIndex):'';   // v1470 ghosts.js
    const bugMesh=bugKind?bugMeshes[bugKind]:null;
-   const hp=bugKind==='hornet'?10:(bugKind==='larva'?14:(hijacked?Math.round(currentFighterHP*(globalThis.AgentXHijacked?.HP||1.3)):currentFighterHP));
+   // v1810: xeno hull follows the stage like every other enemy (it was 10 and 14 at every
+   // risk, so high-risk swarms died in three pulses). Stage hull 12 or 13 is the unscaled
+   // story value and keeps the original numbers exactly.
+   const bugK=currentFighterHP>13?currentFighterHP/12:1;
+   const hp=bugKind==='hornet'?Math.round(10*bugK):(bugKind==='larva'?Math.round(14*bugK):(hijacked?Math.round(currentFighterHP*(globalThis.AgentXHijacked?.HP||1.3)):currentFighterHP));
    const f={
      id:actorId++,type:'fighter',bugKind,bugAnimPhase:bugKind?Math.random()*Math.PI*2:0,pts:[],t:0,dur:6,s:bugKind==='hornet'?1.68:(bugKind==='larva'?2.12:1.0+Math.random()*.10),rot:[0,0,0],
      x:0,y:0,z:60,hp,maxHp:hp,damageSeed:Math.random()*10000,hitFx:0,col:bugKind==='hornet'?C.y:(bugKind==='larva'?C.g:(customsDrones?C.u:(rogueDrones?C.m:(hijacked?C.o:((eventIndex+i)%6===0?C.y:C.g))))),

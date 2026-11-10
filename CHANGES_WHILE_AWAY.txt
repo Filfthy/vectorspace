@@ -1834,3 +1834,28 @@ v1800 A bot pilot for balance, and ghost bounties corrected by it
       risk 1 to risk 9, and under-gearing costs 40 to 50% more time. Weapon
       damage tiers match enemy hull bands exactly, so what really grows with
       risk is the number of enemies and their accuracy.
+
+v1810 Enemy hull follows risk on every job (it did not on five of them)
+      PLEASE CHECK THIS ONE: it makes some high-risk jobs harder, on purpose.
+      Since v300 enemy hull grows with risk in step with weapon grades, so a
+      drone with the expected weapon needs the same number of pulses a kill
+      at every risk, and every contract card says "Expected weapon grade".
+      The bot showed two places where that rule was never applied:
+      - Fights inside another stage: Station Defence, Specimen Recovery,
+        Wreck Recovery, Taco Run and Combat Recovery kept hull 12 to 18 at
+        every risk. At risk 9 that was hull 12 where a plain dogfight had 51.
+      - Xenos had hull 10 (hornets) and 14 (larvae) at every risk. With
+        matched gear a xeno fight took 27 s at risk 1, 30 s at risk 5 and
+        28 s at risk 9, while paying the full risk 9 bounty for each kill.
+      Both now use the same hull band as everything else. Nothing changes
+      at risk 1 and 2 or in the early story missions. Measured after the
+      change, matched gear, six fights each:
+        risk 1   xenos 24 s, 1.2 hits     pirates  40 s,  3.0 hits
+        risk 5   xenos 53 s, 4.2 hits     pirates  59 s,  6.2 hits
+        risk 9   xenos 93 s, 9.5 hits     pirates 112 s, 12.3 hits
+      Xenos are still the easier fight, on the same curve. Pay is worked
+      out before the scaling, as before. Contracts already on your board
+      keep their old hull until they roll off.
+      If you would rather keep these jobs easy: git revert the v1810 commit.
+      The self-test now checks that every board job's fight uses the hull
+      band its card promises.
