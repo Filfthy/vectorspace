@@ -1753,3 +1753,11 @@ v1750 A built-in self-test (open the game with ?selftest)
       ghost drawing fault, a geyser fault and a semicolon were each caught
       and named. About 7 seconds of work (longer with the five boots). The
       sound is muted in memory only and your mixer settings are not changed.
+
+v1760 Self-test plays real campaign flows
+      The self-test now also plays the game's core loops on its throwaway
+      save, not just DEV tests: finish a real board job (XP, credits, mail,
+      board replaced, debrief), level up on the debrief, abandon a job, lose
+      the drone and go through insurance, buy and fit gear, spend a skill
+      point, save and reload, read every mail, draw every hub panel, and
+      request new contracts. All ten pass. 106 checks in all.

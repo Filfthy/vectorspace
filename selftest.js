@@ -15,6 +15,8 @@
 //   diversions  every route diversion kind
 //   simulator   the VOX simulator
 //   drawing     every ghost, xeno and walker, and every world type's plains, drawn directly
+//   campaign    real flows: finish, fail and abandon a job, level up, buy and fit gear,
+//               spend a skill point, save and reload, every mail and hub panel
 //   data        achievements, codex, wire and contact letters evaluate. No semicolons or
 //               dashes in written content
 //
@@ -121,6 +123,57 @@
         if(moon&&!sd.trees.some(t=>t.feature==='crater'))return 'no craters on a moon';
         planetLandingBody='planet'
       }
+    });
+
+    // Real campaign flows on the throwaway save: nothing here is a DEV test.
+    const finishReal=m=>{c.launchMission(m.id);if(c.currentMission!==m)return 'did not launch';invulnerable=true;fly();for(let f=0;f<3000&&!c.isOpen();f++)update(1/30);return c.isOpen()?null:`never reached the debrief (${mode}/${phase})`};
+    const closeHub=()=>{try{c.closeMissionDebrief?.('missions')}catch(_){}paused=false;document.body.classList.remove('paused')};
+    await group('campaign',['finish a real job','level up on the debrief','abandon a job','lose the drone','buy and fit gear','spend a skill point','save and reload','every mail reads','every hub panel draws','request new contracts'],what=>{
+      // (reset() above cleared any mission; these use the real board.)
+      if(c.isOpen())closeHub();
+      if(what==='finish a real job'||what==='level up on the debrief'){
+        c.state.xp=what==='level up on the debrief'?c.xpForLevel(c.levelForXP()+1)-40:c.xpForLevel(4)+10;c.generateContractBoard();
+        const m=c.missions.find(x=>x.implemented&&!x.private);if(!m)return 'no job on the board';
+        const before={xp:c.state.xp,money:c.state.money,done:c.state.completed,level:c.levelForXP(),mail:c.state.mail.length},pay=m.pay,xp=m.xp,id=m.id;
+        const f=finishReal(m);if(f)return f;
+        if(c.state.completed!==before.done+1)return 'the job was not counted as completed';
+        if(c.state.xp<before.xp+xp)return `XP went from ${before.xp} to ${c.state.xp}, the contract was worth ${xp}`;
+        if(c.state.money<before.money+pay*.5)return `credits went from ${before.money} to ${c.state.money}, pay was ${pay}`;
+        if(c.missions.some(x=>x.id===id))return 'the finished job is still on the board';
+        if(c.state.mail.length<=before.mail)return 'no completion mail arrived';
+        const rows=[...document.querySelectorAll('.debriefRow')];if(!rows.some(r=>/Next level/.test(r.textContent)))return 'the debrief has no next-level line';
+        if(what==='level up on the debrief'){if(c.levelForXP()<=before.level)return 'the level did not rise';if(!document.querySelector('.debriefLevelUp'))return 'the debrief has no LEVEL UP row'}
+        closeHub()
+      }
+      if(what==='abandon a job'){
+        c.generateContractBoard();const m=c.missions.find(x=>x.implemented&&!x.private),xp0=c.state.xp;c.launchMission(m.id);for(let k=0;k<60;k++)update(1/30);
+        if(!c.abandonCurrentMission('Self-test abandon'))return 'abandon refused';if(c.currentMission)return 'still in a mission';if(c.state.xp!==xp0)return 'XP changed on an abandoned job';closeHub()
+      }
+      if(what==='lose the drone'){
+        c.generateContractBoard();const m=c.missions.find(x=>x.implemented&&!x.private),failed0=c.state.failed;c.launchMission(m.id);for(let k=0;k<60;k++)update(1/30);
+        if(!c.failCurrentMission('Drone destroyed'))return 'the failure was refused';if(c.state.failed!==failed0+1)return 'the failure was not counted';
+        if(!c.state.pendingInsurance)return 'no insurance claim was opened';if(!/Insurance/.test(document.querySelector('#debriefBox,.debriefBox,[data-panel="debrief"]')?.textContent||''))return 'the insurance screen did not show';
+        const btn=[...document.querySelectorAll('[data-panel="debrief"] button')].find(b=>/continue|return/i.test(b.textContent)&&!b.disabled);if(!btn)return 'no way to leave the insurance screen';btn.click();
+        if(c.state.pendingInsurance)return 'the insurance claim did not close';closeHub()
+      }
+      if(what==='buy and fit gear'){
+        c.state.money=60000;const item=Object.values(c.items).find(i=>i.slot==='consumable'&&!i.free&&c.productAccess(i).ok);if(!item)return 'nothing on sale';
+        const m0=c.state.money,have0=c.state.inventory[item.id]||0;if(!c.buyItem(item.id,1))return `could not buy ${item.name}`;
+        if(c.state.money>=m0)return 'buying cost nothing';if((c.state.inventory[item.id]||0)<=have0)return 'nothing arrived in stores';
+        if(!c.equipItem(item.id,0))return `could not fit ${item.name}`
+      }
+      if(what==='spend a skill point'){
+        c.state.xp=Math.max(c.state.xp,c.xpForLevel(5));const card=c.skillCards.find(k=>c.skillCanBuy(k.id));if(!card)return 'no skill can be bought at level 5';
+        const n0=c.state.skills.length;if(!c.purchaseSkill(card.id))return 'the purchase was refused';if(c.state.skills.length!==n0+1)return 'the skill was not recorded'
+      }
+      if(what==='save and reload'){
+        c.save();const raw=localStorage.getItem(c.storageKey);if(!raw)return 'nothing was saved';if(raw.length>900000)return `the save is ${Math.round(raw.length/1024)} KB`;
+        const loaded=c.load();for(const k of['xp','money','completed','failed'])if(loaded[k]!==c.state[k])return `${k} changed across a save and load`;
+        if(loaded.skills.length!==c.state.skills.length)return 'skills changed across a save and load';if(/_comet|_convoy|"g":\{"state"/.test(raw))return 'runtime state leaked into the save'
+      }
+      if(what==='every mail reads')for(const msg of c.state.mail){const r=c.resolveMail(msg);if(!r?.subject||!String(r.subject).trim())return `mail ${msg.id} has no subject`;if(!Array.isArray(r.body)||!r.body.join('').trim())return `mail ${msg.id} has no text`}
+      if(what==='every hub panel draws'){c.showHub('missions');for(const pnl of['missions','factions','mail','shop','workshop','perks','guide','options']){c.setPanel(pnl);c.render()}closeHub()}
+      if(what==='request new contracts'){c.state.money=60000;const ids=c.missions.map(m=>m.id).join();c.refreshContracts();if(c.missions.map(m=>m.id).join()===ids)return 'the board did not change';if(c.missions.length<4)return 'the board is nearly empty'}
     });
 
     await group('data',['achievements','codex','wire','letters','written text'],what=>{
