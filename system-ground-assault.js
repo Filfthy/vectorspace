@@ -934,7 +934,9 @@ class GroundAssaultController{
   // Slot in the V: the first unit leads, the rest fall in alternately left and right.
   patrolSlot(u,g){
     const order=this.units.filter(o=>o.group===g&&this.patrols(o)).sort((a,b)=>a.id-b.id),i=Math.max(0,order.indexOf(u));
-    return[(i%2?1:-1)*Math.ceil(i/2)*4.5,Math.ceil(i/2)*4]
+    // Spacing follows the biggest unit in the group, so a pack of hounds does not overlap.
+    const sp=Math.max(5.5,...order.map(o=>(o.K.radius||1)*o.s*2.6));
+    return[(i%2?1:-1)*Math.ceil(i/2)*sp,Math.ceil(i/2)*sp*.9]
   }
   move(u,dt){
     u.x+=Math.sin(u.h)*u.speed*dt;u.wz+=Math.cos(u.h)*u.speed*dt;

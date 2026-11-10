@@ -1636,3 +1636,7 @@ v1640 Wildlife over green and blue worlds
       wetland worlds: loose clouds of small flapping V shapes circling at a
       height, as the nav chatter's "WILDLIFE ON THE PLAINS" always promised.
       Scenery only. Now every world type has life or weather of its own.
+
+v1650 Patrol formations spaced by size
+      A group's V now spaces its places by its biggest member (at least 5.5
+      apart), so a pack of hounds walking together no longer bunches up.
