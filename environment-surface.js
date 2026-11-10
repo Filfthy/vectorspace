@@ -231,7 +231,7 @@ class SurfaceDestinationApproachController {
     this.targetWorldZ=Number.isFinite(Number(resolved?.targetWorldZ))?Number(resolved.targetWorldZ):this.routeLength;
     this.targetX=Number.isFinite(Number(resolved?.targetX))?Number(resolved.targetX):0;
     this.entryRadius=clamp(Number(resolved?.entryRadius)||36,24,60);
-    this.buildScenery();this.buildFissures();this.buildSurvey(resolved?.crashSites||resolved?.surveyPoints,!!resolved?.crashSites);this.buildBeacon();
+    this.buildScenery();this.buildFissures();this.buildTraffic();this.buildSurvey(resolved?.crashSites||resolved?.surveyPoints,!!resolved?.crashSites);this.buildBeacon();
     if(this.destination==='forest')this.buildForestBoundary();
     else if(this.destination==='swamp')this.buildSwampBoundary();
     else if(this.destination==='bunker'||this.destination==='osd'){this.skyline.length=0;this.forestBands.length=0;this.forestFront.length=0}
@@ -598,7 +598,7 @@ class SurfaceDestinationApproachController {
         if(Math.abs(dz)<1.15&&Math.abs(dx)<radius&&shipY<top){t.hit=true;this.treeHitCD=.82;damage(t.kind==='rock'?'ROCK':'TREE');if(mode==='dead')return;break}
       }
     }
-    this.updateSurvey(dt);this.updateBeacon();
+    this.updateSurvey(dt);this.updateBeacon();this.updateTraffic(dt);
     if(this.weather&&this.weatherIntro>0){this.weatherIntro-=dt;if(this.weatherIntro<=0&&!(typeof callout==='function'&&callout(this.weather.say,2.2)))this.weatherIntro=.5}
     const ch=this.chatter;if(ch){if(ch.delay>0)ch.delay-=dt;else{ch.wait-=dt;if(ch.wait<=0)this.chatter=null;else if(!(speechSubtitleT>0)&&typeof callout==='function'&&callout(ch.text,1.8))this.chatter=null}}
     const d=this.distance();
@@ -638,6 +638,9 @@ class SurfaceDestinationApproachController {
   }
   appendScenery(scene,{minDepth=-Infinity,maxDepth=Infinity}={}){
     if(!Array.isArray(scene))return scene;
+    // v1550: ground traffic on the city road.
+    for(const v of this.traffic||[]){const z=v.worldZ-travel,q=camPoint([v.x,v.y,z]);
+      if(q[2]>.3&&q[2]<220&&q[2]>minDepth&&q[2]<=maxDepth)scene.push({z:q[2],draw:()=>jackalDelivery.drawCivilianCarFast(v,z)})}
     // v1510: crash-site survey markers carry a wreck of their own, smoking until scanned.
     for(const b of this.survey||[])if(b.kind==='crash'){const z=b.worldZ-travel,q=camPoint([b.x,this.crashRestY(b),z]);
       if(q[2]>.3&&q[2]<300&&q[2]>minDepth&&q[2]<=maxDepth)scene.push({z:q[2],draw:()=>{drawMesh({type:'crashWreck',x:b.x,y:this.crashRestY(b),z,s:b.s,rot:b.rot},b.mesh,C.w,clamp(1.1-q[2]/300,.35,.9));if(!b.done)this.drawCrashSmoke(b)}})}
@@ -716,6 +719,39 @@ class SurfaceDestinationApproachController {
       line(bx+tx*width*.5,y-dy*depth+ty*width*.5,x,y,C.y,1.3,.88);line(x,y,bx-tx*width*.5,y-dy*depth-ty*width*.5,C.y,1.3,.88)
     }
   }
+  // v1550: a road runs in to the city across the plains, with a little ground traffic on
+  // it in both directions (the city's own hover cars, vans and haulers, drawn the same
+  // way). Scenery only: they run below flying height and nothing collides with them.
+  buildTraffic(){
+    this.traffic=[];this.road=null;
+    if(this.destination!=='city'||this.scenery==='rocks'||this.scenery==='swamp'||typeof jackalDelivery==='undefined')return;
+    const cars=globalThis.AgentXCivilianTraffic?.list||[];if(!cars.length)return;
+    this.road={x:this.targetX,z0:-90,z1:this.targetWorldZ-8};
+    this.trafficRoadClear();
+    const palette=[[C.w,3],[C.c,2.5],[C.r,1.5],[C.u,2],[C.m,1.5],[C.o,1.5],[C.y,.8]];
+    const pickCol=()=>{let r=this.rand()*palette.reduce((n,p)=>n+p[1],0);for(const[c,w]of palette){r-=w;if(r<=0)return c}return C.w};
+    for(let i=0;i<8;i++){
+      const tot=cars.reduce((n,m)=>n+(m.trafficWeight||1),0);let r=this.rand()*tot,mesh=cars[cars.length-1];for(const m of cars){r-=(m.trafficWeight||1);if(r<=0){mesh=m;break}}
+      const authoredW=Math.max(.001,mesh.trafficWidth||1),authoredD=Math.max(.001,mesh.trafficDepth||2);
+      let meshScale=(mesh.trafficTargetDepth?mesh.trafficTargetDepth*(.94+this.rand()*.12):1.85+this.rand()*.55)/authoredD;if(authoredW*meshScale>1.16)meshScale=1.16/authoredW;
+      const out=i%2===0;   // even ones head for the city, odd ones come away from it
+      this.traffic.push({mesh,meshScale,w:authoredW*meshScale,h:.5,d:authoredD*meshScale,sameDirection:out,x:this.road.x+(out?1.25:-1.25),y:this.groundY+.32,
+        worldZ:this.road.z0+this.rand()*(this.road.z1-this.road.z0),speed:12+this.rand()*7,col:mesh.fixedColour?C[mesh.fixedColour]:pickCol()})
+    }
+  }
+  // Nothing grows on the road.
+  trafficRoadClear(){const r=this.road;if(!r)return;this.trees=this.trees.filter(t=>t.feature==='crater'||!(Math.abs(t.x-r.x)<4+(t.s||1)*1.2&&t.worldZ>r.z0-5&&t.worldZ<r.z1+5))}
+  updateTraffic(dt){
+    const r=this.road;if(!r||!this.traffic?.length)return;
+    for(const v of this.traffic){v.worldZ+=(v.sameDirection?1:-1)*v.speed*dt;if(v.worldZ>r.z1)v.worldZ=r.z0;if(v.worldZ<r.z0)v.worldZ=r.z1}
+  }
+  drawRoad(){
+    const r=this.road;if(!r)return;
+    ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.strokeStyle=C.w;ctx.globalAlpha=.32;ctx.beginPath();
+    const segs=Math.max(4,Math.round((r.z1-r.z0)/10));
+    for(const dx of[-2.7,2.7])drawFlatSampledGridLine([r.x+dx,this.groundY+.02,r.z0-travel],[r.x+dx,this.groundY+.02,r.z1-travel],segs);
+    ctx.stroke();ctx.restore()
+  }
   // v1480: glowing fissures across a volcanic plain, built once per landing. Each is a
   // crooked crack with a red core and dimmer orange lips that pulse slowly.
   buildFissures(){
@@ -775,7 +811,7 @@ class SurfaceDestinationApproachController {
     ctx.restore()
   }
   draw(){
-    this.drawGround();this.drawFissures();const scene=[];this.appendEnvironmentObjects(scene);
+    this.drawGround();this.drawRoad();this.drawFissures();const scene=[];this.appendEnvironmentObjects(scene);
     if(this.destination==='osd'&&bunkerRaid?.active)bunkerRaid.appendOsdSurfaceObjects(scene);
     this.drawObjectScene(scene);this.drawWeather();this.drawNavigation()
   }
