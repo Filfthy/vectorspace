@@ -97,13 +97,67 @@
         "Honestly, if you ever quit, I am quitting too. Okay, not really. But I would think about it."
       ]}
   };
+  // v1900 JOB NOTES: once standing is warm, about half the noted contracts carry a line
+  // about that particular kind of job instead of a general one. Same voices, same rules:
+  // nothing a contact could not know before the job, and nothing that gives away a
+  // hidden encounter.
+  const JOBS={
+    security:{
+      fighters:["Hostiles on an OSD lane. Remove them. That is the whole brief.","Close the distance and keep firing. Hesitation is how drones are lost."],
+      station_defence:["A station that cannot hold its own perimeter is a liability. Today you are its perimeter.","Hold the line until there is nothing left to shoot at."],
+      bunker_raid:["Hard target. Hit it hard.","That bunker was built to stop people like you. Prove the engineers wrong."],
+      dune_armour_clearance:["Armour respects one thing. Decisive force. Take the legs first.","Walkers are slow. Do not be slow."],
+      ice_field_armour:["Cold ground, heavy armour. Neither is an excuse.","Break the legs and the rest follows. Finish it."],
+      lattice_survey:["I want the map, not the wreckage. Discipline over impulse, for once.","Do not fire. That is an order, and I expect it obeyed."],
+      nest_clearance:["Infestations do not negotiate. Neither do we."],
+      asteroids:["Rock clearance is not glamorous. Neither is losing a convoy to a rock. Do it properly."]
+    },
+    trade:{
+      wreck_recovery:["Sweetie, there is a lost freighter out there with my name on half its cargo. Bring me something shiny.","Babe, wrecks are spooky. Good thing you are the scariest thing in that field."],
+      asteroid_delivery:["A delivery into the rocks, Sweetie. Try not to scratch that gorgeous hull. I am very fond of it."],
+      penthouse_delivery:["Penthouse drop, Babe. Rich people, tiny balconies, big drone. I want to hear how you parked it."],
+      fighters:["Pirates on my lane again, Sweetie. Go be big and loud at them. I will be thinking about it all day."],
+      asteroids:["Rocks in the lane, Babe. Turn them into gravel and make it look easy. You always do."],
+      station_defence:["Sweetie, somebody is bullying a station I like. Go and show them what a real drone looks like."],
+      survey_run:["Babe, it is a survey. Fly low, look pretty, come home. That is practically a date."]
+    },
+    jackals:{
+      wreck_recovery:["The previous owners of that cargo have stopped needing it. It seems wasteful to leave it lying about."],
+      secure_terminal_intrusion:["There is a terminal that knows rather too much. I should like it to share."],
+      penthouse_delivery:["The recipient has excellent taste and a very discreet doorman. Do be quick."],
+      crash_recovery:["Crashes are so untidy. Everyone forgets who owned the flight recorder."],
+      groundside_pickup:["A small parcel, collected quietly. The less anyone remembers, the better we all sleep."],
+      fighters:["Some gentlemen have mistaken our patience for permission. Do correct them."],
+      deep_core:["A reactor in the wrong hands is a tragedy. In nobody's hands it is merely a crater. I prefer craters."]
+    },
+    helix:{
+      specimen_recovery:["The specimen matters more than the station. Please do not quote me to the station."],
+      nest_clearance:["A hive is one organism. You are going in as an infection. I would very much like the readings."],
+      lattice_survey:["Nobody has mapped a dormant controller intact. Every core you scan is a first.","Stay outside the waking range. I need it asleep to understand how it sleeps."],
+      vent_survey:["The vents are older than the crust around them. I want to know how much older."],
+      crystal_consignment:["The crystals keep growing after they are cut. Handle the cargo as though it were alive. It may be."],
+      crash_recovery:["A crash site is a badly documented accident. Collect the recorders and I will document it properly."],
+      combat_recovery:["Something survived that fight which should not have. Find it before it stops being interesting."]
+    },
+    quickbite:{
+      taco_run:["Taco run, dude. If the beacon is lying again, shoot whoever lied.","Customers want tacos. Pirates want tacos. Only one of them is paying."],
+      asteroid_delivery:["There are rocks all over the lane. Big ones. Also the food is getting cold."],
+      asteroids:["Corporate wants the lane cleared. I want the lane cleared. Rare day, dude."],
+      station_delivery:["Station order. Do not open the box. I am serious, the box is not for you."],
+      fighters:["So these guys keep shooting our couriers. I feel like that is their problem now. Go make it one."],
+      relay_repair:["Relay is down, so nobody can order anything, so nobody is yelling at me. Fix it anyway, I guess."],
+      penthouse_delivery:["Penthouse order. Rich guy tips in exposure. Deliver it anyway, dude."]
+    }
+  };
   const WARM=25,CLOSE=60;
   // Same contract, same line: a small string hash of the contract id.
   const hash=s=>{let h=2166136261;for(const ch of String(s||'')){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
-  function pick(factionId,rep,contractId){
+  function pick(factionId,rep,contractId,templateId=null){
     const n=NOTES[factionId];if(!n||!(rep>=WARM))return null;
     const h=hash(contractId);
     if(h%5>=3)return null; // about three contracts in five carry a note
+    const job=JOBS[factionId]?.[templateId];
+    if(job?.length&&((h>>>7)&1))return {who:n.who,text:job[(h>>>9)%job.length]};
     const pool=rep>=CLOSE?n.close.concat(n.warm.slice(0,2)):n.warm;
     return {who:n.who,text:pool[(h>>>3)%pool.length]}
   }
@@ -187,5 +241,5 @@
     if((label==='Distrusted')===!!up)return null; // praise only on the way up, the warning only on the way down
     return `${n.who}: "${t}"`
   }
-  globalThis.AgentXContactNotes={NOTES,WARM,CLOSE,pick,FILES,known,TIERS,tierLine};
+  globalThis.AgentXContactNotes={NOTES,JOBS,WARM,CLOSE,pick,FILES,known,TIERS,tierLine};
 })();

@@ -496,7 +496,7 @@
         const bad=[],walk=(v,path)=>{if(typeof v==='string'){if(v.length>24&&/[a-z];\s+[a-zA-Z]|[—–]/.test(v)&&!/[{}=<>]/.test(v))bad.push(`${path}: "${v.slice(0,60)}"`)}else if(Array.isArray(v))v.forEach((x,i)=>walk(x,path))
           else if(v&&typeof v==='object')for(const k in v)if(typeof v[k]!=='function')walk(v[k],path)};
         for(const id in T)walk(T[id].presentation,`template ${id}`);
-        walk(AgentXCodex.ENTRIES.map(e=>[e.title,e.body]),'codex');walk(AgentXVoxWire.HEADLINES.map(h=>h.text),'wire');walk(AgentXFactionLore.LETTERS,'letters');walk((AgentXFactionLore.REACTIONS||[]).map(r=>r.letter),'reactions');
+        walk(AgentXCodex.ENTRIES.map(e=>[e.title,e.body]),'codex');walk(AgentXVoxWire.HEADLINES.map(h=>h.text),'wire');walk(AgentXFactionLore.LETTERS,'letters');walk(AgentXContactNotes.NOTES,'contact notes');walk(AgentXContactNotes.JOBS,'job notes');walk((AgentXFactionLore.REACTIONS||[]).map(r=>r.letter),'reactions');
         walk(Object.values(routeDiversion.KINDS),'diversions');walk(AgentXEndgame.MISSIONS.map(m=>[m.title,m.description,m.stages]),'black contracts');
         if(bad.length)return bad.slice(0,6).join(' | ')+(bad.length>6?` (+${bad.length-6} more)`:'')}
     });

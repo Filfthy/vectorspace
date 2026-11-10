@@ -2150,3 +2150,49 @@ v1890 Fix: drone could freeze for good leaving a city pickup (old bug)
       Not finished: a full credits-per-minute sweep of all 26 jobs at
       risk 9 (43 of about 52 flights done when I stopped).
 
+NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
+
+v1900 Contacts talk about the job in hand, and an earnings sweep
+      Contract cards: once you are on warm terms with a network (standing
+      25), about half of its contact's card notes now speak to that kind
+      of job instead of a general line. 45 new lines, 7 or 8 job types
+      per contact, written to the style guide. A few:
+        Kudo, Lattice Survey: "Do not fire. That is an order, and I
+          expect it obeyed."
+        Corvella, Survey Run: "Babe, it is a survey. Fly low, look
+          pretty, come home. That is practically a date."
+        Cassian, Crash Recovery: "Crashes are so untidy. Everyone forgets
+          who owned the flight recorder."
+        Navira, Crystal Consignment: "The crystals keep growing after
+          they are cut. Handle the cargo as though it were alive. It may
+          be."
+        Nyxo, Station Delivery: "Station order. Do not open the box. I am
+          serious, the box is not for you."
+      None of them gives away a hidden encounter.
+      New letter: the first time an asteroid clearance turns into a fight,
+      Nyxo writes ("rocks with people in them"), if you have worked for
+      QuickBite.
+      Self-test: the new city-exit check passes, and the written-text
+      check now also reads every contact note.
+
+      Earnings sweep, one flight per board job at risk 9, matched Mk V,
+      1280x720 (credits a minute for fee plus diversions):
+        Most non-fight jobs: 14,000 to 30,000 a minute.
+        Fight jobs read 12,000 to 17,000 before bounties, about 25,000 to
+        28,000 once kill bounties are added (the sweep could not count
+        them, as the game skips stats on test runs).
+        Asteroid clearance after v1880: about 28,000 a minute on average
+          over many runs (44,000 on a quiet run, much less when ambushed).
+        Lattice Survey (mine): about 29,000 on a quiet run, 14,500 when
+          woken. In range, no change.
+        ONE CLEAR OUTLIER, your original job, NOT changed:
+          Secure Terminal Intrusion: 63 s for a CR 41,000 fee, about
+          39,000 a minute, with little danger to the pilot (the
+          minefield is only threaded, the hack and escape are short).
+          If you want it in line, trimming its fee by about a third
+          would do it. Say so and I will.
+      Deep Core hung once at the bunker door in that sweep. A repeat run
+      with the same diversion finished normally (no leftover fighters on
+      the surface). It looks like the pilot missing the door in one
+      layout, not a game fault.
+

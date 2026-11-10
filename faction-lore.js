@@ -200,7 +200,13 @@
     {id:'groundCrew',faction:'quickbite',when:c=>(c.stats.landBeacons||0)>0,letter:L('you stopped for them?',[
       'Dude, Dispatch heard you stopped to relay a stranded ground crew. Nobody stops. I have the data. Nobody.',
       'One of them was a QuickBite customer, it turns out. Her order was four days late because she was stuck in a field. We refunded the delivery fee. That is the most generous thing corporate has ever done.',
-      'Anyway. That was decent of you. Do not tell anyone I said decent.'])}
+      'Anyway. That was decent of you. Do not tell anyone I said decent.'])},
+    // v1900: the first asteroid clearance that turned into a fight (asteroid-ambush.js).
+    {id:'fieldAmbush',faction:'quickbite',when:c=>(c.stats.asteroidAmbushes||0)>0,letter:L('rocks with people in them',[
+      'Dude. Your debrief says you got jumped while shooting rocks. Like, mid-rock.',
+      'This happens to our couriers too. Turns out an asteroid field is a great place to hide if you are a pirate and do not mind being cold all the time.',
+      'Corporate says clearance work is low risk. Corporate has never been inside an asteroid field. Corporate has barely been inside an office.',
+      'Anyway, shoot the guys first, then the rocks. The rocks are not going anywhere. Well, they are, but slowly.'])}
   ];
   globalThis.AgentXFactionLore={LETTERS,due,MARA,STANDING,FAVOURS,REACTIONS};
 })();

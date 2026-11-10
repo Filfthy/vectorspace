@@ -2484,7 +2484,7 @@ class CampaignController {
     return `<div class="worldLine">Destination world: <b style="color:${hex}">${col||'green'} ${body}</b>${look?` · ${look}`:''}</div>`
   }
   contactNoteHtml(m){
-    const f=this.factions[m?.faction],note=f&&globalThis.AgentXContactNotes?.pick?.(f.id,f.rep,m.id);
+    const f=this.factions[m?.faction],note=f&&globalThis.AgentXContactNotes?.pick?.(f.id,f.rep,m.id,m.templateId);
     if(!note)return '';
     return `<div class="contactNote"><b>${this.escapeHtml(note.who)}:</b> ${this.escapeHtml(note.text)}</div>`
   }
