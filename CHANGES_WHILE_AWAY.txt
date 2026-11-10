@@ -1343,3 +1343,20 @@ v1420 Lighter walker detail (speed)
       visor, the Crab's eye stalks and the Stilt's lens rings and mast.
       The new Hound now draws in about the same time as the old one.
 
+v1430 Crash sites on the landing plains, and two fixes
+      From the direction notes' surface list ("crash site"). Of the
+      off-route plains beacons (about one board plains approach in four),
+      almost half are now a crash site instead of a stranded crew: a
+      scorched wreck half buried nose-down in the plain, with smoke rising
+      and spreading off it so you can spot it from a distance, labelled
+      CRASH SITE. "CRASH SITE · OFF ROUTE". Fly over it for salvage rights
+      (a small bonus, half the time), a survivor (standing +2 with your
+      client), or a wreck already picked clean. The Guide mentions it.
+      Fixes:
+      - The result line of a plains beacon ("STRANDED CREW LOCATED") was
+        lost if a voice line was on screen when you flew over. It now waits
+        and shows as soon as it can.
+      - The Good Samaritan achievement ("Investigate 10 route diversions")
+        also counted diversions you ignored and flew past. Only ones you
+        actually took part in count now.
+

@@ -319,27 +319,44 @@ class SurfaceDestinationApproachController {
   // Good Samaritan). No pay and no loot. Never on story, agent, training or DEV runs,
   // and never alongside a survey.
   buildBeacon(){
-    this.beacon=null;this.beaconSeen=false;
+    this.beacon=null;this.beaconSeen=false;this.beaconSay=null;
     const m=typeof campaign!=='undefined'?campaign.currentMission:null,force=this.forceBeacon;this.forceBeacon=false;
     if(!m||this.survey?.length||this.stage?.type!=='surface_destination_approach')return;
     if(!force&&(m.training||m.devTest||m.devTemplateTest||m.devGroundTest||m.kind==='story'||m.factionChain||m.factionEpilogue||!m.templateId||Math.random()>=.25))return;
     const side=Math.random()<.5?-1:1;
     this.beacon={x:this.targetX+side*(32+Math.random()*30),worldZ:this.routeLength*(.32+Math.random()*.3),done:false};
+    // v1430: almost half are a crash site instead: a scorched wreck half buried in the
+    // plain, smoke rising off it, worth flying over for salvage rights or a survivor.
+    if(Math.random()<.45){const b=this.beacon,mesh=(typeof pickEnemyFighterMesh==='function'?pickEnemyFighterMesh():null)||routeDiversion?.CIV_MESH;
+      if(mesh){b.kind='crash';b.mesh=mesh;b.s=3.4;b.rot=[.32,Math.random()*Math.PI*2,-.55]}}
     this.trees=this.trees.filter(t=>Math.hypot(t.x-this.beacon.x,t.worldZ-this.beacon.worldZ)>=9)
   }
   updateBeacon(){
+    // A result line that could not show (speech on screen) is retried until it can.
+    if(this.beaconSay&&typeof callout==='function'&&callout(this.beaconSay,2))this.beaconSay=null;
     const b=this.beacon;if(!b||b.done)return;
     const d=Math.hypot(b.x-shipX,b.worldZ-travel);
-    if(!this.beaconSeen&&d<150&&typeof callout==='function'&&callout('DISTRESS BEACON · OFF ROUTE',1.8))this.beaconSeen=true;
-    if(d<8.5){
+    const crash=b.kind==='crash';
+    if(!this.beaconSeen&&d<(crash?190:150)&&typeof callout==='function'&&callout(crash?'CRASH SITE · OFF ROUTE':'DISTRESS BEACON · OFF ROUTE',1.8))this.beaconSeen=true;
+    if(crash&&d<10){
+      b.done=true;const m=campaign?.currentMission,r=Math.random();
+      const o=r<.5?{outcome:'salvage',say:'CRASH SITE SCANNED · SALVAGE RIGHTS LOGGED',text:'Crash site salvage logged',pay:m?Math.round(m.pay*.06/50)*50:0,rep:0}
+        :r<.8?{outcome:'survivor',say:'SURVIVOR FOUND · RESCUE CALLED IN',text:'Crash survivor found',pay:0,rep:campaign.factions?.[m?.faction]?2:0}
+        :{outcome:'stripped',say:'WRECK ALREADY PICKED CLEAN',text:'Crash site already stripped',pay:0,rep:0};
+      if(m)(m.diversions||(m.diversions=[])).push({kind:'crashSite',outcome:o.outcome,text:o.text,pay:o.pay,xp:0,rep:o.rep,repFaction:o.rep?m.faction:null});
+      if(!(typeof callout==='function'&&callout(o.say,2)))this.beaconSay=o.say;if(o.outcome!=='stripped')SoundFX.objectiveComplete?.();return
+    }
+    if(!crash&&d<8.5){
       // Recorded like a space diversion: the standing and the stats land on success (review fix).
       b.done=true;const m=campaign?.currentMission;
       if(m)(m.diversions||(m.diversions=[])).push({kind:'landBeacon',outcome:'relayed',text:'Stranded crew located',pay:0,xp:0,rep:campaign.factions?.[m.faction]?1:0,repFaction:m.faction});
-      if(typeof callout==='function')callout('STRANDED CREW LOCATED · POSITION RELAYED',2);SoundFX.objectiveComplete?.()
+      if(!(typeof callout==='function'&&callout('STRANDED CREW LOCATED · POSITION RELAYED',2)))this.beaconSay='STRANDED CREW LOCATED · POSITION RELAYED';SoundFX.objectiveComplete?.()
     }
   }
   drawBeacon(){
-    const b=this.beacon;if(!b||b.done)return;
+    const b=this.beacon;if(!b)return;
+    if(b.kind==='crash')return this.drawCrashSmoke(b);
+    if(b.done)return;
     const g=camPoint([b.x,this.groundY,b.worldZ-travel]),t=camPoint([b.x,this.groundY+3.4,b.worldZ-travel]);
     if(!(g[2]>.3&&t[2]>.3&&g[2]<280))return;
     const a=projectCam(g),p=projectCam(t);if(!a||!p)return;
@@ -347,6 +364,18 @@ class SurfaceDestinationApproachController {
     line(a.x,a.y,p.x,p.y,C.m,1,al*.8);
     line(p.x,p.y-r,p.x+r,p.y,C.m,1.1,al);line(p.x+r,p.y,p.x,p.y+r,C.m,1.1,al);line(p.x,p.y+r,p.x-r,p.y,C.m,1.1,al);line(p.x-r,p.y,p.x,p.y-r,C.m,1.1,al);
     if(g[2]<200){ctx.textAlign='center';ctx.font='400 8px Consolas,monospace';ctx.strokeStyle=C.m;ctx.globalAlpha=al;ctx.strokeText('DISTRESS',p.x,p.y-r-6);ctx.globalAlpha=1;ctx.textAlign='left'}
+  }
+  // Smoke off the wreck: soft rings rising and spreading on the wind, and a marker until
+  // the site has been looked at.
+  drawCrashSmoke(b){
+    const g=camPoint([b.x,this.groundY,b.worldZ-travel]);if(!(g[2]>.3&&g[2]<320))return;
+    const t=this.navPulse,al=clamp(1.15-g[2]/320,.25,.85);
+    ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.strokeStyle=C.w;
+    for(let k=0;k<7;k++){const u=(t*.22+k/7)%1,q=camPoint([b.x+u*u*6,this.groundY+1.2+u*15,b.worldZ-travel+u*2]);if(q[2]<=.3)continue;const p=projectCam(q);if(!p)continue;
+      const r=Math.max(1.5,p.k*(.5+u*2.2));ctx.globalAlpha=al*(1-u)*.6;ctx.beginPath();ctx.ellipse(p.x,p.y,r,r*.45,0,0,Math.PI*2);ctx.stroke()}
+    if(!b.done&&g[2]<230){const p=projectCam(camPoint([b.x,this.groundY+5,b.worldZ-travel]));
+      if(p){ctx.globalAlpha=al;ctx.textAlign='center';ctx.font='400 8px Consolas,monospace';ctx.strokeStyle=C.o;ctx.strokeText('CRASH SITE',p.x,p.y);ctx.textAlign='left'}}
+    ctx.restore()
   }
   surveyLeft(){return (this.survey||[]).filter(p=>!p.done)}
   surveyNext(){return this.surveyLeft().sort((a,b)=>Math.hypot(a.x-shipX,a.worldZ-travel)-Math.hypot(b.x-shipX,b.worldZ-travel))[0]||null}
@@ -541,6 +570,9 @@ class SurfaceDestinationApproachController {
   }
   appendScenery(scene,{minDepth=-Infinity,maxDepth=Infinity}={}){
     if(!Array.isArray(scene))return scene;
+    // v1430: the crash site's wreck, nose down and half buried in the plain.
+    {const b=this.beacon;if(b?.kind==='crash'){const z=b.worldZ-travel,q=camPoint([b.x,this.groundY+.4,z]);
+      if(q[2]>.3&&q[2]<260&&q[2]>minDepth&&q[2]<=maxDepth)scene.push({z:q[2],draw:()=>drawMesh({type:'crashWreck',x:b.x,y:this.groundY+.4,z,s:b.s,rot:b.rot},b.mesh,C.w,clamp(1.1-q[2]/260,.35,.9))})}}
     for(const t of this.trees){
       const z=t.worldZ-travel,q=camPoint([t.x,t.y,z]),d=q[2];
       if(!(d>.3&&d<205&&d>minDepth&&d<=maxDepth&&this.treeWithinTurnMargin(q,t.s*Math.max(t.mx||1,t.mz||1))))continue;
