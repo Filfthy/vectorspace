@@ -1580,3 +1580,11 @@ v1580 Four more first-meeting notes from the contacts
       Same rules as v1490 (only from a contact you have worked for, one per
       finished contract). A save that has already done these things will get
       them one at a time over the next few contracts.
+
+v1590 A "new on the routes" bulletin for campaigns already under way
+      A save with at least one finished contract gets one short mail from VOX
+      Operator Records listing today's additions (ghost constructs, dormant
+      lattices, the new diversions, volcanic worlds and moon craters, Vent
+      Surveys and Crash Recoveries, crash sites, storms and roads, the
+      Lattice Node), with a button to the operator guide. New campaigns never
+      see it.

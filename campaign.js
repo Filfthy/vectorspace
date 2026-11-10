@@ -1704,6 +1704,7 @@ class CampaignController {
     this.evaluateFactionChains();
     this.evaluateLateGame();
     this.evaluateBulletin();
+    this.evaluateBulletin1580();
     this.evaluateThreatAdvisories();
     this.evaluateStandingLetters();
     this.evaluateContactReactions();
@@ -1834,6 +1835,23 @@ class CampaignController {
         'Your contacts. Each network contact, and Mara, will write to you personally as you get to know them.',
         'Veterans. Elite contracts from level 15, Black Contracts once the VOX story is finished, and a fourth skill row.',
         'Records. Settings now has Save to file, to back up a campaign or move it to another browser or address.',
+        'The operator guide (the ? tab) has the detail.'],
+      actions:[{type:'panel',panel:'guide',label:'OPEN OPERATOR GUIDE'}]})
+  }
+  // v1590: one short note for a save that was already under way when the ghost
+  // constructs, volcanic worlds and the new land work arrived. New saves never see it.
+  evaluateBulletin1580(){
+    const flags=this.state.mailFlags;if(flags.bulletinV1580)return;
+    flags.bulletinV1580=true;if(!(Number(this.state.completed)>0))return;
+    this.enqueueMail({id:'bulletin_v1580',from:'VOX Operator Records',subject:'Operator bulletin: new on the routes',category:'system',priority:'normal',
+      body:['New on the routes since your last bulletin. In short:',
+        'Ghost constructs. Partition War lattices that lie in old wreck fields looking like debris, and gather into weapons when something passes. They are only solid while formed. Their jammers stop missile locks.',
+        'Dormant lattices. Some sleep across the route. Pass quietly, or wake one and clear it for OSD.',
+        'More diversions. Fights already in progress, old minefields, and xeno migrations that Helix wants scanned and not shot.',
+        'New worlds. Some orange worlds are still volcanic, and moons are pocked with craters.',
+        'New land work. Vent Surveys on volcanic worlds, and Crash Recoveries for the flight recorders of downed craft.',
+        'On the plains. Crash sites worth a pass, storms and ash falls, and roads into town.',
+        'Black Contracts. A new set piece, the Lattice Node.',
         'The operator guide (the ? tab) has the detail.'],
       actions:[{type:'panel',panel:'guide',label:'OPEN OPERATOR GUIDE'}]})
   }
