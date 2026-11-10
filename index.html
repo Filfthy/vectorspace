@@ -153,7 +153,7 @@
         <div class="saveFileRow"><button id="campaignExport" type="button">Save to file</button><button id="campaignImport" type="button">Load from file</button><input id="campaignImportFile" type="file" accept=".json,application/json" hidden></div>
         <p class="optionNote">Reset removes Agent X campaign progress, money, XP, reputation, equipment and purchased skills.</p>
         <button id="campaignReset" class="dangerOption" type="button">Reset campaign</button>
-        <p class="optionNote buildInfo">Build v1740</p>
+        <p class="optionNote buildInfo">Build v1750</p>
 
         <h3>Sound mixer</h3>
         <p class="optionNote">Adjust the overall game mix. Individual sound-effect and music-track audition trims are available in the local development tab.</p>
@@ -294,6 +294,10 @@
       <section id="campaignDevPanel" class="campaignPanel campaignDevPanel" data-panel="dev" hidden>
           <h2>Developer</h2>
           <p class="optionNote devModeNote">Development controls. Visible only when Agent X is explicitly launched in DEV mode from VS Code.</p>
+
+          <h3>Self-test</h3>
+          <p class="optionNote">Boots a throwaway save five times, then steps every board job, story mission, Black Contract, diversion and the simulator, draws every enemy and world type, and checks the written text. Opens in a new tab and takes about half a minute. Your campaign is not touched.</p>
+          <div class="devTemplateTester"><button type="button" onclick="window.open(location.pathname+'?selftest','_blank')">Run self-test</button></div>
 
           <h3>Template mission tester</h3>
           <p class="optionNote">Generate and launch one real mission template with an explicitly selected faction. DEV template tests do not alter credits, XP, reputation, equipment or the public contract board.</p>
@@ -552,6 +556,8 @@
 <script src="xeno-models.js"></script>
 <script src="combat.js"></script>
 <script src="runtime.js"></script>
+<!-- The self-test: loads only with ?selftest, otherwise nothing. Runs on a throwaway save. -->
+<script>if(/[?&]selftest(&|=|$)/.test(location.search))document.write('<script src="selftest.js"><\/script>')</script>
 <!-- The Christmas promo video director: loads only with ?promo, otherwise nothing. -->
 <script>if(/[?&]promo(&|=|$)/.test(location.search))for(const f of["song-timing.js","promo-models.js","promo.js","promo-director.js","promo-scenes.js","promo-play.js"])document.write('<script src="promo/'+f+'"><\/script>')</script>
 </body>

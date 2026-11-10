@@ -2,6 +2,9 @@
 class CampaignController {
   constructor(){
     this.storageKey='agentXCampaignV1';
+    // v1750: ?selftest runs on a throwaway save that starts empty (selftest.js). The real
+    // campaign is never read or written in that mode.
+    if(/[?&]selftest(&|=|$)/.test(location.search)){this.storageKey='agentXCampaignV1_selftest';try{localStorage.removeItem(this.storageKey)}catch(_){}}
     this.currentMission=null;
     this.open=false;
     this.returnPauseState=false;

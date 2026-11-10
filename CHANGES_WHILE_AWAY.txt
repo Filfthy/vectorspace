@@ -1731,3 +1731,25 @@ v1740 Header shows XP to the next level; text rule clean-up
       Every hub screen was looked at at 1280x720 (contracts, networks, mail,
       market, drone bay, skills, guide, debrief): no layout problems found
       beyond the guide's wall of text, fixed in v1730.
+
+v1750 A built-in self-test (open the game with ?selftest)
+      Today's start-up crash only showed on about six fresh boots in ten,
+      and I had been checking each change with hand-typed scripts. The game
+      now has its own self-test. Open http://localhost:8798/?selftest (or
+      DEV tab, Run self-test). On a throwaway save, never your campaign:
+      - five fresh boots in a row, each with a contract board
+      - 300 contract boards at operator levels 1, 5, 10 and 16
+      - all 25 board templates stepped through every stage and drawn
+      - all 32 story, agent and epilogue missions
+      - all 9 Black Contract set pieces
+      - all 9 route diversion kinds
+      - the VOX simulator
+      - every ghost, xeno and walker, and every world type's plains (planet
+        and moon), drawn directly rather than only when in view
+      - achievements, codex, wire and contact letters, and no semicolons or
+        dashes in the written content
+      It prints a PASS or FAIL report with the failing items named. I proved
+      it by breaking things on purpose: a start-up fault, a scenery fault, a
+      ghost drawing fault, a geyser fault and a semicolon were each caught
+      and named. About 7 seconds of work (longer with the five boots). The
+      sound is muted in memory only and your mixer settings are not changed.
