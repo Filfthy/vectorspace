@@ -1323,3 +1323,14 @@ v1400 New route diversion: Xeno migration, and a new xeno, the Drifter
       and the top-right HUD reads "XENO ESCORT HOLDING FIRE" until you
       provoke it. A Codex entry, "Drifters", opens the first time you see
       one, and the Guide explains the migration.
+
+v1410 Lighter xeno models (speed)
+      A frame-time check of today's scenes found the new xenos (v1340) too
+      heavy: a larva cost 3.6 ms to draw and a hornet about 1.3 ms, so a
+      swarm of six to eight could take 10 to 15 ms of a 16.7 ms frame. The
+      fine detail (bands, antennae, mandibles, legs, spines, wing
+      membranes) is now drawn as plain lines that hide nothing, and the
+      bodies use fewer rings. They look the same at play distance; a larva
+      now costs 0.35 ms and a hornet 0.4 to 0.8 ms. The Drifter is
+      lighter too. Other new scenes measured 3 to 4 ms a frame (fight in
+      progress, minefield, plains with and without a blizzard).
