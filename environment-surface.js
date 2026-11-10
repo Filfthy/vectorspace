@@ -47,6 +47,22 @@ const surfaceBasaltMesh=(()=>{
   }
   return m
 })();
+// v1670: survey markers come in three kinds, each with its own wording.
+const SURVEY_TEXT=Object.freeze({
+  survey:{intro:(n,d)=>`FLY THE ${n} SURVEY POINTS · THEN THE ${d}`,got:(g,t)=>`SURVEY POINT ${g} OF ${t} LOGGED`,done:'SURVEY COMPLETE · PROCEED TO DESTINATION',nag:n=>`SURVEY INCOMPLETE · ${n} POINT${n>1?'S':''} LEFT`,nav:'SURVEY POINT',hud:'SURVEY'},
+  crash:{intro:(n,d)=>`FIND THE ${n} CRASH SITE${n>1?'S':''} · THEN THE ${d}`,got:(g,t)=>`CRASH SITE ${g} OF ${t} · RECORDER RECOVERED`,done:'ALL RECORDERS RECOVERED · PROCEED TO DESTINATION',nag:n=>`RECORDERS MISSING · ${n} CRASH SITE${n>1?'S':''} LEFT`,nav:'CRASH SITE',hud:'RECORDERS'},
+  relay:{intro:(n,d)=>`RESET THE ${n} RELAY MASTS · THEN THE ${d}`,got:(g,t)=>`RELAY ${g} OF ${t} BACK ONLINE`,done:'ALL RELAYS ONLINE · PROCEED TO DESTINATION',nag:n=>`RELAYS DOWN · ${n} LEFT`,nav:'RELAY MAST',hud:'RELAYS'}
+});
+// A relay mast: a tapering four-legged lattice tower with cross bracing and an antenna.
+// Lines only, so it hides nothing behind it.
+const surfaceRelayMastMesh=(()=>{
+  const v=[],e=[],H=7,lv=[0,2.4,4.6,H];
+  const w=y=>1.2-(y/H)*.85;
+  for(const y of lv)for(const[sx,sz]of[[-1,-1],[1,-1],[1,1],[-1,1]])v.push([sx*w(y),y,sz*w(y)]);
+  for(let k=0;k<lv.length;k++){const b=k*4;for(let i=0;i<4;i++)e.push([b+i,b+(i+1)%4]);if(k<lv.length-1)for(let i=0;i<4;i++){e.push([b+i,b+4+i]);e.push([b+i,b+4+(i+1)%4])}}
+  const top=v.length;v.push([0,H,0],[0,H+1.8,0],[-.5,H+.9,0],[.5,H+.9,0]);e.push([top,top+1],[top+2,top+3]);
+  return {v,e}
+})();
 // v1520: an impact crater for moon plains, a low raised rim around a shallow bowl.
 const surfaceCraterMesh=surfaceRingsMesh([[.8,0],[1.0,.22],[1.12,.3],[1.28,.16],[1.5,0]],16);
 // Same mission, same answer: half the orange worlds are volcanic, decided by the job itself.
@@ -231,7 +247,7 @@ class SurfaceDestinationApproachController {
     this.targetWorldZ=Number.isFinite(Number(resolved?.targetWorldZ))?Number(resolved.targetWorldZ):this.routeLength;
     this.targetX=Number.isFinite(Number(resolved?.targetX))?Number(resolved.targetX):0;
     this.entryRadius=clamp(Number(resolved?.entryRadius)||36,24,60);
-    this.buildScenery();this.buildFissures();this.buildTraffic();this.buildFlocks();this.buildSurvey(resolved?.crashSites||resolved?.surveyPoints,!!resolved?.crashSites);this.buildBeacon();
+    this.buildScenery();this.buildFissures();this.buildTraffic();this.buildFlocks();this.buildSurvey(resolved?.crashSites||resolved?.relayMasts||resolved?.surveyPoints,resolved?.crashSites?'crash':(resolved?.relayMasts?'relay':'survey'));this.buildBeacon();
     if(this.destination==='forest')this.buildForestBoundary();
     else if(this.destination==='swamp')this.buildSwampBoundary();
     else if(this.destination==='bunker'||this.destination==='osd'){this.skyline.length=0;this.forestBands.length=0;this.forestFront.length=0}
@@ -362,12 +378,15 @@ class SurfaceDestinationApproachController {
   // Scenery is cleared round each marker so it can always be flown through low.
   // v1510 CRASH RECOVERY: the same markers can be crash sites instead (stage.crashSites):
   // a wreck half buried in the plain with smoke rising off it, scanned by flying over.
-  buildSurvey(n,crash=false){
-    this.survey=[];this.surveyNagT=0;this.surveyCrash=crash;
+  // v1670 RELAY REPAIR: or downed relay masts, blinking red until X flies past to reset them.
+  buildSurvey(n,mode='survey'){
+    if(mode===true)mode='crash';const crash=mode==='crash';
+    this.survey=[];this.surveyNagT=0;this.surveyMode=SURVEY_TEXT[mode]?mode:'survey';this.surveyCrash=crash;
     const count=clamp(Math.round(Number(n)||0),0,4);if(!count)return;
     for(let i=0;i<count;i++){
       const u=.22+(.58*(i+.5)/count)+(this.rand()-.5)*.08,side=i%2?1:-1,p={x:this.targetX+side*(20+this.rand()*26),worldZ:this.routeLength*u,done:false};
       if(crash){const mesh=(typeof pickEnemyFighterMesh==='function'?pickEnemyFighterMesh():null)||routeDiversion?.CIV_MESH;if(mesh){p.kind='crash';p.mesh=mesh;p.s=3.2+this.rand()*.8;p.rot=[-.3-this.rand()*.15,this.rand()*Math.PI*2,-.45+this.rand()*.2];p.noLabel=true}}
+      if(mode==='relay'){p.kind='relay';p.yaw=this.rand()*Math.PI*2;p.off=side*3.2}
       this.survey.push(p)
     }
     this.trees=this.trees.filter(t=>!this.survey.some(p=>Math.hypot(t.x-p.x,t.worldZ-p.worldZ)<9+(t.feature==='cone'?1.5*t.s*(t.mx||1):0)))
@@ -450,8 +469,8 @@ class SurfaceDestinationApproachController {
     this.surveyNagT=Math.max(0,this.surveyNagT-dt);
     for(const p of this.survey)if(!p.done&&Math.hypot(p.x-shipX,p.worldZ-travel)<8.5){
       p.done=true;const total=this.survey.length,got=total-this.surveyLeft().length;
-      const crash=this.surveyCrash;
-      if(typeof callout==='function')callout(got<total?(crash?`CRASH SITE ${got} OF ${total} · RECORDER RECOVERED`:`SURVEY POINT ${got} OF ${total} LOGGED`):(crash?'ALL RECORDERS RECOVERED · PROCEED TO DESTINATION':'SURVEY COMPLETE · PROCEED TO DESTINATION'),1.8);
+      const T=SURVEY_TEXT[this.surveyMode||'survey'];
+      if(typeof callout==='function')callout(got<total?T.got(got,total):T.done,1.8);
       SoundFX.objectiveComplete?.()
     }
   }
@@ -556,7 +575,7 @@ class SurfaceDestinationApproachController {
     // The survey instruction waits (up to six seconds) for any spoken line to clear.
     {const lines=(planetLandingBody==='moon'&&Math.random()<.5)?SURFACE_WORLD_CHATTER.moon:SURFACE_WORLD_CHATTER[this.worldKind||'temperate'],m=typeof campaign!=='undefined'?campaign.currentMission:null;
       this.chatter=(lines&&m&&!m.training&&!m.devGroundTest&&this.scenery!=='rocks'&&this.scenery!=='swamp'&&!this.survey?.length&&Math.random()<.7)?{text:lines[Math.floor(Math.random()*lines.length)],wait:7,delay:4.5}:null}
-    if(this.survey?.length)this.surveyIntro={text:this.surveyCrash?`FIND THE ${this.survey.length} CRASH SITE${this.survey.length>1?'S':''} · THEN THE ${this.destination==='forest'?'FOREST':'CITY'}`:`FLY THE ${this.survey.length} SURVEY POINTS · THEN THE ${this.destination==='forest'?'FOREST':'CITY'}`,wait:6};
+    if(this.survey?.length)this.surveyIntro={text:SURVEY_TEXT[this.surveyMode||'survey'].intro(this.survey.length,this.destination==='forest'?'FOREST':'CITY'),wait:6};
     else if(this.destination==='swamp')say('PROCEED TO SWAMP',.85);
     else if(this.destination==='osd')say('PROCEED TO OSD FACILITY',.85);
     else audio.playVoice(this.destination==='forest'?'proceedToForest':'proceedToCity',{once:false,priority:true});
@@ -607,7 +626,7 @@ class SurfaceDestinationApproachController {
     const ch=this.chatter;if(ch){if(ch.delay>0)ch.delay-=dt;else{ch.wait-=dt;if(ch.wait<=0)this.chatter=null;else if(!(speechSubtitleT>0)&&typeof callout==='function'&&callout(ch.text,1.8))this.chatter=null}}
     const d=this.distance();
     if(!this.finishing&&d<78&&this.surveyLeft?.().length){
-      if(this.surveyNagT<=0&&typeof callout==='function'&&callout(this.surveyCrash?`RECORDERS MISSING · ${this.surveyLeft().length} CRASH SITE${this.surveyLeft().length>1?'S':''} LEFT`:`SURVEY INCOMPLETE · ${this.surveyLeft().length} POINT${this.surveyLeft().length>1?'S':''} LEFT`,1.6))this.surveyNagT=5;
+      if(this.surveyNagT<=0&&typeof callout==='function'&&callout(SURVEY_TEXT[this.surveyMode||'survey'].nag(this.surveyLeft().length),1.6))this.surveyNagT=5;
       return
     }
     if(!this.finishing&&d<78){this.finishing=true;this.finishT=0;say(this.destination==='forest'?'FOREST EDGE':(this.destination==='swamp'?'SWAMP EDGE':(this.destination==='osd'?'OSD FACILITY AHEAD':'CITY LIMITS')),.60)}
@@ -645,6 +664,13 @@ class SurfaceDestinationApproachController {
     // v1550: ground traffic on the city road.
     for(const v of this.traffic||[]){const z=v.worldZ-travel,q=camPoint([v.x,v.y,z]);
       if(q[2]>.3&&q[2]<220&&q[2]>minDepth&&q[2]<=maxDepth)scene.push({z:q[2],draw:()=>jackalDelivery.drawCivilianCarFast(v,z)})}
+    // v1670: relay masts beside their markers, a light at the top: blinking red while down,
+    // steady green once reset.
+    for(const b of this.survey||[])if(b.kind==='relay'){const x=b.x+b.off,z=b.worldZ-travel,q=camPoint([x,this.groundY+3.5,z]);
+      if(q[2]>.3&&q[2]<320&&q[2]>minDepth&&q[2]<=maxDepth)scene.push({z:q[2],draw:()=>{
+        drawMesh({type:'relayMast',x,y:this.groundY,z,s:1,rot:[0,b.yaw,0]},surfaceRelayMastMesh,C.w,clamp(1.1-q[2]/320,.35,.9));
+        const on=b.done||Math.sin((this.navPulse||0)*7+b.yaw)>0,lq=camPoint([x,this.groundY+8.8,z]);if(!on||lq[2]<=.3)return;const p=projectCam(lq);if(!p)return;
+        const r=Math.max(2.5,Math.min(8,p.k*.35));ctx.save();ctx.strokeStyle=b.done?C.g:C.r;ctx.lineWidth=VECTOR_LINE_WIDTH*1.5;ctx.globalAlpha=.95;ctx.beginPath();ctx.moveTo(p.x-r,p.y);ctx.lineTo(p.x+r,p.y);ctx.moveTo(p.x,p.y-r);ctx.lineTo(p.x,p.y+r);ctx.stroke();ctx.restore()}})}
     // v1510: crash-site survey markers carry a wreck of their own, smoking until scanned.
     for(const b of this.survey||[])if(b.kind==='crash'){const z=b.worldZ-travel,q=camPoint([b.x,this.crashRestY(b),z]);
       if(q[2]>.3&&q[2]<300&&q[2]>minDepth&&q[2]<=maxDepth)scene.push({z:q[2],draw:()=>{drawMesh({type:'crashWreck',x:b.x,y:this.crashRestY(b),z,s:b.s,rot:b.rot},b.mesh,C.w,clamp(1.1-q[2]/300,.35,.9));if(!b.done)this.drawCrashSmoke(b)}})}
@@ -716,7 +742,7 @@ class SurfaceDestinationApproachController {
       line(p.x,p.y-r,p.x+r,p.y,C.y,1.15,.92);line(p.x+r,p.y,p.x,p.y+r,C.y,1.15,.92);
       line(p.x,p.y+r,p.x-r,p.y,C.y,1.15,.92);line(p.x-r,p.y,p.x,p.y-r,C.y,1.15,.92);
       line(p.x-3,p.y,p.x+3,p.y,C.c,1,.9);line(p.x,p.y-3,p.x,p.y+3,C.c,1,.9);
-      const navLabel=next?(this.surveyCrash?'CRASH SITE':'SURVEY POINT'):this.destination==='bunker'?'BUNKER NAV':(this.destination==='forest'?'FOREST NAV':(this.destination==='swamp'?'SWAMP NAV':(this.destination==='osd'?'OSD NAV':'CITY NAV')));
+      const navLabel=next?SURVEY_TEXT[this.surveyMode||'survey'].nav:this.destination==='bunker'?'BUNKER NAV':(this.destination==='forest'?'FOREST NAV':(this.destination==='swamp'?'SWAMP NAV':(this.destination==='osd'?'OSD NAV':'CITY NAV')));
       ctx.textAlign='center';ctx.font='400 8px Consolas,monospace';ctx.strokeStyle=C.y;ctx.strokeText(navLabel,p.x,p.y-r-7);ctx.textAlign='left'
     }else{
       const edge=hudEdgeCue(q,0),x=edge.x,y=edge.y,dx=edge.dx,dy=edge.dy,tx=-dy,ty=dx,depth=8,width=12,bx=x-dx*depth;
@@ -919,7 +945,7 @@ class SurfaceDestinationApproachController {
   hudRight(){
     const label=this.destination==='bunker'?'BUNKER':(this.destination==='forest'?'FOREST':(this.destination==='swamp'?'SWAMP':(this.destination==='osd'?'OSD':'CITY')));
     const left=this.surveyLeft?.().length||0;
-    if(this.active&&left)return `${this.surveyCrash?'RECORDERS':'SURVEY'} ${this.survey.length-left}/${this.survey.length}`;
+    if(this.active&&left)return `${SURVEY_TEXT[this.surveyMode||'survey'].hud} ${this.survey.length-left}/${this.survey.length}`;
     return this.active?`${label} ${Math.max(0,Math.round(this.distance()))}`:''
   }
 }

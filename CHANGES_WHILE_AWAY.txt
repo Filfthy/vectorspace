@@ -1646,3 +1646,15 @@ v1660 New jobs filed under the right type on the board
       card and under the COMBAT filter (they were missing from the job-type
       list). A Vent Survey is now a DELIVERY and a Crash Recovery a RECOVERY.
       Found by looking at the board as a player would.
+
+v1670 New land job: Relay Repair
+      Storms and old ordnance have knocked out the relay masts that carry a
+      world's traffic and nav signals. Each downed mast (a tapering lattice
+      tower) blinks a red light at its top; fly past to reset it and the
+      light turns steady green ("RELAY 1 OF 2 BACK ONLINE", "RELAYS 0/3" on
+      the HUD). Then the pickup and the depot. From operator level 2, for
+      the Compact (Corvella's haulers flying blind), OSD (patrols without
+      coverage) and QuickBite ("our couriers are navigating by vibes"), with
+      their own letters. Filed as DELIVERY on the board. The survey run,
+      vent survey and crash recovery share the same machinery and were
+      re-checked.

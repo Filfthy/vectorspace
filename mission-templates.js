@@ -2609,6 +2609,68 @@
     }
   };
 
+  // v1670: RELAY REPAIR. Storms and old ordnance knock out the relay masts that carry a
+  // world's traffic and nav signals. Fly past each downed mast to reset it, then the pickup.
+  const relayRepair={
+    ...surveyRun,
+    id:'relay_repair',
+    minLevel:2,
+    allowedFactions:['trade','security','quickbite'],
+    factionWeights:{trade:4,security:3,quickbite:3},
+    board:{category:'delivery',weight:.55,maxPerBoard:1},
+    risk:{base:1,min:1,levelsPerStep:2,max:8,jitter:1},
+    defaults:{origin:'the relay crew\'s depot',destination:'the Compact freight depot',cargo:'the relay crew\'s diagnostics case'},
+    planetaryRequirements:{landingBody:'planet',landingColour:{choices:['green','blue','cyan','yellow','magenta'],weights:[30,25,18,15,12]},moonCount:{min:0,max:2}},
+    sections:surveyRun.sections.map((s,i)=>{if(i!==1)return s;const params={...s.params,relayMasts:{base:2,perRisk:.25,min:2,max:4,round:true}};delete params.surveyPoints;return{...s,label:'Relay Repair',params}}),
+    presentation:{
+      trade:{
+        contactId:'corvella_pallis',cargoStyle:'case',
+        titles:['Relay Repair','Lights On','Signal Run'],
+        cargo:['the relay crew\'s diagnostics case','a case of burnt-out relay boards','the relay logs'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'Sweetie, the relay masts on this world went dark in a storm and my haulers are flying blind. Fly past each mast to reset it, then pick up {cargo} from {origin} and bring it to {destination}.',
+          'Babe, half the relays on my freight road are down. Every one you reset is a hauler that gets home tonight. Then collect {cargo} from {origin} and drop it at {destination}.'
+        ],
+        completionSubjects:['The lights are on, babe','Relays back up'],
+        completionBodies:['Every mast is back online and my haulers can see again. They sent a little cheer over the channel. It was for you, sweetie. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the relays'],bodies:['Sweetie, the relays are still dark and the case never reached the depot. My haulers are crawling along by dead reckoning.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, the masts'],bodies:['You left with masts still blinking red, babe. I can see them on my board. They are judging me.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['Those relays'],bodies:['The relay crew asked who reset the masts so fast. I said my favourite operator. They asked if that was a professional term. It is now.']}
+      },
+      security:{
+        contactId:'kudo_shang',cargoStyle:'case',
+        titles:['Relay Restoration','Signal Integrity','Mast Reset'],
+        cargo:['the relay crew\'s diagnostics case','a sealed signal log','the mast fault report'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'OSD relay masts on this world are down. Patrols are operating without coverage. Reset every mast, then collect {cargo} from {origin} and deliver it to {destination}.',
+          'Downed relays leave the lanes blind. Fly past each mast and bring it back online. Then collect {cargo} from {origin} and deliver it to {destination}.'
+        ],
+        completionSubjects:['Coverage restored','Relays online'],
+        completionBodies:['All masts report online. Patrol coverage is restored. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Coverage not restored'],bodies:['The relays remain down. Patrols are still blind. Return and finish it.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left with relays still down. Partial coverage is no coverage.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.18,subjects:['Re: relay restoration'],bodies:['A patrol intercepted a smuggler on that world the night after you reset the relays. You were part of that. Noted.']}
+      },
+      quickbite:{
+        contactId:'nyxo_malloc',cargoStyle:'case',
+        titles:['GPS Is Down Again','Relay Run','Turn It Off And On'],
+        cargo:['the relay crew\'s diagnostics case','a box of spare relay boards','the courier routing log'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'Dude, the relays on this world went down and our couriers are navigating by vibes. Fly past each mast to reset it, then grab {cargo} from {origin} and take it to {destination}.',
+          'So the relay masts need turning off and on again, but from the air, by someone who will not crash into them. That is you. Then collect {cargo} from {origin} and drop it at {destination}.'
+        ],
+        completionSubjects:['GPS is back','The couriers can see'],
+        completionBodies:['Relays are up. Couriers stopped calling Dispatch to ask which way is north. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'nyxo_malloc',subjects:['Still no GPS'],bodies:['Dude, your drone went down and the relays are still dark. One courier delivered a pizza to a rock.']},
+        abandonMail:{contactId:'nyxo_malloc',subjects:['The masts are still red'],bodies:['You left with masts still down. The couriers are back to vibes.']},
+        personalFollowUp:{contactId:'nyxo_malloc',minRisk:3,chance:.24,subjects:['relay thing'],bodies:['The couriers want to buy you a drink. I said you are a drone pilot and might not drink. They said a drone can have a drink. I did not argue.']}
+      }
+    }
+  };
+
   // Generic discretionary reward correspondence lives beside the mission templates
   // because it is faction/contact presentation, even when the reward itself is not
   // tied to one particular mission family. Campaign owns the reward mechanics; these
@@ -2749,7 +2811,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crash_recovery:crashRecovery,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crash_recovery:crashRecovery,relay_repair:relayRepair,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();
