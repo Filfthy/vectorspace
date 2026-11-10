@@ -17,6 +17,8 @@
 //   drawing     every ghost, xeno and walker, and every world type's plains, drawn directly
 //   campaign    real flows: finish, fail and abandon a job, level up, buy and fit gear,
 //               spend a skill point, save and reload, every mail and hub panel
+//   letters     every template for every client: the card, and the done, failed and
+//               abandoned letters, checked for unfilled or broken text
 //   data        achievements, codex, wire and contact letters evaluate. No semicolons or
 //               dashes in written content
 //
@@ -181,6 +183,22 @@
       if(what==='every mail reads')for(const msg of c.state.mail){const r=c.resolveMail(msg);if(!r?.subject||!String(r.subject).trim())return `mail ${msg.id} has no subject`;if(!Array.isArray(r.body)||!r.body.join('').trim())return `mail ${msg.id} has no text`}
       if(what==='every hub panel draws'){c.showHub('missions');for(const pnl of['missions','factions','mail','shop','workshop','perks','guide','options']){c.setPanel(pnl);c.render()}closeHub()}
       if(what==='request new contracts'){c.state.money=60000;const ids=c.missions.map(m=>m.id).join();c.refreshContracts();if(c.missions.map(m=>m.id).join()===ids)return 'the board did not change';if(c.missions.length<4)return 'the board is nearly empty'}
+    });
+
+    // Every template, every client: build the contract, then read the card and each letter it
+    // can send (done, failed, abandoned, personal follow-up) for unfilled or broken text.
+    await group('letters',Object.keys(T),id=>{
+      const t=T[id],bad=[],check=(what,text)=>{const s=Array.isArray(text)?text.join(' '):String(text??'');if(!s.trim())bad.push(`${what} is empty`);else if(/\{[a-zA-Z]+\}|undefined|NaN|\[object/.test(s))bad.push(`${what}: "${(s.match(/.{0,24}(\{[a-zA-Z]+\}|undefined|NaN|\[object).{0,20}/)||[s.slice(0,50)])[0]}"`)};
+      for(const fac of t.allowedFactions||[]){
+        const m=c.makeTemplateContract(t,0,{faction:fac,noRouteEncounter:true});if(!m){bad.push(`${fac}: no contract built`);continue}
+        check(`${fac} title`,m.title);check(`${fac} description`,m.description);check(`${fac} card`,(c.worldHtml(m)||'ok')+' '+m.stages.join(' '));
+        if(!m.stages.length)bad.push(`${fac}: the route list is empty`);
+        const before=c.state.mail.length;c.queueContractMail(m,3);c.queueContractFailureMail(m,'failed','Drone destroyed');c.queueContractFailureMail(m,'abandoned','Contract abandoned');
+        for(const msg of c.state.mail.slice(before)){const r=c.resolveMail(msg);check(`${fac} mail ${String(msg.id).split('_')[0]} subject`,r.subject);check(`${fac} mail ${String(msg.id).split('_')[0]}`,r.body)}
+        if(c.state.mail.length<before+3)bad.push(`${fac}: only ${c.state.mail.length-before} of 3 letters were sent`);
+        c.state.mail.length=before
+      }
+      if(bad.length)return bad.slice(0,4).join(' | ')+(bad.length>4?` (+${bad.length-4} more)`:'')
     });
 
     await group('data',['achievements','codex','wire','letters','written text'],what=>{
