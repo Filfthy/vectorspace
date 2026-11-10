@@ -1236,3 +1236,23 @@ v1350 Better walker models, a little weight shift, and no FPS readout
       Also: the dune assault HUD showed a frame timer in the top left
       (FPS / FRAME / JS ms), a development leftover. It now shows only with
       ?dev=1.
+
+v1360 New route diversion: Fight in progress
+      From the direction notes' encounter list. On a board job you may
+      come across a fight already going on ahead and off to one side: an
+      OSD patrol, a Free Trader escort or QuickBite couriers (three craft)
+      under attack by four or five raiders. "FIGHT IN PROGRESS · OSD PATROL
+      UNDER ATTACK · ASSIST OR CONTINUE".
+      - The friendlies fire back (tracers that can kill a raider) but are
+        outgunned, and lose a craft every so often; each is labelled with
+        its condition. The raiders are busy with them and leave you alone
+        unless you shoot one.
+      - Clear the raiders while any of them survive and their network
+        thanks you: standing +3 to +5 and a small bonus, more for each
+        craft saved, shown on the debrief ("OSD patrol saved (3 of 3)").
+        Raiders the friendlies down count towards clearing the fight but
+        pay you nothing. Kills you make pay bounties as usual.
+      - Fly on and it plays out without you (left alone, the patrol is
+        usually lost in about twenty seconds).
+      Diversions now come up as: beacon 40, derelict 35, civilian 25, pod
+      22, fight in progress 22, cache 18 (relative weights).

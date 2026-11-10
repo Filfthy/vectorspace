@@ -8,6 +8,9 @@
 //   DISTRESS BEACON   fly to the marker; survivors, nav data, an automated beacon, or a trap
 //   DERELICT          fly to the marker; salvage rights, flight logs, nothing, or dormant drones
 //   PURSUED CIVILIAN  raiders chasing a civilian craft; destroy them before it is caught
+//   FIGHT IN PROGRESS a patrol or escort already fighting raiders (v1360); they fire back,
+//                     but are losing. Join in and save some of them for their network's
+//                     thanks, or fly on and leave them to it
 //
 // Flying away from the marker, or simply letting the window run out, ignores it and the
 // route continues. Rewards are small: a little money, experience or standing. They are
@@ -45,6 +48,10 @@ const routeDiversion={
         {id:'guarded',weight:30,say:'THE CACHE IS GUARDED',fight:{profile:'hostile',hud:'CACHE GUARDS',min:3,max:5},pay:.14,rep:2,repFaction:'jackals',alsoRep:{faction:'security',amount:-3,text:'OSD noticed the cache'},text:'Guarded cache claimed'},
         {id:'tracker',weight:15,say:'TRACKER IN THE CACHE · CUSTOMS INBOUND',fight:{profile:'customs',hud:'CUSTOMS INTERCEPT',min:3,max:4},pay:.1,text:'Cache tracker, Customs fought off'}
       ]},
+    skirmish:{nav:'FIGHT IN PROGRESS',hud:'FIGHT IN PROGRESS',window:30,
+      defenders:[{faction:'security',name:'OSD PATROL',label:'OSD patrol',short:'PATROL',col:C.u,drone:true,weight:45},
+                 {faction:'trade',name:'FREE TRADER ESCORT',label:'Free Trader escort',short:'ESCORT',col:C.c,drone:false,weight:30},
+                 {faction:'quickbite',name:'QUICKBITE COURIERS',label:'QuickBite couriers',short:'COURIERS',col:C.y,drone:true,weight:25}]},
     civilian:{nav:'CIVILIAN CRAFT UNDER PURSUIT',voice:'civilianCraftUnderAttack',hud:'CIVILIAN UNDER ATTACK',window:24,
       helped:{say:'CIVILIAN SAFE',voice:'civilianSafe',pay:.1,rep:3,repFaction:'security',text:'Civilian rescued'},
       ignored:{say:'CIVILIAN CONTACT LOST',voice:'civilianContactLost'}}
@@ -59,6 +66,7 @@ const routeDiversion={
     interceptorGoal=9999;interceptorsDestroyed=0;interceptorClearDelay=0;
     resetPlanetBearing();resetSpaceMotion();resetSpaceDogfightDirector();
     audio.music.setMode(campaign.currentMission?.musicMode||'calm');
+    if(kind==='skirmish')return this.beginSkirmish(stage,def);
     if(kind==='civilian'){
       // Raiders chasing someone else. They hold fire on X unless X joins in, so the
       // event can genuinely be flown past. Destroying them all in time saves the civilian.
@@ -87,6 +95,7 @@ const routeDiversion={
     if(!this.active)return '';
     const left=Math.max(0,Math.ceil(this.window-this.t)),def=this.KINDS[this.kind];
     if(this.state==='fight')return this.stage?.hudTag||def.hud;
+    if(this.state==='skirmish'&&this.side)return `${def.hud} · ${this.side.short} ${this.allies.filter(a=>!a.dead).length}/${this.allies.length} · ${left}s`;
     return `${def.hud} · ${left}s`
   },
   update(dt){
@@ -97,6 +106,8 @@ const routeDiversion={
       this.t+=dt;
       const p=salvageRecovery.package,behind=p?camPoint([p.x,p.y,p.z])[2]<-6:true,d=salvageRecovery.distance(),movedAway=this.t>4&&d>this.startDistance*1.4;
       if(this.t>=this.window||behind||movedAway)this.ignore(`${this.KINDS[this.kind].marker} OUT OF RANGE`);
+    }else if(this.state==='skirmish'){
+      this.updateSkirmish(dt)
     }else if(this.state==='pursuit'){
       this.t+=dt;
       for(const f of fighters)if(!f.dead&&!f.dying&&!f.provoked)f.shotsLeft=0;
@@ -119,7 +130,70 @@ const routeDiversion={
     }
   },
   // A shot at a pursuer means X has joined in: that raider fights back.
-  onPlayerHitFighter(f){if(this.active&&this.state==='pursuit'&&f){f.provoked=true;if(!(f.shotsLeft>0))f.shotsLeft=3}},
+  onPlayerHitFighter(f){if(this.active&&(this.state==='pursuit'||this.state==='skirmish')&&f){f.provoked=true;this.joined=true;if(!(f.shotsLeft>0))f.shotsLeft=3}},
+  // ---- Fight in progress (v1360) ----
+  // Three friendly craft are already exchanging fire with four or five raiders ahead and off
+  // to one side. The raiders are busy with them and hold fire on X unless X joins in. The
+  // friendlies shoot back (tracers that can kill a raider) but are outgunned and lose a craft
+  // every so often. Clearing the raiders while any friendly survives earns standing with
+  // their network; the friendlies' own kills count towards clearing them, but pay X nothing.
+  beginSkirmish(stage,def){
+    const side=this.pick(def.defenders),n=4+Math.floor(Math.random()*2),k=campaign.contractToughnessScale(campaign.currentMission?.risk||1);
+    stage.spaceCombat=true;this.side=side;this.joined=false;this.tracers=[];
+    scenarioFlow.startFighterStage({...stage,target:n,fighterHp:Math.round(12*k),profile:'pirate',navMessage:null},'pirate',{preservePhase:true});
+    scenarioFlow.encounterHudTag=def.hud;
+    const dir=Math.random()<.5?-1:1,c=cameraPointToWorld([dir*34,5+Math.random()*6,175]);
+    const drones=globalThis.AgentXPlanetaryDrones?.list||[];
+    this.allies=[0,1,2].map(i=>({x:c[0]+(i-1)*18,y:c[1]+(i%2?7:-4),z:c[2]+i*9,s:side.drone?2.3:4,rot:[0,Math.PI+dir*.3,0],hp:1,hitT:0,dead:false,
+      fireT:.3+Math.random()*.6,weave:Math.random()*6,mesh:side.drone&&drones.length?drones[i%drones.length]:this.CIV_MESH}));
+    // The raiders start on the friendlies, not on X.
+    fighters.forEach((f,i)=>{const a=this.allies[i%3];f.x=a.x+(Math.random()-.5)*24;f.y=a.y+(Math.random()-.5)*12;f.z=a.z-14-Math.random()*12});
+    this.state='skirmish';callout(`${def.nav} · ${side.name} UNDER ATTACK · ASSIST OR CONTINUE`,2.6);return true
+  },
+  updateSkirmish(dt){
+    this.t+=dt;const k=OPEN_SPACE_CRUISE*dt,live=fighters.filter(f=>!f.dead&&!f.dying),allies=this.allies.filter(a=>!a.dead);
+    for(const f of live)if(!f.provoked)f.shotsLeft=0;
+    for(const a of allies){
+      a.x-=spaceMoveX*k;a.y-=spaceMoveY*k;a.z-=spaceMoveZ*k;
+      a.z+=38*dt;a.x+=Math.sin(this.t*.9+a.weave)*3*dt;a.y+=Math.cos(this.t*1.1+a.weave)*1.6*dt;a.hitT=Math.max(0,a.hitT-dt);
+      // Return fire: a tracer at the nearest raider, which sometimes tells.
+      a.fireT-=dt;
+      if(a.fireT<=0&&live.length){
+        a.fireT=.55+Math.random()*.5;
+        let best=null,bd=1e9;for(const f of live){const d=Math.hypot(f.x-a.x,f.y-a.y,f.z-a.z);if(d<bd){bd=d;best=f}}
+        if(best&&bd<120){this.tracers.push({a:[a.x,a.y,a.z],b:[best.x,best.y,best.z],t:.12,col:this.side.col});
+          if(Math.random()<.5){best.hp-=1.6;best.hitFx=.12;if(best.hp<=0)this.allyKill(best)}}
+      }
+    }
+    // Unprovoked raiders close on the friendlies and wear them down.
+    for(const f of live){if(f.provoked||!allies.length)continue;const a=allies[f.id%allies.length],g=Math.min(1,dt*.65);
+      f.x+=(a.x-12+Math.random()*24-f.x)*g;f.y+=(a.y-6+Math.random()*12-f.y)*g;f.z+=(a.z-16-f.z)*g}
+    const attackers=live.filter(f=>!f.provoked).length;
+    for(const a of allies){
+      if(!attackers)break;
+      a.hp-=dt*.022*attackers/Math.max(1,allies.length);
+      if(Math.random()<dt*attackers*.9){a.hitT=.12;const p=proj([a.x,a.y,a.z]);if(p)spark(p.x,p.y,C.y,4)}
+      if(a.hp<=0){a.dead=true;const p=proj([a.x,a.y,a.z]);if(p&&typeof explodeMesh==='function')explodeMesh(a,a.mesh,p,this.side.col);callout(`${this.side.short} CRAFT LOST`,1.2)}
+    }
+    for(const tr of this.tracers){tr.t-=dt;for(const q of[tr.a,tr.b]){q[0]-=spaceMoveX*k;q[1]-=spaceMoveY*k;q[2]-=spaceMoveZ*k}}
+    this.tracers=this.tracers.filter(tr=>tr.t>0);
+    if(!this.allies.some(a=>!a.dead))return this.finishSkirmish(false,`${this.side.name} LOST`);
+    if(this.t>=this.window)return this.finishSkirmish(false,'FIGHT LEFT BEHIND')
+  },
+  // A raider downed by the friendlies: counts towards clearing the fight, but pays X nothing.
+  allyKill(f){
+    if(f.dead||f.dying)return;f.dead=true;f.hp=0;const p=proj([f.x,f.y,f.z]);if(p&&typeof explodeMesh==='function')explodeMesh(f,f.mesh,p,f.col);
+    interceptorsDestroyed++;if(interceptorsDestroyed>=interceptorGoal)interceptorClearDelay=.72
+  },
+  finishSkirmish(cleared,message=null){
+    const side=this.side,saved=this.allies.filter(a=>!a.dead).length;
+    fighters.length=0;bolts.length=0;this.allies=[];this.tracers=[];
+    if(cleared&&saved&&this.joined){
+      callout(message||`${side.name} SAVED · ${saved} OF 3`,2);SoundFX.objectiveComplete?.();
+      this.record({id:'assisted',pay:.08+.02*saved,rep:2+saved,repFaction:side.faction,text:`${side.label} saved (${saved} of 3)`})
+    }else{callout(message||(cleared?'RAIDERS CLEARED':'FIGHT LEFT BEHIND'),1.8);this.recordIgnored()}
+    this.end()
+  },
   // v600: speaks a requested line (voice-requests.js) only once its recording exists.
   speak(key){if(key&&audio.hasVoice?.(key))audio.playVoice(key,{once:false,priority:false})},
   pick(list){const total=list.reduce((n,o)=>n+o.weight,0);let r=Math.random()*total;for(const o of list){r-=o.weight;if(r<=0)return o}return list[0]},
@@ -139,6 +213,7 @@ const routeDiversion={
   // Called by the main loop when every fighter in this stage is down.
   onFightCleared(){
     if(this.state==='fight'){callout('HOSTILES CLEARED · CONTINUING ROUTE',1.6);this.record(this.pendingOutcome);this.end();return}
+    if(this.state==='skirmish'){this.finishSkirmish(true);return}
     if(this.state==='pursuit')this.finishPursuit(true)
   },
   finishPursuit(helped,message=null){
@@ -177,17 +252,25 @@ const routeDiversion={
        [20,0],[20,3],[21,1],[21,2],[20,21]]
   },
   appendScene(scene){
+    if(this.active&&this.state==='skirmish'){for(const a of this.allies){if(a.dead)continue;const q=camPoint([a.x,a.y,a.z]);if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(a,a.mesh,a.hitT>0?C.w:(a.hp<.3?C.r:this.side.col))})}return}
     const c=this.civ;if(!this.active||this.state!=='pursuit'||!c||c.dead)return;
     const q=camPoint([c.x,c.y,c.z]);if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(c,this.CIV_MESH,c.hitT>0?C.w:(c.hp<.3?C.r:C.c))})
   },
   drawMarker(){
+    if(this.active&&this.state==='skirmish'){
+      for(const tr of this.tracers){const a=proj(tr.a),b=proj(tr.b);if(a&&b)line(a.x,a.y,b.x,b.y,tr.col,1.2,Math.min(1,tr.t*8))}
+      ctx.save();ctx.textAlign='center';ctx.textBaseline='bottom';ctx.font='400 10px Consolas,monospace';ctx.lineWidth=VECTOR_LINE_WIDTH;
+      for(const a of this.allies){if(a.dead)continue;const q=camPoint([a.x,a.y,a.z]);if(q[2]<=.18)continue;const p=projectCam(q);if(!p)continue;
+        ctx.strokeStyle=a.hp<.3?C.r:this.side.col;ctx.strokeText(`${this.side.short} ${Math.max(0,Math.ceil(a.hp*100))}%`,p.x,p.y-Math.max(16,3.4*p.k*.6))}
+      ctx.restore();return
+    }
     const c=this.civ;if(!this.active||this.state!=='pursuit'||!c||c.dead)return;
     const q=camPoint([c.x,c.y,c.z]);if(q[2]<=.18)return;const p=projectCam(q);if(!p)return;
     ctx.save();ctx.textAlign='center';ctx.textBaseline='bottom';ctx.font='400 10px Consolas,monospace';ctx.lineWidth=VECTOR_LINE_WIDTH;
     ctx.strokeStyle=c.hp<.3?C.r:C.c;ctx.strokeText(`CIVILIAN ${Math.max(0,Math.ceil(c.hp*100))}%`,p.x,p.y-Math.max(16,3.4*p.k*.6));ctx.restore()
   },
   reset(){
-    this.civ=null;
+    this.civ=null;this.allies=[];this.tracers=[];this.side=null;
     // Abandon/fail mid-diversion: release the marker this diversion borrowed.
     if(this.active&&salvageRecovery.stage?.type==='embedded_recovery')salvageRecovery.reset();
     this.active=false;this.state='idle';this.stage=null;this.t=0
