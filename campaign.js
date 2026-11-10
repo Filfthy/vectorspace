@@ -2957,6 +2957,7 @@ class CampaignController {
     const m=this.pendingMission?.id===id?this.pendingMission:this.missions.find(x=>x.id===id);if(!m||!m.implemented||this.currentMission)return;
     if(m.devGroundTest){this.launchDevGroundTest(m);return}
     this.missionHits=0;this.missionBounty=null;
+    this.achievementsAtLaunch=new Set(Object.keys(this.state.achievements||{}));   // v1730: the debrief lists what this job earned
     this.currentMission=m;this.pendingMission=null;this.currentStageIndex=0;this.deployLoadout();this.open=false;campaignShell.classList.remove('open');this.updateGearHud();
     level=Math.max(1,Number(m.difficulty)||1);
 
@@ -3035,6 +3036,7 @@ class CampaignController {
     const diversions=(m.diversions||[]).filter(d=>d.outcome!=='ignored'),diversionPay=diversions.reduce((n,d)=>n+(d.pay||0),0),diversionXp=diversions.reduce((n,d)=>n+(d.xp||0),0);
     for(const d of diversions)if(d.rep&&d.repFaction&&!d.repApplied&&this.factions[d.repFaction])this.applyRep(d.repFaction,d.rep);
     asteroidField.stop();
+    const levelBefore=this.levelForXP();
     this.state.money+=actualPay+hazardPay+diversionPay+bountyCr;this.state.xp+=m.xp+diversionXp+bountyXp;this.state.completed++;
     {const st=this.stats();st.bountyEarned=(st.bountyEarned||0)+bountyCr;if(!m.private&&m.risk>=10)st.contracts.elite=(st.contracts.elite||0)+1;st.diversionsInvestigated=(st.diversionsInvestigated||0)+diversions.filter(d=>!d.side&&d.outcome!=='ignored'&&d.outcome!=='fired'&&d.outcome!=='abandoned').length;   /* v1430: ignored ones and firing on a migration are not investigations */st.landBeacons=(st.landBeacons||0)+diversions.filter(d=>d.kind==='landBeacon').length;st.latticesPassed=(st.latticesPassed||0)+(m.diversions||[]).filter(d=>d.kind==='lattice'&&d.outcome==='ignored').length;st.cachesClaimed=(st.cachesClaimed||0)+diversions.filter(d=>d.kind==='cache'&&!d.side&&d.outcome!=='tracker').length;if(m.routeEncounter)st.routeEncounters=(st.routeEncounters||0)+1;if(m.templateId){const bt=st.contracts.byTemplate||(st.contracts.byTemplate={});bt[m.templateId]=(bt[m.templateId]||0)+1}if(m.favourFaction)st.favoursDone=(st.favoursDone||0)+1;st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay+bountyCr;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
     let repGain=0;
@@ -3072,7 +3074,10 @@ class CampaignController {
     const penalty=templateCivilian?.incidents>0
       ?(templateCivilian.assaults>0?`${templateCivilian.assaults} civilian traffic assault${templateCivilian.assaults===1?'':'s'} · settlement penalised`:`${templateCivilian.collisions} civilian traffic incident${templateCivilian.collisions===1?'':'s'} · settlement penalised`)
       :(jackalSettlement?.incidents>0?(jackalSettlement.incidents>=3?`${jackalSettlement.incidents} civilian incidents · Red Jackal refused payment`:`${jackalSettlement.incidents} civilian incident${jackalSettlement.incidents===1?'':'s'} · Red Jackal cut the settlement`):'');
-    this.showDebrief({success:true,title:m.title,pay:actualPay,hazardPay,hazardLabel:m.routeEncounter?.nav||'',bounty,diversions,standing:this.standingChanges([[m.faction,repGain],...diversions.filter(v=>v.rep&&v.repFaction).map(v=>[v.repFaction,v.rep])]),xp:m.xp+diversionXp+bountyXp,liability:0,reason:penalty,returnPanel:m.private?'mail':'missions'});
+    // v1730: the debrief shows a level-up, how far the next level is, and achievements earned.
+    this.checkAchievements();
+    const progress=this.debriefProgress(levelBefore);
+    this.showDebrief({success:true,progress,title:m.title,pay:actualPay,hazardPay,hazardLabel:m.routeEncounter?.nav||'',bounty,diversions,standing:this.standingChanges([[m.faction,repGain],...diversions.filter(v=>v.rep&&v.repFaction).map(v=>[v.repFaction,v.rep])]),xp:m.xp+diversionXp+bountyXp,liability:0,reason:penalty,returnPanel:m.private?'mail':'missions'});
     return true;
   }
   failCurrentMission(reason='Mission failed'){
@@ -3168,6 +3173,15 @@ class CampaignController {
     const sum={};for(const [id,d] of pairs||[])if(id&&this.factions[id]&&d)sum[id]=(sum[id]||0)+d;
     return Object.entries(sum).map(([id,d])=>{const f=this.factions[id];return{name:f.name,delta:d,rep:f.rep,label:this.repLabel(f.rep)}})
   }
+  // What a finished job changed about the operator: level gained, XP to the next level,
+  // and achievements earned since launch.
+  debriefProgress(levelBefore){
+    const level=this.levelForXP(),th=this.xpThresholds(),xp=Number(this.state.xp)||0;
+    const nextAt=level<th.length?th[level]:th[th.length-1]+(level-th.length+1)*10000;
+    const had=this.achievementsAtLaunch||new Set(Object.keys(this.state.achievements||{})),got=this.state.achievements||{};
+    return {level,gained:Math.max(0,level-levelBefore),toNext:Math.max(0,nextAt-xp),points:this.skillPointsAvailable(),
+      achievements:this.achievementDefs().filter(a=>got[a.id]!==undefined&&!had.has(a.id)).map(a=>a.name)}
+  }
   showDebrief(d){
     audio.music.setMode('calm');
     this.open=true;campaignShell.classList.add('open');campaignResumeBtn.style.display='none';this.updateGearHud();this.renderHeader();this.setPanel('debrief');
@@ -3187,6 +3201,9 @@ class CampaignController {
       ${(d.diversions||[]).map(v=>`<div class="debriefRow"><span>Diversion · ${this.escapeHtml(v.text)}${v.rep?` · standing ${v.rep>0?'+':''}${v.rep}`:''}${v.xp?` · +${v.xp} XP`:''}</span><span>${v.pay?'CR '+v.pay.toLocaleString():'-'}</span></div>`).join('')}
       ${d.hazardPay>0?`<div class="debriefRow"><span>Hazard pay · ${this.escapeHtml(d.hazardLabel||'route encounter')}</span><span>CR ${d.hazardPay.toLocaleString()}</span></div>`:''}
       <div class="debriefRow"><span>Experience</span><span>${d.xp} XP</span></div>
+      ${d.progress?.gained?`<div class="debriefRow debriefLevelUp"><span>LEVEL UP · Operator level ${d.progress.level}${d.progress.points>0?` · ${d.progress.points} skill point${d.progress.points===1?'':'s'} to spend`:''}</span><span>LEVEL ${d.progress.level}</span></div>`:''}
+      ${d.progress?`<div class="debriefRow debriefNext"><span>Next level</span><span>${d.progress.toNext.toLocaleString()} XP to go</span></div>`:''}
+      ${(d.progress?.achievements||[]).map(n=>`<div class="debriefRow debriefLevelUp"><span>Achievement · ${this.escapeHtml(n)}</span><span>EARNED</span></div>`).join('')}
       ${(d.standing||[]).map(v=>`<div class="debriefRow"><span>Standing · ${this.escapeHtml(v.name)}</span><span class="${v.delta>0?'standUp':'standDown'}">${v.delta>0?'+':''}${v.delta} · now ${v.rep} ${this.escapeHtml(v.label)}</span></div>`).join('')}
       <div class="debriefRow"><span>Drone liability</span><span>${d.liability?'- CR '+d.liability.toLocaleString():'CR 0'}</span></div>
       ${this.returnRestock?.spent>0?`<div class="debriefRow"><span>Consumables restocked</span><span>- CR ${this.returnRestock.spent.toLocaleString()}</span></div>`:''}

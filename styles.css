@@ -292,6 +292,9 @@ body.cheating canvas{cursor:var(--cursor-vector)}
 #debriefBox h2{color:var(--c);margin:0 0 12px;font-weight:400}
 .debriefRow{display:flex;justify-content:space-between;border-bottom:1px solid var(--gd);padding:7px 0;font-size:12px}
 .debriefTotal{color:var(--y);font-size:16px}
+/* v1730: a level gained or an achievement earned stands out; the next-level line stays quiet. */
+.debriefLevelUp{color:var(--y)}.debriefLevelUp span:last-child{color:var(--c)}
+.debriefNext{opacity:.8}
 #campaignReset,.dangerOption{border-color:var(--r)!important;color:var(--r)!important}
 .optionsGlow{display:grid;grid-template-columns:auto minmax(160px,1fr) 54px;gap:10px;align-items:center;max-width:520px}
 .optionsGlow output{text-align:right;color:var(--c)}
@@ -973,6 +976,8 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .guideBody p{margin:0 0 8px}
 .guideKeys{display:grid;grid-template-columns:minmax(160px,auto) 1fr;gap:4px 18px;margin:0 0 10px}
 .guideKeys span:nth-child(odd){color:var(--c)}
+/* v1730: the same two columns for longer entries (threats, diversions, ground): more air between rows. */
+.guideTerms{grid-template-columns:minmax(190px,22%) 1fr;gap:9px 20px}
 
 /* v470 refusals say why */
 .hubNotice{margin:6px 14px 0;padding:7px 12px;border:1px solid var(--y);color:var(--y);font-size:var(--type-body)}

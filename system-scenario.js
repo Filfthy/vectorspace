@@ -214,7 +214,9 @@ class ScenarioFlowController {
     const seen=campaign.state.seenProfiles||(campaign.state.seenProfiles={});
     this.encounterHudTag=stage?.hudTag?((stage.unknownFirst&&!seen[profile])?'UNKNOWN CONTACTS':stage.hudTag):'';
     if(stage?.navMessage&&stage?.routeEncounter)callout(this.encounterHudTag==='UNKNOWN CONTACTS'?'UNKNOWN CONTACTS':stage.navMessage,2);
-    if(!stage?.tutorial&&!campaign.currentMission?.training)seen[profile]=true;
+    // v1730: only real jobs count as a meeting (DEV tests used to mark enemy types as seen,
+    // which spoiled UNKNOWN CONTACTS and opened Codex entries in the real save).
+    if(!stage?.tutorial&&campaign.statsLive?.())seen[profile]=true;
     // v307: a fight that starts mid-flight (e.g. the wreck ambush) must not
     // rebuild the camera basis from Euler angles, which would drop the roll.
     const wasFreeFlying=mode==='play'&&phase==='space'&&spaceOrientationReady;

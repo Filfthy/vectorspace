@@ -1701,3 +1701,18 @@ v1720 XP rebalance: fights are worth more experience
       unchanged, and overall levelling is only about 5% quicker (around 4
       jobs a level in the middle game instead of 4.2), since about a third of
       jobs have a fight. XP still only lands when the job succeeds.
+
+v1730 Debrief shows level-ups and achievements; guide tidied
+      "Improve the game overall" started with looking at every screen as a
+      player meets it.
+      - Debrief: gaining a level was silent (just "Experience 1230 XP"). It
+        now shows a LEVEL UP row with the new operator level and skill points
+        to spend, how much XP the next level needs (every time), and any
+        achievements earned on that job, which before only flashed past in
+        flight.
+      - Operator guide: "Surprises on the route" had grown into a wall of
+        text after today's additions. It is now three sections (Surprises on
+        the route, Diversions off the route, On the ground), each laid out
+        like the Controls table: a short label on the left, one idea a row.
+      - DEV tests no longer mark enemy types as met in the real save (that
+        spoiled the UNKNOWN CONTACTS first meeting and opened Codex entries).
