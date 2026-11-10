@@ -1956,3 +1956,36 @@ v1840 The pilot can now attack ground targets (self-test only, no game change)
       Still not played by a pilot: the nest, the bunker interior, the deep
       core, the minefield station and the asteroid jobs.
 
+v1850 Every diversion, story mission and Black Contract under the pilot (no game change)
+      The job pilot can now be given a prepared mission, a story mission
+      or a Black Contract (__flyStory, __flyBlack on the self-test page),
+      and it reports how each diversion ended.
+      All nine route diversions, two flights each at risk 8 to 11, every
+      one reached and resolved by play:
+        beacon      marker reached in 11 to 12 s   (nav data, survivors)
+        derelict    11 to 12 s                     (stripped, salvage)
+        pod         12 s rescued, 28 s when it was bait and a fight
+        cache       12 s goods, 31 s when it was a tracker and a fight
+        skirmish    joined and won in 16 to 22 s
+        minefield   passed in 27 s (the pilot does not shoot mines)
+        lattice     woken and cleared in 32 to 51 s
+        migration   the pilot shot the escort, so it ended as "fired"
+        civilian    raiders destroyed, civilian safe in 10 s
+      Then all 32 story and faction missions and the 9 Black Contracts,
+      with a Mk V laser. 28 of the 41 play from launch to the end with
+      nothing skipped, including every mission whose fights changed in
+      v1810 (the Helix xeno missions, the wreck runs, the taco runs, the
+      station defences). The other 13 stop only where the pilot has no
+      skill (a nest, a bunker interior, the deep core, a minefield with no
+      marker to follow) and once at a factory that outlasted the 200 s I
+      allowed, which the self-test clears on every run anyway. Nothing
+      crashed and no objective failed to complete. The pilot cannot die,
+      so this shows the jobs can be finished, not how dangerous they are.
+      Black Contract fight times at threat 1 to 9, for reference: carrier
+      74 s, armour field 195 s, orbital screens 86 and 98 s, relay defence
+      222 s, supply ship 208 s.
+      The Lattice Node contract I added in v1560 is the one I wanted to
+      check: its ghost lattice takes 160 s at threat 9. A drone screen at
+      that threat would be 17 hulls of 62 and take about 145 s, so the
+      fewer, weaker ghosts come out level with it. No change.
+

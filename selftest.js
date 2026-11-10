@@ -180,10 +180,15 @@
     window.drawHudMarkerLabel=function(text,x,y,...r){hud.mark={x,y,f:hudFrame};return d0.call(this,text,x,y,...r)};
     window.hudEdgeCue=function(q,...r){const v=e0.call(this,q,...r);hud.edge={x:v.x,y:v.y,f:hudFrame};return v}
   };
-  const flyJob=(id,{maxSecs=900,stageCap=240,skill=.9,weapon='laser5',frame='AX-5A',level=20}={})=>{
+  const flyJob=(id,{maxSecs=900,stageCap=240,skill=.9,weapon='laser5',frame='AX-5A',level=20,prepare=null,launch=null}={})=>{
     const c=campaign,T=AgentXMissionData.templates;hookHud();reset();
     c.state.xp=c.xpForLevel(level);if(!c.state.ownedFrames.includes(frame))c.state.ownedFrames.push(frame);c.state.drone=frame;c.state.inventory[weapon]=1;c.state.weaponLoadout=weapon;
-    c.launchDevTemplateTest(id,(T[id].allowedFactions||['trade'])[0]);invulnerable=true;inputX=inputY=0;gTarget=null;gExtend=false;
+    // prepare(mission) may edit a preview before it launches (say, to splice a diversion in).
+    // launch() may start any mission itself (a story mission or a Black Contract).
+    if(launch)launch();
+    else{const fac=(T[id].allowedFactions||['trade'])[0];let pre=null;if(prepare){pre=c.makeDevTemplatePreview(id,fac);prepare(pre);pre.stages=pre.modules.map(x=>x.label)}
+      c.launchDevTemplateTest(id,fac,pre?{mission:pre}:{})}
+    if(!c.currentMission)return `${id} did not launch`;invulnerable=true;inputX=inputY=0;gTarget=null;gExtend=false;
     const m=c.currentMission,stages=[],dt=1/30;let idx=-1,sf=0,frames=0,ended=false;
     for(let f=0;f<maxSecs*30&&c.currentMission;f++){
       if(c.currentStageIndex!==idx){if(stages.length)stages[stages.length-1].secs=Math.round(sf/30);idx=c.currentStageIndex;sf=0;stages.push({type:c.currentStage()?.type})}
@@ -195,16 +200,24 @@
         inputX=clamp(wrapAngle(Math.atan2(t.x-shipX,t.z-travel)-viewYaw)*2.2,-1,1);inputY=0
       }else if(phase==='surface'&&groundAssault?.active&&groundAssault.units?.length)groundStep(skill);
       else{
-        fightStep(skill,(hud.mark&&f-hud.mark.f<=2)?hud.mark:((hud.edge&&f-hud.edge.f<=2)?hud.edge:null))
+        // The asteroid-base marker is drawn without a label while it is on screen, so the
+        // HUD hooks never see it there: take its point from the courier directly.
+        let mk=(hud.mark&&f-hud.mark.f<=2)?hud.mark:((hud.edge&&f-hud.edge.f<=2)?hud.edge:null);
+        if(!mk&&typeof courier!=='undefined'&&courier.mine&&!courier.docking&&!courier.navLocked){const q=camPoint(courier.manualNavigationTarget?.()||courier.doorCentre?.()||[courier.mine.x,courier.mine.y,courier.mine.z]);if(q[2]>.2)mk=projectCam(q)}
+        fightStep(skill,mk)
       }
       update(dt);frames++;sf++
     }
     if(stages.length)stages[stages.length-1].secs=Math.round(sf/30);
     ceaseFire();
     const finished=ended||!c.currentMission;
-    return `${id} risk ${m.risk} ${finished?'finished':'cut off at '+c.currentStage?.()?.type} in ${Math.round(frames/30)} s :: ${stages.map(x=>`${x.type} ${x.secs}s${x.stuck?' STUCK('+x.stuck+')':''}`).join(' > ')}`
+    const div=(m.diversions||[]).map(d=>`${d.kind}:${d.outcome}`).join(', ');
+    return `${id} risk ${m.risk} ${finished?'finished':'cut off at '+c.currentStage?.()?.type} in ${Math.round(frames/30)} s :: ${stages.map(x=>`${x.type} ${x.secs}s${x.stuck?' STUCK('+x.stuck+')':''}`).join(' > ')}${div?' :: diversions '+div:''}`
   };
   window.__flyJob=flyJob;
+  // Story and faction missions, and the Black Contracts, under the same pilot.
+  window.__flyStory=(contractId,opts={})=>flyJob(contractId,{...opts,launch:()=>{const c=campaign,m=c.storyContract(contractId);if(!m)return;m.id=m.id||contractId;m.implemented=true;m.devTemplateTest=true;c.pendingMission=m;c.launchMission(m.id)}});
+  window.__flyBlack=(threat,opts={})=>flyJob('black '+threat,{...opts,launch:()=>{const c=campaign,m=AgentXEndgame.blackContract(threat);m.devTemplateTest=true;c.pendingMission=m;c.launchMission(m.id)}});
   window.__flyAll=async(opts)=>{const out=[];for(const id of Object.keys(AgentXMissionData.templates)){out.push(flyJob(id,opts));console.log(out[out.length-1]);await pause()}return out};
   // From the console, after launching a job: __pilots.toStage('surface_destination_approach'),
   // __pilots.flyApproach(), __pilots.flyLattice(skill).
