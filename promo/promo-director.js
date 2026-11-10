@@ -55,8 +55,9 @@ function snowCaps(mesh,assetId){
 }
 window.drawLayeredForestTree=function(obj,mesh,assetId,alphaScale=1){
   if(obj?.promoDraw)return obj.promoDraw(obj,alphaScale);
+  drawFarForestTree.snow=!!D.snow;   // far trees are drawn as outlines; they get their snow from the game's own hook
   const r=gameDrawTree(obj,mesh,assetId,alphaScale);
-  if(!D.snow||!mesh)return r;
+  if(!D.snow||!mesh||obj._farTree)return r;
   const caps=snowCaps(mesh,assetId);if(!caps.length)return r;
   const rot=obj.rot||[0,0,0],mx=obj.mx||1,my=obj.my||1,mz=obj.mz||1,depth=camPoint([obj.x,obj.y,obj.z])[2],alpha=clamp(1.12-depth/120,.32,.96)*alphaScale;
   const P=v=>{const q=rotate([v[0]*obj.s*mx,v[1]*obj.s*my,v[2]*obj.s*mz],rot),c=camPoint([q[0]+obj.x,q[1]+obj.y,q[2]+obj.z]);return c[2]>1.2?projectCam(c):null};   // a cap brushing the camera would fill the screen

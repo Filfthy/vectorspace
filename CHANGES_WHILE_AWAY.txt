@@ -1178,3 +1178,22 @@ v1320 The forest lane closes in trees
       straight gap through to the horizon. Past the stretch of lane lined
       with trees, the lane now closes in pines as if it bends away among
       them, so the way in reads as a path into the wood.
+
+------------------------------------------------------------------------
+Day run, 10 Nov 2026 (from 13:51): improving the game on my own.
+Each entry is its own commit. Tested muted in the browser; nothing here has
+been flown by hand.
+
+      Regression sweep first (no change needed). All 22 board templates
+      launched and stepped through every stage after the forest edge
+      changes: no errors.
+
+v1330 Distant trees are drawn as outlines (speed)
+      The denser forest edge (v1310) made the plains approach slow: drawing
+      the edge cost 65 to 100 ms a frame at 60 to 120 units out, against 15
+      to 40 ms for the old edge, so the game would stutter on the way in.
+      Every tree was drawn face by face even when it was a speck. A tree
+      more than 72 units away is now drawn as a pine outline (three filled
+      tiers on a trunk): the same edge now costs 3 ms at 120 units and 13 ms
+      at 60, and nearer trees keep their full detail. The forest runs
+      benefit too, at the far end of the view.

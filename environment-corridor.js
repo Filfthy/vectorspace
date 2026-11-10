@@ -1652,10 +1652,39 @@ function resolvePaletteColor(col){
   if(typeof col!=='string')return col;
   return C[col]||col
 }
+// v1330: a tree far enough away to be a few dozen pixels tall is drawn as a pine
+// outline (three filled tiers on a trunk) instead of every face of its layered mesh.
+// One fill and one stroke instead of dozens: the dense forest edge on the plains drew
+// at a quarter of the frame rate without it, and nothing is lost at that size.
+const FOREST_TREE_FAR=72;
+function forestTreeBounds(mesh){
+  if(mesh._lodBounds)return mesh._lodBounds;
+  let minY=Infinity,maxY=-Infinity,r=0;for(const v of mesh.v){minY=Math.min(minY,v[1]);maxY=Math.max(maxY,v[1]);r=Math.max(r,Math.hypot(v[0],v[2]))}
+  return mesh._lodBounds={minY,maxY,r}
+}
+function drawFarForestTree(obj,mesh,layout,depth,alphaScale){
+  const b=forestTreeBounds(mesh),s=obj.s*(obj.my||1),base=proj([obj.x,obj.y+b.minY*s,obj.z]),top=proj([obj.x,obj.y+b.maxY*s,obj.z]);
+  if(!base||!top)return true;
+  const ax=top.x-base.x,ay=top.y-base.y,len=Math.hypot(ax,ay)||1,nx=-ay/len,ny=ax/len,w=b.r*obj.s*(obj.mx||1)*base.k;
+  const at=(u,side)=>[base.x+ax*u+nx*w*side,base.y+ay*u+ny*w*side];
+  const foliageCol=resolvePaletteColor(layout.foliageColorKey||layout.foliageColor||mesh.foliageColorKey||mesh.foliageColor)||C.g;
+  const woodCol=resolvePaletteColor(layout.woodColorKey||layout.woodColor||mesh.woodColorKey||mesh.woodColor)||C.o;
+  const alpha=clamp(1.12-depth/120,.32,.96)*alphaScale;
+  ctx.save();ctx.lineJoin='round';ctx.lineWidth=VECTOR_LINE_WIDTH;
+  ctx.beginPath();const t0=at(0,0),t1=at(.3,0);ctx.moveTo(t0[0],t0[1]);ctx.lineTo(t1[0],t1[1]);ctx.globalAlpha=alpha;ctx.strokeStyle=woodCol;ctx.stroke();
+  ctx.beginPath();
+  for(const[lo,hi,k]of[[.24,.62,1],[.44,.82,.74],[.62,1,.48]]){const l=at(lo,-k),rr=at(lo,k),a=at(hi,0);ctx.moveTo(l[0],l[1]);ctx.lineTo(a[0],a[1]);ctx.lineTo(rr[0],rr[1]);ctx.closePath()}
+  ctx.globalAlpha=1;ctx.fillStyle='#000';ctx.fill();ctx.globalAlpha=alpha;ctx.strokeStyle=foliageCol;ctx.stroke();
+  // Snow on the tiers' upper edges when a scene asks for it (drawFarForestTree.snow).
+  if(drawFarForestTree.snow){ctx.beginPath();for(const[lo,hi,k]of[[.24,.62,1],[.44,.82,.74],[.62,1,.48]]){const l=at(lo+(hi-lo)*.45,-k*.55),rr=at(lo+(hi-lo)*.45,k*.55),a=at(hi,0);ctx.moveTo(l[0],l[1]);ctx.lineTo(a[0],a[1]);ctx.lineTo(rr[0],rr[1])}ctx.strokeStyle=C.w;ctx.globalAlpha=alpha*.85;ctx.stroke()}
+  ctx.restore();
+  obj._farTree=true;return true
+}
 function drawLayeredForestTree(obj,mesh,assetId,alphaScale=1){
   if(!obj||!mesh)return false;
   const layout=forestTreeLayer(mesh,assetId);
   if(!layout){drawMesh(obj,mesh,resolvePaletteColor(obj?.col)||resolvePaletteColor(mesh?.singleColorKey)||C.g,alphaScale);return true}
+  {const d=camPoint([obj.x,obj.y,obj.z])[2];obj._farTree=false;if(d>FOREST_TREE_FAR)return drawFarForestTree(obj,mesh,layout,d,alphaScale)}
   const woodCol=resolvePaletteColor(layout.woodColorKey||layout.woodColor||mesh.woodColorKey||mesh.woodColor)||C.o;
   const foliageCol=resolvePaletteColor(layout.foliageColorKey||layout.foliageColor||mesh.foliageColorKey||mesh.foliageColor)||C.g;
   const rot=obj.rot||[0,0,0],mx=obj.mx||1,my=obj.my||1,mz=obj.mz||1;
