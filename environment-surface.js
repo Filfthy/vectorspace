@@ -660,7 +660,7 @@ class SurfaceDestinationApproachController {
       scene.push({z:d,draw:()=>{
         if(t.kind==='rock'){
           drawMesh({type:'plainsRock',x:t.x,y:t.y,z,s:t.s,mx:t.mx||1,my:t.my||1,mz:t.mz||1,rot:t.rot||[0,0,0]},t.mesh,t.col||C.o,clamp(1.02-d/220,.28,.84));
-          if(t.smoke)this.drawConeSmoke(t,z);else if(t.vent)this.drawVentFountain(t,z);else if(t.geyser)this.drawGeyser(t,z);
+          if(t.smoke)this.drawConeSmoke(t,z);else if(t.vent)this.drawVentFountain(t,z);else if(t.geyser)this.drawGeyser(t,z);else if(t.feature==='crystal')this.drawGlint(t,z,d);
           return
         }
         drawLayeredForestTree({type:'plainsTree',assetId:t.assetId,x:t.x,y:t.y,z,s:t.s,rot:t.rot},t.mesh,t.assetId,.88)
@@ -798,6 +798,15 @@ class SurfaceDestinationApproachController {
     ctx.restore()
   }
   // An active vent: embers thrown up out of the crater in arcs that fall back around it.
+  // v1630: a crystal spire catches the light now and then: a brief four-point star at its tip.
+  drawGlint(t,z,d){
+    if(d>200)return;const cyc=((this.navPulse||0)*.35+(t.x*.137+t.worldZ*.071))%3;if(cyc>.35)return;
+    const k=Math.sin(cyc/.35*Math.PI),tip=camPoint([t.x,t.y+3.2*t.s*(t.my||1),z]);if(tip[2]<=1)return;const p=projectCam(tip);if(!p)return;
+    const r=(4+6*k)*clamp(1.4-d/200,.5,1.2);
+    ctx.save();ctx.globalAlpha=k*.9;ctx.strokeStyle=C.w;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.beginPath();
+    ctx.moveTo(p.x-r,p.y);ctx.lineTo(p.x+r,p.y);ctx.moveTo(p.x,p.y-r*1.4);ctx.lineTo(p.x,p.y+r*1.4);ctx.moveTo(p.x-r*.35,p.y-r*.35);ctx.lineTo(p.x+r*.35,p.y+r*.35);ctx.moveTo(p.x+r*.35,p.y-r*.35);ctx.lineTo(p.x-r*.35,p.y+r*.35);
+    ctx.stroke();ctx.restore()
+  }
   // A cryo-geyser's eruption: a column of white streaks shooting up and spreading at the
   // top, then a thin wisp until the next one. One stroke for the whole plume.
   drawGeyser(t,z){

@@ -1623,3 +1623,10 @@ v1620 Cryo-geysers on ice worlds
       a tall white plume every five to nine seconds, spraying out at the top,
       then settle to a thin wisp until the next. Scenery only, never an
       obstacle. About one ice feature in eight.
+
+v1630 Crystal spires catch the light
+      On crystal worlds a spire now and then flashes a brief white four-point
+      glint at its tip, a different one every moment, so the field glitters
+      as you fly through. Every world type now has something moving on it:
+      geysers on ice, vents and ash on volcanic worlds, glints on crystal,
+      dust on arid worlds and traffic into town.
