@@ -2196,3 +2196,39 @@ v1900 Contacts talk about the job in hand, and an earnings sweep
       the surface). It looks like the pilot missing the door in one
       layout, not a game fault.
 
+v1910 New job: Convoy Escort
+      A freighter has to cross a pirate lane and you fly alongside it.
+      Raiders come in waves (2 below risk 5, 3 from 5, 4 from 8, of 3 to
+      7 each). Half of each wave hunts you from the start. The rest go
+      for the freighter and wear its hull down while they live, holding
+      fire on you until you shoot them, at which point they turn on you
+      instead. So you choose between drawing them off and killing them
+      fast. Between waves the crew patches the hull a little (+10%).
+      The freighter is a new model: a long hauler with eight cargo pods,
+      a bridge and mast on a neck, engine block and tail fin. It starts
+      off to one side so you see its length. It is always labelled
+      ("FREIGHTER 87% · 70") or shown by an edge arrow when off screen,
+      and the HUD reads "CONVOY ESCORT · WAVE 2/3 · FREIGHTER 87%".
+      Lose the freighter and the job still ends, but at half the fee,
+      40% less XP and a standing loss, and the debrief says so ("Escort ·
+      Freighter lost, convoy failed"). Completion letters are worded so
+      they fit either way.
+      Offered by Free Traders (Corvella), QuickBite (Nyxo) and OSD
+      (Kudo), from level 3, at most one per board, filed as COMBAT. Each
+      has its own adverts, letters and abandon notes.
+      Achievement: Shepherd (see 3 freighters safely through). The Guide
+      lists it under Diversions.
+      Tuned with the pilot (drone can be lost, matched weapon):
+        risk 3   about 45 s, freighter ends ~92%, 1 to 6 shield lost
+        risk 6   about 74 s, freighter ends 71 to 89%
+        risk 9   115 to 136 s, freighter ends 58 to 71%, about half the
+                 shield lost
+      Pay is set so that with its kill bounties it earns about 1.15x a
+      dogfight's credits and XP per minute. A first version was far too
+      easy (raiders ignored you entirely, freighter never below 90%), so
+      the hunters were added. The pilot aims perfectly, so for a person
+      the freighter will be in more danger than these numbers suggest.
+      Bug caught while building it: after a wave the game kept reporting
+      that same wave as cleared every frame, so the next wave never came.
+      The self-test now flies the whole job every run.
+

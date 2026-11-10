@@ -81,6 +81,13 @@ const routeDiversion={
       // plus a bounty on every construct, so shooting first earned more than the quiet
       // survey the client asked for.
       woken:{text:'Lattice woken and destroyed, survey lost',pay:-.5,xp:-.4}},
+    // v1910: CONVOY ESCORT, a board job in its own right (main:true). A freighter crosses
+    // open space at a little under cruise speed. Raiders come in waves and go for the
+    // freighter, draining its hull while they live. Shoot one and it turns on you instead.
+    // The freighter patches itself a little between waves. See beginEscort.
+    escort:{nav:'CONVOY ESCORT · KEEP THE FREIGHTER ALIVE',hud:'CONVOY ESCORT',window:1e9,
+      safe:{say:'CONVOY THROUGH · FREIGHTER SAFE',text:'Freighter escorted through',rep:3},
+      lost:{say:'FREIGHTER DESTROYED · CONVOY LOST',text:'Freighter lost, convoy failed',pay:-.5,xp:-.4,rep:-3}},
     migration:{nav:'XENO MIGRATION CROSSING · FLY CLOSE TO SCAN · DO NOT FIRE',hud:'XENO MIGRATION',window:30,need:3,
       surveyed:{say:'MIGRATION SURVEYED · HELIX WILL WANT THIS',pay:.08,rep:3,repFaction:'helix',xp:.15,text:'Xeno migration surveyed'},
       fired:{text:'Fired on a xeno migration',rep:-4,repFaction:'helix'}},
@@ -102,6 +109,7 @@ const routeDiversion={
     if(kind==='minefield')return this.beginMinefield(stage,def);
     if(kind==='migration')return this.beginMigration(stage,def);
     if(kind==='lattice'||kind==='latticeSurvey')return this.beginLattice(stage,def);
+    if(kind==='escort')return this.beginEscort(stage,def);
     if(kind==='civilian'){
       // Raiders chasing someone else. They hold fire on X unless X joins in, so the
       // event can genuinely be flown past. Destroying them all in time saves the civilian.
@@ -135,6 +143,7 @@ const routeDiversion={
     if(this.state==='lattice'&&this.surveyJob)return this.surveyDone?`${def.hud} · DATA SECURED`:`${def.hud} · ${def.shells[this.pass]||''} · ${Math.min(this.passScanned,def.need)}/${def.need}`;
     if(this.state==='lattice')return `${def.hud} · ${fighters.filter(f=>f.ghost&&!f.dead).length} CORES`;
     if(this.state==='latticeFight')return 'GHOST LATTICE · AWAKE';
+    if(this.state==='escort'){const c=this.convoy;return `${def.hud} · WAVE ${Math.max(1,this.wave)}/${this.waves} · FREIGHTER ${c?Math.max(0,Math.ceil(c.hp*100)):0}%`}
     if(this.state==='skirmish'&&this.side)return `${def.hud} · ${this.side.short} ${this.allies.filter(a=>!a.dead).length}/${this.allies.length} · ${left}s`;
     return `${def.hud} · ${left}s`
   },
@@ -150,6 +159,8 @@ const routeDiversion={
       this.updateSkirmish(dt)
     }else if(this.state==='minefield'){
       this.updateMinefield(dt)
+    }else if(this.state==='escort'){
+      this.updateEscort(dt)
     }else if(this.state==='lattice'||this.state==='latticeFight'){
       this.updateLattice(dt)
     }else if(this.state==='migration'){
@@ -176,7 +187,7 @@ const routeDiversion={
     }
   },
   // A shot at a pursuer means X has joined in: that raider fights back.
-  onPlayerHitFighter(f){if(this.active&&(this.state==='pursuit'||this.state==='skirmish'||this.state==='migration')&&f){f.provoked=true;this.joined=true;if(!(f.shotsLeft>0))f.shotsLeft=3}},
+  onPlayerHitFighter(f){if(this.active&&(this.state==='pursuit'||this.state==='skirmish'||this.state==='migration'||this.state==='escort')&&f){f.provoked=true;this.joined=true;if(!(f.shotsLeft>0))f.shotsLeft=3}},
   // ---- Xeno migration (v1400) ----
   // Four to six drifters (huge, slow, harmless) cross the route ahead from one side, with a
   // few hornets in escort that hold their fire. Keeping within 45 of a drifter for two and a
@@ -363,6 +374,79 @@ const routeDiversion={
     else{callout('LATTICE BEHIND · ROUTE CONTINUES',1.6);this.record({id:'abandoned',text:'Left a waking lattice behind'})}
     fighters.length=0;bolts.length=0;this.anchors=[];this.end()
   },
+  // ---- Convoy escort (v1910) ----
+  // Waves: 2 below risk 5, 3 from 5, 4 from 8, each of 3 + risk x .35 raiders (at most 7).
+  // Half hunt X, half go for the freighter (.0055 hull a second each while unprovoked).
+  beginEscort(stage,def){
+    const risk=Math.max(1,Number(campaign.currentMission?.risk)||1);
+    // Off to one side and turned a little, so its length and cargo pods read rather than
+    // just the engine block from dead astern.
+    const side=Math.random()<.5?-1:1,w=cameraPointToWorld([side*26,5,88]);
+    this.convoy={x:w[0],y:w[1],z:w[2],s:5.2,rot:[-.05,side*.18,0],hp:1,hitT:0,dead:false};
+    this.wave=0;this.waves=risk>=8?4:(risk>=5?3:2);this.waveGap=2.2;this.escortRisk=risk;this.escortDone=false;this.lastEscortHp=null;
+    this.state='escort';stage.spaceCombat=false;
+    audio.music.setMode('calm');callout(def.nav,2.8);return true
+  },
+  startEscortWave(){
+    const stage=this.stage,risk=this.escortRisk,k=campaign.contractToughnessScale(risk);
+    const n=Math.max(3,Math.min(7,3+Math.round(risk*.35)));
+    const lvl=campaign.levelForXP?.()||1,profile=(lvl>=4&&this.wave>=1&&Math.random()<.35)?'hostile':'pirate';
+    this.wave++;stage.spaceCombat=true;
+    scenarioFlow.startFighterStage({...stage,target:n,fighterHp:Math.round(12*k),profile,navMessage:null,silentStart:true},profile,{preservePhase:true});
+    scenarioFlow.encounterHudTag=this.KINDS.escort.hud;
+    audio.music.setMode('violent');
+    callout(this.wave<this.waves?`RAIDERS INBOUND · WAVE ${this.wave} OF ${this.waves}`:`LAST WAVE · ${n} RAIDERS`,2)
+  },
+  onEscortWaveCleared(){
+    // Reset the kill goal too, or the game keeps reporting the same wave as cleared every frame.
+    fighters.length=0;bolts.length=0;this.stage.spaceCombat=false;scenarioFlow.encounterProfile='standard';resetSpaceDogfightDirector();
+    interceptorGoal=9999;interceptorsDestroyed=0;interceptorClearDelay=0;
+    audio.music.setMode('calm');
+    if(this.wave>=this.waves){this.finishEscort(true);return}
+    // The crew patches what it can between waves.
+    const c=this.convoy;if(c)c.hp=Math.min(1,c.hp+.1);
+    this.waveGap=7;callout(`WAVE CLEARED · FREIGHTER ${Math.ceil((c?.hp||0)*100)}% · MORE COMING`,2)
+  },
+  updateEscort(dt){
+    this.t+=dt;const c=this.convoy;if(!c)return;
+    // Same open-space shift as every other free object, plus its own course: straight on
+    // at a little under cruise speed, so a drone that keeps station slowly overtakes it.
+    const k=OPEN_SPACE_CRUISE*dt;c.x-=spaceMoveX*k;c.y-=spaceMoveY*k;c.z-=spaceMoveZ*k;c.z+=OPEN_SPACE_CRUISE*.9*dt;c.hitT=Math.max(0,c.hitT-dt);
+    if(this.waveGap>0){this.waveGap-=dt;if(this.waveGap<=0&&!fighters.some(f=>!f.dead&&!f.dying))this.startEscortWave();return}
+    // v1910 tuning: every other raider is an escort-hunter that comes for X from the
+    // start. The rest go for the freighter and hold fire on X until one of them is shot.
+    let onIt=0;
+    for(const f of fighters){if(f.dead||f.dying||f.t<0)continue;
+      if(f.escortRole===undefined){f.escortRole=((this.escortSeen=(this.escortSeen||0)+1)%2)?'raider':'hunter';if(f.escortRole==='hunter')f.provoked=true}
+      if(f.provoked)continue;f.shotsLeft=0;onIt++;
+      const g=Math.min(1,dt*.7);f.x+=(c.x-12+Math.random()*24-f.x)*g;f.y+=(c.y-6+Math.random()*12-f.y)*g;f.z+=(c.z-20-f.z)*g}
+    if(onIt){c.hp-=dt*.0055*onIt;if(Math.random()<dt*onIt*1.2){c.hitT=.12;const p=proj([c.x,c.y,c.z]);if(p)spark(p.x,p.y,C.y,5)}}
+    if(c.hp<=0){c.dead=true;const p=proj([c.x,c.y,c.z]);if(p&&typeof explodeMesh==='function')explodeMesh(c,this.FREIGHTER_MESH,p,C.y);this.finishEscort(false)}
+  },
+  finishEscort(safe){
+    if(this.escortDone)return;this.escortDone=true;this.lastEscortHp=this.convoy?Math.max(0,this.convoy.hp):0;
+    const def=this.KINDS.escort,o=safe?def.safe:def.lost,m=campaign.currentMission;
+    callout(o.say,2.4);if(safe)SoundFX.objectiveComplete?.();
+    this.record({id:safe?'escorted':'lost',...o,repFaction:m?.faction||'trade'});
+    if(safe){const st=campaign.stats?.();if(st&&!m?.devTemplateTest)st.convoysSafe=(st.convoysSafe||0)+1}
+    fighters.length=0;bolts.length=0;this.convoy=null;this.end()
+  },
+  // A long-haul freighter: spine, six cargo pods, bridge and engine block, all closed
+  // boxes so hidden lines drop out. About 1.3 x 1 x 8 units before scaling.
+  FREIGHTER_MESH:(()=>{
+    const v=[],faces=[];
+    const box=(cx,cy,cz,sx,sy,sz)=>{const b=v.length;for(const[x,y,z]of[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]])v.push([cx+x*sx,cy+y*sy,cz+z*sz]);
+      for(const f of[[0,1,2,3],[7,6,5,4],[0,4,5,1],[1,5,6,2],[2,6,7,3],[3,7,4,0]])faces.push(f.map(i=>b+i))};
+    box(0,0,0,.14,.14,3.3);                                    // spine
+    for(const z of[-2.1,-.9,.3,1.5])for(const x of[-.4,.4])box(x,0,z,.25,.3,.5);  // cargo pods
+    box(0,.42,3.0,.3,.2,.3);box(0,.05,2.95,.2,.18,.55);         // bridge on its neck
+    box(0,.62,3.0,.03,.22,.12);                                 // mast
+    box(0,0,-3.45,.32,.28,.25);                                 // engine block
+    for(const x of[-.18,.18])box(x,0,-3.85,.09,.09,.15);        // nozzles
+    box(0,.34,-3.35,.03,.3,.28);                                // tail fin
+    const seen=new Set(),e=[];for(const f of faces)for(let i=0;i<f.length;i++){const a=f[i],b=f[(i+1)%f.length],key=a<b?a+':'+b:b+':'+a;if(!seen.has(key)){seen.add(key);e.push([a,b])}}
+    return{v,faces,e}
+  })(),
   // ---- Old minefield (v1370) ----
   // A slab of old contact mines ahead, drifting and tumbling, with a few right across the
   // flight path. A mine within 12 arms (blinking white) and blows 0.45 s later; inside 10 the
@@ -503,6 +587,7 @@ const routeDiversion={
     if(this.state==='skirmish'){this.finishSkirmish(true);return}
     if(this.state==='migration'){this.onMigrationEscortCleared();return}
     if(this.state==='latticeFight'){this.finishLattice(true);return}
+    if(this.state==='escort'){this.onEscortWaveCleared();return}
     if(this.state==='pursuit')this.finishPursuit(true)
   },
   finishPursuit(helped,message=null){
@@ -541,6 +626,8 @@ const routeDiversion={
        [20,0],[20,3],[21,1],[21,2],[20,21]]
   },
   appendScene(scene){
+    if(this.active&&this.state==='escort'&&this.convoy&&!this.convoy.dead){const c=this.convoy,q=camPoint([c.x,c.y,c.z]);
+      if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(c,this.FREIGHTER_MESH,c.hitT>0?C.w:(c.hp<.3?C.r:C.y),.95)});return}
     if(this.active&&this.state==='migration'){for(const d of this.herd){if(d.dead)continue;const q=camPoint([d.x,d.y,d.z]);
       if(q[2]>.18)scene.push({z:q[2],draw:()=>{const mesh=agentXAnimatedBugMesh(d)||d.mesh;drawMesh(d,mesh,d.hitT>0?C.w:C.c)}})}return}
     if(this.active&&this.state==='minefield'){for(const m of this.mines){if(m.dead||m.passed)continue;const q=camPoint([m.x,m.y,m.z]);
@@ -550,6 +637,15 @@ const routeDiversion={
     const q=camPoint([c.x,c.y,c.z]);if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(c,this.CIV_MESH,c.hitT>0?C.w:(c.hp<.3?C.r:C.c))})
   },
   drawMarker(){
+    if(this.active&&this.state==='escort'&&this.convoy&&!this.convoy.dead){
+      // Always findable: a label when it is on screen, an edge arrow when it is not.
+      const c=this.convoy,q=camPoint([c.x,c.y,c.z]),p=q[2]>.2?projectCam(q):null,col=c.hp<.3?C.r:C.y;
+      const on=!!(p&&p.x>=0&&p.x<=W&&p.y>=0&&p.y<=viewH),pct=Math.max(0,Math.ceil(c.hp*100)),d=Math.round(Math.hypot(c.x-shipX,c.y-shipY,c.z));
+      ctx.save();ctx.textAlign='center';ctx.textBaseline='bottom';ctx.font='400 10px Consolas,monospace';ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.strokeStyle=col;
+      if(on)ctx.strokeText(`FREIGHTER ${pct}% · ${d}`,p.x,p.y-Math.max(18,c.s*p.k*.7));
+      else{const e=hudEdgeCue(q,0),tx=-e.dy,ty=e.dx;line(e.x,e.y,e.x-e.dx*10+tx*7,e.y-e.dy*10+ty*7,col,1.25,.9);line(e.x,e.y,e.x-e.dx*10-tx*7,e.y-e.dy*10-ty*7,col,1.25,.9);ctx.strokeText(`FREIGHTER ${pct}%`,e.x-e.dx*26,e.y-e.dy*26)}
+      ctx.restore();return
+    }
     if(this.active&&this.state==='lattice'&&this.surveyJob){
       const def=this.KINDS.latticeSurvey;
       ctx.save();ctx.textAlign='center';ctx.textBaseline='bottom';ctx.font='400 10px Consolas,monospace';ctx.lineWidth=VECTOR_LINE_WIDTH;
@@ -580,7 +676,7 @@ const routeDiversion={
     ctx.strokeStyle=c.hp<.3?C.r:C.c;ctx.strokeText(`CIVILIAN ${Math.max(0,Math.ceil(c.hp*100))}%`,p.x,p.y-Math.max(16,3.4*p.k*.6));ctx.restore()
   },
   reset(){
-    this.civ=null;this.allies=[];this.tracers=[];this.side=null;this.mines=[];this.herd=[];this.anchors=[];
+    this.civ=null;this.convoy=null;this.allies=[];this.tracers=[];this.side=null;this.mines=[];this.herd=[];this.anchors=[];
     // Abandon/fail mid-diversion: release the marker this diversion borrowed.
     if(this.active&&salvageRecovery.stage?.type==='embedded_recovery')salvageRecovery.reset();
     this.active=false;this.state='idle';this.stage=null;this.t=0

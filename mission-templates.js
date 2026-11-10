@@ -2675,6 +2675,69 @@
     }
   };
 
+  // v1910: CONVOY ESCORT. Keep a freighter alive across open space through two or three
+  // waves of raiders that go for it, not you (route-diversion.js kind 'escort'). Lose the
+  // freighter and the job still ends, at half the fee and a standing loss.
+  const convoyEscort={
+    id:'convoy_escort',
+    version:1,
+    family:'convoy_escort',
+    musicMode:'calm',
+    minLevel:3,
+    maxLevel:null,
+    allowedFactions:['trade','quickbite','security'],
+    factionWeights:{trade:5,quickbite:3,security:2},
+    board:{enabled:true,category:'combat',weight:.7,maxPerBoard:1},
+    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
+    // Set from pilot flights (v1910): with its 8 to 24 kill bounties on top, about 1.15x a
+    // dogfight's credits and XP per minute (risk 9: about 125 s, half the shield, freighter
+    // ends near 60%). Risk 3 is a short warm-up.
+    reward:{basePay:1500,payPerRisk:520,payRiskSquare:115,randomPay:300,roundPay:50,baseXp:200,xpPerRisk:70,xpRiskSquare:8},
+    defaults:{},
+    sections:[
+      {type:'route_diversion',label:'Escort the Freighter',params:{diversion:'escort',main:true,spaceCombat:false,fighterHp:12}}
+    ],
+    presentation:{
+      trade:{
+        contactId:'corvella_pallis',
+        titles:['Convoy Escort','Babysitting a Hauler','Keep Her Flying'],
+        descriptions:[
+          'Sweetie, one of my haulers has to cross a lane the pirates think they own. Fly alongside her and shoot anything that gets close. She is slow, she is fat and she is full of my money, so do not let them touch her.',
+          'Babe, I need my biggest, scariest drone next to my slowest freighter. The raiders go for the hauler, not you, until you give them a reason. Give them a reason.'
+        ],
+        completionSubjects:['The convoy report','Our hauler'],
+        completionBodies:['Sweetie, the convoy report is in. CR {credits} is on its way to you. Standing: +{rep}. Whatever happened out there, the haulers are talking about your drone again.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Oh, babe'],bodies:['Your drone went down on the escort and my hauler was left on her own. I do not want to think about what happened next. I am thinking about it anyway.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['You left her'],bodies:['You flew off and left my freighter on her own, Sweetie. That is not escorting. That is sightseeing.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['The hauler crew'],bodies:['Babe, the hauler crew sent you a thank-you note. Well, they sent it to me. I have kept it. It mentions your drone in some detail.']}
+      },
+      quickbite:{
+        contactId:'nyxo_malloc',
+        titles:['Bulk Run Escort','Fry Freighter','Convoy Thing'],
+        descriptions:[
+          'Dude, we have a bulk freighter full of frozen stuff crossing a pirate lane. Fly next to it. Shoot the pirates. Do not let the freezer die.',
+          'Corporate bought a freighter instead of paying for escorts, so now you are the escort. The pirates go for the freighter first. Kind of rude, honestly.'
+        ],
+        completionSubjects:['freighter thing','bulk run'],
+        completionBodies:['Freighter report is in, dude. CR {credits} sent. Standing: +{rep}. I do not get to see how it went, but nobody is yelling at me yet, so.'],
+        failureMail:{contactId:'nyxo_malloc',subjects:['so the drone died'],bodies:['Your drone went down and the freighter was on its own after that. Insurance is going to want a form. I am the form guy.']},
+        abandonMail:{contactId:'nyxo_malloc',subjects:['where did you go'],bodies:['You left the freighter, dude. It does not have guns. That was kind of the whole point of you.']}
+      },
+      security:{
+        contactId:'kudo_shang',
+        titles:['Convoy Protection','Escort Detail','Hold the Convoy'],
+        descriptions:[
+          'A supply freighter crosses a contested lane. You are its escort. Raiders will go for the hull, not for you. Make them regret that choice.',
+          'Escort detail. The freighter does not stop and does not fight. You do both. Hold the line until it is through.'
+        ],
+        completionSubjects:['Escort detail closed','Convoy report'],
+        completionBodies:['The convoy report is filed. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Escort failed'],bodies:['The escort went down. The freighter was left undefended. That is not an outcome I accept twice.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left a freighter undefended on a contested lane. I will remember it.']}
+      }
+    }
+  };
+
   // v1790: LATTICE SURVEY. The first job where the right answer is not to shoot. A dormant
   // ghost lattice lies across a lane. Fly close enough to three of its cores to scan them
   // (inside scan range, outside the range that wakes it) and never fire. Wake it and you
@@ -2867,7 +2930,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crash_recovery:crashRecovery,relay_repair:relayRepair,lattice_survey:latticeSurvey,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crash_recovery:crashRecovery,relay_repair:relayRepair,lattice_survey:latticeSurvey,convoy_escort:convoyEscort,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();

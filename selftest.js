@@ -290,18 +290,26 @@
 
     await group('diversions',Object.keys(routeDiversion.KINDS),kind=>{const m=c.makeDevTemplatePreview('asteroid_delivery','security');m.routeEncounter=null;m.modules=m.modules.filter(x=>x.type!=='route_diversion'&&!x.routeEncounter);m.modules.splice(0,0,{type:'route_diversion',label:'Route Diversion',diversion:kind,difficulty:2,spaceCombat:false,fighterHp:12});m.stages=m.modules.map(x=>x.label);
       c.launchDevTemplateTest('asteroid_delivery','security',{mission:m});invulnerable=true;for(let i=0;i<600&&!routeDiversion.active;i++)update(1/30);if(!routeDiversion.active)return 'never started';
-      const secs=kind==='latticeSurvey'?200:90;
+      const secs=kind==='latticeSurvey'||kind==='escort'?240:90;
       for(let i=0;i<30*secs&&routeDiversion.active;i++){
         // A survey only ends when its shells are scanned, so the pilot flies it. If the
         // pilot wakes it, the other ending is exercised instead: the lattice is cleared.
         if(kind==='latticeSurvey'){if(routeDiversion.state==='lattice')latticeSteer(1);else if(routeDiversion.state==='latticeFight'){routeDiversion.finishLattice(true);break}}
+        if(kind==='escort')fightStep(.9);   // v1910: the waves only end when the raiders die
         update(1/30);if(i%60===0)render(performance.now())}
       inputX=inputY=0;
       if(routeDiversion.active)return `still running after ${secs} s in state ${routeDiversion.state}`});
 
     // Flown for real: no stage is skipped once the pilot has the controls.
     const pilotNotes=[];
-    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge'],id=>{
+    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge','convoy_escort'],id=>{
+      // v1910: the convoy escort flown by the job pilot: every wave must end and the job finish.
+      if(id==='convoy_escort'){
+        const line=flyJob('convoy_escort',{weapon:'laser3',frame:'AX-3B',level:10,stageCap:400,maxSecs:500,prepare:m=>{pilotNotes.__m=m}});
+        const m=pilotNotes.__m;delete pilotNotes.__m;const out=(m?.diversions||[]).find(d=>d.main);
+        const secs=Number((line.match(/in (\d+) s/)||[])[1]||0);pilotNotes.push(`escort ${secs}s ${out?.outcome||'?'}`);
+        if(!/finished/.test(line)||/STUCK/.test(line))return line;if(!out)return 'the escort ended without an outcome';return
+      }
       // v1890: the city road rejoin after a pickup must hand control back even when a frame
       // stops it within the last .04 of the merge (it used to hang there for good).
       if(id==='city merge edge'){
