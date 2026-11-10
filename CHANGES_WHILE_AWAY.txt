@@ -1675,3 +1675,15 @@ v1700 You can see the convoy the nav computer mentions
       PASSING", "FREIGHTER TRAFFIC HEAVY" or an ice hauler convoy. Now that
       stage shows it: a line of blinking navigation lights (red lead, white
       and green behind) crossing slowly far off in the sky.
+
+v1710 Start-up crash fixed (from a fourth review)
+      IMPORTANT: v1610's lattice level check could crash the game while it
+      was loading, for a new player or whenever the contract board had to be
+      rebuilt at start-up. The board is first built while the campaign is
+      still being created, and the check read the campaign before it
+      existed. The campaign is now handed to the check instead, so the board
+      can be built at any time. Fresh boots and level 1 and level 8 boards
+      re-tested clean. (v1610 to v1700 were affected, pushed up to v1680.)
+      Also: crystal glints on the left of the route were firing almost
+      constantly (a negative remainder), and a job with no id never got its
+      comet.

@@ -96,9 +96,12 @@
 
   // Optional diversions (route-diversion.js): open-space moments only, never stacked.
   const DIVERSIONS=[{id:'beacon',weight:40},{id:'derelict',weight:35},{id:'civilian',weight:25},{id:'skirmish',weight:22},{id:'minefield',weight:16},{id:'migration',weight:14},{id:'lattice',weight:12,minLevel:4},{id:'pod',weight:22},{id:'cache',weight:18}];
-  function maybeDiversion(modules,spots,risk,chance){
+  function maybeDiversion(modules,spots,risk,chance,campaign=null){
     if(Math.random()>=chance||modules.some(m=>m.type==='route_diversion'))return false;
-    const lvl=typeof campaign!=='undefined'&&campaign.levelForXP?campaign.levelForXP():1;   // (campaign is a top-level const, not on globalThis)
+    // v1710: the campaign is passed in. Reading the global here crashed at start-up: the
+    // board is first built inside the CampaignController constructor, before the global
+    // const exists (a top-level const is also not on globalThis).
+    const lvl=campaign?.levelForXP?.()||1;
     const s=spots[Math.floor(Math.random()*spots.length)],d=pick(DIVERSIONS,x=>x.minLevel>lvl?0:x.weight);
     modules.splice(s.index,0,{type:'route_diversion',label:'Route Diversion',diversion:d.id,difficulty:risk,spaceCombat:false,fighterHp:12});
     return true
@@ -110,7 +113,7 @@
     const spots=placements(modules);if(!spots.length)return null;
     // A job that already contains a fight gets no extra fight, but may still pass an
     // optional diversion that the player can investigate or ignore.
-    if(modules.some(m=>COMBAT.has(m.type))){maybeDiversion(modules,spots,risk,.14);return null}
+    if(modules.some(m=>COMBAT.has(m.type))){maybeDiversion(modules,spots,risk,.14,campaign);return null}
     const level=campaign.levelForXP(),state=campaign.state;
     // v530: a network you are Hostile with (standing below -55) sends enforcers after
     // you on other networks' jobs. Its own jobs never get them: working for it is how
@@ -139,7 +142,7 @@
         return {id:e.id,place:s.place,variant:v[0],payBonus:.15+v[4],nav:e.nav}
       }
     }
-    if(maybeDiversion(modules,spots,risk,.18))return null;
+    if(maybeDiversion(modules,spots,risk,.18,campaign))return null;
     // Quiet run: sometimes the nav computer notes something harmless on arrival.
     if(Math.random()<.35){
       const s=spots[Math.floor(Math.random()*spots.length)],target=modules[Math.min(s.index,modules.length-1)];

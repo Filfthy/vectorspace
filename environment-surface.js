@@ -848,7 +848,7 @@ class SurfaceDestinationApproachController {
   // An active vent: embers thrown up out of the crater in arcs that fall back around it.
   // v1630: a crystal spire catches the light now and then: a brief four-point star at its tip.
   drawGlint(t,z,d){
-    if(d>200)return;const cyc=((this.navPulse||0)*.35+(t.x*.137+t.worldZ*.071))%3;if(cyc>.35)return;
+    if(d>200)return;const cyc=((((this.navPulse||0)*.35+(t.x*.137+t.worldZ*.071))%3)+3)%3;   // always 0..3, left-side spires tooif(cyc>.35)return;
     const k=Math.sin(cyc/.35*Math.PI),tip=camPoint([t.x,t.y+3.2*t.s*(t.my||1),z]);if(tip[2]<=1)return;const p=projectCam(tip);if(!p)return;
     const r=(4+6*k)*clamp(1.4-d/200,.5,1.2);
     ctx.save();ctx.globalAlpha=k*.9;ctx.strokeStyle=C.w;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.beginPath();

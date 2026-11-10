@@ -12,7 +12,7 @@
 const AgentXSpaceAmbience={
   cometFor(m){
     if(!m||m.training)return null;
-    if(m._cometKey===m.id)return m._comet;
+    const key=m.id||m.title||'';if('_comet' in m&&m._cometKey===key)return m._comet;
     const s=String(m.id||m.title||'');let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}
     const r=k=>((h>>>0)%(1000+k*7))/(1000+k*7);
     let c=null;
@@ -24,7 +24,7 @@ const AgentXSpaceAmbience={
       c={dir,tail,len:.9+r(4)*.8};
     }
     Object.defineProperty(m,'_comet',{value:c,writable:true,configurable:true,enumerable:false});
-    Object.defineProperty(m,'_cometKey',{value:m.id,writable:true,configurable:true,enumerable:false});
+    Object.defineProperty(m,'_cometKey',{value:key,writable:true,configurable:true,enumerable:false});
     return c
   },
   // v1700: when the nav computer says a convoy or freight traffic is passing, show it: a
