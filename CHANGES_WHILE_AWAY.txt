@@ -1617,3 +1617,9 @@ v1610 Fixes from a third review (v1530 to v1600)
       - A sleeping jammer no longer jams (no crackle on a quiet pass).
       - Volcanic embers fade with age and distance again, and long fissures
         near the camera no longer pop out at the screen edge.
+
+v1620 Cryo-geysers on ice worlds
+      Now and then an ice world's plains have low frosted vents that throw up
+      a tall white plume every five to nine seconds, spraying out at the top,
+      then settle to a thin wisp until the next. Scenery only, never an
+      obstacle. About one ice feature in eight.

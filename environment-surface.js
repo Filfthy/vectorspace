@@ -276,6 +276,10 @@ class SurfaceDestinationApproachController {
     };
     const addShard=(x,wz,scale)=>{
       if(this.sceneryReserved(x,wz,Math.max(1.5,scale*1.6)))return;
+      // v1620: on ice worlds now and then a cryo-geyser instead: a low frosted vent that
+      // throws up a tall white plume every few seconds. Never an obstacle.
+      if(world==='ice'&&this.rand()<.12){const s=.9+this.rand()*.5;
+        this.trees.push({kind:'rock',feature:'geyser',noHit:true,geyser:true,ph:this.rand()*20,period:5+this.rand()*4,mesh:surfaceCraterMesh,x,y:this.groundY+.02,worldZ:wz,s,rot:[0,this.rand()*Math.PI*2,0],col:C.w,mx:1,my:.8,mz:1,hit:false});return}
       const crystal=world==='crystal',mesh=crystal?surfaceCrystalMesh:surfaceIceShardMesh;
       const mx=.78+this.rand()*.42,my=.72+this.rand()*.74,y=this.groundY-.10*scale*my;
       this.trees.push({kind:'rock',feature:world,mesh,x,y,worldZ:wz,s:scale,rot:[(this.rand()-.5)*.24,this.rand()*Math.PI*2,(this.rand()-.5)*.24],col:crystal?C.c:C.w,mx,my,mz:mx,hit:false})
@@ -656,7 +660,7 @@ class SurfaceDestinationApproachController {
       scene.push({z:d,draw:()=>{
         if(t.kind==='rock'){
           drawMesh({type:'plainsRock',x:t.x,y:t.y,z,s:t.s,mx:t.mx||1,my:t.my||1,mz:t.mz||1,rot:t.rot||[0,0,0]},t.mesh,t.col||C.o,clamp(1.02-d/220,.28,.84));
-          if(t.smoke)this.drawConeSmoke(t,z);else if(t.vent)this.drawVentFountain(t,z);
+          if(t.smoke)this.drawConeSmoke(t,z);else if(t.vent)this.drawVentFountain(t,z);else if(t.geyser)this.drawGeyser(t,z);
           return
         }
         drawLayeredForestTree({type:'plainsTree',assetId:t.assetId,x:t.x,y:t.y,z,s:t.s,rot:t.rot},t.mesh,t.assetId,.88)
@@ -794,6 +798,18 @@ class SurfaceDestinationApproachController {
     ctx.restore()
   }
   // An active vent: embers thrown up out of the crater in arcs that fall back around it.
+  // A cryo-geyser's eruption: a column of white streaks shooting up and spreading at the
+  // top, then a thin wisp until the next one. One stroke for the whole plume.
+  drawGeyser(t,z){
+    const g=camPoint([t.x,t.y,z]);if(!(g[2]>2&&g[2]<320))return;
+    const ph=((this.navPulse||0)+t.ph)%t.period,erupt=ph<2.2,k=erupt?ph/2.2:0,al=clamp(1.15-g[2]/320,.25,.9),s=t.s;
+    ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.strokeStyle=C.w;ctx.beginPath();
+    const n=erupt?16:4,H=erupt?(3+9*Math.min(1,k*2.2))*s:1.2*s;
+    for(let i=0;i<n;i++){const u=((i*.618+(this.navPulse||0)*(erupt?1.7:.4))%1),h=u*H,spread=(erupt?u*u*2.8:.2)*s,a=i*2.4;
+      const q0=camPoint([t.x+Math.cos(a)*spread,t.y+h,z+Math.sin(a)*spread]),q1=camPoint([t.x+Math.cos(a)*spread*1.05,t.y+h+.7*s,z+Math.sin(a)*spread*1.05]);
+      if(q0[2]<=2||q1[2]<=2)continue;const A=projectCam(q0),B=projectCam(q1);if(!A||!B||Math.hypot(A.x-B.x,A.y-B.y)>60)continue;ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y)}
+    ctx.globalAlpha=al*(erupt?.85*(1-Math.max(0,k-.75)*3):.35);ctx.stroke();ctx.restore()
+  }
   drawVentFountain(t,z){
     const top=t.y+1.5*t.s*(t.my||1),g=camPoint([t.x,top,z]);if(!(g[2]>.3&&g[2]<300))return;
     const tm=(this.navPulse||0)*.9+t.ph,al=clamp(1.15-g[2]/300,.25,.95),s=t.s;
