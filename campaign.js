@@ -247,7 +247,8 @@ class CampaignController {
       {id:'quietPassage',name:'Quiet Passage',text:'Fly past a dormant lattice without waking it.',v:s.latticesPassed||0,goal:1},
       {id:'firewalker',name:'Firewalker',text:'Land on a volcanic world.',v:this.state.seenProfiles?.world_volcanic?1:0,goal:1},
       {id:'ventReader',name:'Vent Reader',text:'Complete 3 Vent Surveys.',v:bt.vent_survey||0,goal:3},
-      {id:'blackBox',name:'Black Box',text:'Complete 3 Crash Recoveries.',v:bt.crash_recovery||0,goal:3}
+      {id:'blackBox',name:'Black Box',text:'Complete 3 Crash Recoveries.',v:bt.crash_recovery||0,goal:3},
+      {id:'lightsOn',name:'Lights On',text:'Complete 3 Relay Repairs.',v:bt.relay_repair||0,goal:3}
     ]
   }
   checkAchievements(){

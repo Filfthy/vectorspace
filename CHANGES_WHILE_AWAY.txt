@@ -1658,3 +1658,7 @@ v1670 New land job: Relay Repair
       their own letters. Filed as DELIVERY on the board. The survey run,
       vent survey and crash recovery share the same machinery and were
       re-checked.
+
+v1680 Lights On achievement and a relay headline
+      Lights On: complete 3 Relay Repairs (43 achievements now). VOX Wire
+      reports relay coverage coming back once you have done one.
