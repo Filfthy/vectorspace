@@ -714,7 +714,7 @@ class SurfaceDestinationApproachController {
       // Embers: short bright streaks thrown up from points along the crack.
       if(dq<260)for(let i=1;i<f.pts.length-1;i++){
         const u=((t*.8+f.ph+i*.37)%1),p=f.pts[i],h=u*u*3.8,q0=camPoint([p[0]+u*(i&1?.6:-.6),y+h,p[1]-travel]),q1=camPoint([p[0]+u*(i&1?.6:-.6),y+h+.8*(1-u*.5),p[1]-travel]);
-        if(q0[2]<=.4||q1[2]<=.4)continue;const a=projectCam(q0),b=projectCam(q1);if(!a||!b)continue;
+        if(q0[2]<=4||q1[2]<=4)continue;const a=projectCam(q0),b=projectCam(q1);if(!a||!b||Math.hypot(a.x-b.x,a.y-b.y)>40)continue;   // close up a streak would smear across the view
         ctx.globalAlpha=al*(1-u)*.9;ctx.strokeStyle=(i&2)?C.r:C.o;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()
       }
     }
@@ -727,7 +727,7 @@ class SurfaceDestinationApproachController {
     ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;
     for(let k=0;k<9;k++){const u=(tm*.55+k/9)%1,a=k*2.4+t.ph,r=u*s*1.4,h=(u*(1-u)*4)*s*2.6,du=.06;
       const p0=camPoint([t.x+Math.cos(a)*r,top+h,z+Math.sin(a)*r]),u1=Math.min(1,u+du),r1=u1*s*1.4,h1=(u1*(1-u1)*4)*s*2.6,p1=camPoint([t.x+Math.cos(a)*r1,top+h1,z+Math.sin(a)*r1]);
-      if(p0[2]<=.3||p1[2]<=.3)continue;const A=projectCam(p0),B=projectCam(p1);if(!A||!B)continue;
+      if(p0[2]<=3||p1[2]<=3)continue;const A=projectCam(p0),B=projectCam(p1);if(!A||!B||Math.hypot(A.x-B.x,A.y-B.y)>60)continue;
       ctx.globalAlpha=al*(1-u*.7);ctx.strokeStyle=k%3?C.o:C.r;ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.stroke()}
     ctx.restore()
   }

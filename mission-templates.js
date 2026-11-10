@@ -2454,6 +2454,84 @@
     }
   };
 
+  // v1500: VENT SURVEY. The survey run on a volcanic world (always an orange planet that
+  // is still volcanic): fly the survey points over cones and fissures, maybe through an
+  // ash fall, then the pickup. Its own clients and voices.
+  const ventSurvey={
+    ...surveyRun,
+    id:'vent_survey',
+    minLevel:6,
+    volcanic:true,
+    allowedFactions:['helix','trade','quickbite','security'],
+    factionWeights:{helix:5,trade:3,quickbite:2,security:2},
+    board:{category:'delivery',weight:.45,maxPerBoard:1},
+    risk:{base:3,min:3,levelsPerStep:2,max:10,jitter:1},
+    planetaryRequirements:{landingBody:'planet',landingColour:'orange',moonCount:{min:0,max:2}},
+    sections:surveyRun.sections.map((s,i)=>i===1?{...s,label:'Vent Survey',params:{...s.params,surveyPoints:{base:3,perRisk:.2,min:3,max:5,round:true}}}:s),
+    presentation:{
+      helix:{
+        contactId:'navira_derris',cargoStyle:'case',
+        titles:['Vent Survey','Hot Ground','Fissure Readings'],
+        cargo:['a sealed sample case','vent gas cylinders','the ground team\'s thermal logs'],
+        destinations:['the Compact freight depot','a Helix collection point at the depot'],
+        descriptions:[
+          'This world is still cooling, and its vents are giving off things I cannot identify from orbit. Fly the survey points low over the fissures, then collect {cargo} from {origin} and bring it to {destination}.',
+          'I need thermal readings from the plains, every survey point. The ground team has been sampling the vents and would very much like to leave. Collect {cargo} from {origin} and hand it over at {destination}.'
+        ],
+        completionSubjects:['Vent readings received','Hot data'],
+        completionBodies:['Every point is logged and {cargo} reached the depot intact. One of the gases is new to me. I am delighted. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'navira_derris',subjects:['The vent survey'],bodies:['Your drone was lost before the samples reached the depot. Whatever was in those cylinders is still on that world, which is probably where it wants to be.']},
+        abandonMail:{contactId:'navira_derris',subjects:['Survey abandoned'],bodies:['You left before the survey was finished. The ground team is still standing next to a volcano. They asked me to mention that.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:3,chance:.22,subjects:['About the new gas'],bodies:['I have named the new gas after the survey number, not after you. I did consider it.']}
+      },
+      trade:{
+        contactId:'corvella_pallis',cargoStyle:'case',
+        titles:['Ash Road Survey','Hot Claim','Mining Road'],
+        cargo:['a sealed survey case','the claim surveyor\'s charts','a case of assay cores'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'Sweetie, there is good ore under all that ash and I want a mining road across it before anyone else gets ideas. Fly the survey points, then pick up {cargo} from {origin} and bring it to {destination}. Mind the cracks, babe.',
+          'Babe, my claim surveyor got her boots melted and went home. Finish her survey points for me, collect {cargo} from {origin} and drop it at {destination}. I will make it worth your while.'
+        ],
+        completionSubjects:['Claim surveyed','My hot little road'],
+        completionBodies:['The survey is in and {cargo} is at the depot. The ore is lovely and the road runs right between two volcanoes. Romantic, really. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the claim'],bodies:['Sweetie, the survey never reached the depot. Somebody else is going to put a road there now and it will be ugly.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, the ash'],bodies:['You left with survey points still unflown, babe. I know it is hot down there. That is not an excuse.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['Our road'],bodies:['They paved the first stretch of the mining road this week. I drove a hauler down it myself, sweetie. In my head I was racing you.']}
+      },
+      quickbite:{
+        contactId:'nyxo_malloc',cargoStyle:'case',
+        titles:['Volcano Run','Soup Route','The Hot Shortcut'],
+        cargo:['a sealed survey case','a thermal bag of route data','the courier\'s melted map'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'Dude, we have a franchise on a volcano world now. I am not joking. Couriers keep getting lost in the ash, so fly the survey points and map it, then grab {cargo} from {origin} and take it to {destination}.',
+          'Corporate wants a delivery route that does not go through any lava. Low bar, honestly. Hit every marker, collect {cargo} from {origin}, drop it at {destination}.'
+        ],
+        completionSubjects:['Route mapped, no lava','We have a volcano route'],
+        completionBodies:['Survey done, route mapped. Zero lava on it, which is a company record. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'nyxo_malloc',subjects:['The volcano won'],bodies:['Dude, your drone went down and the route data did not make it. Couriers are back to guessing. Guessing near volcanoes. Great.']},
+        abandonMail:{contactId:'nyxo_malloc',subjects:['You left the markers?'],bodies:['You left before the survey was done. The franchise is still open and still nobody can find it.']},
+        personalFollowUp:{contactId:'nyxo_malloc',minRisk:3,chance:.24,subjects:['volcano franchise update'],bodies:['The volcano franchise has five stars now. Four of them are from couriers saying they did not die.']}
+      },
+      security:{
+        contactId:'kudo_shang',cargoStyle:'case',
+        titles:['Seismic Survey','Thermal Sweep','Heat Source Check'],
+        cargo:['a sealed survey case','the seismic team\'s logs','a thermal anomaly report'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'There is a heat signature on this world that does not match the vents. Fly every survey point and confirm whether it is geology or remnant machinery. Then collect {cargo} from {origin} and deliver it to {destination}.',
+          'Thermal survey. Every marker, low and steady. Ash hides machines as well as it hides ground. Collect {cargo} from {origin} after, and deliver it to {destination}.'
+        ],
+        completionSubjects:['Thermal survey complete','Heat source identified'],
+        completionBodies:['The survey is in. The heat source was geology. That is the answer I wanted. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Survey incomplete'],bodies:['The survey was not completed. The heat source is still unidentified. Return and finish it.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left the survey unfinished. Unknown heat sources do not become known on their own.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.18,subjects:['Re: thermal survey'],bodies:['Your survey cleared that world for a mining permit. The miners do not know your name. That is how it should be.']}
+      }
+    }
+  };
+
   // Generic discretionary reward correspondence lives beside the mission templates
   // because it is faction/contact presentation, even when the reward itself is not
   // tied to one particular mission family. Campaign owns the reward mechanics; these
@@ -2594,7 +2672,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();

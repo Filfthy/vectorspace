@@ -1464,3 +1464,16 @@ v1490 Contacts react to what you run into
       finished contract, and never on the same contract as one of their
       personal letters. VOX Wire also gains four headlines that run once
       you have met these (lattice ordnance, drifter scans, mines, ash fall).
+
+v1500 New land job: Vent Survey
+      A survey run on a volcanic world (always an orange planet that is
+      still volcanic): fly three to five survey points low over the cones and
+      fissures, perhaps through an ash fall, then make the pickup and deliver
+      to the depot. From operator level 6, for Helix (Navira wants the vent
+      gases), the Compact (Corvella's mining road between two volcanoes),
+      QuickBite (Nyxo's volcano franchise, "zero lava on it") and OSD (Kudo's
+      unexplained heat source). Each has its own titles, letters, failure and
+      follow-up mail. Shows on about one board in four at level 9.
+      Also: a contract on an orange world now says "volcanic" on its world
+      line when it is one, instead of always "arid". Ember streaks very close
+      to the camera no longer smear across the view.

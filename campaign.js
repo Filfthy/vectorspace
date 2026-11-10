@@ -806,7 +806,7 @@ class CampaignController {
     return{
       id:`proc_${Date.now().toString(36)}_${serial}_${((Math.random()*0xffffff)|0).toString(36)}`,
       faction,title,kind:'procedural',family:template.family||template.id,templateId:template.id,templateVersion:template.version||1,
-      cargo,destination,cargoStyle:pack.cargoStyle||'',targetGroup,motive,situation,targetProfile,musicMode:template.musicMode||null,
+      cargo,destination,cargoStyle:pack.cargoStyle||'',targetGroup,motive,situation,targetProfile,musicMode:template.musicMode||null,...(template.volcanic?{volcanicWorld:true}:{}),
       planetaryRequirements,
       risk,minLevel:template.minLevel||1,minRep:-100,pay,xp,difficulty,implemented:true,intelStyle:template.intelStyle||'hiddenGroup',scenarioVersion:11,boardSchemaVersion:this.contractBoardSchemaVersion(),
       routeEncounter,
@@ -2431,7 +2431,7 @@ class CampaignController {
     // Only where that ground is actually shown: a forest or city plains approach, or a
     // dune assault. Swamp and rock approaches keep their own scenery (review fix).
     const shows=(m.modules||[]).some(x=>x.type==='dune_assault'||(x.type==='surface_destination_approach'&&!x.environment&&x.scenery!=='rocks'&&x.scenery!=='swamp'&&x.destination!=='swamp'));
-    const look=shows?{cyan:'ice',magenta:'crystal',yellow:'arid',orange:'arid',blue:'wetland'}[col]:null;
+    const look=shows?(col==='orange'&&typeof surfaceVolcanicJob==='function'&&surfaceVolcanicJob(m)?'volcanic':{cyan:'ice',magenta:'crystal',yellow:'arid',orange:'arid',blue:'wetland'}[col]):null;
     return `<div class="worldLine">Destination world: <b style="color:${hex}">${col||'green'} ${body}</b>${look?` · ${look}`:''}</div>`
   }
   contactNoteHtml(m){
