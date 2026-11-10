@@ -165,8 +165,8 @@ class CampaignController {
     if(kind==='reactors')return 5;
     if(kind==='aces')return 5; // v810: on top of the fighter kill itself
     if(kind==='tenders')return 3; // v1100: shield tenders, also on top of the kill
-    if(kind==='ghosts')return 1;  // v1470: ghost constructs are only open part of the time
-    if(kind==='jammers')return 2;
+    if(kind==='ghosts')return 2;  // v1470: ghost constructs are only open part of the time (v1720: 1 -> 2)
+    if(kind==='jammers')return 3; // (v1720: 2 -> 3)
     // Armour fields are large (15-27 units), so each unit is worth less than a fighter duel.
     if(kind==='armour')return ['strider','crab','tesla'].includes(sub)?3:1;
     return 0
@@ -176,7 +176,10 @@ class CampaignController {
     const units=this.bountyUnits(keys)*n;if(units<=0)return;
     const risk=Math.max(1,Number(m.risk)||1),b=this.missionBounty||(this.missionBounty={cr:0,xp:0,counts:{}});
     const cr=units*(100+90*risk)*this.contractPayMultiplier(risk)*(this.hasSkill('bountyBroker')?1.25:1);
-    b.cr+=cr;b.xp+=units*(4+2*risk);
+    // v1720: kills carry real experience, so a fight is worth more than a quiet delivery of
+    // the same risk (was 4+2 per risk point a unit). Armour fields have 15-27 units, so
+    // each counts half for experience.
+    b.cr+=cr;b.xp+=units*(10+4*risk)*(keys[1]==='armour'?.5:1);
     // Remembered for the kill callout ("HOSTILE DOWN · +CR 550").
     this.lastBounty={cr:Math.round(cr/10)*10,at:performance.now()};
     const label=keys[1]==='armour'?(['strider','crab','tesla'].includes(keys[2])?'heavy walkers':'armour'):keys[1];

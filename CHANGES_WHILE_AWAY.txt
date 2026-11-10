@@ -1687,3 +1687,17 @@ v1710 Start-up crash fixed (from a fourth review)
       Also: crystal glints on the left of the route were firing almost
       constantly (a negative remainder), and a job with no id never got its
       comet.
+
+v1720 XP rebalance: fights are worth more experience
+      Before, a fight and a quiet delivery of the same risk gave almost the
+      same experience: each kill added only 4 XP plus 2 per risk point. Now
+      each kill adds 10 plus 4 per risk point (a fighter at risk 5 is worth
+      30 XP instead of 14). Dune armour fields have 15 to 27 units, so each
+      armour unit counts half. Ghost constructs, which can only be hit while
+      formed, now count 2 extra bounty units instead of 1, and jammers 3
+      instead of 2 (more credits and more XP).
+      Measured on real boards: a job with a fight now gives about 25% more
+      XP than its contract alone (was about 12%). The level curve is
+      unchanged, and overall levelling is only about 5% quicker (around 4
+      jobs a level in the middle game instead of 4.2), since about a third of
+      jobs have a fight. XP still only lands when the job succeeds.
