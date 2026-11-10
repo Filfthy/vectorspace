@@ -1933,3 +1933,26 @@ v1830 A pilot that plays whole jobs, and what it found
       The self-test flies a real Lattice Survey both ways and fails if
       waking it ever pays as much as the quiet route again.
 
+v1840 The pilot can now attack ground targets (self-test only, no game change)
+      A ground-attack pilot for the armour fields and the factory: it picks
+      a unit ahead, turns onto it, fires bursts at an open knee if it has
+      knees and at the hull if not, leaves shielded units until their dome
+      is down, and when a target is too close and off to one side it flies
+      out and comes back instead of circling it. Once a factory is clear
+      it follows the bunker marker in.
+      Results, 12 flights at risk 4 to 9, none failed:
+        Dune Armour Clearance   15 to 23 units   80 to 118 s
+        Ice Field Armour        15 to 23 units  105 to 163 s
+        Factory Strike          34 units        188 to 278 s, into the bunker
+      So the walker group patrols from v1600 and v1650 can be hunted down
+      and both fields always end, and the factory's shield and generator
+      order always opens the bunker. The self-test now plays all three on
+      every run, along with the survey jobs (8 pilot flights, about a
+      second of real time).
+      One thing I looked into and left: a strider showed 0 on its health
+      counter while still walking. That counter is not used for striders
+      (they fall when their knees or their separate hull armour go), so
+      nothing is wrong.
+      Still not played by a pilot: the nest, the bunker interior, the deep
+      core, the minefield station and the asteroid jobs.
+

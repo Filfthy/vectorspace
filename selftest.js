@@ -19,7 +19,8 @@
 //               spend a skill point, save and reload, every mail and hub panel
 //   letters     every template for every client: the card, and the done, failed and
 //               abandoned letters, checked for unfilled or broken text
-//   pilots      the survey land jobs and the Lattice Survey flown by steering, nothing skipped
+//   pilots      the survey land jobs, the Lattice Survey, both armour fields and the factory
+//               assault played for real, nothing skipped
 //   data        achievements, codex, wire and contact letters evaluate. No semicolons or
 //               dashes in written content
 //
@@ -105,9 +106,10 @@
   // player would. It shoots whatever hostile is nearest in front, and with nothing to
   // shoot it steers at whatever objective marker or edge arrow the HUD last drew (it reads
   // the HUD through drawHudMarkerLabel and hudEdgeCue, so it knows nothing a player does
-  // not). On a land approach it uses the approach pilot. A stage it cannot finish inside
-  // stageCap seconds is marked STUCK and skipped. It has no ground-attack or minefield
-  // skills, so those stages always show as stuck. It also shoots sleeping ghost cores, so
+  // not). On a land approach it uses the approach pilot, and on an armour field the
+  // ground-attack one (v1840). A stage it cannot finish inside stageCap seconds is marked
+  // STUCK and skipped. It cannot thread a minefield, shoot rocks or work a nest, a
+  // bunker interior or the deep core, so those stages always show as stuck. It also shoots sleeping ghost cores, so
   // it plays the "woken" ending of a Lattice Survey (flyLattice plays the quiet one).
   //   __flyJob('station_defence')            one job, returns a line of stage times
   //   await __flyAll()                       every board template
@@ -127,6 +129,51 @@
     return !!any
   };
   const ceaseFire=()=>{fireHeld=false;try{endLaserTrigger()}catch(_){}inputX=inputY=0;trigT=0};
+  // v1840: one frame of ground attack on an armour field. Picks a live unit ahead (not the
+  // one it has just flown over), keeps it until it is dead, behind or underneath, turns
+  // onto it, and fires bursts at an unbroken knee if it has knees, else at its hull.
+  let gTarget=null,gExtend=false;
+  const groundStep=(skill=.9)=>{
+    const G=groundAssault,dt=1/30,live=u=>u&&!u.dead&&u.state==='alive';let tx=0,ty=0,on=false;
+    if(!G.leadIn){
+      const errOf=u=>wrapAngle(Math.atan2(u.x-shipX,u.wz-travel)-viewYaw);
+      // A target close by but off to the side cannot be turned onto (the drone only orbits
+      // it), so fly straight out to 75 and come back, as a pilot would.
+      if(gTarget&&live(gTarget)&&!gExtend&&G.planarToShip(gTarget)<45&&Math.abs(errOf(gTarget))>1.1)gExtend=true;
+      if(gExtend&&(!live(gTarget)||G.planarToShip(gTarget)>75))gExtend=false;
+      if(gExtend){inputX=clamp(inputX+clamp(0-inputX,-.08,.08),-1,1);inputY=clamp(inputY+clamp(0-inputY,-.08,.08),-1,1);if(fireHeld){fireHeld=false;endLaserTrigger();trigT=0}return}
+      if(gTarget&&(!live(gTarget)||!G.units.includes(gTarget)||(G.planarToShip(gTarget)<14&&Math.abs(errOf(gTarget))>.5)||Math.abs(errOf(gTarget))>1.5))gTarget=null;
+      // In a factory, a unit under a shield dome cannot be hurt: leave it until its dome is down.
+      const open=u=>!(G.variant==='factory'&&G.shielded?.(u));
+      if(gTarget&&!open(gTarget))gTarget=null;
+      if(!gTarget){let bs=1e9;for(const u of G.units){if(!live(u)||!open(u))continue;const d=G.planarToShip(u),e=Math.abs(errOf(u)),sc=d+(e>.7?90*e:0)+(d<22?120:0);if(sc<bs){bs=sc;gTarget=u}}}
+      const u=gTarget;
+      if(u){
+        const err=errOf(u),d=G.planarToShip(u);let pt=null,r=14;
+        if(Math.abs(err)<.9&&d<170&&d>6){
+          G.pose?.(u);
+          if(u.knees&&u.knees.some(k=>!k.broken)){const i=u.knees.findIndex(k=>!k.broken);pt=proj(G.worldPoint(u,u.poseKnees[i]));if(pt)r=clamp(u.K.legs[i].t*1.25*u.s*pt.k,12,70)}
+          else{const sp=u.K.spheres[0];pt=proj(G.worldPoint(u,G.bodyTransform(u)([sp[0],sp[1],sp[2]])));if(pt)r=clamp(sp[3]*u.s*pt.k,13,160)}
+        }
+        if(pt){tx=clamp((pt.x-W*.5)/(W*.5-22),-1,1);ty=clamp((pt.y-viewH*.48)/(viewH*.46-18),-1,1);const a=aimScreen();on=Math.hypot(a.x-pt.x,a.y-pt.y)<r*.8&&d<160}
+        else tx=clamp(err*2,-1,1)
+      }else if(G.bunkerUnlocked&&G.bunkerNavPoint){
+        // Factory cleared: head for the bunker marker (the game's own autopilot takes the last 80 units).
+        const n=G.bunkerNavPoint();tx=clamp(wrapAngle(Math.atan2(n.x-shipX,n.wz-travel)-viewYaw)*2,-1,1)
+      }
+    }
+    const rate=2.6*skill*dt;inputX=clamp(inputX+clamp(tx-inputX,-rate,rate),-1,1);inputY=clamp(inputY+clamp(ty-inputY,-rate,rate),-1,1);
+    if(on&&!fireHeld){fireHeld=true;beginLaserBurst()}if(fireHeld&&(++trigT>10||!on)){fireHeld=false;endLaserTrigger();trigT=0}
+  };
+  // Fly a launched armour-field job's ground stage to its end.
+  const flyGround=(stageType='dune_assault',maxSecs=600,skill=.9)=>{
+    const G=groundAssault;if(!toStage(stageType))return{started:false};
+    for(let i=0;i<900&&!(phase==='surface'&&G.active);i++)update(1/30);if(!(phase==='surface'&&G.active))return{started:false};
+    const idx=campaign.currentStageIndex,units=G.units.length;let f=0;gTarget=null;gExtend=false;
+    const flying=()=>campaign.currentMission&&campaign.currentStageIndex===idx&&phase==='surface';
+    for(;f<maxSecs*30&&flying();f++){groundStep(skill);update(1/30)}
+    ceaseFire();return{started:true,done:!flying(),secs:Math.round(f/30),units,left:G.units.filter(u=>!u.dead&&u.state==='alive').length}
+  };
   const hud={mark:null,edge:null};let hudFrame=0,hudHooked=false;
   const hookHud=()=>{
     if(hudHooked)return;hudHooked=true;const d0=window.drawHudMarkerLabel,e0=window.hudEdgeCue;
@@ -136,7 +183,7 @@
   const flyJob=(id,{maxSecs=900,stageCap=240,skill=.9,weapon='laser5',frame='AX-5A',level=20}={})=>{
     const c=campaign,T=AgentXMissionData.templates;hookHud();reset();
     c.state.xp=c.xpForLevel(level);if(!c.state.ownedFrames.includes(frame))c.state.ownedFrames.push(frame);c.state.drone=frame;c.state.inventory[weapon]=1;c.state.weaponLoadout=weapon;
-    c.launchDevTemplateTest(id,(T[id].allowedFactions||['trade'])[0]);invulnerable=true;inputX=inputY=0;
+    c.launchDevTemplateTest(id,(T[id].allowedFactions||['trade'])[0]);invulnerable=true;inputX=inputY=0;gTarget=null;gExtend=false;
     const m=c.currentMission,stages=[],dt=1/30;let idx=-1,sf=0,frames=0,ended=false;
     for(let f=0;f<maxSecs*30&&c.currentMission;f++){
       if(c.currentStageIndex!==idx){if(stages.length)stages[stages.length-1].secs=Math.round(sf/30);idx=c.currentStageIndex;sf=0;stages.push({type:c.currentStage()?.type})}
@@ -146,7 +193,8 @@
       if(phase==='destinationApproach'&&surfaceDestination.active){
         const S=surfaceDestination,left=S.surveyLeft().sort((a,b)=>a.worldZ-b.worldZ),t=left[0]?{x:left[0].x,z:left[0].worldZ}:{x:S.targetX,z:S.targetWorldZ};
         inputX=clamp(wrapAngle(Math.atan2(t.x-shipX,t.z-travel)-viewYaw)*2.2,-1,1);inputY=0
-      }else{
+      }else if(phase==='surface'&&groundAssault?.active&&groundAssault.units?.length)groundStep(skill);
+      else{
         fightStep(skill,(hud.mark&&f-hud.mark.f<=2)?hud.mark:((hud.edge&&f-hud.edge.f<=2)?hud.edge:null))
       }
       update(dt);frames++;sf++
@@ -160,7 +208,7 @@
   window.__flyAll=async(opts)=>{const out=[];for(const id of Object.keys(AgentXMissionData.templates)){out.push(flyJob(id,opts));console.log(out[out.length-1]);await pause()}return out};
   // From the console, after launching a job: __pilots.toStage('surface_destination_approach'),
   // __pilots.flyApproach(), __pilots.flyLattice(skill).
-  window.__pilots={toStage,flyApproach,flyLattice};
+  window.__pilots={toStage,flyApproach,flyLattice,flyGround};
   async function group(name,items,run){
     const details=[];let n=0;
     for(const it of items){
@@ -207,7 +255,12 @@
 
     // Flown for real: no stage is skipped once the pilot has the controls.
     const pilotNotes=[];
-    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','lattice_survey'],id=>{
+    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike'],id=>{
+      if(id==='dune_armour_clearance'||id==='ice_field_armour'||id==='factory_strike'){
+        c.state.inventory.laser5=1;c.state.weaponLoadout='laser5';c.launchDevTemplateTest(id,(T[id].allowedFactions||['trade'])[0]);invulnerable=true;
+        const r=flyGround(id==='factory_strike'?'factory_assault':'dune_assault');if(!r.started)return 'the armour field never started';pilotNotes.push(`${id.split('_')[0]} ${r.units} units ${r.secs}s`);
+        if(!r.done)return `${r.left} of ${r.units} units still standing after ${r.secs} s`;return
+      }
       if(id==='lattice_survey'){
         const tries=[];
         for(let k=0;k<4;k++){reset();c.launchDevTemplateTest(id,'helix');invulnerable=true;const r=flyLattice(1);tries.push(r);if(!r.started)return 'the lattice never appeared';if(r.quiet){pilotNotes.push(`lattice ${r.secs}s`);
