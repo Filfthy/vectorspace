@@ -1213,3 +1213,26 @@ v1340 New xeno models, from the Christmas video's hornet
         pairs of stubby legs that paddle.
       Body edges still take the creature's colour, so hits, aces and
       tenders still show.
+
+v1350 Better walker models, a little weight shift, and no FPS readout
+      Your note: the mechs could be better, like the reindeer in the video
+      (but no reindeer in the game). The reindeer's appeal was its shaped
+      body; its legs and gait are the Hound's. So each walker got a real
+      body, kept to the same size, hit points, hit areas and gun positions:
+      - Hound: a robotic hunting dog. A chest deep at the front, a tucked
+        waist and haunches, a raised neck and a long sensor skull with a
+        lower jaw, a visor slit and swept-back sensor ears, twin guns on
+        its shoulders and an antenna tail.
+      - Strider: a rounded eight-sided beetle carapace with a sensor head
+        at the front (visor slit, two antennae). The Tesla Strider's coil
+        still sits on its dome.
+      - Crab: a domed carapace with eye stalks, and claw arms that hold its
+        twin cannons.
+      - Stilt: a rounded sensor eye with a lens set into its front and an
+        antenna mast behind.
+      - Every leg has a hydraulic ram behind the knee.
+      - Movement: walkers now roll a little onto each planted foot as they
+        walk (weight shift), on top of the existing bob.
+      Also: the dune assault HUD showed a frame timer in the top left
+      (FPS / FRAME / JS ms), a development leftover. It now shows only with
+      ?dev=1.

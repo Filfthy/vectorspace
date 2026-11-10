@@ -42,6 +42,8 @@ function gaBuilder(topo){
 // One leg in already-posed model coordinates.
 function gaLeg(m,L,t,i){
   m.beam(L.hip,L.knee,t,t*1.3);
+  // v1350: a hydraulic ram from the thigh to the shin, behind the knee.
+  {const mix=(a,b,k)=>[a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k,a[2]+(b[2]-a[2])*k];m.beam(mix(L.hip,L.knee,.3),mix(L.knee,L.ankle,.38),t*.32,t*.32)}
   m.mark('knee'+i,()=>m.box(L.knee,[t*1.6,t*1.6,t*1.6]));
   m.beam(L.knee,L.ankle,t*.8,t*1.1);
   m.box(L.ankle,[t*1.25,t*1.25,t*1.25]);
@@ -73,12 +75,15 @@ const GA_KINDS=(()=>{
     for(let i=0;i<3;i++){const a=-Math.PI/2+i*2*Math.PI/3,c=Math.cos(a),s=Math.sin(a);
       legs.push(gaLegDesign([c*2.9,H-.2,s*2.9],[c*5.3,H+1.4,s*5.3],[c*6.3,1.6,s*6.3],[c*6.4,0,s*6.4],.68))}
     K.strider={label:'STRIDER',heavy:true,s:.9,kneeHp:5,collapseAt:2,speed:1.45,turn:.14,range:78,arc:1.5,fire:[2.0,2.5],volley:4,volleyGap:.4,minRange:24,
-      reach:3.6,swing:.3,lift:1.3,offsets:[0,1/3,2/3],bobAmp:.12,pivotY:H,legs,radius:3.4,bodyBottom:H-3.0,top:8.8,
+      reach:3.6,swing:.3,lift:1.3,offsets:[0,1/3,2/3],bobAmp:.12,swayAmp:.045,pivotY:H,legs,radius:3.4,bodyBottom:H-3.0,top:8.8,
       muzzles:[[-.6,H-2.55,-4.2],[0,H-2.55,-4.2],[.6,H-2.55,-4.2]],spheres:[[0,H+.3,0,3.2],[0,H-2.5,-.2,1.5]],hullHp:30,col:C.m,score:2500,
       body(m){
-        m.loft([m.ringXZ(0,H-1.6,0,2.0,2.0,6,Math.PI/6),m.ringXZ(0,H-.9,0,3.4,3.4,6,Math.PI/6),m.ringXZ(0,H+.6,0,3.3,3.3,6,Math.PI/6),m.ringXZ(0,H+1.5,0,2.0,2.0,6,Math.PI/6)]);
-        m.loft([m.ringXZ(0,H+1.4,.3,1.1,1.1,6),m.ringXZ(0,H+2.2,.3,.75,.75,6)]);
-        m.box([0,H+.1,-3.05],[2.4,.35,.5]);
+        // v1350: a rounded beetle carapace with a sensor head at the front.
+        m.loft([m.ringXZ(0,H-1.7,0,1.7,1.7,8,Math.PI/8),m.ringXZ(0,H-1.1,0,3.0,3.1,8,Math.PI/8),m.ringXZ(0,H-.3,0,3.45,3.55,8,Math.PI/8),m.ringXZ(0,H+.6,0,3.2,3.3,8,Math.PI/8),m.ringXZ(0,H+1.3,0,2.4,2.5,8,Math.PI/8),m.ringXZ(0,H+1.8,0,1.3,1.35,8,Math.PI/8)]);
+        m.loft([m.ringXZ(0,H+1.7,.3,1.1,1.1,6),m.ringXZ(0,H+2.2,.3,.75,.75,6)]);
+        m.loft([[[-.9,H-.6,-3.2],[.9,H-.6,-3.2],[1.0,H+.5,-3.1],[-1.0,H+.5,-3.1]],[[-.7,H-.45,-4.0],[.7,H-.45,-4.0],[.75,H+.35,-3.95],[-.75,H+.35,-3.95]]]);
+        m.box([0,H+.05,-4.02],[1.2,.18,.06]);
+        for(const sx of[-1,1])m.beam([sx*.5,H+.45,-3.6],[sx*.9,H+1.6,-4.3],.08,.08,.5);
         m.box([0,H-2.0,0],[.9,1.0,.9]);
         m.loft([[[-1.1,H-2.9,-1.4],[1.1,H-2.9,-1.4],[1.1,H-2.2,-1.6],[-1.1,H-2.2,-1.6]],[[-1.2,H-3.0,1.2],[1.2,H-3.0,1.2],[1.2,H-2.1,1.2],[-1.2,H-2.1,1.2]]]);
         for(const x of[-.6,0,.6])m.barrel(x,H-2.55,-1.4,-4.2,.16);
@@ -91,12 +96,16 @@ const GA_KINDS=(()=>{
       legs.push(gaLegDesign([sx*2.1,Y+.2,z],[sx*3.9,Y+2.2,z+spread*.6],[sx*5.0,.9,z+spread],[sx*5.1,0,z+spread],.32));
     const shell=(y,w,l)=>[[-w,y,-l*.8],[-w*.55,y,-l],[w*.55,y,-l],[w,y,-l*.8],[w*1.05,y,l*.6],[w*.6,y,l],[-w*.6,y,l],[-w*1.05,y,l*.6]];
     K.crab={label:'CRAB',heavy:true,s:.85,kneeHp:3,collapseAt:3,speed:2.1,turn:.2,range:70,arc:1.2,fire:[1.6,2.0],volley:3,volleyGap:.3,minRange:22,
-      reach:2.2,swing:.42,lift:.8,offsets:[0,.5,0,.5,0,.5],bobAmp:.07,pivotY:Y,legs,radius:3.0,bodyBottom:Y-.8,top:5.9,
+      reach:2.2,swing:.42,lift:.8,offsets:[0,.5,0,.5,0,.5],bobAmp:.07,swayAmp:.03,pivotY:Y,legs,radius:3.0,bodyBottom:Y-.8,top:5.9,
       muzzles:[[-.75,Y-.2,-5.6],[.75,Y-.2,-5.6]],spheres:[[0,Y+.4,0,2.9],[0,Y-.2,-3.6,1.1]],hullHp:22,col:C.m,score:2000,
       body(m){
-        m.loft([shell(Y-.8,1.6,2.6),shell(Y,2.4,3.4),shell(Y+.9,2.2,3.1),shell(Y+1.4,1.3,2.2)]);
-        m.box([0,Y-.2,-3.4],[2.2,.8,.8]);
-        for(const x of[-.75,.75])m.barrel(x,Y-.2,-3.6,-5.6,.2);
+        // v1350: a domed carapace with eye stalks, and claw arms that carry the twin cannons.
+        m.loft([shell(Y-.8,1.6,2.6),shell(Y-.1,2.35,3.3),shell(Y+.6,2.45,3.4),shell(Y+1.15,1.9,2.8),shell(Y+1.45,1.1,1.9)]);
+        for(const sx of[-1,1]){m.beam([sx*.6,Y+.9,-2.6],[sx*.9,Y+1.9,-3.1],.12,.12,.7);m.box([sx*.92,Y+1.98,-3.15],[.3,.24,.3])}
+        for(const sx of[-1,1]){const x=sx*.75;
+          m.beam([sx*1.7,Y-.1,-2.6],[sx*1.95,Y+.1,-3.5],.4,.4,.8);m.beam([sx*1.95,Y+.1,-3.5],[x,Y-.2,-4.05],.32,.32,.85);
+          m.loft([[[x-.32,Y-.5,-3.9],[x+.32,Y-.5,-3.9],[x+.32,Y+.1,-3.9],[x-.32,Y+.1,-3.9]],[[x-.22,Y-.42,-4.9],[x+.22,Y-.42,-4.9],[x+.22,Y+.02,-4.9],[x-.22,Y+.02,-4.9]]]);
+          m.barrel(x,Y-.2,-4.2,-5.6,.2)}
         m.loft([m.ringXZ(0,Y+1.35,.2,.9,.9,6),m.ringXZ(0,Y+1.95,.2,.7,.7,6)]);
         m.barrel(0,Y+1.7,-.4,-2.4,.12);
         for(const L of legs)m.box(L.hip,[.6,.6,.6]);
@@ -110,18 +119,27 @@ const GA_KINDS=(()=>{
       legs.push(gaLegDesign([sx*.55,Y-.1,z],[sx*.8,Y-.5,z+(z<0?-.5:.5)],[sx*.8,.45,z+(z<0?.15:-.1)],[sx*.82,0,z+(z<0?.1:-.1)],.2));
     // Legs are LF, LH, RF, RH. Speed picks walk -> trot -> rotary gallop, blended.
     K.hound={label:'HOUND',s:1.1,hp:4,speed:12.5,turn:2.6,range:50,arc:1.05,fire:[.6,.85],volley:1,
-      reach:1.7,minCycle:.32,swing:.45,lift:.35,offsets:[0,.5,.5,0],bobAmp:.05,pivotY:Y,legs,radius:1.3,bodyBottom:0,top:2.5,
+      reach:1.7,minCycle:.32,swing:.45,lift:.35,offsets:[0,.5,.5,0],bobAmp:.05,swayAmp:.03,pivotY:Y,legs,radius:1.3,bodyBottom:0,top:2.5,
       gaits:[
         {v:0,offsets:[.25,0,.75,.5],swing:.25,lift:.28,bobAmp:.03,bobK:2,pitchAmp:0},
         {v:5,offsets:[0,.5,.5,0],swing:.45,lift:.36,bobAmp:.05,bobK:2,pitchAmp:.025},
         {v:9.5,offsets:[.55,0,.45,.1],swing:.62,lift:.46,bobAmp:.14,bobK:1,pitchAmp:.09}],
-      muzzles:[[0,Y+.5,-1.7]],spheres:[[0,Y,-.3,1.4]],col:C.m,score:400,
+      muzzles:[[-.36,Y+.34,-1.5],[.36,Y+.34,-1.5]],spheres:[[0,Y,-.3,1.4]],col:C.m,score:400,
+      // v1350: a robotic hunting dog: a chest deep at the front, a tucked waist and
+      // haunches, a raised neck and long sensor skull with a lower jaw, a visor slit and
+      // swept-back sensor ears, twin guns on the shoulders and an antenna tail.
       body(m){
-        m.loft([[[-.45,Y-.3,-1.3],[.45,Y-.3,-1.3],[.5,Y+.25,-1.2],[-.5,Y+.25,-1.2]],[[-.55,Y-.35,1.1],[.55,Y-.35,1.1],[.5,Y+.3,1.0],[-.5,Y+.3,1.0]]]);
-        m.beam([0,Y+.05,-1.2],[0,Y+.25,-1.8],.35,.3);
-        m.loft([[[-.2,Y+.1,-1.6],[.2,Y+.1,-1.6],[.25,Y+.4,-1.6],[-.25,Y+.4,-1.6]],[[-.12,Y+.2,-2.9],[.12,Y+.2,-2.9],[.14,Y+.32,-2.9],[-.14,Y+.32,-2.9]]]);
-        m.box([0,Y+.45,.1],[.5,.35,.9]);
-        m.barrel(0,Y+.5,-.3,-1.7,.08);
+        m.loft([[[-.38,Y-.42,-1.25],[.38,Y-.42,-1.25],[.48,Y+.22,-1.2],[-.48,Y+.22,-1.2]],
+                [[-.5,Y-.38,-.5],[.5,Y-.38,-.5],[.55,Y+.3,-.5],[-.55,Y+.3,-.5]],
+                [[-.34,Y-.1,.35],[.34,Y-.1,.35],[.42,Y+.26,.35],[-.42,Y+.26,.35]],
+                [[-.46,Y-.3,1.05],[.46,Y-.3,1.05],[.48,Y+.3,1.0],[-.48,Y+.3,1.0]]]);
+        m.beam([0,Y+.05,-1.15],[0,Y+.45,-1.65],.32,.36,.85);
+        m.loft([[[-.2,Y+.28,-1.55],[.2,Y+.28,-1.55],[.22,Y+.62,-1.6],[-.22,Y+.62,-1.6]],[[-.16,Y+.32,-2.15],[.16,Y+.32,-2.15],[.18,Y+.56,-2.15],[-.18,Y+.56,-2.15]],[[-.08,Y+.36,-2.55],[.08,Y+.36,-2.55],[.09,Y+.48,-2.5],[-.09,Y+.48,-2.5]]]);
+        m.loft([[[-.15,Y+.12,-1.65],[.15,Y+.12,-1.65],[.16,Y+.26,-1.65],[-.16,Y+.26,-1.65]],[[-.07,Y+.16,-2.35],[.07,Y+.16,-2.35],[.08,Y+.26,-2.3],[-.08,Y+.26,-2.3]]]);
+        m.box([0,Y+.5,-2.12],[.3,.06,.08]);
+        for(const sx of[-1,1])m.beam([sx*.16,Y+.6,-1.62],[sx*.34,Y+.92,-1.3],.08,.16,.3);
+        for(const sx of[-1,1]){m.box([sx*.36,Y+.34,-.45],[.2,.2,.6]);m.barrel(sx*.36,Y+.34,-.6,-1.5,.06)}
+        m.beam([0,Y+.2,1.0],[0,Y+.75,1.55],.06,.06,.5);
       }}
   }
   { // L2 STILT: tripod scout
@@ -129,11 +147,14 @@ const GA_KINDS=(()=>{
     for(let i=0;i<3;i++){const a=-Math.PI/2+i*2*Math.PI/3,c=Math.cos(a),s=Math.sin(a);
       legs.push(gaLegDesign([c*.7,H-.15,s*.7],[c*1.6,H+.55,s*1.6],[c*2.05,.5,s*2.05],[c*2.1,0,s*2.1],.17))}
     K.stilt={label:'STILT',s:.85,hp:3,speed:3.4,turn:.9,range:56,arc:1.3,fire:[.85,1.15],volley:2,volleyGap:.3,minRange:16,
-      reach:1.8,swing:.3,lift:.5,offsets:[0,1/3,2/3],bobAmp:.05,pivotY:H,legs,radius:1.8,bodyBottom:H-.4,top:3.8,
+      reach:1.8,swing:.3,lift:.5,offsets:[0,1/3,2/3],bobAmp:.05,swayAmp:.06,pivotY:H,legs,radius:1.8,bodyBottom:H-.4,top:3.8,
       muzzles:[[-.3,H-.2,-1.6],[.3,H-.2,-1.6]],spheres:[[0,H,0,1.2]],col:C.m,score:350,
       body(m){
-        m.loft([m.ringXZ(0,H-.35,0,.5,.5,6),m.ringXZ(0,H-.1,0,.95,.95,6),m.ringXZ(0,H+.2,0,.9,.9,6),m.ringXZ(0,H+.45,0,.45,.45,6)]);
-        m.box([0,H+.05,-.95],[.5,.16,.14]);
+        // v1350: a rounded sensor eye on three legs: a lens set into its front and an
+        // antenna mast behind.
+        m.loft([m.ringXZ(0,H-.45,0,.3,.3,8),m.ringXZ(0,H-.25,0,.75,.75,8),m.ringXZ(0,H+.05,0,.98,.98,8),m.ringXZ(0,H+.35,0,.85,.85,8),m.ringXZ(0,H+.58,0,.45,.45,8)]);
+        m.loft([m.ringXY(0,H+.05,-.9,.42,8),m.ringXY(0,H+.05,-1.02,.36,8),m.ringXY(0,H+.05,-.98,.14,8)],false,false);
+        m.beam([0,H+.55,.2],[0,H+1.35,.45],.05,.05,.6);m.box([0,H+1.38,.46],[.12,.12,.12]);
         for(const x of[-.3,.3])m.barrel(x,H-.2,-.5,-1.6,.07);
         for(const L of legs)m.box(L.hip,[.3,.3,.3]);
       }}
@@ -541,7 +562,7 @@ class GroundAssaultController{
   // World-space (camera-relative z) point for a model-space point.
   worldPoint(u,p){const w=this.toWorld(u,p[0],p[2]);return[w[0],this.ug(u)+p[1]*u.s,w[1]-travel]}
   bodyTransform(u){
-    const K=u.K,piv=K.pivotY||1,tX=u.tiltX+(u.slX||0),tZ=u.tiltZ+(u.slZ||0),cx=Math.cos(tX),sx=Math.sin(tX),cz=Math.cos(tZ),sz=Math.sin(tZ),dy=u.bob-u.drop;
+    const K=u.K,piv=K.pivotY||1,tX=u.tiltX+(u.slX||0),tZ=u.tiltZ+(u.slZ||0)+(u.sway||0),cx=Math.cos(tX),sx=Math.sin(tX),cz=Math.cos(tZ),sz=Math.sin(tZ),dy=u.bob-u.drop;
     return p=>{let x=p[0],y=p[1]-piv,z=p[2];
       const y1=y*cx-z*sx,z1=y*sx+z*cx;y=y1;z=z1; // pitch about X
       const x2=x*cz-y*sz,y2=x*sz+y*cz;x=x2;y=y2;  // roll about Z
@@ -1040,6 +1061,8 @@ class GroundAssaultController{
     });
     const bobK=P.bobK||K.legs.length;
     u.bob=moving?Math.sin(u.phi*Math.PI*2*bobK)*P.bobAmp:0;
+    // v1350: weight shift, the body rolling a little onto each planted foot as it walks.
+    u.sway=moving?Math.sin(u.phi*Math.PI*2)*(K.swayAmp||0):lerp(u.sway||0,0,1-Math.exp(-dt*4));
     if(P.pitchAmp&&!u.knees)u.tiltX=moving?Math.sin((u.phi+.25)*Math.PI*2)*P.pitchAmp:lerp(u.tiltX,0,1-Math.exp(-dt*4));
     // A broken knee drops that corner of the hull.
     if(u.knees){
@@ -1334,7 +1357,8 @@ class GroundAssaultController{
   drawMarker(){
     if(!this.active||mode!=='play'||phase!=='surface')return;
     this.drawAltitude();
-    ctx.font='400 8px Consolas,monospace';ctx.textAlign='left';ctx.strokeStyle=C.g;ctx.strokeText(`FPS ${Math.round(1000/Math.max(1,gaPerf.gap))} · FRAME ${gaPerf.gap.toFixed(1)} MS · JS ${gaPerf.js.toFixed(1)} MS`,12,26);
+    // The frame timer is a development readout (v1350: ?dev=1 only).
+    if(typeof DEV_MODE!=='undefined'&&DEV_MODE){ctx.font='400 8px Consolas,monospace';ctx.textAlign='left';ctx.strokeStyle=C.g;ctx.strokeText(`FPS ${Math.round(1000/Math.max(1,gaPerf.gap))} · FRAME ${gaPerf.gap.toFixed(1)} MS · JS ${gaPerf.js.toFixed(1)} MS`,12,26);}
     if(this.pounceWarn>0&&Math.sin(this.t*18)>-.3){ctx.font='400 12px Consolas,monospace';ctx.textAlign='center';ctx.strokeStyle=C.m;ctx.strokeText('POUNCE',W*.5,viewH*.2+(this.arcWarn>0?16:0));ctx.textAlign='left'}
     if(this.variant==='factory'){
       this.drawTesla();
