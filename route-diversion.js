@@ -256,7 +256,8 @@ const routeDiversion={
     this.woken=false;this.state='lattice';callout(def.nav,2.6);return true
   },
   wakeLattice(reason){
-    if(this.woken)return;this.woken=true;this.state='latticeFight';
+    if(this.woken)return;this.woken=true;this.wokenT=this.t;this.state='latticeFight';
+    AgentXGhosts.pending=[{text:'THEY ARE ONLY SOLID WHEN FORMED · FIRE THEN',wait:6}];
     for(const f of fighters)if(!f.dead)AgentXGhosts.wake(f);
     audio?.music?.setMode?.('violent');
     callout(reason,2);
@@ -267,7 +268,7 @@ const routeDiversion={
       let ahead=0,nearest=1e9;
       for(const a of this.anchors){
         if(a.f.dead)continue;a.x-=spaceMoveX*k;a.y-=spaceMoveY*k;a.z-=spaceMoveZ*k;
-        a.f.x=a.x;a.f.y=a.y;a.f.z=a.z;a.f.vx=a.f.vy=a.f.vz=0;a.f.shotsLeft=0;
+        a.f.x=a.x;a.f.y=a.y;a.f.z=a.z;a.f.vx=a.f.vy=a.f.vz=0;a.f.shotsLeft=0;a.f.t=Math.max(0,a.f.t);
         const d=Math.hypot(a.x-shipX,a.y-shipY,a.z);nearest=Math.min(nearest,d);if(a.z>-20)ahead++
       }
       const fired=typeof shots!=='undefined'&&shots.some(s=>s.age<dt*1.5);
@@ -276,12 +277,12 @@ const routeDiversion={
       if(!ahead||this.t>=this.window){fighters.length=0;bolts.length=0;callout('LATTICE PASSED QUIETLY',1.6);this.recordIgnored();this.end()}
       return
     }
-    if(this.t>=this.window+30)this.finishLattice(false)
+    if(this.t-(this.wokenT||0)>=50)this.finishLattice(false)   // fifty seconds from waking, not from the start
   },
   finishLattice(cleared){
     const def=this.KINDS.lattice;
     if(cleared){callout(def.cleared.say,2);SoundFX.objectiveComplete?.();this.record({id:'cleared',...def.cleared})}
-    else{callout('LATTICE BEHIND · ROUTE CONTINUES',1.6);this.recordIgnored()}
+    else{callout('LATTICE BEHIND · ROUTE CONTINUES',1.6);this.record({id:'abandoned',text:'Left a waking lattice behind'})}
     fighters.length=0;bolts.length=0;this.anchors=[];this.end()
   },
   // ---- Old minefield (v1370) ----

@@ -766,11 +766,11 @@ class SurfaceDestinationApproachController {
   }
   drawFissures(){
     if(!this.fissures?.length)return;
-    const y=this.groundY+.04,t=this.navPulse||0,embers={[C.r]:[],[C.o]:[]};
+    const y=this.groundY+.04,t=this.navPulse||0,embers={};
     ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.lineJoin='round';
     for(const f of this.fissures){
       const mid=f.pts[f.pts.length>>1],mq=camPoint([mid[0],y,mid[1]-travel]),dq=mq[2];if(dq<-40||dq>300)continue;
-      if(Math.abs(mq[0])>Math.max(0,dq)*1.6+40)continue;   // well off to the side: not on screen
+      if(Math.abs(mq[0])>Math.max(0,dq)*1.6+60)continue;   // well off to the side: not on screen
       const glow=.62+.3*Math.sin(t*1.6+f.ph),al=clamp(1.15-Math.max(0,dq)/300,.2,1);
       for(const[side,col,k]of[[0,C.r,1],[1,C.o,.45],[-1,C.o,.45]]){
         ctx.beginPath();let pen=false;
@@ -786,11 +786,11 @@ class SurfaceDestinationApproachController {
       if(dq<260)for(let i=1;i<f.pts.length-1;i++){
         const u=((t*.8+f.ph+i*.37)%1),p=f.pts[i],h=u*u*3.8,q0=camPoint([p[0]+u*(i&1?.6:-.6),y+h,p[1]-travel]),q1=camPoint([p[0]+u*(i&1?.6:-.6),y+h+.8*(1-u*.5),p[1]-travel]);
         if(q0[2]<=4||q1[2]<=4)continue;const a=projectCam(q0),b=projectCam(q1);if(!a||!b||Math.hypot(a.x-b.x,a.y-b.y)>40)continue;   // close up a streak would smear across the view
-        embers[(i&2)?C.r:C.o].push(a.x,a.y,b.x,b.y)
+        const key=((i&2)?C.r:C.o)+'|'+Math.min(4,Math.round(al*(1-u)*.9*4));(embers[key]||(embers[key]=[])).push(a.x,a.y,b.x,b.y)
       }
     }
     // Embers in one stroke per colour rather than one each.
-    ctx.globalAlpha=.75;for(const col in embers){const e=embers[col];if(!e.length)continue;ctx.strokeStyle=col;ctx.beginPath();for(let i=0;i<e.length;i+=4){ctx.moveTo(e[i],e[i+1]);ctx.lineTo(e[i+2],e[i+3])}ctx.stroke()}
+    for(const key in embers){const e=embers[key],[col,lv]=key.split('|');if(!e.length||lv==='0')continue;ctx.globalAlpha=Number(lv)/4;ctx.strokeStyle=col;ctx.beginPath();for(let i=0;i<e.length;i+=4){ctx.moveTo(e[i],e[i+1]);ctx.lineTo(e[i+2],e[i+3])}ctx.stroke()}
     ctx.restore()
   }
   // An active vent: embers thrown up out of the crater in arcs that fall back around it.

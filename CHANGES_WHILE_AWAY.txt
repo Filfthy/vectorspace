@@ -1602,3 +1602,18 @@ v1600 Walker groups patrol together (the reindeer's way of moving)
       back into the line afterwards. Every walker is now on the move instead
       of standing about. The factory strike's generator guards, dome striders
       and bunker guard keep their old station-keeping.
+
+v1610 Fixes from a third review (v1530 to v1600)
+      - The dormant lattice could never actually turn up: the level check
+        read a value that does not exist, so it always thought you were
+        level 1 (the lattice needs 4). It now appears (13 times in 300 test
+        boards).
+      - Waking a lattice and then leaving it no longer counts as passing it
+        quietly (no Quiet Passage, no headline). It is recorded as "Left a
+        waking lattice behind", and it does not count towards Good Samaritan.
+      - A woken lattice now gets fifty seconds from waking, not a deadline
+        set when it first appeared, so it cannot vanish mid-fight.
+      - Waking it shows "THEY ARE ONLY SOLID WHEN FORMED · FIRE THEN".
+      - A sleeping jammer no longer jams (no crackle on a quiet pass).
+      - Volcanic embers fade with age and distance again, and long fissures
+        near the camera no longer pop out at the screen edge.

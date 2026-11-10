@@ -131,7 +131,7 @@ const AgentXGhosts={
   live(){return typeof fighters==='undefined'?[]:fighters.filter(f=>f.ghost&&!f.dead&&!f.dying&&f.t>=0)},
   jammed(){
     if(typeof mode==='undefined'||mode!=='play'||phase!=='space')return false;
-    return this.live().some(f=>f.ghost==='jammer'&&Math.hypot(f.x-shipX,f.y-shipY,f.z)<this.JAM_RANGE)
+    return this.live().some(f=>f.ghost==='jammer'&&!f.g?.dormant&&Math.hypot(f.x-shipX,f.y-shipY,f.z)<this.JAM_RANGE)
   },
   noteJam(){if(this.jamCalloutT<=0&&typeof callout==='function'&&callout('LOCK JAMMED · DESTROY THE JAMMER',1.4))this.jamCalloutT=5},
   // Where fragment i sits when the construct is formed (relative to its middle).
