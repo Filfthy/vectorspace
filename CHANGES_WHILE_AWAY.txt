@@ -2163,6 +2163,8 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
     - Contacts now often talk about the specific job on contract cards.
     - New letter from Nyxo after your first ambushed asteroid clearance.
     - Two new VOX Wire headlines.
+    - New letters: Corvella after your first convoy seen through, Navira
+      after your first core samples.
   Fixed:
     - The drone could freeze for good after a city pickup (an old bug,
       about 1 run in 6 on pickup jobs).
@@ -2288,4 +2290,17 @@ v1930 New job: Core Samples (moons)
       open after 30 s of flying straight at them), and the pilot that
       dives takes all of them in about 26 s. The self-test now flies it
       every run (12 pilot flights).
+
+v1940 Letters, notes and records for the new jobs
+      - Corvella writes after your first freighter seen safely through
+        ("My hauler crews"): one of her captains came in just to talk
+        about you.
+      - Navira writes after your first Core Samples ("Your core samples"):
+        three metres down there is a band of material that does not
+        belong to that moon.
+      - Card notes for Core Samples from both of them ("A crater floor is
+        a record. The rim is a rumour. Sample the floor.").
+      - Codex: "Moon craters", unlocked by your first Core Samples job.
+      - Achievement: Impact Record (complete 3 Core Samples jobs).
+      Self-test passes.
 

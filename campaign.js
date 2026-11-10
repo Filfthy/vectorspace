@@ -259,6 +259,7 @@ class CampaignController {
       {id:'ventReader',name:'Vent Reader',text:'Complete 3 Vent Surveys.',v:bt.vent_survey||0,goal:3},
       {id:'blackBox',name:'Black Box',text:'Complete 3 Crash Recoveries.',v:bt.crash_recovery||0,goal:3},
       {id:'lightsOn',name:'Lights On',text:'Complete 3 Relay Repairs.',v:bt.relay_repair||0,goal:3},
+      {id:'impactRecord',name:'Impact Record',text:'Complete 3 Core Samples jobs.',v:bt.crater_cores||0,goal:3},
       {id:'lightTouch',name:'Light Touch',text:'Complete 3 Lattice Surveys without waking the lattice.',v:s.latticeQuiet||0,goal:3},
       {id:'shepherd',name:'Shepherd',text:'See 3 convoy freighters safely through.',v:s.convoysSafe||0,goal:3}
     ]

@@ -121,6 +121,7 @@
       asteroids:["Rocks in the lane, Babe. Turn them into gravel and make it look easy. You always do."],
       station_defence:["Sweetie, somebody is bullying a station I like. Go and show them what a real drone looks like."],
       survey_run:["Babe, it is a survey. Fly low, look pretty, come home. That is practically a date."],
+      crater_cores:["Sweetie, I am buying a moon. Well, a bit of one. Go and dig your lovely nose into its craters for me."],
       convoy_escort:["Sweetie, that hauler is full of my money and she cannot shoot back. You can. Stay close to her.","Babe, the pirates always go for the fat slow one. Show them the fast dangerous one instead."]
     },
     jackals:{
@@ -137,6 +138,7 @@
       nest_clearance:["A hive is one organism. You are going in as an infection. I would very much like the readings."],
       lattice_survey:["Nobody has mapped a dormant controller intact. Every core you scan is a first.","Stay outside the waking range. I need it asleep to understand how it sleeps."],
       vent_survey:["The vents are older than the crust around them. I want to know how much older."],
+      crater_cores:["A crater floor is a record. The rim is a rumour. Sample the floor.","The sampler reaches about two metres. Please arrive within two metres."],
       crystal_consignment:["The crystals keep growing after they are cut. Handle the cargo as though it were alive. It may be."],
       crash_recovery:["A crash site is a badly documented accident. Collect the recorders and I will document it properly."],
       combat_recovery:["Something survived that fight which should not have. Find it before it stops being interesting."]

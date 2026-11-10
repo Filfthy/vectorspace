@@ -206,7 +206,16 @@
       'Dude. Your debrief says you got jumped while shooting rocks. Like, mid-rock.',
       'This happens to our couriers too. Turns out an asteroid field is a great place to hide if you are a pirate and do not mind being cold all the time.',
       'Corporate says clearance work is low risk. Corporate has never been inside an asteroid field. Corporate has barely been inside an office.',
-      'Anyway, shoot the guys first, then the rocks. The rocks are not going anywhere. Well, they are, but slowly.'])}
+      'Anyway, shoot the guys first, then the rocks. The rocks are not going anywhere. Well, they are, but slowly.'])},
+    // v1940: first convoy seen safely through, first core samples brought home.
+    {id:'firstConvoy',faction:'trade',when:c=>(c.stats.convoysSafe||0)>0,letter:L('My hauler crews',[
+      'Sweetie, one of my hauler captains came into the office today just to talk about you.',
+      'She said a drone flew rings round her freighter for the whole crossing and the pirates never laid a finger on her. Then she asked if you were single. I told her you were busy. You are busy, babe. With me.',
+      'Escort work is the best money I spend. Do not tell the accountants I said that.'])},
+    {id:'firstCores',faction:'helix',when:c=>(c.stats.contracts?.byTemplate?.crater_cores||0)>0,letter:L('Your core samples',[
+      'The cores you took are in the lab. I have been reading them like a book that someone dropped down a well.',
+      'The top layers are what I expected. Three metres down there is a band of material that does not belong to that moon, or to anything near it. Something hit it, a very long time ago, from a long way off.',
+      'I will want more cores. From more moons. You can probably guess why I find that exciting. If you cannot, I will explain at length.'])}
   ];
   globalThis.AgentXFactionLore={LETTERS,due,MARA,STANDING,FAVOURS,REACTIONS};
 })();
