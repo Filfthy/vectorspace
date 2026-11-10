@@ -87,9 +87,11 @@
     const sec=(z,rx,ry,dy=0)=>Array.from({length:N},(_,i)=>{const a=i*Math.PI*2/N,c=Math.cos(a),sn=Math.sin(a);return[c*rx,dy+sn*ry*(1-.55*Math.abs(c)),z]});
     const BODY=[[-2.1,.35,.3],[-1.5,1.6,.42],[-.8,2.7,.5],[0,3.2,.52],[.8,2.6,.46],[1.5,1.4,.36],[2.0,.5,.28],[2.3,.22,.2]];
     m.mark('body',()=>m.loft(BODY.map(([z,rx,ry])=>sec(z,rx,ry))));
-    m.mark('lights',()=>{for(const z of[-1.0,0,1.0]){const y=.5*(1-Math.abs(z)/3);m.loft([m.ringXZ(0,y+.02,z,.18,.18,5),m.ringXZ(0,y+.13,z,.07,.07,5)])}});
-    m.mark('eyes',()=>{for(const sx of[-1,1])m.box([sx*.25,.12,-1.95],[.12,.1,.1])});
-    m.mark('tail',()=>{m.beam([0,0,2.2],[0,.05,3.6],.18,.14,.7);m.beam([0,.05,3.6],[0,.15,5.4],.1,.08,.4)});
+    // Lights, eyes and tail are lines only: the drifters are huge on screen, and faced
+    // detail at that size is what made a migration slow to draw.
+    m.mark('lights',()=>{for(const z of[-1.0,0,1.0]){const y=.5*(1-Math.abs(z)/3);lines(m,m.ringXZ(0,y+.04,z,.18,.18,5),true);lines(m,m.ringXZ(0,y+.12,z,.07,.07,5),true)}});
+    m.mark('eyes',()=>{for(const sx of[-1,1])lines(m,[[sx*.18,.12,-1.96],[sx*.3,.17,-1.92],[sx*.34,.1,-1.9],[sx*.22,.07,-1.94]],true)});
+    m.mark('tail',()=>{for(const sx of[-1,1])lines(m,[[sx*.18,0,2.2],[sx*.12,.05,3.6],[sx*.07,.12,4.6],[0,.15,5.4]]);lines(m,[[0,.04,2.2],[0,.08,3.6],[0,.15,5.4]])});
     // Wing edges ripple: every vertex well out from the body swings about a pivot near it.
     const groups=[];
     for(const side of[-1,1]){const piv=m.v.length;m.v.push([side*1.3,0,0]);const idx=[];m.v.forEach((v,i)=>{if(i!==piv&&v[0]*side>1.7)idx.push(i)});groups.push({indices:idx,pivot:piv,phase:0})}
