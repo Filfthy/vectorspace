@@ -1247,13 +1247,16 @@ class CorridorEnvironmentController {
     const lastWorldZ=travel+far;
     const items=[];
 
+    // v1770: each row of ground points is projected once a frame and shared. A strip's far
+    // edge is the next strip's near edge, and the grid lines run through the same points,
+    // so the old code projected every point three times (about 18,700 a frame in the
+    // swamp). Same pixels, about a third of the work.
+    const rowCache=new Map();
+    const row=wz=>{let r=rowCache.get(wz);if(!r){r=[];for(let x=x0;x<=x1+.001;x+=1)r.push(proj([x,this.floorAt(wz,x),wz-travel])||null);rowCache.set(wz,r)}return r};
+    const gridCol=this.sceneGridColor();
     const terrainStrip=(wz0,wz1)=>{
-      const near=[],farEdge=[];
-      for(let x=x0;x<=x1+.001;x+=1){
-        const a=proj([x,this.floorAt(wz0,x),wz0-travel]);
-        const b=proj([x,this.floorAt(wz1,x),wz1-travel]);
-        if(a)near.push(a);if(b)farEdge.push(b)
-      }
+      const A=row(wz0),B=row(wz1),near=[],farEdge=[];
+      for(let i=0;i<A.length;i++){if(A[i])near.push(A[i]);if(B[i])farEdge.push(B[i])}
       if(near.length>=2&&farEdge.length>=2){
         ctx.save();ctx.fillStyle='#000';ctx.globalAlpha=1;ctx.beginPath();
         ctx.moveTo(near[0].x,near[0].y);
@@ -1265,11 +1268,12 @@ class CorridorEnvironmentController {
       // exist only for black hidden-surface occlusion and are never stroked.
       const isGridZ=wz=>Math.abs(wz/grid-Math.round(wz/grid))<.0001;
       if(isGridZ(wz0)){
-        let prev=null;for(let x=x0;x<=x1+.001;x+=1){const q=proj([x,this.floorAt(wz0,x),wz0-travel]);if(prev&&q)line(prev.x,prev.y,q.x,q.y,this.sceneGridColor(),.78,.62);prev=q||null}
+        let prev=null;for(let i=0;i<A.length;i++){const q=A[i];if(prev&&q)line(prev.x,prev.y,q.x,q.y,gridCol,.78,.62);prev=q||null}
       }
-      for(let x=Math.ceil(x0/grid)*grid;x<=x1+.001;x+=grid){
-        const a=proj([x,this.floorAt(wz0,x),wz0-travel]),b=proj([x,this.floorAt(wz1,x),wz1-travel]);
-        if(a&&b)line(a.x,a.y,b.x,b.y,this.sceneGridColor(),.72,.58)
+      // x0 is a multiple of the grid, so every fourth point of a row is on a grid line.
+      for(let i=Math.round(Math.ceil(x0/grid)*grid-x0);i<A.length;i+=grid){
+        const a=A[i],b=B[i];
+        if(a&&b)line(a.x,a.y,b.x,b.y,gridCol,.72,.58)
       }
     };
 
