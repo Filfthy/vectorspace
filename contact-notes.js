@@ -184,42 +184,61 @@
       F('lore2','Wrote the original Crossroads blockade order. The stand-down never reached the pickets in a form they would accept.'),
       F('lore3','Keeps a short list of operators he would send first. You are on it. His first commanding officer kept two words on her console: Finish it.'),
       F('final','The command bunker that kept issuing his Crossroads order has been breached and its archive delivered. The order is closed.'),
-      F('lore4','Broke his own no-more-letters order to tell you the Crossroads pickets were stood down properly.')]},
+      F('lore4','Broke his own no-more-letters order to tell you the Crossroads pickets were stood down properly.'),
+      // v1960: facts from the first-meeting letters (faction-lore.js REACTIONS)
+      F('react_ghosts','Calls ghost constructs lattice ordnance. Nobody stands down a minefield, he says. You clear it.'),
+      F('react_minelayer','Counts mine-laying pirates as a military problem, not a criminal one. Wants the lanes clean.')]},
     trade:{who:'Corvella Pallis',facts:[
       F('met','Free Traders Compact route coordinator. Overfamiliar, openly flirtatious, very good at the actual job.'),
       F('lore1','Worked in hospitality before route coordination. "Very personal service."'),
       F('lore2','Keeps the telemetry from your runs and replays the good bits when the depot is quiet.'),
       F('lore3','Built, not born. A former pleasure model, found in an inventory by a Compact auditor who gave her a desk instead of selling her for parts.'),
       F('final','Her original ownership file was recovered from the old records ship. Nobody owns her.'),
-      F('lore4','Took her first holiday, as a guest, and brought you back a tiny model drone.')]},
+      F('lore4','Took her first holiday, as a guest, and brought you back a tiny model drone.'),
+      // v1960: facts from the first-meeting letters (faction-lore.js REACTIONS)
+      F('react_minefield','Loses a hauler to the old war minefields every season. Wants you to come home.'),
+      F('react_ace','Has been robbed by the named pirate aces for years. Likes it that they are scared of you now.'),
+      F('react_firstConvoy','Her hauler captains come into the office to talk about you. Calls escort work the best money she spends.')]},
     jackals:{who:'Cassian Erivan-Snade',facts:[
       F('met','Red Jackal Combine contact. Elegant, indirect, never says steal when he can say change of ownership.'),
       F('lore1','Collects quiet things. Paintings, mostly. Occasionally people.'),
       F('lore2','Born of an arranged marriage between the wealthy Erivans and the well-mannered Snades. Neither family has forgiven the other.'),
       F('lore3','Cannot decide whether you are an asset, a liability or furniture, and has decided to enjoy not knowing.'),
       F('final','The Erivan ledger the Snades meant to read in public is in a friend\'s keeping. The family reading was postponed.'),
-      F('lore4','Suspects he enjoys working with you. Keeps a door open for quiet favours.')]},
+      F('lore4','Suspects he enjoys working with you. Keeps a door open for quiet favours.'),
+      // v1960: facts from the first-meeting letters (faction-lore.js REACTIONS)
+      F('react_storm','Admires weather. It ruins everyone equally and never apologises.'),
+      F('react_hijacked','Finds stolen loyalty vulgar. Loyalty, he says, is cultivated, preferably over dinner.')]},
     helix:{who:'Navira Derris',facts:[
       F('met','Helix Industrial Group research contact. Strange results make her more interested, not less.'),
       F('lore1','Grew up on a mining moon. At fourteen she asked to keep a xeno tissue sample. She has been asking, more formally, ever since.'),
       F('lore2','Minds destroying a nest. She minds quietly, and takes notes at the same time.'),
       F('lore3','Learned hive chemistry from Teodor, who ran the deep-core field lab before her and retired somewhere he calls wonderfully boring.'),
       F('final','Xenos reached Teodor\'s quiet station anyway. You cleared them. He has not been bored since.'),
-      F('lore4','Teodor came out of retirement and took the office next to hers. He said to keep you.')]},
+      F('lore4','Teodor came out of retirement and took the office next to hers. He said to keep you.'),
+      // v1960: facts from the first-meeting letters (faction-lore.js REACTIONS)
+      F('react_migration','Wants to be the person who finds out where the drifters are going. Would settle for funding them.'),
+      F('react_tender','Would pay for the pieces of a shield tender, if you ever leave any.'),
+      F('react_firstCores','Found a band in your moon cores that came from a long way off. Wants cores from more moons.')]},
     quickbite:{who:'Nyxo Malloc',facts:[
       F('met','QuickBite Orbital night dispatch. Treats extreme danger as ordinary delivery nonsense.'),
       F('lore1','Six years on night dispatch. Says you are the only contractor who finishes his deliveries.'),
       F('lore2','Promoted to Senior Dispatch Associate. No extra money, a new badge and a meeting about meetings, on Tuesdays.'),
       F('lore3','Knows some mining crews do not eat if the run does not happen. Said so once, then went back to tacos.'),
       F('final','Delivered lunch to the QuickBite leadership retreat, through the forest, on time.'),
-      F('lore4','Was sent a plant by a vice president. He named it Contractor.')]}
+      F('lore4','Was sent a plant by a vice president. He named it Contractor.'),
+      // v1960: facts from the first-meeting letters (faction-lore.js REACTIONS)
+      F('react_volcanic','QuickBite delivers to volcano worlds. He does not know why either.'),
+      F('react_groundCrew','Noticed you stopped for a stranded ground crew. Nobody stops, he says. He has the data.'),
+      F('react_fieldAmbush','Is fairly sure Corporate has never been inside an asteroid field. Or an office.')]}
   };
   // known(factionId, {flags, byFaction}) -> the facts the player has unlocked so far.
   function known(id,{flags={},byFaction={}}={}){
     const file=FILES[id];if(!file)return null;
     const lore=n=>id==='vox'?!!flags[`maraLore${n}`]:!!flags[`${id}Lore${n}`];
     const open={met:id==='vox'?!!flags.mara1Done:(byFaction[id]||0)>0,lore1:lore(1),lore2:lore(2),lore3:lore(3),final:id!=='vox'&&!!flags[`${id}Agent4Done`],lore4:id!=='vox'&&lore(4)};
-    return {who:file.who,facts:file.facts.filter(f=>open[f.k]).map(f=>f.text),total:file.facts.length}
+    // v1960: a fact from a first-meeting letter opens once that letter has been sent.
+    return {who:file.who,facts:file.facts.filter(f=>open[f.k]||(f.k.startsWith('react_')&&!!flags[f.k])).map(f=>f.text),total:file.facts.length}
   }
 
   // v1110 STANDING TIERS: one line from the contact on the standing mail when you

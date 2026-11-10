@@ -207,6 +207,11 @@
       'This happens to our couriers too. Turns out an asteroid field is a great place to hide if you are a pirate and do not mind being cold all the time.',
       'Corporate says clearance work is low risk. Corporate has never been inside an asteroid field. Corporate has barely been inside an office.',
       'Anyway, shoot the guys first, then the rocks. The rocks are not going anywhere. Well, they are, but slowly.'])},
+    // v1960: the first minelayer met in a fight (minelayers.js).
+    {id:'minelayer',faction:'security',when:c=>!!c.seen.minelayer,letter:L('Mined lanes',[
+      'X. Your debrief lists a minelayer. Pirates are seeding lanes now. That is not piracy. That is area denial, and area denial is a military job.',
+      'The mines are crude. They do not discriminate. Freighters, couriers, children on a pleasure cruise. Whoever comes close.',
+      'Kill the layer first. Then clear what it left. I want those lanes clean.'])},
     // v1940: first convoy seen safely through, first core samples brought home.
     {id:'firstConvoy',faction:'trade',when:c=>(c.stats.convoysSafe||0)>0,letter:L('My hauler crews',[
       'Sweetie, one of my hauler captains came into the office today just to talk about you.',

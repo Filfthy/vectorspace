@@ -254,6 +254,7 @@ class CampaignController {
       {id:'surveyor',name:'Surveyor',text:'Land on an ice, a crystal and an arid world.',v:['ice','crystal','arid'].filter(w=>this.state.seenProfiles?.[`world_${w}`]).length,goal:3},
       // v1540: ghost constructs, volcanic worlds and the new land jobs.
       {id:'ghostbreaker',name:'Ghostbreaker',text:'Destroy 15 ghost constructs.',v:(k.ghosts||0)+(k.jammers||0),goal:15},
+      {id:'laneSweeper',name:'Lane Sweeper',text:'Shoot 20 mines laid by minelayers.',v:s.minesShot||0,goal:20},
       {id:'signalRestored',name:'Signal Restored',text:'Destroy 5 ghost jammers.',v:k.jammers||0,goal:5},
       {id:'quietPassage',name:'Quiet Passage',text:'Fly past a dormant lattice without waking it.',v:s.latticesPassed||0,goal:1},
       {id:'firewalker',name:'Firewalker',text:'Land on a volcanic world.',v:this.state.seenProfiles?.world_volcanic?1:0,goal:1},

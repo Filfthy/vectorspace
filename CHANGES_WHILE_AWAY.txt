@@ -2166,7 +2166,9 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
     - New letter from Nyxo after your first ambushed asteroid clearance.
     - Two new VOX Wire headlines.
     - New letters: Corvella after your first convoy seen through, Navira
-      after your first core samples.
+      after your first core samples, Kudo after your first minelayer.
+    - Contact files (Networks page) now also record what each contact
+      told you in their first-meeting letters: 13 new facts.
   Fixed:
     - The drone could freeze for good after a city pickup (an old bug,
       about 1 run in 6 on pickup jobs).
@@ -2325,4 +2327,26 @@ v1950 New enemy: the minelayer
       and never hurt anyone: at cruise speed you were past before it went
       off, so the fuse is now short and the trigger wider.
       The self-test flies a forced minelayer fight every run.
+
+v1960 Getting to know the contacts, and minelayer records
+      Contact files: the file on each contact (Networks page) used to
+      record only their main personal letters. The thirteen first-meeting
+      letters (ghosts, minefields, aces, storms, hijacked drones, tenders,
+      drifters, volcano worlds, stranded crews, field ambushes, the first
+      convoy, the first cores, the first minelayer) said things too, and
+      now each one adds a fact once it has arrived, for example:
+        Kudo: "Calls ghost constructs lattice ordnance. Nobody stands
+          down a minefield, he says. You clear it."
+        Cassian: "Admires weather. It ruins everyone equally and never
+          apologises."
+        Nyxo: "Is fairly sure Corporate has never been inside an asteroid
+          field. Or an office."
+      Each file now has 8 to 9 facts to find. Already-received letters
+      count at once on an existing save.
+      Minelayer: Kudo writes after your first one ("Mined lanes"), a Codex
+      entry ("Minelayers"), and an achievement, Lane Sweeper (shoot 20
+      mines laid by minelayers).
+      Left alone on purpose: moons keep their trees and weather. The
+      game's own chatter gives them a thin atmosphere, and changing how
+      they look is your call.
 
