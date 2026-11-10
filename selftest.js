@@ -33,7 +33,7 @@
   box.style.cssText='position:fixed;left:12px;top:12px;right:12px;max-height:92vh;overflow:auto;z-index:99999;background:#000;border:1px solid #0f0;color:#0f0;font:13px/1.45 Consolas,monospace;padding:12px 14px;white-space:pre-wrap';
   const paint=(note='')=>{box.textContent='VECTOR SPACE SELF-TEST'+(note?'  ·  '+note:'')+'\n\n'+results.map(r=>`${r.ok?'PASS':'FAIL'}  ${r.name.padEnd(11)} ${r.summary}${r.details.length?'\n'+r.details.map(d=>'        '+d).join('\n'):''}`).join('\n')};
   const pause=()=>new Promise(r=>setTimeout(r,0));
-  const reset=()=>{routeDiversion.reset();salvageRecovery?.reset?.();fighters.length=0;campaign.currentMission=null;campaign.pendingMission=null;mode='play';phase='space';paused=false;document.body.classList.remove('paused');if(campaign.isOpen())campaign.hideHub();invulnerable=true};
+  const reset=()=>{routeDiversion.reset();globalThis.AgentXAsteroidAmbush?.reset();salvageRecovery?.reset?.();fighters.length=0;campaign.currentMission=null;campaign.pendingMission=null;mode='play';phase='space';paused=false;document.body.classList.remove('paused');if(campaign.isOpen())campaign.hideHub();invulnerable=true};
   // A lift-off or exit sequence is not the end of a job: several lift off mid-mission and go
   // on to a fight or a station. Only the last stage's exit (or no mission at all) is the end.
   const exiting=()=>mode==='missionExit'||mode==='surfaceExit';
@@ -301,7 +301,16 @@
 
     // Flown for real: no stage is skipped once the pilot has the controls.
     const pilotNotes=[];
-    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike'],id=>{
+    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush'],id=>{
+      // v1870: an asteroid clearance with its ambush forced: the fight must start partway
+      // through, end, and hand back to the rocks, and the job must finish.
+      if(id==='asteroid ambush'){
+        const AA=globalThis.AgentXAsteroidAmbush;if(!AA)return 'asteroid-ambush.js is not loaded';
+        let fought=false;const s0=AA.start;AA.start=function(){fought=true;return s0.call(this)};
+        let line;try{AA.force=true;line=flyJob('asteroids',{weapon:'laser3',frame:'AX-3B',level:10,risk:5,stageCap:240,maxSecs:400})}finally{AA.start=s0;AA.force=false}
+        const secs=Number((line.match(/in (\d+) s/)||[])[1]||0);pilotNotes.push(`ambush ${secs}s`);
+        if(!fought)return 'the ambush never started';if(/STUCK/.test(line))return line;if(!/finished/.test(line))return line;return
+      }
       if(id==='dune_armour_clearance'||id==='ice_field_armour'||id==='factory_strike'){
         c.state.inventory.laser5=1;c.state.weaponLoadout='laser5';c.launchDevTemplateTest(id,(T[id].allowedFactions||['trade'])[0]);invulnerable=true;
         const r=flyGround(id==='factory_strike'?'factory_assault':'dune_assault');if(!r.started)return 'the armour field never started';pilotNotes.push(`${id.split('_')[0]} ${r.units} units ${r.secs}s`);
@@ -402,6 +411,9 @@
         c.generateContractBoard();const m=c.missions.find(x=>x.implemented&&!x.private),failed0=c.state.failed;c.launchMission(m.id);for(let k=0;k<60;k++)update(1/30);
         if(!c.failCurrentMission('Drone destroyed'))return 'the failure was refused';if(c.state.failed!==failed0+1)return 'the failure was not counted';
         if(!c.state.pendingInsurance)return 'no insurance claim was opened';if(!/Insurance/.test(document.querySelector('#debriefBox,.debriefBox,[data-panel="debrief"]')?.textContent||''))return 'the insurance screen did not show';
+        // v1870: with insured gear fitted, each claim must be paid or declined before Return
+        // unlocks. Decline them all (that path costs nothing), then leave.
+        for(let k=0;k<12;k++){const d=[...document.querySelectorAll('[data-panel="debrief"] button')].find(b=>/decline/i.test(b.textContent)&&!b.disabled);if(!d)break;d.click()}
         const btn=[...document.querySelectorAll('[data-panel="debrief"] button')].find(b=>/continue|return/i.test(b.textContent)&&!b.disabled);if(!btn)return 'no way to leave the insurance screen';btn.click();
         if(c.state.pendingInsurance)return 'the insurance claim did not close';closeHub()
       }

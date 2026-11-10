@@ -102,6 +102,7 @@ class ScenarioFlowController {
     if(stage.type==='asteroid_wreck_recovery')return !!(asteroidWreckRun?.active&&asteroidWreckRun.state==='ambush');
     if(stage.type==='carrier_intercept')return !!carrierIntercept?.combatActive?.();
     if(stage.type==='taco_asteroid_delivery')return !!tacoBeaconDelivery?.piratesActive?.();
+    if(stage.type==='asteroids')return !!globalThis.AgentXAsteroidAmbush?.fightActive?.();
     if(stage.type==='station_minefield_approach'&&stage.combatBeforeApproach)return !!stationDelivery?.perimeterCombatActive;
     return stage.type==='fighters'||stage.type==='combat_recovery'||
       stage.type==='station_defence_recovery'||stage.type==='customs_drones'||
@@ -291,6 +292,7 @@ class ScenarioFlowController {
     }
     if(stage.type==='asteroids'){
       asteroidField.activatePrepared({silentObjective:!!stage.tutorial});
+      globalThis.AgentXAsteroidAmbush?.arm(stage);   // v1870 asteroid-ambush.js
       if(stage.tutorial){
         // Simulator teaching is spoken and subtitled. The final objective cue is
         // queued by the player's first shot, so the lesson responds to what they do.

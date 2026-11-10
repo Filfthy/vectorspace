@@ -2067,3 +2067,49 @@ v1860 Every mission in the game finished by a pilot. One finding for you.
         drone that can be hurt bumps the hull if it does not steer, so the
         pilot now aims for the torn mouth.
 
+v1870 Asteroid clearance can be ambushed (your call)
+      A board asteroid clearance used to be the one combat-board job that
+      could never meet a fight. Now a hidden roll at the start decides
+      whether something is hiding in the field. If it is, it attacks once
+      35 to 65% of the marked rocks are down (the shooting draws it in):
+        "PIRATES IN THE FIELD · THEY WERE WAITING FOR YOU"
+        "ROGUE DRONES · THE SHOOTING WOKE THEM"
+        "XENO SWARM · SOMETHING WAS NESTING IN THE ROCKS"
+        "HIJACKED DRONES · INBOUND THROUGH THE FIELD"
+        "MERCENARIES · SOMEONE PAID TO KEEP THIS FIELD"
+      The rocks stay where they are and keep drifting and colliding
+      during the fight, with the ringed planet behind, the same way the
+      Missing Manifest and Taco Beacon fights work. When the attackers are
+      down: "FIELD CLEAR OF HOSTILES · 5 MARKED ROCKS LEFT", and you finish
+      the clearance. The card does not warn you, like any route fight.
+      Chance by risk: 18% at risk 1, 32% at risk 3, 46% at risk 5, 70% at
+      risk 9 and above (measured over 2,000 rolls each). Group size is 4
+      at risk 1 up to 8 at risk 9, with the usual risk hull. Who comes
+      follows the client (Free Traders mostly pirates, OSD rogue drones,
+      Helix and QuickBite xenos) and your level (no xenos before 3, no
+      hijacked drones before 5, no mercenaries before 4). Never in the
+      simulator or a story mission. Named aces can appear, as in any fight.
+      Kills pay the normal bounty and XP, and it counts as a route
+      encounter survived. A real risk 5 contract with an ambush paid
+      CR 10,200 fee plus CR 6,050 bounties, and 639 XP instead of 309.
+      What it does to the job, pilot that can be shot down, natural odds:
+        risk 1   ambushed 2 of 12   13 to 44 s     never seriously hurt
+        risk 5   ambushed 5 of 12   16 to 57 s     up to 5 of 9 shield
+        risk 9   ambushed 10 of 12  25 to 84 s     lost 1 drone of 12
+      At risk 9 that takes it from about 78,000 credits a minute to about
+      38,000 (counting bounties), and from about 1,340 XP a minute to
+      about 780. A dogfight is about 17,000 and 860. So it is still the
+      best money in the game per minute, about twice a dogfight, but no
+      longer free, and its XP is now in line. If you want it pulled in
+      further, the fee is the lever left (I have not touched it).
+      The self-test now flies a forced ambush every run.
+      Caught by you mid-build: the first version also drew the job's open
+      space planet during the fight, on top of the belt's own ringed
+      planet. The wreck and taco fights already hide it, and now this one
+      does too (checked in a frame before and during the fight). The big
+      cyan ring in that screenshot was an incoming enemy shot passing the
+      camera, drawn as normal.
+      Self-test fix: losing a drone with insured gear fitted opens a claim
+      that must be paid or declined before Return unlocks. The game was
+      right. The test now declines each claim before leaving.
+

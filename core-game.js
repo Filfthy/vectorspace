@@ -205,7 +205,7 @@ class Game {
      // Missing Manifest composes the EXISTING asteroid-field mechanism. Let its
      // sequencing controller run here rather than swallowing the asteroid update.
      asteroidWreckRun.update(dt)
-   }else asteroidField.update(dt);
+   }else{asteroidField.update(dt);globalThis.AgentXAsteroidAmbush?.update(dt)}
    updateEffects(dt);
    return
  }
@@ -395,6 +395,7 @@ class Game {
    asteroidWreckRun.update(dt);
    if(mode!=='play'){updateEffects(dt);return}
  }
+ if(globalThis.AgentXAsteroidAmbush?.fightActive?.())AgentXAsteroidAmbush.update(dt);   // v1870: the belt keeps moving during the ambush
  if(carrierIntercept?.active&&(phase==='space'||phase==='carrierInterior')){
    carrierIntercept.update(dt);
    if(mode!=='play'||carrierIntercept.ownsFrame()){updateEffects(dt);return}
@@ -555,6 +556,8 @@ class Game {
        // asteroid-delivery run. Clearing the fighters unlocks the existing mine nav;
        // do not fall through into the generic approach transition on later frames.
        if(tacoBeaconDelivery?.piratesActive?.())tacoBeaconDelivery.onPiratesCleared()
+    }else if(campaign.currentMission&&activeStage?.type==='asteroids'&&globalThis.AgentXAsteroidAmbush?.fightActive?.()){
+       AgentXAsteroidAmbush.onCleared()
     }else if(campaign.currentMission&&activeStage?.type==='route_diversion'){
        if(routeDiversion.active)routeDiversion.onFightCleared()
     }else if(campaign.currentMission&&(activeStage?.type==='fighters'||activeStage?.type==='customs_drones')){

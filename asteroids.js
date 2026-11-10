@@ -878,7 +878,7 @@ class AsteroidFieldController {
     }
 
     this.completeDelay=Math.max(0,this.completeDelay-dt);
-    if(!this.courierMode&&!freezeObjectives&&this.destroyed>=this.goal&&this.completeDelay<=0){
+    if(!this.courierMode&&!freezeObjectives&&this.destroyed>=this.goal&&this.completeDelay<=0&&!globalThis.AgentXAsteroidAmbush?.fightActive?.()){
       const stage=campaign.currentStage?.();
       if(campaign.currentMission?.training&&stage?.tutorialStaticCut){
         // Let the objective-complete cue finish cleanly before the static transition.
@@ -990,7 +990,7 @@ class AsteroidFieldController {
     // Missing Manifest keeps the same physical asteroid-field sky during its
     // pirate interruption even though the generic fighter controller temporarily
     // uses phase='space'. The planet must not blink out and reappear around combat.
-    const wreckCombatBackdrop=phase==='space'&&this.spaceBackdrop===true;
+    const wreckCombatBackdrop=phase==='space'&&this.spaceBackdrop===true;   // also the v1870 clearance ambush
     if(!this.active||(phase!=='asteroids'&&phase!=='courierMine'&&!wreckCombatBackdrop))return;
     this.drawRingPlanet(1)
   }

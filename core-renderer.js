@@ -891,13 +891,13 @@ class SceneRenderer {
  const enclosed=(phase==='trench'||phase==='reactor'||phase==='escape'||phase==='courierTunnel'||phase==='courierReturn'||phase==='bunkerTunnel'||phase==='bunkerReturn'||phase==='stationInterior'||phase==='securityCheckpoint'||phase==='xenoCore'||mode==='courierDelivery'||mode==='courierTurn'||mode==='bunkerCircuitryPickup'||mode==='bunkerTurn'||mode==='reactorApproach'||mode==='reactorExit'||mode==='exitDoor');
  if(!enclosed)drawStars();
  if(!enclosed)globalThis.AgentXSpaceAmbience?.draw();   // v1690: an occasional distant comet
- if(phase==='asteroids'||phase==='courierMine'||asteroidWreckRun?.fieldVisible?.()||tacoBeaconDelivery?.piratesActive?.())asteroidField.drawBackdrop();
+ if(phase==='asteroids'||phase==='courierMine'||asteroidWreckRun?.fieldVisible?.()||tacoBeaconDelivery?.piratesActive?.()||globalThis.AgentXAsteroidAmbush?.fightActive?.())asteroidField.drawBackdrop();
  // Draw dust before any planetary body.  The old ordering put the grey motion
  // points on top of the Helix/world planet after its black occlusion disc, making
  // them read as stars showing through the planet.
  if((mode==='play'||mode==='recoveryPickup')&&(phase==='space'||phase==='asteroids'||phase==='courierMine'||phase==='xenoNest'))drawSpaceMotes();
  if(helixBiolab?.active&&mode==='play'&&phase==='space')helixBiolab.drawBackdrop();
- if((mode==='play'||mode==='recoveryPickup')&&phase==='space'&&!courier.active&&!stationDelivery.active&&!asteroidWreckRun?.active&&!tacoBeaconDelivery?.active&&!helixBiolab?.active)drawWorldPlanet();
+ if((mode==='play'||mode==='recoveryPickup')&&phase==='space'&&!courier.active&&!stationDelivery.active&&!asteroidWreckRun?.active&&!tacoBeaconDelivery?.active&&!helixBiolab?.active&&!globalThis.AgentXAsteroidAmbush?.fightActive?.())drawWorldPlanet();   // v1870: the ambush keeps the belt's own sky
  if(stationHack?.active&&phase==='space')stationHack.draw('far');
  // During the station-defence/recovery mission Relay 10 must share the same
  // painter list as wreckage and fighters. Drawing it here, before the scene list,
@@ -931,7 +931,7 @@ class SceneRenderer {
    const sd=camPoint([stationDelivery.station.x,stationDelivery.station.y,stationDelivery.station.z])[2];
    if(sd>.18)scene.push({z:sd,draw:()=>stationDelivery.drawExterior()})
  }
- if(phase==='asteroids'||phase==='courierMine'||mode==='courierExitZoom'||asteroidWreckRun?.fieldVisible?.()||tacoBeaconDelivery?.piratesActive?.())for(const a of asteroids)if(!a.dead&&a.type!=='courierMine'&&a.persistentLargeObject!==true&&a.mineBaseVariantId==null){
+ if(phase==='asteroids'||phase==='courierMine'||mode==='courierExitZoom'||asteroidWreckRun?.fieldVisible?.()||tacoBeaconDelivery?.piratesActive?.()||globalThis.AgentXAsteroidAmbush?.fightActive?.())for(const a of asteroids)if(!a.dead&&a.type!=='courierMine'&&a.persistentLargeObject!==true&&a.mineBaseVariantId==null){
    const ad=camPoint([a.x,a.y,a.z])[2];
    if(ad>.18)scene.push({z:ad,draw:()=>drawMesh(a,asteroidMesh,objectHitColor(a,a.col))})
  }
