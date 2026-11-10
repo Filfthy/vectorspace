@@ -68,7 +68,13 @@
           returnTransit:{duration:3.15,message:'RETURNING TO FREE TRADERS FREIGHT DEPOT',hud:'TO FREIGHT DEPOT'}},
         {type:'free_traders_depot_terminal',label:'Deliver the Routing Core',difficulty:1,scale:26,spawnDistance:475,spawnX:-36,spawnY:-12,pitch:-.085,yaw:.58,roll:.05,startMessage:'Deliver the routing core',
           depotRevealRadius:205,terminalStageDistance:82,terminalCaptureRadius:86,terminalStandOff:15.5,transferSeconds:3.1,turnSeconds:1.75,clearDistance:52}],
-      stages:['Cross the Field','Destroy the Guards','Enter the Ship','Pull the Routing Core','Return to the Depot','Deliver the Core']}
+      stages:['Cross the Field','Destroy the Guards','Enter the Ship','Pull the Routing Core','Return to the Depot','Deliver the Core']},
+    // v1560: a remnant node behind a ghost lattice (ghosts.js). Fewer, weaker hulls than a
+    // drone screen, because a ghost can only be hit while it is formed.
+    {id:'lattice',title:'Lattice Node',family:'deep_core',planetaryRequirements:{landingBody:'planet',landingColour:'orange',moonCount:{min:0,max:2}},
+      description:'A remnant command node is hiding behind a ghost lattice sown around its world. Break the lattice in orbit, then descend, run the trench and destroy the node reactor. While its jammers live, your missiles will not lock.',
+      modules:(n,hp)=>[{type:'fighters',label:'Ghost Lattice',target:Math.max(5,Math.round(n*.7)),fighterHp:Math.round(hp*.75),profile:'ghost',difficulty:5,hudTag:'GHOST LATTICE'},descent('Planet Descent'),{type:'deep_core_surface',label:'Surface and Reactor Strike',difficulty:5}],
+      stages:['Break the Lattice','Planet Descent','Surface and Reactor Strike']}
   ];
 
   function blackContract(threat){

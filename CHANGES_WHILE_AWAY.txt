@@ -1522,3 +1522,12 @@ v1550 A road and ground traffic on the way into town
       Scenery only: they run below flying height, nothing collides with them,
       and no trees grow on the road. Forest, swamp, bunker and OSD approaches
       are unchanged. About 4 ms a frame.
+
+v1560 New Black Contract: Lattice Node
+      A seventh set piece in the Black Contract rotation (after the supply
+      ship): a remnant command node hiding behind a ghost lattice sown round
+      an orange world. Break the lattice in orbit (jammers included, so
+      missiles will not lock until they die), then descend, run the trench
+      and destroy the node reactor. Fewer and lighter ghosts than a drone
+      screen would have, since they can only be hit while formed. All nine
+      Black Contract set pieces were stepped through clean.
