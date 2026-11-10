@@ -1694,6 +1694,7 @@ class CampaignController {
     this.evaluateBulletin();
     this.evaluateThreatAdvisories();
     this.evaluateStandingLetters();
+    this.evaluateContactReactions();
     // Story mission 2 is handed out directly by Mara's completion mail for mission 1.
     // It deliberately does not also auto-enqueue here, which would duplicate the offer.
   }
@@ -1759,6 +1760,20 @@ class CampaignController {
       if(!F.due(i,{rep:Number(this.factions[chain.faction]?.rep)||0,flags,chain,completed}))continue;
       flags[key]=true;flags.loreSentAt=completed;
       this.enqueueMail({id:`lore_${chain.faction}_${i+1}`,from:chain.from,subject:letter.subject,category:'story',priority:'normal',body:letter.body.slice()});
+      return
+    }
+  }
+  // v1490: a contact's note the first time X meets something new (faction-lore.js REACTIONS).
+  evaluateContactReactions(){
+    const R=globalThis.AgentXFactionLore?.REACTIONS,C=globalThis.AgentXFactionContent;if(!R||!C)return;
+    const flags=this.state.mailFlags,completed=Number(this.state.completed)||0;
+    if(flags.loreSentAt===completed||flags.reactSentAt===completed)return;
+    const byFaction=this.stats().contracts?.byFaction||{},ctx={flags,seen:this.state.seenProfiles||{}};
+    for(const r of R){
+      const key=`react_${r.id}`;if(flags[key]||!(byFaction[r.faction]>0)||!r.when(ctx))continue;
+      const chain=C.chains.find(c=>c.faction===r.faction);if(!chain)continue;
+      flags[key]=true;flags.reactSentAt=completed;
+      this.enqueueMail({id:`react_${r.id}`,from:chain.from,subject:r.letter.subject,category:'story',priority:'normal',body:r.letter.body.slice()});
       return
     }
   }

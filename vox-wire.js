@@ -56,6 +56,11 @@
     H('survey_lake','A delivery company confirms that a disputed lake on one of its routes does exist. It is small. The company has apologised to its software.',c=>(c.bt.survey_run||0)>0),
     H('crystal_rush','Crystal mining towns report record assay traffic. One town has named a sandwich after a contractor, against their wishes.',c=>(c.bt.crystal_consignment||0)>0),
     H('tender_warning','OSD advises pilots that some old drone wings fly with a shield tender. "Shoot the white one," a spokesperson said, unusually helpfully.',c=>(c.stats.kills?.tenders||0)>0),
+    // v1490: today's new things on the routes.
+    H('lattice_lanes','OSD reminds pilots that wreck fields on old lanes may hold wartime lattice ordnance. "If the debris moves, it is not debris."',c=>!!c.state?.seenProfiles?.ghost),
+    H('migration_watch','Helix offers to pay for close scans of drifter herds and asks pilots, firmly, not to shoot them.',c=>!!c.flags.metMigration),
+    H('mine_season','The Compact counts another hauler lost to a wartime mine on a commercial lane. OSD says sweeping "remains a priority".',c=>!!c.flags.metMinefield),
+    H('ash_soup','Ash fall grounds three courier flights on a volcanic world. QuickBite says the soup arrived "warmer than usual".',c=>!!c.state?.seenProfiles?.world_volcanic),
     H('hijack_warning','OSD warns that stolen military drones are turning up in criminal hands. Pilots report they "hesitate, then fire".',c=>!!c.state?.seenProfiles?.hijacked)
   ];
   globalThis.AgentXVoxWire={HEADLINES};

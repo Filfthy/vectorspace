@@ -158,5 +158,32 @@
     helix:['X. I have a job that needs someone who will not panic. I thought of you.','A private Helix request. I asked for you specifically, which I am told is unusual for me.'],
     quickbite:['Dude, Corporate gave me a budget for trusted contractors. That is you. Here is a job.','This one is off the board and pays way more. Do not tell Dispatch.']
   };
-  globalThis.AgentXFactionLore={LETTERS,due,MARA,STANDING,FAVOURS};
+  // v1490: first meetings. The first time X runs into something new on the route, the
+  // contact best placed to comment sends a short note, in their own voice. Only from a
+  // contact X has already worked for, at most one per finished contract, never on the
+  // same contract as a lore letter. when(ctx): ctx = {flags, seen}
+  const REACTIONS=[
+    {id:'ghosts',faction:'security',when:c=>!!c.seen.ghost,letter:L('Lattice ordnance',[
+      'X. Your last debrief lists ghost constructs. OSD calls them lattice ordnance. Nobody in my office calls them ghosts in writing.',
+      'They were sown to deny lanes. Nobody stood them down, because nobody stands down a minefield. You clear it.',
+      'They are not drones. They do not think about you. They wait, they gather, they fire. Shoot them when they are solid and do not waste missiles on empty air.',
+      'If there is a jammer, it dies first. That is not advice.'])},
+    {id:'migration',faction:'helix',when:c=>!!c.flags.metMigration,letter:L('Re: drifters',[
+      'You were near a drifter migration. I have read the sensor log three times.',
+      'Nobody knows where they are going. I would like to be the person who finds out. I would settle for funding the person who finds out.',
+      'If you meet another herd, fly close and hold your fire. The escort leaves you alone. I have no idea why, which is my favourite kind of fact.'])},
+    {id:'minefield',faction:'trade',when:c=>!!c.flags.metMinefield,letter:L('Those old mines, sweetie',[
+      'Sweetie, I saw your route went through one of the old minefields. My stomach did a little flip.',
+      'We lose a hauler to those things every season. Nobody ever swept the lanes properly after the war. Too expensive, apparently, which is a funny word for it when it is your crew.',
+      'Shoot the ones on your line and fly through the gap. And come home, babe. I mean it.'])},
+    {id:'volcanic',faction:'quickbite',when:c=>!!c.seen.world_volcanic,letter:L('the hot ones',[
+      'Dude, you landed on one of the volcano worlds. We deliver there. I do not know why. Somebody orders soup on a planet that is already soup.',
+      'Couriers say the ash gets in everything and the vents spit at you. One of them swears a cone sneezed on her.',
+      'Anyway, if you see a QuickBite crate on fire down there, that is normal. Probably.'])},
+    {id:'storm',faction:'jackals',when:c=>!!c.flags.metStorm,letter:L('On weather',[
+      'I am told you flew through a storm on the plains. How very dramatic.',
+      'I have always admired weather. It ruins everyone equally and never apologises, a quality one rarely finds in people.',
+      'Do take care. Instruments lie less often than witnesses, but they do lie.'])}
+  ];
+  globalThis.AgentXFactionLore={LETTERS,due,MARA,STANDING,FAVOURS,REACTIONS};
 })();

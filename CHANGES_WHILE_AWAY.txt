@@ -1451,3 +1451,16 @@ v1480 Volcanic worlds
       orange. Guide and Codex updated, with a new Codex entry "Volcanic
       worlds" once you have landed on one. Frames cost about the same as an
       arid landing (5 to 7 ms).
+
+v1490 Contacts react to what you run into
+      The first time you meet something new on the route, the contact best
+      placed to comment sends a short note in their own voice:
+      - Ghost constructs: Kudo, "Lattice ordnance".
+      - A xeno migration: Navira, "Re: drifters".
+      - An old minefield: Corvella, "Those old mines, sweetie".
+      - A volcanic world: Nyxo, "the hot ones".
+      - A storm on the plains: Cassian, "On weather".
+      Only from a contact you have already worked for, at most one per
+      finished contract, and never on the same contract as one of their
+      personal letters. VOX Wire also gains four headlines that run once
+      you have met these (lattice ordnance, drifter scans, mines, ash fall).
