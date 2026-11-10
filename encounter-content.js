@@ -91,7 +91,7 @@
   };
 
   // Optional diversions (route-diversion.js): open-space moments only, never stacked.
-  const DIVERSIONS=[{id:'beacon',weight:40},{id:'derelict',weight:35},{id:'civilian',weight:25},{id:'skirmish',weight:22},{id:'minefield',weight:16},{id:'pod',weight:22},{id:'cache',weight:18}];
+  const DIVERSIONS=[{id:'beacon',weight:40},{id:'derelict',weight:35},{id:'civilian',weight:25},{id:'skirmish',weight:22},{id:'minefield',weight:16},{id:'migration',weight:14},{id:'pod',weight:22},{id:'cache',weight:18}];
   function maybeDiversion(modules,spots,risk,chance){
     if(Math.random()>=chance||modules.some(m=>m.type==='route_diversion'))return false;
     const s=spots[Math.floor(Math.random()*spots.length)],d=pick(DIVERSIONS,x=>x.weight);

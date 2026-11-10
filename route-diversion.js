@@ -15,6 +15,9 @@
 //                     optional: fly through. Mines arm when X comes close and blow half a
 //                     second later; shot mines go off harmlessly and set off neighbours.
 //                     Clearing most of the field earns OSD's thanks
+//   XENO MIGRATION    huge peaceful drifters crossing the route with a hornet escort (v1400).
+//                     Fly alongside to scan them for Helix; fire on one and Helix will hear
+//                     of it, and the escort turns on X
 //
 // Flying away from the marker, or simply letting the window run out, ignores it and the
 // route continues. Rewards are small: a little money, experience or standing. They are
@@ -58,6 +61,9 @@ const routeDiversion={
                  {faction:'quickbite',name:'QUICKBITE COURIERS',label:'QuickBite couriers',short:'COURIERS',col:C.y,drone:true,weight:25}]},
     minefield:{nav:'OLD MINEFIELD ON ROUTE · SHOOT OR STEER CLEAR',hud:'MINEFIELD',window:26,
       cleared:{say:'ORDNANCE CLEARED · OSD WILL LOG IT',pay:.06,rep:2,repFaction:'security',text:'War-era mines cleared'}},
+    migration:{nav:'XENO MIGRATION CROSSING · FLY CLOSE TO SCAN · DO NOT FIRE',hud:'XENO MIGRATION',window:30,need:3,
+      surveyed:{say:'MIGRATION SURVEYED · HELIX WILL WANT THIS',pay:.08,rep:3,repFaction:'helix',xp:.15,text:'Xeno migration surveyed'},
+      fired:{text:'Fired on a xeno migration',rep:-4,repFaction:'helix'}},
     civilian:{nav:'CIVILIAN CRAFT UNDER PURSUIT',voice:'civilianCraftUnderAttack',hud:'CIVILIAN UNDER ATTACK',window:24,
       helped:{say:'CIVILIAN SAFE',voice:'civilianSafe',pay:.1,rep:3,repFaction:'security',text:'Civilian rescued'},
       ignored:{say:'CIVILIAN CONTACT LOST',voice:'civilianContactLost'}}
@@ -74,6 +80,7 @@ const routeDiversion={
     audio.music.setMode(campaign.currentMission?.musicMode||'calm');
     if(kind==='skirmish')return this.beginSkirmish(stage,def);
     if(kind==='minefield')return this.beginMinefield(stage,def);
+    if(kind==='migration')return this.beginMigration(stage,def);
     if(kind==='civilian'){
       // Raiders chasing someone else. They hold fire on X unless X joins in, so the
       // event can genuinely be flown past. Destroying them all in time saves the civilian.
@@ -102,6 +109,7 @@ const routeDiversion={
     if(!this.active)return '';
     const left=Math.max(0,Math.ceil(this.window-this.t)),def=this.KINDS[this.kind];
     if(this.state==='fight')return this.stage?.hudTag||def.hud;
+    if(this.state==='migration')return this.firedOnHerd?`${def.hud} · ESCORT HOSTILE`:`${def.hud} · SCANNED ${Math.min(this.scanned,def.need)}/${def.need} · ${left}s`;
     if(this.state==='minefield')return `${def.hud} · ${this.mines.filter(m=>!m.dead&&!m.passed).length} LEFT`;
     if(this.state==='skirmish'&&this.side)return `${def.hud} · ${this.side.short} ${this.allies.filter(a=>!a.dead).length}/${this.allies.length} · ${left}s`;
     return `${def.hud} · ${left}s`
@@ -118,6 +126,8 @@ const routeDiversion={
       this.updateSkirmish(dt)
     }else if(this.state==='minefield'){
       this.updateMinefield(dt)
+    }else if(this.state==='migration'){
+      this.updateMigration(dt)
     }else if(this.state==='pursuit'){
       this.t+=dt;
       for(const f of fighters)if(!f.dead&&!f.dying&&!f.provoked)f.shotsLeft=0;
@@ -140,7 +150,73 @@ const routeDiversion={
     }
   },
   // A shot at a pursuer means X has joined in: that raider fights back.
-  onPlayerHitFighter(f){if(this.active&&(this.state==='pursuit'||this.state==='skirmish')&&f){f.provoked=true;this.joined=true;if(!(f.shotsLeft>0))f.shotsLeft=3}},
+  onPlayerHitFighter(f){if(this.active&&(this.state==='pursuit'||this.state==='skirmish'||this.state==='migration')&&f){f.provoked=true;this.joined=true;if(!(f.shotsLeft>0))f.shotsLeft=3}},
+  // ---- Xeno migration (v1400) ----
+  // Four to six drifters (huge, slow, harmless) cross the route ahead from one side, with a
+  // few hornets in escort that hold their fire. Keeping within 45 of a drifter for two and a
+  // half seconds scans it; three scans and Helix pays for the data. A shot at a drifter
+  // costs Helix standing at once and turns the escort hostile; the stage then lasts until
+  // the escort is down or the herd has gone.
+  beginMigration(stage,def){
+    const mesh=globalThis.AgentXSpaceBugs?.meshes?.drifter;if(!mesh)return this.beginMinefield(stage,this.KINDS.minefield);
+    const dir=Math.random()<.5?-1:1,n=4+Math.floor(Math.random()*3),esc=3+Math.floor(Math.random()*2);
+    this.herd=[];this.scanned=0;this.firedOnHerd=false;
+    for(let i=0;i<n;i++){
+      const w=cameraPointToWorld([dir*(-70-i*26)+(Math.random()-.5)*12,(Math.random()-.5)*26,150+i*34+Math.random()*20]);
+      this.herd.push({x:w[0],y:w[1],z:w[2],s:6+Math.random()*2.5,rot:[0,dir>0?-.9:.9,0],vx:dir*(9+Math.random()*3),mesh,bugKind:'drifter',bugAnimPhase:Math.random()*6,
+        hp:6,hitT:0,dead:false,scanT:0,scanned:false})
+    }
+    stage.spaceCombat=true;
+    scenarioFlow.startFighterStage({...stage,target:esc,fighterHp:12,profile:'xeno',navMessage:null,silentStart:true},'xeno',{preservePhase:true});
+    scenarioFlow.encounterHudTag=def.hud;
+    fighters.forEach((f,i)=>{const d=this.herd[i%n];f.x=d.x+(Math.random()-.5)*20;f.y=d.y+6+Math.random()*6;f.z=d.z+(Math.random()-.5)*20});
+    if(campaign.state&&campaign.statsLive?.())(campaign.state.mailFlags||(campaign.state.mailFlags={})).metMigration=true;   // opens the Codex entry
+    this.state='migration';callout(def.nav,2.8);return true
+  },
+  updateMigration(dt){
+    this.t+=dt;const def=this.KINDS.migration,k=OPEN_SPACE_CRUISE*dt;let inView=0;
+    for(const d of this.herd){
+      if(d.dead)continue;
+      d.x-=spaceMoveX*k;d.y-=spaceMoveY*k;d.z-=spaceMoveZ*k;
+      d.z+=34*dt;d.x+=d.vx*dt;d.y+=Math.sin(this.t*.5+d.bugAnimPhase)*.8*dt;d.hitT=Math.max(0,d.hitT-dt);
+      const q=camPoint([d.x,d.y,d.z]);if(q[2]>-20&&Math.abs(q[0])<q[2]*3+60)inView++;
+      if(!d.scanned&&!this.firedOnHerd){
+        if(Math.hypot(d.x-shipX,d.y-shipY,d.z)<45+d.s*2){d.scanT+=dt;if(d.scanT>=2.5){d.scanned=true;this.scanned++;callout(`DRIFTER SCANNED · ${Math.min(this.scanned,def.need)} OF ${def.need}`,1.4)}}
+        else d.scanT=Math.max(0,d.scanT-dt*.5)
+      }
+    }
+    // The escort keeps station over the herd until provoked.
+    const live=fighters.filter(f=>!f.dead&&!f.dying);
+    if(!this.firedOnHerd)for(const f of live){if(f.provoked){this.provokeEscort();break}f.shotsLeft=0;const d=this.herd[f.id%this.herd.length];if(!d||d.dead)continue;const g=Math.min(1,dt*.5);
+      f.x+=(d.x+Math.sin(this.t+f.id)*14-f.x)*g;f.y+=(d.y+8-f.y)*g;f.z+=(d.z+Math.cos(this.t*.8+f.id)*12-f.z)*g}
+    if(this.firedOnHerd){if(!live.length||this.t>=this.window+20)this.finishMigration();return}
+    if(!inView&&this.t>6||this.t>=this.window)this.finishMigration()
+  },
+  provokeEscort(){
+    if(this.firedOnHerd)return;this.firedOnHerd=true;
+    for(const f of fighters)if(!f.dead){f.provoked=true;f.shotsLeft=3}
+    callout('YOU FIRED ON THE MIGRANTS · ESCORT ATTACKING',2);
+    this.record({id:'fired',...this.KINDS.migration.fired,repFaction:'helix'})
+  },
+  drifterShotCandidate(aim,bestDistance=1e9){
+    if(!this.active||this.state!=='migration'||phase!=='space')return null;let best=null,bd=bestDistance,bp=null;
+    for(const d of this.herd){if(d.dead)continue;const p=proj([d.x,d.y,d.z]);if(!p)continue;const r=clamp(d.s*p.k*1.6,16,160),dd=Math.hypot(aim.x-p.x,aim.y-p.y);if(dd<r&&dd<bd){best=d;bd=dd;bp=p}}
+    return best?{target:best,distance:bd,point:bp}:null
+  },
+  hitDrifter(d,p){
+    if(!d||d.dead)return;d.hp--;d.hitT=.15;if(p)spark(p.x,p.y,C.c,8);
+    this.provokeEscort();
+    if(d.hp<=0){d.dead=true;if(p&&typeof explodeMesh==='function')explodeMesh(d,d.mesh,p,C.c)}
+  },
+  // The herd has gone (or the escort is down): pay for the survey unless X fired on them.
+  onMigrationEscortCleared(){if(this.state==='migration'&&this.firedOnHerd)this.finishMigration()},
+  finishMigration(){
+    const def=this.KINDS.migration;
+    if(!this.firedOnHerd&&this.scanned>=def.need){callout(def.surveyed.say,2);SoundFX.objectiveComplete?.();this.record({id:'surveyed',...def.surveyed})}
+    else if(!this.firedOnHerd){callout(this.scanned?`MIGRATION PASSED · ${this.scanned} SCANNED`:'MIGRATION PASSED',1.8);this.recordIgnored()}
+    else callout('ESCORT GONE · ROUTE CONTINUES',1.6);
+    fighters.length=0;bolts.length=0;this.herd=[];this.end()
+  },
   // ---- Old minefield (v1370) ----
   // A slab of old contact mines ahead, drifting and tumbling, with a few right across the
   // flight path. A mine within 12 arms (blinking white) and blows 0.45 s later; inside 10 the
@@ -275,6 +351,7 @@ const routeDiversion={
   onFightCleared(){
     if(this.state==='fight'){callout('HOSTILES CLEARED · CONTINUING ROUTE',1.6);this.record(this.pendingOutcome);this.end();return}
     if(this.state==='skirmish'){this.finishSkirmish(true);return}
+    if(this.state==='migration'){this.onMigrationEscortCleared();return}
     if(this.state==='pursuit')this.finishPursuit(true)
   },
   finishPursuit(helped,message=null){
@@ -313,6 +390,8 @@ const routeDiversion={
        [20,0],[20,3],[21,1],[21,2],[20,21]]
   },
   appendScene(scene){
+    if(this.active&&this.state==='migration'){for(const d of this.herd){if(d.dead)continue;const q=camPoint([d.x,d.y,d.z]);
+      if(q[2]>.18)scene.push({z:q[2],draw:()=>{const mesh=agentXAnimatedBugMesh(d)||d.mesh;drawMesh(d,mesh,d.hitT>0?C.w:C.c)}})}return}
     if(this.active&&this.state==='minefield'){for(const m of this.mines){if(m.dead||m.passed)continue;const q=camPoint([m.x,m.y,m.z]);
       if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(m,stationProximityMineMesh,m.armed&&Math.sin(m.armT*60)>0?C.w:C.r)})}return}
     if(this.active&&this.state==='skirmish'){for(const a of this.allies){if(a.dead)continue;const q=camPoint([a.x,a.y,a.z]);if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(a,a.mesh,a.hitT>0?C.w:(a.hp<.3?C.r:this.side.col))})}return}
@@ -320,6 +399,14 @@ const routeDiversion={
     const q=camPoint([c.x,c.y,c.z]);if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(c,this.CIV_MESH,c.hitT>0?C.w:(c.hp<.3?C.r:C.c))})
   },
   drawMarker(){
+    if(this.active&&this.state==='migration'&&!this.firedOnHerd){
+      ctx.save();ctx.textAlign='center';ctx.textBaseline='bottom';ctx.font='400 10px Consolas,monospace';ctx.lineWidth=VECTOR_LINE_WIDTH;
+      // Labels on the three nearest drifters only, so the herd does not drown in text.
+      const near=this.herd.filter(d=>!d.dead).map(d=>({d,q:camPoint([d.x,d.y,d.z])})).filter(o=>o.q[2]>.18).sort((a,b)=>a.q[2]-b.q[2]).slice(0,3);
+      for(const{d,q}of near){const p=projectCam(q);if(!p)continue;
+        ctx.strokeStyle=d.scanned?C.g:C.c;ctx.strokeText(d.scanned?'SCANNED':(d.scanT>0?`SCANNING ${Math.round(d.scanT/2.5*100)}%`:'DRIFTER'),p.x,p.y-Math.max(18,d.s*p.k*.9))}
+      ctx.restore();return
+    }
     if(this.active&&this.state==='skirmish'){
       for(const tr of this.tracers){const a=proj(tr.a),b=proj(tr.b);if(a&&b)line(a.x,a.y,b.x,b.y,tr.col,1.2,Math.min(1,tr.t*8))}
       ctx.save();ctx.textAlign='center';ctx.textBaseline='bottom';ctx.font='400 10px Consolas,monospace';ctx.lineWidth=VECTOR_LINE_WIDTH;
@@ -333,7 +420,7 @@ const routeDiversion={
     ctx.strokeStyle=c.hp<.3?C.r:C.c;ctx.strokeText(`CIVILIAN ${Math.max(0,Math.ceil(c.hp*100))}%`,p.x,p.y-Math.max(16,3.4*p.k*.6));ctx.restore()
   },
   reset(){
-    this.civ=null;this.allies=[];this.tracers=[];this.side=null;this.mines=[];
+    this.civ=null;this.allies=[];this.tracers=[];this.side=null;this.mines=[];this.herd=[];
     // Abandon/fail mid-diversion: release the marker this diversion borrowed.
     if(this.active&&salvageRecovery.stage?.type==='embedded_recovery')salvageRecovery.reset();
     this.active=false;this.state='idle';this.stage=null;this.t=0

@@ -74,4 +74,21 @@
     m.mark('legs',()=>{let ph=0;for(const z of[-.16,0,.15]){for(const s of[-1,1]){const root=[s*.16,-.12,z],i0=m.v.length;m.beam(root,[s*.27,-.27,z+.03],.045,.035,.6);groups.push({indices:[i0+4,i0+5,i0+6,i0+7],pivot:i0,phase:ph})}ph+=1.15}});
     install(B.meshes.larva,m,{rims:C.y,eyes:C.r,mandibles:C.w,spines:C.y,legs:C.y},{bugAnimGroups:groups,bugTailZ:.78,bugWrithe:{amp:.06,wave:6.5,speed:5.2}});
   }
+
+  // ---- Drifter (v1400): the huge, slow, peaceful xeno of the migrations. A broad manta body
+  // whose wing edges ripple, a row of soft lights along its back, small eyes at the front and
+  // a long tail that sways. Head forward along -z.
+  {
+    const m=gaBuilder(true),N=10;
+    const sec=(z,rx,ry,dy=0)=>Array.from({length:N},(_,i)=>{const a=i*Math.PI*2/N,c=Math.cos(a),sn=Math.sin(a);return[c*rx,dy+sn*ry*(1-.55*Math.abs(c)),z]});
+    const BODY=[[-2.1,.35,.3],[-1.5,1.6,.42],[-.8,2.7,.5],[0,3.2,.52],[.8,2.6,.46],[1.5,1.4,.36],[2.0,.5,.28],[2.3,.22,.2]];
+    m.mark('body',()=>m.loft(BODY.map(([z,rx,ry])=>sec(z,rx,ry))));
+    m.mark('lights',()=>{for(const z of[-1.2,-.5,.2,.9,1.5]){const y=.5*(1-Math.abs(z)/3);m.loft([m.ringXZ(0,y+.02,z,.16,.16,6),m.ringXZ(0,y+.12,z,.06,.06,6)])}});
+    m.mark('eyes',()=>{for(const sx of[-1,1])m.box([sx*.25,.12,-1.95],[.12,.1,.1])});
+    m.mark('tail',()=>{m.beam([0,0,2.2],[0,.05,3.6],.18,.14,.7);m.beam([0,.05,3.6],[0,.15,5.4],.1,.08,.4)});
+    // Wing edges ripple: every vertex well out from the body swings about a pivot near it.
+    const groups=[];
+    for(const side of[-1,1]){const piv=m.v.length;m.v.push([side*1.3,0,0]);const idx=[];m.v.forEach((v,i)=>{if(i!==piv&&v[0]*side>1.7)idx.push(i)});groups.push({indices:idx,pivot:piv,phase:0})}
+    install(B.meshes.drifter||(B.meshes.drifter={name:'Void Drifter',bugKind:'drifter'}),m,{lights:C.y,eyes:C.w,tail:C.c},{bugAnimGroups:groups,bugFlap:{speed:1.5,amp:.2},bugTailZ:2.4,bugWrithe:{amp:.05,wave:1.6,speed:1.3},propulsionCol:C.c});
+  }
 })();

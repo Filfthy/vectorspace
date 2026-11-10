@@ -1303,3 +1303,23 @@ v1390 The Guide and Codex cover today's additions
       and diversions come up), all 32 story, faction agent and Black
       Contract missions, and the simulator training from a brand new save:
       every stage entered and left with no errors.
+
+v1400 New route diversion: Xeno migration, and a new xeno, the Drifter
+      From the direction notes ("alien migration"). A herd of four to six
+      Drifters crosses the route ahead: a new, huge, slow xeno, a broad
+      manta body whose wing edges ripple, soft yellow lights along its
+      back and a long swaying tail. Three or four hornets keep station
+      over them and hold their fire. "XENO MIGRATION CROSSING · FLY CLOSE
+      TO SCAN · DO NOT FIRE".
+      - Fly alongside a Drifter for two and a half seconds to scan it
+        (labels show DRIFTER, SCANNING 40%, SCANNED on the three nearest).
+        Scan three and Helix pays for the data: standing +3, a small bonus
+        and a little experience ("Xeno migration surveyed").
+      - Fire on a Drifter, or on the escort, and Helix hears of it at once
+        (standing -4, "Fired on a xeno migration"), and the whole escort
+        turns on you. The herd itself never attacks.
+      - Let it pass and nothing happens.
+      The escort spawns quietly (no "xeno infestation" alarm, calm music)
+      and the top-right HUD reads "XENO ESCORT HOLDING FIRE" until you
+      provoke it. A Codex entry, "Drifters", opens the first time you see
+      one, and the Guide explains the migration.

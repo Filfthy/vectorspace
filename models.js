@@ -673,7 +673,7 @@ globalThis.AgentXXenoTissueSampleMesh=agentXXenoTissueSampleMesh;
 function agentXAnimatedBugMesh(obj){
   const base=obj?.mesh;if(!base?.bugKind||!base.bugAnimGroups?.length)return base;
   const verts=base.v.map(v=>v.slice()),t=performance.now()*.001+(obj.bugAnimPhase||0);
-  const hornet=base.bugKind==='hornet',speed=hornet?16.5:5.4,amp=hornet?.58:.26;
+  const hornet=base.bugKind==='hornet',flap=base.bugFlap,speed=flap?.speed??(hornet?16.5:5.4),amp=flap?.amp??(hornet?.58:.26);
   for(const group of base.bugAnimGroups){
     const pivot=base.v[group.pivot],side=Math.sign(pivot[0]||1);
     // Hornet wings flap rapidly; larval proto-legs paddle in a travelling sequence.

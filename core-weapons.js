@@ -46,6 +46,10 @@ class WeaponController {
    if(d<r&&d<bd){best=b;bp=p;bd=d;isBolt=true}
  }
  if(!best){
+   if(routeDiversion?.active&&routeDiversion.state==='migration'){
+     const herdHit=routeDiversion.drifterShotCandidate(a,bd);
+     if(herdHit&&herdHit.distance<bd){best=herdHit.target;bp=herdHit.point;bd=herdHit.distance;isBolt=false;hitPart='drifter'}
+   }
    if(routeDiversion?.active&&routeDiversion.state==='minefield'){
      const mineHit=routeDiversion.mineShotCandidate(a,bd);
      if(mineHit&&mineHit.distance<bd){best=mineHit.mine;bp=mineHit.point;bd=mineHit.distance;isBolt=false;hitPart='routeMine'}
@@ -157,6 +161,7 @@ class WeaponController {
  }
  if(hitPart==='stationMine'){stationHack.hitMine(best,bp);return}
  if(hitPart==='routeMine'){routeDiversion.hitMine(best);return}
+ if(hitPart==='drifter'){routeDiversion.hitDrifter(best,bp);return}
  // Debug aid: direct player laser hits become lethal without changing missiles,
  // hostile weapons, objective counts, destruction FX or the normal hit pipeline.
  if(oneShotLasers){

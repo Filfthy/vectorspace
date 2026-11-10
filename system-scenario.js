@@ -232,7 +232,8 @@ class ScenarioFlowController {
     if(stage?.tutorialCombat&&typeof tutorialCombat!=='undefined')tutorialCombat.begin(stage);
     if(stage?.tutorialConsumables&&typeof tutorialConsumables!=='undefined')tutorialConsumables.begin(stage);
     if(stage?.tutorialAbandon&&typeof tutorialAbandon!=='undefined')tutorialAbandon.begin(stage);
-    if(!stage?.tutorial){
+    // v1400: a stage can start quietly (the xeno migration's escort is not an attack).
+    if(!stage?.tutorial&&!stage?.silentStart){
       if(Array.isArray(stage?.combatVoiceSequence)&&stage.combatVoiceSequence.length){
         audio.playSequence(stage.combatVoiceSequence)
       }else if(stage?.combatVoice&&(!stage.routeEncounter||audio.hasVoice?.(stage.combatVoice))){
