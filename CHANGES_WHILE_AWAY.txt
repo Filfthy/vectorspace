@@ -1184,6 +1184,21 @@ Day run, 10 Nov 2026 (from 13:51): improving the game on my own.
 Each entry is its own commit. Tested muted in the browser; nothing here has
 been flown by hand.
 
+TODAY IN SHORT (each version is also a git tag, v1330 to v1560 and on):
+  New enemy class      Ghost constructs (lance and jammer), v1470, plus a
+                       dormant-lattice diversion (v1530) and a Black
+                       Contract, Lattice Node (v1560)
+  New world types      Volcanic worlds (v1480), craters on moons (v1520)
+  New land jobs        Vent Survey (v1500), Crash Recovery (v1510)
+  New diversions       Fight in progress, old minefield, xeno migration,
+                       dormant lattice; crash sites and weather on the plains
+  Models               New hornet, larva and drifter xenos; new walker
+                       bodies (hound, strider, crab, stilt)
+  Contacts             A note from the right contact the first time you meet
+                       something new (v1490); new VOX Wire headlines
+  Also                 Road traffic into towns (v1550), six achievements
+                       (v1540), review fixes (v1460) and speed work
+
       Regression sweep first (no change needed). All 22 board templates
       launched and stepped through every stage after the forest edge
       changes: no errors.
