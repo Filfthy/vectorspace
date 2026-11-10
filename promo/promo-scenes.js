@@ -441,7 +441,7 @@ const atBar=b=>SONG.start+b*BAR,ramp=(t,t0,d=BAR)=>smooth(clamp((t-t0)/d,0,1));
 function danceAt(c,t){
   const ph=(t-SONG.start)/BEAT,u=ph-Math.floor(ph),fin=ramp(t,atBar(103),.5),go=1-fin,x=(c.at||c.pos)[0];
   const bow=ramp(t,atBar(103)+1.15,.6)*(1-ramp(t,atBar(103)+2.45,.7));
-  const d={bob:0,sway:0,waggle:0,nod:bow*.3,spread:fin*(1-.6*bow),rise:fin*.4*(1-.6*bow),bow:bow*(c.sing==='lead'?.7:.55)};
+  const d={bob:0,sway:0,waggle:0,nod:bow*.3,spread:fin*(1-.6*bow),rise:fin*.4*(1-.6*bow),bow:bow*(c.sing==='lead'?.7:.55),fin,bowW:bow};
   if(c.play==='drums'){d.rise=0;d.nod+=go*ramp(t,atBar(76),.3)*(Math.floor(ph)%2?.22:.06)*(1-u)**2;return d}
   if(c.play){const k=go*ramp(t,atBar(76),.3);d.nod+=k*.34*(1-u)**2;d.bob=k*.08*Math.abs(Math.sin(Math.PI*ph));return d}
   const k=go*(c.arrive?ramp(t,c.arrive+.3):ramp(t,atBar(88))),side=x<-.5?1:x>.5?-1:1;
@@ -450,9 +450,29 @@ function danceAt(c,t){
   d.waggle=k*ramp(t,atBar(96))*.32*Math.sin(Math.PI*ph+x*.1);
   return d
 }
+// ---- The singers' arms ----
+// The singer holds a claw to her chest through the aria and opens her arms out on the long
+// notes (tensing with the trill); the choir swing theirs with the dance. On the last chord
+// everyone's arms go up with the wings, and in the bow one sweeps across the body and the
+// other out to the side. Positions are where each claw is, in the hornet's own space.
+const ARM={rest:[[-.4,.32,-.42],[.4,.32,-.42]],chest:[-.1,.8,-.44],open:[[-1.15,1.0,-.3],[1.15,1.0,-.3]],up:[[-.72,2.1,-.15],[.72,2.1,-.15]],bow:[[.22,.5,-.55],[1.15,.55,-.05]]};
+const mix3=(a,b,w)=>[a[0]+(b[0]-a[0])*w,a[1]+(b[1]-a[1])*w,a[2]+(b[2]-a[2])*w];
+function openAt(t){const L=voices.lead;let lo=0,hi=L.length-1,k=-1;while(lo<=hi){const m=(lo+hi)>>1;if(L[m].t<=t){k=m;lo=m+1}else hi=m-1}
+  let w=0;for(const n of[L[k],L[k-1]])if(n&&n.d>.7)w=Math.max(w,ease(clamp((t-n.t)/.35,0,1))*ease(clamp((n.t+n.d+.3-t)/.35,0,1)));return w}
+function armsFor(c,t,d){
+  let R=ARM.rest[0],L=ARM.rest[1];
+  if(c.sing==='lead'){
+    R=mix3(R,ARM.chest,ramp(t,T.breakdown+.3,.8)*(1-ramp(t,T.verse3,1.2)));
+    const o=openAt(t);R=mix3(R,ARM.open[0],o);L=mix3(L,ARM.open[1],o);
+    const st=strainAt(t);if(st){const q=Math.sin(t*Math.PI*2*7.7)*.05*st;R=[R[0]-q,R[1]+.1*st,R[2]];L=[L[0]+q,L[1]+.1*st,L[2]]}
+  }else{const sw=d.sway/.13;R=[R[0],R[1]+.08*Math.abs(sw),R[2]-.2*sw];L=[L[0],L[1]+.08*Math.abs(sw),L[2]+.2*sw]}
+  const up=d.fin*(1-d.bowW);R=mix3(R,ARM.up[0],up);L=mix3(L,ARM.up[1],up);
+  R=mix3(R,ARM.bow[0],d.bowW);L=mix3(L,ARM.bow[1],d.bowW);
+  return{handR:R,handL:L}
+}
 function drawSinger(c,t){
   const d=danceAt(c,t),pos=vadd(singerPos(c,t),V3(0,d.bob+d.rise,0)),cam=aria.cam,jaw=voiceJaw(c,t);
-  c.mesh.pose({jaw,mand:jaw,t:t+(c.at?c.at[0]:0),strain:c.sing==='lead'?strainAt(t):0,waggle:d.waggle,nod:d.nod,spread:d.spread});
+  c.mesh.pose({jaw,mand:jaw,t:t+(c.at?c.at[0]:0),strain:c.sing==='lead'?strainAt(t):0,waggle:d.waggle,nod:d.nod,spread:d.spread,...armsFor(c,t,d)});
   drawMesh({x:pos[0],y:pos[1],z:pos[2]-cam[2],s:c.s,rot:[-d.bow,facing(pos),d.sway]},c.mesh,c.body,1);
   // Sound rings from the mouth on every new syllable.
   if(jaw>.35&&c.lastJaw<=.35)c.rings.push({t0:t});c.lastJaw=jaw;

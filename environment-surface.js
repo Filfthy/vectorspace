@@ -386,13 +386,18 @@ class SurfaceDestinationApproachController {
     // The destination forest is made from real pine geometry, not a mountain-like
     // canopy silhouette. Several staggered rows build a readable woodland mass at
     // distance while leaving a genuine opening around Forest Nav for the route in.
+    // v1310: the edge is as dense as the forest run behind it, five staggered rows
+    // deep, and the opening is only the width of the run's lane (half 3.2 where it
+    // starts), so the wood reads as one dark wall with a path cut into it rather
+    // than loose rows either side of a wide gap. Further rows line just the lane, so
+    // looking in through the opening the path carries on into the trees.
     const registry=globalThis.AgentXForestScenery,ids=['pineTall','pineBroad','pineYoung'];
-    for(let row=0;row<3;row++)for(const side of [-1,1])for(let i=0;i<10;i++){
+    for(let row=0;row<11;row++)for(const side of [-1,1])for(let i=0;i<(row<5?20:5);i++){
       const id=ids[Math.floor(this.rand()*ids.length)],base=registry?.get?.(id)||(typeof forestSceneryMesh==='function'?forestSceneryMesh(id):null);
       if(!base)continue;
-      const scale=1.18+this.rand()*1.42+(i%5===0?.48:0),gap=6.8+row*1.15;
-      const x=this.targetX+side*(gap+i*4.55+this.rand()*2.15);
-      const wz=this.targetWorldZ+4+row*12+this.rand()*13;
+      const scale=1.18+this.rand()*1.42+(i%5===0?.48:0),gap=4.8+(row%3)*.35;
+      const x=this.targetX+side*(gap+i*2.8+this.rand()*1.2+(row%2)*1.4);
+      const wz=this.targetWorldZ+6+row*5+this.rand()*2.5;
       const mesh=forestShortTrunkMesh(base,id),y=this.groundY-this.meshBaseY(base)*scale;
       this.forestFront.push({assetId:id,mesh,x,y,worldZ:wz,s:scale,rot:[0,this.rand()*Math.PI*2,0]})
     }

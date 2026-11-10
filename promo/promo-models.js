@@ -118,7 +118,8 @@ const reindeerColours=m=>{const map={nose:C.r,antlers:C.y,barrels:C.w};for(const
 // The hornet's segmented body, its two pairs of buzzing wings and its stinger, hovering
 // upright with the head tipped towards the audience. Added for the promo: big compound
 // eyes, antennae, mandibles that part and a jaw that drops, and a lit throat inside.
-// Band players also get a pair of arms. Model faces -z. pose: jaw (0..1), t (time),
+// Every hornet has a pair of arms: singers gesture with them (pose handR / handL, where each
+// claw is), band players play. Model faces -z. pose: jaw (0..1), t (time),
 // mand (mandible spread 0..1), waggle (abdomen swing, radians), nod (head,
 // radians), spread (wings up, 0..1), strain (0..1, the antennae
 // stiffen and quiver with the trill), and for the band: strum (0..1), hitL / hitR (0..1),
@@ -163,8 +164,11 @@ function buildHornet(m,p){
     const a=Math.sin(t*16.5+ph)*.5*(1-.6*sp)*s,c=Math.cos(a),si=Math.sin(a),r=[s*root[0],root[1],root[2]],lift=Math.sin(t*16.5+ph);
     const Wg=q=>{const dx=q[0]-r[0],dz=q[2]-r[2];return[r[0]+dx*c-dz*si,q[1]+Math.abs(dx)*(.12*lift*(1-sp)+.5*sp),r[2]+dx*si+dz*c]};
     m.loft([[r,r,r],[Wg([s*tip[0],tip[1],tip[2]]),Wg([s*(tip[0]+trail[0])/2,(tip[1]+trail[1])/2+.06,(tip[2]+trail[2])/2+.08]),Wg([s*trail[0],trail[1],trail[2]])]],false,false)}});
-  if(band)buildBandArms(m,p,band)
+  if(band)buildBandArms(m,p,band);
+  else m.mark('arms',()=>{hornetArm(m,-1,p.handR||HAND_REST[0]);hornetArm(m,1,p.handL||HAND_REST[1])})
 }
+// A singer's claws at rest: low in front of the thorax (right is -x, the model faces -z).
+const HAND_REST=[[-.4,.32,-.42],[.4,.32,-.42]];
 // Arms from the front of the thorax: shoulder, elbow, a three-fingered claw.
 function hornetArm(m,s,hand,fingers=true,elbow=null){const sh=[s*.34,.85,-.12],mid=elbow||[(sh[0]+hand[0])/2+s*.22,(sh[1]+hand[1])/2-.2,(sh[2]+hand[2])/2+.05];
   m.beam(sh,mid,.1,.1,.8);m.beam(mid,hand,.08,.08,.7);if(fingers)for(const c of[-1,0,1])m.beam(hand,[hand[0]+s*.1,hand[1]+.06+c*.07,hand[2]-.1],.03,.03,.2)}
