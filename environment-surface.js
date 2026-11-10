@@ -47,6 +47,8 @@ const surfaceBasaltMesh=(()=>{
   }
   return m
 })();
+// v1520: an impact crater for moon plains, a low raised rim around a shallow bowl.
+const surfaceCraterMesh=surfaceRingsMesh([[.8,0],[1.0,.22],[1.12,.3],[1.28,.16],[1.5,0]],16);
 // Same mission, same answer: half the orange worlds are volcanic, decided by the job itself.
 function surfaceVolcanicJob(m){
   if(!m)return false;if(typeof m.volcanicWorld==='boolean')return m.volcanicWorld;
@@ -291,6 +293,18 @@ class SurfaceDestinationApproachController {
       this.trees.push({kind:'rock',feature:cone?'cone':'basalt',smoke:big,vent,ph:this.rand()*6,mesh:cone?surfaceCinderConeMesh:surfaceBasaltMesh,x,y:this.groundY-.06*s,worldZ:wz,s,rot:[0,this.rand()*Math.PI*2,0],col:vent?C.r:(cone?C.y:C.o),mx,my,mz:mx,hit:false})
     };
     const addFeature=(x,wz,scale)=>{if(world==='arid')addRock(x,wz,scale*1.05);else if(world==='wet')addReed(x,wz,scale);else if(world==='volcanic')addVolcanic(x,wz,scale);else addShard(x,wz,scale)};
+    // v1520: a moon's plains are pocked with impact craters, their rims kept below flying
+    // height so they are scenery, never obstacles. (Called after the clumps, below.)
+    this.addMoonCraters=()=>{
+      if(rockMode||swamp||planetLandingBody!=='moon')return;
+      const col=landingWorldColour();
+      for(let n=0,tries=0;n<22&&tries<120;tries++){
+        const big=this.rand()<.25,s=big?7+this.rand()*6:2.2+this.rand()*3.2,x=this.targetX+(this.rand()-.5)*300,wz=-30+this.rand()*(this.routeLength+80);
+        if(Math.abs(x-this.targetX)<14&&Math.abs(wz-this.targetWorldZ)<40)continue;if(this.sceneryReserved(x,wz,s*1.6))continue;n++;
+        const my=Math.min(1,1.4/(.3*s));
+        this.trees.push({kind:'rock',feature:'crater',noHit:true,mesh:surfaceCraterMesh,x,y:this.groundY+.02,worldZ:wz,s,rot:[0,this.rand()*Math.PI*2,0],col,mx:1,my,mz:.9+this.rand()*.2,hit:false})
+      }
+    };
     const addClump=(centreX,centreWZ,count,xSpread,zSpread,baseScale=1,allowSingles=false)=>{
       for(let i=0;i<count;i++){
         const x=centreX+(this.rand()-.5)*xSpread,wz=centreWZ+(this.rand()-.5)*zSpread;
@@ -336,6 +350,7 @@ class SurfaceDestinationApproachController {
       const centreX=side*(78+this.rand()*48),centreWZ=this.routeLength-12+i*18+this.rand()*42;
       addClump(centreX,centreWZ,rockMode?(4+Math.floor(this.rand()*3)):(6+Math.floor(this.rand()*4)),rockMode?(18+this.rand()*16):(12+this.rand()*10),rockMode?(22+this.rand()*24):(18+this.rand()*20),rockMode?(1.08+this.rand()*.44):(.96+this.rand()*.24),false)
     }
+    this.addMoonCraters()
   }
   // v1140 SURVEY RUN: optional survey markers on the plains (stage.surveyPoints, 2-4).
   // Pass close to each one before the destination accepts you. Until then the yellow
@@ -573,7 +588,13 @@ class SurfaceDestinationApproachController {
     this.navPulse+=dt;this.treeHitCD=Math.max(0,this.treeHitCD-dt);
     if(this.treeHitCD<=0){
       for(const t of this.trees){
-        if(t.hit)continue;const dz=t.worldZ-travel,dx=t.x-shipX,radius=.34+.34*t.s,top=this.groundY+4.8*t.s;
+        if(t.hit||t.noHit)continue;const dz=t.worldZ-travel,dx=t.x-shipX;
+        // v1520: cones and basalt collide over their real footprint (a cone only where its
+        // flank is higher than the drone), other scenery keeps the old narrow trunk test.
+        if(t.feature==='cone'||t.feature==='basalt'){const mx=t.mx||1,R=(t.feature==='cone'?1.5:.8)*t.s*mx,d=Math.hypot(dx,dz);if(d>=R)continue;
+          const h=t.feature==='cone'?1.5*t.s*(t.my||1)*(1-d/R):2.2*t.s*(t.my||1);if(shipY>=this.groundY+h)continue;
+          t.hit=true;this.treeHitCD=.82;damage('ROCK');if(mode==='dead')return;break}
+        const radius=.34+.34*t.s,top=this.groundY+4.8*t.s;
         if(Math.abs(dz)<1.15&&Math.abs(dx)<radius&&shipY<top){t.hit=true;this.treeHitCD=.82;damage(t.kind==='rock'?'ROCK':'TREE');if(mode==='dead')return;break}
       }
     }

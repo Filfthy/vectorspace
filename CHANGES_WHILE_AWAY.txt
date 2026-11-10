@@ -1488,3 +1488,13 @@ v1510 New land job: Crash Recovery
       Jackal (a courier whose recorders hold private conversations).
       Also: crash-site wrecks (these and the optional ones from v1430) now
       rest nose down on the plain instead of floating with the nose up.
+
+v1520 Craters on moons; cones collide properly
+      Landing on a moon now looks like it: the plains are pocked with about
+      twenty impact craters, a low raised rim round a shallow bowl, some of
+      them large. Their rims stay below flying height, so they are scenery,
+      never obstacles.
+      Cinder cones and basalt columns now collide over their real footprint
+      (a cone only where its flank is higher than the drone). Before, every
+      rock was tested as a thin post, so the drone could fly through the
+      flank of a big cone.
