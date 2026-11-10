@@ -254,7 +254,8 @@ class CampaignController {
       {id:'firewalker',name:'Firewalker',text:'Land on a volcanic world.',v:this.state.seenProfiles?.world_volcanic?1:0,goal:1},
       {id:'ventReader',name:'Vent Reader',text:'Complete 3 Vent Surveys.',v:bt.vent_survey||0,goal:3},
       {id:'blackBox',name:'Black Box',text:'Complete 3 Crash Recoveries.',v:bt.crash_recovery||0,goal:3},
-      {id:'lightsOn',name:'Lights On',text:'Complete 3 Relay Repairs.',v:bt.relay_repair||0,goal:3}
+      {id:'lightsOn',name:'Lights On',text:'Complete 3 Relay Repairs.',v:bt.relay_repair||0,goal:3},
+      {id:'lightTouch',name:'Light Touch',text:'Complete 3 Lattice Surveys.',v:bt.lattice_survey||0,goal:3}
     ]
   }
   checkAchievements(){
@@ -827,7 +828,7 @@ class CampaignController {
       risk,minLevel:template.minLevel||1,minRep:-100,pay,xp,difficulty,implemented:true,intelStyle:template.intelStyle||'hiddenGroup',scenarioVersion:11,boardSchemaVersion:this.contractBoardSchemaVersion(),
       routeEncounter,
       // Hidden route encounters and optional diversions are not listed: they are surprises.
-      description,modules:this.scaleContractToughness(modules,risk),stages:modules.filter(x=>!x.routeEncounter&&x.type!=='route_diversion').map(x=>x.label)
+      description,modules:this.scaleContractToughness(modules,risk),stages:modules.filter(x=>!x.routeEncounter&&(x.type!=='route_diversion'||x.main)).map(x=>x.label)
     }
   }
   contractBoardSchemaVersion(){return 3}
@@ -2487,7 +2488,7 @@ class CampaignController {
   }
   jobType(m){
     const map={fighters:'combat',combat_recovery:'recovery',asteroids:'asteroids',asteroid_delivery:'delivery',station_delivery:'delivery',penthouse_delivery:'delivery',
-      forest_cabin_delivery:'delivery',swamp_relay_delivery:'delivery',secure_terminal_intrusion:'infiltration',deep_core:'assault',dune_armour_clearance:'assault',ice_field_armour:'assault',bunker_raid:'assault',groundside_pickup:'delivery',crystal_consignment:'delivery',survey_run:'delivery',vent_survey:'delivery',crash_recovery:'recovery',relay_repair:'delivery',nest_clearance:'assault',factory_strike:'assault',wreck_recovery:'recovery',station_defence:'combat',taco_run:'delivery',specimen_recovery:'recovery'};
+      forest_cabin_delivery:'delivery',swamp_relay_delivery:'delivery',secure_terminal_intrusion:'infiltration',deep_core:'assault',dune_armour_clearance:'assault',ice_field_armour:'assault',bunker_raid:'assault',groundside_pickup:'delivery',crystal_consignment:'delivery',survey_run:'delivery',vent_survey:'delivery',crash_recovery:'recovery',relay_repair:'delivery',lattice_survey:'infiltration',nest_clearance:'assault',factory_strike:'assault',wreck_recovery:'recovery',station_defence:'combat',taco_run:'delivery',specimen_recovery:'recovery'};
     return map[m?.templateId]||(m?.kind==='procedural'?'combat':'delivery')
   }
   jobTypeInfo(type){

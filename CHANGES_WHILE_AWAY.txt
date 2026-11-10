@@ -1782,3 +1782,21 @@ v1780 Corridor ground heights remembered between frames
       corridors: no pixel differs from the old picture, and every remembered
       height matched a fresh calculation exactly. Frames are a further 3 to
       5 ms quicker in the test pane.
+
+v1790 New job: Lattice Survey (the first job where you must not shoot)
+      A dormant ghost lattice lies across a lane, and the client wants it
+      mapped while it is still asleep. Fly close enough to three of its cores
+      to scan them (inside 46 units, for about a second) but never inside the
+      22 that wakes it, and never fire. Each core is labelled with its range
+      ("CORE 123"), then "SCANNING 60%", then "SCANNED" in green, or "TOO
+      CLOSE" in red. The debris round a core marks the distance to keep. If
+      the field drifts behind you with cores still to scan, it comes round
+      ahead again. Wake it and you have to destroy it: the job still
+      completes, but Helix docks standing for it. From operator level 5, for
+      Helix (Navira wants the controller intact) and OSD (a map for the
+      clearance team). Filed as INFILTRATION. Achievement: Light Touch.
+      Self-test: found that it had been treating a lift-off as the end of a
+      job, so the stages after a mid-mission launch (the trip back, the depot,
+      the station) were never stepped, in the self-test or in any of my
+      sweeps today. It now flies through lift-offs to the true end. Those
+      stages all pass. 26 templates, 10 diversion kinds.

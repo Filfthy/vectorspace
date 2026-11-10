@@ -2671,6 +2671,56 @@
     }
   };
 
+  // v1790: LATTICE SURVEY. The first job where the right answer is not to shoot. A dormant
+  // ghost lattice lies across a lane. Fly close enough to three of its cores to scan them
+  // (inside scan range, outside the range that wakes it) and never fire. Wake it and you
+  // will have to destroy it, which finishes the job but is not what the client asked for.
+  const latticeSurvey={
+    id:'lattice_survey',
+    version:1,
+    family:'lattice_survey',
+    musicMode:'calm',
+    minLevel:5,
+    maxLevel:null,
+    allowedFactions:['helix','security'],
+    factionWeights:{helix:5,security:3},
+    board:{enabled:true,category:'intrusion',weight:.5,maxPerBoard:1},
+    risk:{base:3,min:3,levelsPerStep:2,max:9,jitter:1},
+    reward:{basePay:1500,payPerRisk:950,payRiskSquare:95,randomPay:300,roundPay:50,baseXp:240,xpPerRisk:72,xpRiskSquare:7},
+    defaults:{},
+    sections:[
+      {type:'route_diversion',label:'Survey the Lattice',params:{diversion:'latticeSurvey',main:true,spaceCombat:false,fighterHp:12}}
+    ],
+    presentation:{
+      helix:{
+        contactId:'navira_derris',
+        titles:['Lattice Survey','Sleeping Ordnance','Do Not Wake It'],
+        descriptions:[
+          'There is a dormant lattice on this lane and I want its controller mapped while it is still asleep. Fly close enough to three of its cores to scan them. Do not fire, and do not brush a core. If it wakes there will be nothing left for me to study.',
+          'A sleeping ghost lattice, intact, is the rarest thing I have been offered this year. Scan three cores from close range and come away. Quietly. I cannot stress quietly enough.'
+        ],
+        completionSubjects:['Lattice telemetry received','The survey'],
+        completionBodies:['The telemetry is in. CR {credits} released. Standing: +{rep}. If the lattice is still asleep, you have my thanks. If it is not, we will discuss what the word quietly means.'],
+        failureMail:{contactId:'navira_derris',subjects:['The lattice survey'],bodies:['Your drone was lost at the lattice. I have no scans, and I suspect the lattice is no longer asleep.']},
+        abandonMail:{contactId:'navira_derris',subjects:['Survey abandoned'],bodies:['You left the lattice unsurveyed. It is still there, which is the only good news.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:3,chance:.24,subjects:['About the controller'],bodies:['The lattice controller is not one machine. It is every fragment at once, agreeing. I find that beautiful. I would not say so in a report.']}
+      },
+      security:{
+        contactId:'kudo_shang',
+        titles:['Ordnance Mapping','Lattice Reconnaissance','Quiet Sweep'],
+        descriptions:[
+          'OSD needs a dormant lattice mapped before a clearance team goes in. Scan three cores at close range. Do not fire and do not wake it. A woken lattice costs me a team.',
+          'Reconnaissance, not clearance. Three cores scanned, the lattice left asleep, and you gone. If it wakes, finish it. But it should not wake.'
+        ],
+        completionSubjects:['Lattice mapped','Reconnaissance complete'],
+        completionBodies:['The scans are with the clearance team. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Reconnaissance failed'],bodies:['The drone was lost and the lattice is unmapped. The clearance team goes in blind or not at all.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left the lattice unmapped. I asked for a map, not an opinion.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.18,subjects:['Re: lattice reconnaissance'],bodies:['The clearance team used your scans. They took the lattice apart without losing a drone. That does not happen often.']}
+      }
+    }
+  };
+
   // Generic discretionary reward correspondence lives beside the mission templates
   // because it is faction/contact presentation, even when the reward itself is not
   // tied to one particular mission family. Campaign owns the reward mechanics; these
@@ -2811,7 +2861,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crash_recovery:crashRecovery,relay_repair:relayRepair,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crash_recovery:crashRecovery,relay_repair:relayRepair,lattice_survey:latticeSurvey,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();

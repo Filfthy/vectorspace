@@ -30,14 +30,18 @@
   const paint=(note='')=>{box.textContent='VECTOR SPACE SELF-TEST'+(note?'  ·  '+note:'')+'\n\n'+results.map(r=>`${r.ok?'PASS':'FAIL'}  ${r.name.padEnd(11)} ${r.summary}${r.details.length?'\n'+r.details.map(d=>'        '+d).join('\n'):''}`).join('\n')};
   const pause=()=>new Promise(r=>setTimeout(r,0));
   const reset=()=>{routeDiversion.reset();salvageRecovery?.reset?.();fighters.length=0;campaign.currentMission=null;campaign.pendingMission=null;mode='play';phase='space';paused=false;document.body.classList.remove('paused');if(campaign.isOpen())campaign.hideHub();invulnerable=true};
-  const ended=()=>!campaign.currentMission||['missionExit','surfaceExit','victory'].includes(mode);
+  // A lift-off or exit sequence is not the end of a job: several lift off mid-mission and go
+  // on to a fight or a station. Only the last stage's exit (or no mission at all) is the end.
+  const exiting=()=>mode==='missionExit'||mode==='surfaceExit';
+  const ended=()=>!campaign.currentMission||(exiting()&&campaign.currentStageIndex>=(campaign.currentMission.modules?.length||1)-1);
   // Step a launched mission through every stage, drawing a frame in each.
-  const fly=(stages=40,frames=45)=>{
-    for(let i=0;i<stages&&campaign.currentMission&&!['missionExit','surfaceExit'].includes(mode);i++){
+  const fly=(stages=60,frames=45)=>{
+    for(let i=0;i<stages&&campaign.currentMission&&!ended();i++){
+      if(exiting()){for(let k=0;k<900&&campaign.currentMission&&exiting();k++)update(1/30);continue}
       const idx=campaign.currentStageIndex;
       for(let k=0;k<frames&&campaign.currentMission&&campaign.currentStageIndex===idx;k++)update(1/30);
       render(performance.now());
-      if(campaign.currentMission&&campaign.currentStageIndex===idx)scenarioFlow.completeCurrentStage?.();
+      if(campaign.currentMission&&campaign.currentStageIndex===idx&&!exiting())scenarioFlow.completeCurrentStage?.();
       for(let k=0;k<5;k++)update(1/30)
     }
   };
@@ -76,7 +80,10 @@
 
     await group('diversions',Object.keys(routeDiversion.KINDS),kind=>{const m=c.makeDevTemplatePreview('asteroid_delivery','security');m.routeEncounter=null;m.modules=m.modules.filter(x=>x.type!=='route_diversion'&&!x.routeEncounter);m.modules.splice(0,0,{type:'route_diversion',label:'Route Diversion',diversion:kind,difficulty:2,spaceCombat:false,fighterHp:12});m.stages=m.modules.map(x=>x.label);
       c.launchDevTemplateTest('asteroid_delivery','security',{mission:m});invulnerable=true;for(let i=0;i<600&&!routeDiversion.active;i++)update(1/30);if(!routeDiversion.active)return 'never started';
-      for(let i=0;i<30*90&&routeDiversion.active;i++){update(1/30);if(i%60===0)render(performance.now())}
+      for(let i=0;i<30*90&&routeDiversion.active;i++){
+        // A survey only ends when cores are scanned: skirt the nearest core (scanned or not), inside scan range.
+        if(kind==='latticeSurvey'&&routeDiversion.state==='lattice'){const a=routeDiversion.anchors.filter(x=>!x.f.dead).sort((p,q)=>Math.abs(p.z)-Math.abs(q.z))[0];if(a){shipX=a.x+32;shipY=a.y}}
+        update(1/30);if(i%60===0)render(performance.now())}
       if(routeDiversion.active)return `still running after 90 s in state ${routeDiversion.state}`});
 
     await group('simulator',['tutorial'],()=>{const m=c.tutorialMission();c.pendingMission=m;c.launchMission(m.id);if(!c.currentMission)return 'did not launch';invulnerable=true;const seen=new Set();

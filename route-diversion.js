@@ -68,6 +68,11 @@ const routeDiversion={
       cleared:{say:'ORDNANCE CLEARED · OSD WILL LOG IT',pay:.06,rep:2,repFaction:'security',text:'War-era mines cleared'}},
     lattice:{nav:'DORMANT GHOST LATTICE ON ROUTE · PASS QUIETLY OR WAKE IT',hud:'DORMANT LATTICE',window:28,
       cleared:{say:'LATTICE CLEARED · OSD WILL LOG IT',pay:.12,rep:2,repFaction:'security',text:'Ghost lattice cleared'}},
+    // v1790: the same sleeping lattice as a job in its own right (the Lattice Survey board
+    // contract): scan three cores from inside scan range but outside the range that wakes it.
+    latticeSurvey:{nav:'DORMANT LATTICE AHEAD · SCAN THREE CORES · DO NOT WAKE IT',hud:'LATTICE SURVEY',window:1e9,need:3,scanRange:46,scanSeconds:.9,
+      surveyed:{say:'LATTICE SURVEYED · DATA SECURED',text:'Ghost lattice surveyed intact',xp:.1},
+      woken:{text:'Lattice woken and destroyed'}},
     migration:{nav:'XENO MIGRATION CROSSING · FLY CLOSE TO SCAN · DO NOT FIRE',hud:'XENO MIGRATION',window:30,need:3,
       surveyed:{say:'MIGRATION SURVEYED · HELIX WILL WANT THIS',pay:.08,rep:3,repFaction:'helix',xp:.15,text:'Xeno migration surveyed'},
       fired:{text:'Fired on a xeno migration',rep:-4,repFaction:'helix'}},
@@ -88,7 +93,7 @@ const routeDiversion={
     if(kind==='skirmish')return this.beginSkirmish(stage,def);
     if(kind==='minefield')return this.beginMinefield(stage,def);
     if(kind==='migration')return this.beginMigration(stage,def);
-    if(kind==='lattice')return this.beginLattice(stage,def);
+    if(kind==='lattice'||kind==='latticeSurvey')return this.beginLattice(stage,def);
     if(kind==='civilian'){
       // Raiders chasing someone else. They hold fire on X unless X joins in, so the
       // event can genuinely be flown past. Destroying them all in time saves the civilian.
@@ -119,7 +124,7 @@ const routeDiversion={
     if(this.state==='fight')return this.stage?.hudTag||def.hud;
     if(this.state==='migration')return this.firedOnHerd?`${def.hud} · ESCORT HOSTILE`:`${def.hud} · SCANNED ${Math.min(this.scanned,def.need)}/${def.need} · ${left}s`;
     if(this.state==='minefield')return `${def.hud} · ${this.mines.filter(m=>!m.dead&&!m.passed).length} LEFT`;
-    if(this.state==='lattice')return `${def.hud} · ${fighters.filter(f=>f.ghost&&!f.dead).length} CORES`;
+    if(this.state==='lattice')return this.surveyJob?`${def.hud} · SCANNED ${Math.min(this.scanned,def.need)}/${def.need}`:`${def.hud} · ${fighters.filter(f=>f.ghost&&!f.dead).length} CORES`;
     if(this.state==='latticeFight')return 'GHOST LATTICE · AWAKE';
     if(this.state==='skirmish'&&this.side)return `${def.hud} · ${this.side.short} ${this.allies.filter(a=>!a.dead).length}/${this.allies.length} · ${left}s`;
     return `${def.hud} · ${left}s`
@@ -246,14 +251,20 @@ const routeDiversion={
     scenarioFlow.encounterHudTag=def.hud;
     // The whole lattice is placed now: no reserves arriving later, awake, mid-field.
     interceptorGoal=fighterGroupTotal=fighterGroupSpawned=fighters.length;
-    this.anchors=[];
+    this.anchors=[];this.surveyJob=this.kind==='latticeSurvey';this.scanned=0;
     fighters.forEach((f,i)=>{
-      const onPath=i<2,w=cameraPointToWorld([onPath?(Math.random()-.5)*16:(i%2?1:-1)*(18+Math.random()*30),(Math.random()-.5)*(onPath?8:24),170+i*55+Math.random()*30]);
+      const w=this.latticePlace(i,this.surveyJob);
       f.x=w[0];f.y=w[1];f.z=w[2];f.t=Math.max(0,f.t);if(f.g){f.g.dormant=true;f.g.px=f.x;f.g.py=f.y;f.g.pz=f.z}
-      this.anchors.push({f,x:w[0],y:w[1],z:w[2]})
+      this.anchors.push({f,x:w[0],y:w[1],z:w[2],scanT:0,scanned:false})
     });
     AgentXGhosts.pending=[];
-    this.woken=false;this.state='lattice';callout(def.nav,2.6);return true
+    this.woken=false;this.state='lattice';callout(def.nav,this.surveyJob?3.2:2.6);return true
+  },
+  // Where the nth sleeping core goes, ahead of the drone. A survey strings them out further
+  // apart and alternates sides, so each one can be skirted in turn.
+  latticePlace(i,survey=false){
+    if(survey)return cameraPointToWorld([(i%2?1:-1)*(10+Math.random()*30),(Math.random()-.5)*14,190+i*95+Math.random()*30]);
+    const onPath=i<2;return cameraPointToWorld([onPath?(Math.random()-.5)*16:(i%2?1:-1)*(18+Math.random()*30),(Math.random()-.5)*(onPath?8:24),170+i*55+Math.random()*30])
   },
   wakeLattice(reason){
     if(this.woken)return;this.woken=true;this.wokenT=this.t;this.state='latticeFight';
@@ -274,12 +285,31 @@ const routeDiversion={
       const fired=typeof shots!=='undefined'&&shots.some(s=>s.age<dt*1.5);
       if(nearest<22)return this.wakeLattice('TOO CLOSE · THE LATTICE IS WAKING');
       if(fired&&nearest<150)return this.wakeLattice('YOU FIRED · THE LATTICE IS WAKING');
+      if(this.surveyJob){
+        // Scan a core by holding inside scan range (and outside the 22 that wakes it).
+        const def=this.KINDS.latticeSurvey;
+        for(const a of this.anchors){if(a.f.dead||a.scanned)continue;const d=Math.hypot(a.x-shipX,a.y-shipY,a.z);
+          if(d<def.scanRange){a.scanT+=dt;if(a.scanT>=def.scanSeconds){a.scanned=true;this.scanned++;SoundFX.objectiveComplete?.();if(this.scanned<def.need)callout(`CORE SCANNED · ${this.scanned} OF ${def.need}`,1.4)}}
+          else a.scanT=Math.max(0,a.scanT-dt*.5)}
+        if(this.scanned>=def.need){callout(def.surveyed.say,2.2);const m=campaign.currentMission;this.record({id:'surveyed',...def.surveyed,rep:2,repFaction:m?.faction||'helix'});fighters.length=0;bolts.length=0;this.anchors=[];this.end();return}
+        // The field has drifted behind: the cores still to scan are ahead again on the next pass.
+        if(!ahead){let i=0;for(const a of this.anchors){if(a.f.dead)continue;const w=this.latticePlace(i++,true);a.x=w[0];a.y=w[1];a.z=w[2];a.scanT=0;a.f.x=a.x;a.f.y=a.y;a.f.z=a.z;if(a.f.g){a.f.g.px=a.x;a.f.g.py=a.y;a.f.g.pz=a.z}}
+          callout('COMING ROUND · LATTICE AHEAD AGAIN',1.8)}
+        return
+      }
       if(!ahead||this.t>=this.window){fighters.length=0;bolts.length=0;callout('LATTICE PASSED QUIETLY',1.6);this.recordIgnored();this.end()}
       return
     }
-    if(this.t-(this.wokenT||0)>=50)this.finishLattice(false)   // fifty seconds from waking, not from the start
+    // Fifty seconds from waking, not from the start. A survey job has no way round: clear it.
+    if(!this.surveyJob&&this.t-(this.wokenT||0)>=50)this.finishLattice(false)
   },
   finishLattice(cleared){
+    if(this.surveyJob){
+      // Woken and destroyed: the job is done, but nobody wanted it this way. Helix minds most.
+      const m=campaign.currentMission,helix=m?.faction==='helix';
+      callout('LATTICE DESTROYED · NOTHING LEFT TO SURVEY',2);this.record({id:'woken',...this.KINDS.latticeSurvey.woken,...(helix?{rep:-2,repFaction:'helix'}:{})});
+      fighters.length=0;bolts.length=0;this.anchors=[];this.end();return
+    }
     const def=this.KINDS.lattice;
     if(cleared){callout(def.cleared.say,2);SoundFX.objectiveComplete?.();this.record({id:'cleared',...def.cleared})}
     else{callout('LATTICE BEHIND · ROUTE CONTINUES',1.6);this.record({id:'abandoned',text:'Left a waking lattice behind'})}
@@ -472,6 +502,15 @@ const routeDiversion={
     const q=camPoint([c.x,c.y,c.z]);if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(c,this.CIV_MESH,c.hitT>0?C.w:(c.hp<.3?C.r:C.c))})
   },
   drawMarker(){
+    if(this.active&&this.state==='lattice'&&this.surveyJob){
+      const def=this.KINDS.latticeSurvey;
+      ctx.save();ctx.textAlign='center';ctx.textBaseline='bottom';ctx.font='400 10px Consolas,monospace';ctx.lineWidth=VECTOR_LINE_WIDTH;
+      for(const a of this.anchors){if(a.f.dead)continue;const q=camPoint([a.x,a.y,a.z]);if(q[2]<=.18)continue;const p=projectCam(q);if(!p)continue;
+        const d=Math.hypot(a.x-shipX,a.y-shipY,a.z),close=d<30&&!a.scanned;
+        ctx.strokeStyle=a.scanned?C.g:(close?C.r:(d<def.scanRange?C.y:C.c));
+        ctx.strokeText(a.scanned?'SCANNED':(close?'TOO CLOSE':(a.scanT>0?`SCANNING ${Math.min(99,Math.round(a.scanT/def.scanSeconds*100))}%`:`CORE ${Math.round(d)}`)),p.x,p.y-Math.max(16,p.k*2.2))}
+      ctx.restore();return
+    }
     if(this.active&&this.state==='migration'&&!this.firedOnHerd){
       ctx.save();ctx.textAlign='center';ctx.textBaseline='bottom';ctx.font='400 10px Consolas,monospace';ctx.lineWidth=VECTOR_LINE_WIDTH;
       // Labels on the three nearest drifters only, so the herd does not drown in text.
