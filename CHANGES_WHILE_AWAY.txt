@@ -1197,3 +1197,19 @@ v1330 Distant trees are drawn as outlines (speed)
       tiers on a trunk): the same edge now costs 3 ms at 120 units and 13 ms
       at 60, and nearer trees keep their full detail. The forest runs
       benefit too, at the far end of the view.
+
+v1340 New xeno models, from the Christmas video's hornet
+      Your note: the xenos should look like the video's, and the larva could
+      be better. Both are rebuilt (xeno-models.js), and every place that
+      uses them (space swarms, nest fights, the nest's larvae) gets the new
+      shapes.
+      - Stinger Hornet: a segmented abdomen with orange banding, a narrow
+        waist and thorax, a head with big red compound eyes, elbowed
+        antennae and white mandibles, two pairs of wings that buzz, swept
+        back along the body, and the sting.
+      - Larva Drifter: a fat segmented grub that writhes as it swims (a
+        wave travels down its body), segment rims and soft spines along its
+        back, a small head with red eyes and hooked mandibles, and three
+        pairs of stubby legs that paddle.
+      Body edges still take the creature's colour, so hits, aces and
+      tenders still show.

@@ -683,7 +683,10 @@ function agentXAnimatedBugMesh(obj){
       verts[index]=[pivot[0]+dx*c-dy*s,pivot[1]+dx*s+dy*c,v[2]]
     }
   }
-  return {name:base.name,v:verts,e:base.e,faces:base.faces}
+  // v1340: a larva's whole body writhes, a sideways wave travelling down it from the head.
+  const w=base.bugWrithe;
+  if(w)for(const v of verts){const k=Math.max(0,v[2]+.5);v[0]+=Math.sin(t*w.speed-v[2]*w.wave)*w.amp*k}
+  return {name:base.name,v:verts,e:base.e,faces:base.faces,edgeColors:base.edgeColors}
 }
 function drawAgentXBugPropulsion(obj,col=C.c){
   const base=obj?.mesh;if(!base?.bugKind)return;
