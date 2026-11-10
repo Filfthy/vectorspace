@@ -1640,3 +1640,9 @@ v1640 Wildlife over green and blue worlds
 v1650 Patrol formations spaced by size
       A group's V now spaces its places by its biggest member (at least 5.5
       apart), so a pack of hounds walking together no longer bunches up.
+
+v1660 New jobs filed under the right type on the board
+      Vent Surveys and Crash Recoveries were shown as COMBAT on the contract
+      card and under the COMBAT filter (they were missing from the job-type
+      list). A Vent Survey is now a DELIVERY and a Crash Recovery a RECOVERY.
+      Found by looking at the board as a player would.
