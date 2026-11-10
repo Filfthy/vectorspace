@@ -2532,6 +2532,81 @@
     }
   };
 
+  // v1510: CRASH RECOVERY. A craft has come down on the plains: find the crash sites (each
+  // a smoking wreck marked on the nav), fly low over each to pull its flight recorder,
+  // then make the pickup and deliver to the depot. Same route as the survey run.
+  const crashRecovery={
+    ...surveyRun,
+    id:'crash_recovery',
+    minLevel:3,
+    allowedFactions:['security','trade','helix','jackals'],
+    factionWeights:{security:4,trade:4,helix:3,jackals:2},
+    board:{category:'delivery',weight:.55,maxPerBoard:1},
+    sections:surveyRun.sections.map((s,i)=>{if(i!==1)return s;const params={...s.params,crashSites:{base:1,perRisk:.25,min:1,max:3,round:true}};delete params.surveyPoints;return{...s,label:'Crash Recovery',params}}),
+    presentation:{
+      security:{
+        contactId:'kudo_shang',cargoStyle:'case',
+        titles:['Recorder Recovery','Downed Patrol','Crash Site Sweep'],
+        cargo:['the recovered flight recorders','a sealed recorder case','the patrol\'s crash report'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'An OSD patrol came down on the plains of this world. I want every flight recorder recovered before anyone else reads them. Find the crash sites, then collect {cargo} from {origin} and deliver it to {destination}.',
+          'Downed patrol craft. Fly low over each crash site and pull the recorder. Then collect {cargo} from {origin} and deliver it to {destination}. Nobody else touches those recorders.'
+        ],
+        completionSubjects:['Recorders recovered','Crash sites closed'],
+        completionBodies:['Every recorder is in OSD hands. We know what brought the patrol down now. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Recorders lost'],bodies:['The recorders did not reach the depot. Someone else will read them first. That is unacceptable.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left the crash sites unrecovered. The patrol deserved better.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.18,subjects:['Re: the downed patrol'],bodies:['The recorders showed the patrol held formation to the ground. I thought you should know.']}
+      },
+      trade:{
+        contactId:'corvella_pallis',cargoStyle:'case',
+        titles:['Lost Hauler','Black Box Run','Where My Hauler Went'],
+        cargo:['the hauler\'s flight recorders','a case of insurance paperwork','the hauler\'s cargo manifest'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'Sweetie, one of my haulers went down on the plains and the insurers want the black boxes before they pay. Find the crash sites, then pick up {cargo} from {origin} and bring it to {destination}.',
+          'Babe, I lost a hauler and I want to know why. Fly over every wreck and grab the recorders, then collect {cargo} from {origin} and drop it at {destination}. The crew got out. I checked first.'
+        ],
+        completionSubjects:['The insurers paid, babe','Black boxes in'],
+        completionBodies:['The recorders are in and the insurers have stopped arguing. A clamp failed, not my pilot. I knew it. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the black boxes'],bodies:['Sweetie, the recorders never reached the depot. The insurers are going to be awful about this.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, the wreck'],bodies:['You left the wrecks unrecovered, babe. I still do not know what happened to my hauler.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['About my hauler'],bodies:['The crew from that hauler asked who brought the recorders in. I told them a friend. They sent cake, sweetie. I ate your half.']}
+      },
+      helix:{
+        contactId:'navira_derris',cargoStyle:'case',
+        titles:['Sample Drone Recovery','Downed Research Craft','Crash Data'],
+        cargo:['the research drone\'s data cores','a sealed sample case','the recovered recorders'],
+        destinations:['the Compact freight depot','a Helix collection point at the depot'],
+        descriptions:[
+          'A Helix research drone came down on this world carrying samples I would like back. Find the crash sites, pull the recorders, then collect {cargo} from {origin} and bring it to {destination}.',
+          'I lost a sampling drone and its telemetry stops at a very interesting moment. Fly over each wreck for the recorders, then collect {cargo} from {origin} and hand it over at {destination}.'
+        ],
+        completionSubjects:['Recorders received','The interesting moment'],
+        completionBodies:['The recorders are in. The drone was not shot down. It flew into something it was studying. I am almost proud of it. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'navira_derris',subjects:['Crash data lost'],bodies:['Your drone was lost before the recorders reached the depot. I now have two crashes to explain.']},
+        abandonMail:{contactId:'navira_derris',subjects:['Recovery abandoned'],bodies:['You left before the recorders were recovered. The interesting moment remains a mystery.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:3,chance:.22,subjects:['About the crash'],bodies:['I have reconstructed the sampling drone\'s last minute. It was enjoying itself.']}
+      },
+      jackals:{
+        contactId:'cassian_erivan_snade',cargoStyle:'case',
+        titles:['An Unfortunate Descent','Discreet Recovery','A Courier Fell'],
+        cargo:['the courier\'s recorders','a case that was never aboard','a very discreet box'],
+        destinations:['the Compact freight depot','a quiet locker at the Compact depot'],
+        descriptions:[
+          'One of my couriers suffered an unfortunate descent onto the plains. Its recorders contain conversations of a private nature. Find the crash sites, then collect {cargo} from {origin} and deliver it to {destination}.',
+          'A craft carrying certain items of mine came down rather abruptly. Recover the recorders from each wreck before anyone curious arrives, then collect {cargo} from {origin} and take it to {destination}.'
+        ],
+        completionSubjects:['A tidy recovery','Nothing to see'],
+        completionBodies:['The recorders are mine again and nobody heard a thing. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'cassian_erivan_snade',subjects:['An unfortunate outcome'],bodies:['The recorders did not reach the depot. Somewhere, someone is listening to my private conversations. I find that tiresome.']},
+        abandonMail:{contactId:'cassian_erivan_snade',subjects:['Left lying about'],bodies:['You left the wrecks where anyone might find them. That was careless of you, and expensive for me.']},
+        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:3,chance:.2,subjects:['On recorders'],bodies:['I listened to the recordings myself. My courier was singing when it fell. Badly, but with feeling.']}
+      }
+    }
+  };
+
   // Generic discretionary reward correspondence lives beside the mission templates
   // because it is faction/contact presentation, even when the reward itself is not
   // tied to one particular mission family. Campaign owns the reward mechanics; these
@@ -2672,7 +2747,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crash_recovery:crashRecovery,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();

@@ -1477,3 +1477,14 @@ v1500 New land job: Vent Survey
       Also: a contract on an orange world now says "volcanic" on its world
       line when it is one, instead of always "arid". Ember streaks very close
       to the camera no longer smear across the view.
+
+v1510 New land job: Crash Recovery
+      A craft has come down on the plains. Find the one to three crash sites
+      (smoking wrecks marked CRASH SITE on the nav, "RECORDERS 0/2" on the
+      HUD), fly low over each to pull its flight recorder, then make the
+      pickup and deliver to the depot. From operator level 3, for OSD (a
+      downed patrol), the Compact (Corvella's lost hauler and its insurers),
+      Helix (a sampling drone that flew into what it was studying) and Red
+      Jackal (a courier whose recorders hold private conversations).
+      Also: crash-site wrecks (these and the optional ones from v1430) now
+      rest nose down on the plain instead of floating with the nose up.
