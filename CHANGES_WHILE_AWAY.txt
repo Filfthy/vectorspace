@@ -2161,6 +2161,8 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
       Traders, from level 4.
     - Minelayer: a new enemy in some pirate and mercenary fights from
       level 5. An orange raider that seeds proximity mines. Kill it first.
+    - Last Convoy: a tenth Black Contract (from threat 10). Escort an
+      armoured VOX freighter through four waves of remnant drones.
   Changed:
     - Contacts now often talk about the specific job on contract cards.
     - New letter from Nyxo after your first ambushed asteroid clearance.
@@ -2349,4 +2351,20 @@ v1960 Getting to know the contacts, and minelayer records
       Left alone on purpose: moons keep their trees and weather. The
       game's own chatter gives them a thin atmosphere, and changing how
       they look is your call.
+
+v1970 Tenth Black Contract: Last Convoy
+      A VOX freighter carries recovered Partition cores out of a remnant
+      zone and the remnants want them back. It is the Convoy Escort job
+      at Black Contract strength: four waves of seven remnant drones at
+      Black Contract hull, half hunting you, half going for the
+      freighter. Added at the end of the rotation, so the Black Contracts
+      you already know keep their order, and this one first arrives at
+      threat 10 (then every tenth).
+      First flights lost the freighter in 2 of 4 even with the pilot's
+      perfect aim, so the VOX freighter is armoured (it takes 55% of the
+      damage an ordinary hauler would). Now, with a drone that can be
+      lost: 181 to 217 s, freighter ends at 53 to 58%, a lot of shield
+      spent. Other Black Contracts run 74 to 237 s.
+      Lose the freighter and, as on the board job, you get half the fee.
+      The self-test flies all ten Black Contracts.
 

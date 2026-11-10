@@ -74,7 +74,13 @@
     {id:'lattice',title:'Lattice Node',family:'deep_core',planetaryRequirements:{landingBody:'planet',landingColour:'orange',moonCount:{min:0,max:2}},
       description:'A remnant command node is hiding behind a ghost lattice sown around its world. Break the lattice in orbit, then descend, run the trench and destroy the node reactor. While its jammers live, your missiles will not lock.',
       modules:(n,hp)=>[{type:'fighters',label:'Ghost Lattice',target:Math.max(5,Math.round(n*.7)),fighterHp:Math.round(hp*.75),profile:'ghost',difficulty:5,hudTag:'GHOST LATTICE'},descent('Planet Descent'),{type:'deep_core_surface',label:'Surface and Reactor Strike',difficulty:5}],
-      stages:['Break the Lattice','Planet Descent','Surface and Reactor Strike']}
+      stages:['Break the Lattice','Planet Descent','Surface and Reactor Strike']},
+    // v1970: the escort job (route-diversion.js 'escort') at Black Contract strength, against
+    // remnant drones. Four waves of seven at threat 1 already (risk 10+).
+    {id:'convoy',title:'Last Convoy',family:'convoy_escort',
+      description:'A VOX freighter is carrying recovered Partition cores out of a remnant zone, and the remnants want them back. Fly escort through every wave until the freighter is clear. If it is lost, the cores go with it.',
+      modules:(n,hp)=>[{type:'route_diversion',label:'Escort the Freighter',diversion:'escort',main:true,spaceCombat:false,fighterHp:hp,escortHp:hp,escortProfile:'rogue',freighterArmour:.55,difficulty:5}],
+      stages:['Escort the Freighter']}
   ];
 
   function blackContract(threat){

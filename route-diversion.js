@@ -390,9 +390,11 @@ const routeDiversion={
   startEscortWave(){
     const stage=this.stage,risk=this.escortRisk,k=campaign.contractToughnessScale(risk);
     const n=Math.max(3,Math.min(7,3+Math.round(risk*.35)));
-    const lvl=campaign.levelForXP?.()||1,profile=(lvl>=4&&this.wave>=1&&Math.random()<.35)?'hostile':'pirate';
+    // v1970: a stage may set who attacks (escortProfile) and their hull (escortHp), as the
+    // Last Convoy Black Contract does. Otherwise pirates, with mercenaries mixed in later.
+    const lvl=campaign.levelForXP?.()||1,profile=stage.escortProfile||((lvl>=4&&this.wave>=1&&Math.random()<.35)?'hostile':'pirate');
     this.wave++;stage.spaceCombat=true;
-    scenarioFlow.startFighterStage({...stage,target:n,fighterHp:Math.round(12*k),profile,navMessage:null,silentStart:true},profile,{preservePhase:true});
+    scenarioFlow.startFighterStage({...stage,target:n,fighterHp:Number(stage.escortHp)||Math.round(12*k),profile,navMessage:null,silentStart:true},profile,{preservePhase:true});
     scenarioFlow.encounterHudTag=this.KINDS.escort.hud;
     audio.music.setMode('violent');
     callout(this.wave<this.waves?`RAIDERS INBOUND · WAVE ${this.wave} OF ${this.waves}`:`LAST WAVE · ${n} RAIDERS`,2)
@@ -420,7 +422,8 @@ const routeDiversion={
       if(f.escortRole===undefined){f.escortRole=((this.escortSeen=(this.escortSeen||0)+1)%2)?'raider':'hunter';if(f.escortRole==='hunter')f.provoked=true}
       if(f.provoked)continue;f.shotsLeft=0;onIt++;
       const g=Math.min(1,dt*.7);f.x+=(c.x-12+Math.random()*24-f.x)*g;f.y+=(c.y-6+Math.random()*12-f.y)*g;f.z+=(c.z-20-f.z)*g}
-    if(onIt){c.hp-=dt*.0055*onIt;if(Math.random()<dt*onIt*1.2){c.hitT=.12;const p=proj([c.x,c.y,c.z]);if(p)spark(p.x,p.y,C.y,5)}}
+    // v1970: an armoured freighter (stage.freighterArmour, a damage factor) takes less.
+    if(onIt){c.hp-=dt*.0055*onIt*(Number(this.stage?.freighterArmour)||1);if(Math.random()<dt*onIt*1.2){c.hitT=.12;const p=proj([c.x,c.y,c.z]);if(p)spark(p.x,p.y,C.y,5)}}
     if(c.hp<=0){c.dead=true;const p=proj([c.x,c.y,c.z]);if(p&&typeof explodeMesh==='function')explodeMesh(c,this.FREIGHTER_MESH,p,C.y);this.finishEscort(false)}
   },
   finishEscort(safe){
