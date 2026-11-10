@@ -1121,10 +1121,12 @@ function updatePlayerMissiles(dt){
  if(!playerMissiles?.length)return;
  for(let i=playerMissiles.length-1;i>=0;i--){
    const m=playerMissiles[i];if(m.dead){playerMissiles.splice(i,1);continue}
-   m.age+=dt;if(m.age>m.maxAge){playerMissiles.splice(i,1);continue}
+   {const tg=m.ghostWait?fighters.find(x=>x.id===m.targetId):null;m.age+=dt*(tg&&tg.ghost&&!AgentXGhosts.solid(tg)?.5:1)}   // v1570: waiting on a scattered ghost
+   if(m.age>m.maxAge){playerMissiles.splice(i,1);continue}
    if(m.ground){if(!groundAssault?.active||groundAssault.updateMissile(m,dt))playerMissiles.splice(i,1);continue}
    const f=fighters.find(x=>x.id===m.targetId&&!x.dead&&!x.dying);
    if(!f){playerMissiles.splice(i,1);continue}
+   m.ghostWait=!!f.ghost;
    const dx=f.x-m.x,dy=f.y-m.y,dz=f.z-m.z,d=Math.hypot(dx,dy,dz)||.001;
    const missileSpeed=m.speed||PLAYER_MISSILE_SPEED,desired=[dx/d*missileSpeed,dy/d*missileSpeed,dz/d*missileSpeed];
    const steer=1-Math.exp(-8.5*dt);

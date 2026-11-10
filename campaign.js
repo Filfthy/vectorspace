@@ -185,7 +185,7 @@ class CampaignController {
   bountyTag(){const b=this.lastBounty;return b&&performance.now()-b.at<400&&b.cr>0?` · +CR ${b.cr.toLocaleString()}`:''}
   bountySummary(){
     const b=this.missionBounty;if(!b||b.cr<=0)return null;
-    const names={fighters:['fighter','fighters'],armour:['armour unit','armour units'],'heavy walkers':['heavy walker','heavy walkers'],generators:['generator','generators'],reactors:['reactor','reactors'],aces:['named ace','named aces'],tenders:['shield tender','shield tenders']};
+    const names={ghosts:['ghost construct','ghost constructs'],jammers:['ghost jammer','ghost jammers'],fighters:['fighter','fighters'],armour:['armour unit','armour units'],'heavy walkers':['heavy walker','heavy walkers'],generators:['generator','generators'],reactors:['reactor','reactors'],aces:['named ace','named aces'],tenders:['shield tender','shield tenders']};
     const text=Object.entries(b.counts).map(([k,v])=>`${v} ${(names[k]||[k,k])[v===1?0:1]}`).join(', ');
     return {cr:Math.round(b.cr/50)*50,xp:Math.round(b.xp),text}
   }
@@ -598,6 +598,7 @@ class CampaignController {
   currentMissileTarget(){
     if(mode==='play'&&phase==='surface'&&groundAssault?.active)return groundAssault.missileTarget();
     if(mode!=='play'||phase!=='space')return null;
+    if(globalThis.AgentXGhosts?.jammed())return null;   // v1570: a ghost jammer in range blocks every missile
     const id=spaceLockId||spacePursuitId;
     return id?fighters.find(f=>f.id===id&&!f.dead&&!f.dying)||null:null
   }
@@ -617,12 +618,13 @@ class CampaignController {
       return spend(`SHIELD BOOST +${shield-before}`)
     }
     if(item.effect==='homingMissile'){
-      const target=this.currentMissileTarget();if(!target){callout('NO MISSILE TARGET',.45);return false}
+      const target=this.currentMissileTarget();if(!target){callout(globalThis.AgentXGhosts?.jammed()?'LOCK JAMMED · DESTROY THE JAMMER':'NO MISSILE TARGET',.8);return false}
       if(!launchHomingMissile(target,(item.missileDamage||6)*(this.hasSkill('heavyWarheads')?1.4:1),item.missileSpeed||72)){callout('MISSILE NOT AVAILABLE',.45);return false}
       return spend(`${item.name.toUpperCase()} AWAY`,.55)
     }
     if(item.effect==='cluster'){
-      const targets=this.hostilesInView(4);if(!targets.length){callout('NO TARGETS IN VIEW',.45);return false}
+      if(globalThis.AgentXGhosts?.jammed()){callout('LOCK JAMMED · DESTROY THE JAMMER',.8);return false}
+      const targets=this.hostilesInView(4).filter(f=>!f.ghost||AgentXGhosts.solid(f));if(!targets.length){callout('NO TARGETS IN VIEW',.45);return false}
       for(let k=0;k<4;k++)launchHomingMissile(targets[k%targets.length],(item.missileDamage||6)*(this.hasSkill('heavyWarheads')?1.4:1),item.missileSpeed||80);
       return spend(`CLUSTER AWAY · ${targets.length} TARGET${targets.length>1?'S':''}`,.55)
     }
@@ -1059,8 +1061,11 @@ class CampaignController {
   ensureContractBoard(){
     const b=this.state.contractBoard,lvl=this.levelForXP(),schema=this.contractBoardSchemaVersion(),templates=Object.values(globalThis.AgentXMissionData?.templates||{});
     const templatedFamilies=new Map(templates.map(t=>[String(t?.family||t?.id||''),t]));
+    // v1570: look a contract's template up by its own id first. Several templates share a
+    // family, and keying by family alone made boards holding them regenerate on every load.
+    const templatesById=new Map(templates.map(t=>[t?.id,t]));
     const templateCoverageOk=Array.isArray(b)&&b.every(m=>{
-      const t=templatedFamilies.get(String(m?.family||''));
+      const t=(m?.templateId&&templatesById.get(m.templateId))||templatedFamilies.get(String(m?.family||''));
       return !t||(m?.templateId===t.id&&m?.templateVersion===(t.version||1))
     });
     const eligibilityOk=Array.isArray(b)&&b.every(m=>{

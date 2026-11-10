@@ -1546,3 +1546,27 @@ v1560 New Black Contract: Lattice Node
       and destroy the node reactor. Fewer and lighter ghosts than a drone
       screen would have, since they can only be hit while formed. All nine
       Black Contract set pieces were stepped through clean.
+
+v1570 Fixes from a second review (v1470 to v1520)
+      - A ghost jammer now really stops missiles. It broke the lock, but a
+        missile could still fly at whatever the drone was pursuing, and the
+        cluster pod ignored it. Both now say "LOCK JAMMED · DESTROY THE
+        JAMMER". The cluster pod no longer picks scattered ghosts.
+      - The debrief bounty line said "1 jammers" and "1 ghosts". It now says
+        "1 ghost construct, 1 ghost jammer".
+      - The contract board was being thrown away and rebuilt every time the
+        game loaded whenever it held a survey run, crystal consignment,
+        groundside pickup, vent survey or crash recovery (they share a
+        family). It is now checked against each job's own template.
+      - A missile chasing a scattered ghost ages at half rate, so it is still
+        flying when the ghost forms.
+      - Ghost callouts never carry into the next stage, the first meeting no
+        longer names them while the HUD says UNKNOWN CONTACTS, fragments no
+        longer jump on the first frame, and a construct breaks apart from its
+        formed shape even if it formed off screen. The break-up sound only
+        plays when it is near and ahead.
+      - Vent surveys ask for at most four points (the most the plains hold).
+        Crash recovery and vent survey have their own pickup wording.
+      - Survey points clear big cinder cones by their footprint.
+      - Volcanic fissures are cheaper to draw (embers in one stroke per
+        colour, fissures off to the side skipped): about 0.9 ms.

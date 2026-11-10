@@ -95,11 +95,11 @@ const AgentXGhosts={
   // ---- Spawning -----------------------------------------------------------------------
   // Called once per fighter stage start (startFighterStage).
   arm(profile){
-    this.profile=profile;this.jammerPlaced=0;this.spawned=0;
+    this.profile=profile;this.jammerPlaced=0;this.spawned=0;this.pending=[];
     if(profile!=='ghost')return;
     this.ensureBuilt();
     const first=!campaign?.state?.seenProfiles?.ghost;
-    this.pending=[{text:first?'GHOST CONSTRUCTS · THEY ARE ONLY SOLID WHEN FORMED':'GHOST CONSTRUCTS · FIRE WHEN THEY FORM',wait:7}]
+    this.pending=[{text:first?'THEY ARE ONLY SOLID WHEN FORMED · FIRE THEN':'GHOST CONSTRUCTS · FIRE WHEN THEY FORM',wait:7}]
   },
   // Which kind the nth fighter of a ghost fight is: the second is a jammer, and a big
   // fight gets a second one later.
@@ -134,12 +134,19 @@ const AgentXGhosts={
     return this.live().some(f=>f.ghost==='jammer'&&Math.hypot(f.x-shipX,f.y-shipY,f.z)<this.JAM_RANGE)
   },
   noteJam(){if(this.jamCalloutT<=0&&typeof callout==='function'&&callout('LOCK JAMMED · DESTROY THE JAMMER',1.4))this.jamCalloutT=5},
+  // Where fragment i sits when the construct is formed (relative to its middle).
+  homeOff(f,i){
+    const pc=this.defs[f.ghost].pieces[i],s=f.s,sp=f.g.spin,cs=Math.cos(sp),sn=Math.sin(sp);
+    const p=pc.spin?[pc.pos[0]*cs-pc.pos[1]*sn,pc.pos[0]*sn+pc.pos[1]*cs,pc.pos[2]]:pc.pos;
+    return rotate([p[0]*s,p[1]*s,p[2]*s],f.rot||[0,0,0])
+  },
   scatter(f){
     const g=f.g;g.state='breaking';g.t=0;g.dur=.45;
+    g.frags.forEach((s,i)=>{s.off=this.homeOff(f,i)});   // it breaks apart from its formed shape, seen or not
     for(const s of g.frags){const l=Math.hypot(...s.off)||1,sp=15+Math.random()*12,r=()=>Math.random()-.5;
       s.vel=[s.off[0]/l*sp+r()*8,s.off[1]/l*sp+r()*8,s.off[2]/l*sp+r()*8];s.tv=[r()*5,r()*5,r()*5]}
     // A lock held on it stays on the empty middle, and a missile in flight waits for it to form.
-    SoundFX.play?.('ghostScatter',.8)
+    if(camPoint([f.x,f.y,f.z])[2]>0&&Math.hypot(f.x-shipX,f.y-shipY,f.z)<260)SoundFX.play?.('ghostScatter',.8)
   },
   update(dt){
     this.jamCalloutT=Math.max(0,this.jamCalloutT-dt);
@@ -152,6 +159,7 @@ const AgentXGhosts={
     const g=f.g;g.t+=dt;g.flash=Math.max(0,g.flash-dt);
     // The middle moves with the fighter's own flight. Loose fragments are left partly
     // behind, so a scattered construct streams after its core and re-forms further on.
+    if(!g.stepped){g.stepped=true;g.px=f.x;g.py=f.y;g.pz=f.z}   // the spawner moves it after init
     const mx=f.x-g.px,my=f.y-g.py,mz=f.z-g.pz;g.px=f.x;g.py=f.y;g.pz=f.z;
     if(f.dying){g.state='formed';return}
     // v1530: a dormant lattice (route-diversion.js) lies scattered and still until woken.

@@ -2461,13 +2461,14 @@
     ...surveyRun,
     id:'vent_survey',
     minLevel:6,
+    defaults:{origin:'the vent survey team\'s field office',destination:'the Compact freight depot',cargo:'a sealed sample case'},
     volcanic:true,
     allowedFactions:['helix','trade','quickbite','security'],
     factionWeights:{helix:5,trade:3,quickbite:2,security:2},
     board:{category:'delivery',weight:.45,maxPerBoard:1},
     risk:{base:3,min:3,levelsPerStep:2,max:10,jitter:1},
     planetaryRequirements:{landingBody:'planet',landingColour:'orange',moonCount:{min:0,max:2}},
-    sections:surveyRun.sections.map((s,i)=>i===1?{...s,label:'Vent Survey',params:{...s.params,surveyPoints:{base:3,perRisk:.2,min:3,max:5,round:true}}}:s),
+    sections:surveyRun.sections.map((s,i)=>i===1?{...s,label:'Vent Survey',params:{...s.params,surveyPoints:{base:3,perRisk:.2,min:3,max:4,round:true}}}:s),
     presentation:{
       helix:{
         contactId:'navira_derris',cargoStyle:'case',
@@ -2539,6 +2540,7 @@
     ...surveyRun,
     id:'crash_recovery',
     minLevel:3,
+    defaults:{origin:'the recovery team\'s field office',destination:'the Compact freight depot',cargo:'the recovered flight recorders'},
     allowedFactions:['security','trade','helix','jackals'],
     factionWeights:{security:4,trade:4,helix:3,jackals:2},
     board:{category:'delivery',weight:.55,maxPerBoard:1},
