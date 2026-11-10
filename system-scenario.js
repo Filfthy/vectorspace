@@ -265,6 +265,7 @@ class ScenarioFlowController {
   }
   enterStage(stage,{via='direct',mission=null}={}){
     if(!stage)return false;
+    if(globalThis.AgentXMinelayers)AgentXMinelayers.mines=[];   // v1980: no mine outlives its stage
     this.encounterProfile='standard';this.encounterHudTag='';
     if(routeDiversion?.active&&stage.type!=='route_diversion')routeDiversion.reset();
     // v410: harmless ambient nav chatter on quiet runs, shown once the section has settled

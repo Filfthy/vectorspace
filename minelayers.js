@@ -46,8 +46,9 @@ const AgentXMinelayers={
       if(m.dead)continue;
       m.x-=spaceMoveX*k;m.y-=spaceMoveY*k;m.z-=spaceMoveZ*k;
       m.x+=m.drift[0]*dt;m.y+=m.drift[1]*dt;m.rot[0]+=m.spin[0]*dt;m.rot[1]+=m.spin[1]*dt;m.age+=dt;
-      // Fade out of play when it falls far behind, grows old, or the fight is over.
-      if(m.z<-30||m.age>this.MINE_LIFE||(!fightOn&&m.age>3)){m.dead=true;m.faded=true;continue}
+      // Fade out of play when it falls far behind, grows old, or the fight is over (v1980:
+      // at once, so none is left armed for the next stage).
+      if(m.z<-30||m.age>this.MINE_LIFE||!fightOn){m.dead=true;m.faded=true;continue}
       const d=Math.hypot(m.x-shipX,m.y-shipY,m.z);
       if(!m.armed&&d<this.ARM_RANGE){m.armed=true;m.armT=this.FUSE}
       if(m.armed){m.armT-=dt;if(m.armT<=0)this.detonate(m,false)}
@@ -73,7 +74,7 @@ const AgentXMinelayers={
     if(typeof callout==='function')callout(`MINELAYER DOWN · NO MORE MINES${campaign.bountyTag?.()||''}`,2)
   },
   appendScene(scene){
-    if(phase!=='space')return;
+    if(phase!=='space'||mode!=='play')return;
     for(const m of this.mines){if(m.dead)continue;const q=camPoint([m.x,m.y,m.z]);
       if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(m,stationProximityMineMesh,m.armed&&Math.sin(m.armT*60)>0?C.w:C.o)})}
   },

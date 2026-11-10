@@ -2368,3 +2368,22 @@ v1970 Tenth Black Contract: Last Convoy
       Lose the freighter and, as on the board job, you get half the fee.
       The self-test flies all ten Black Contracts.
 
+v1980 Seventh independent review (v1920 to v1960), three fixes
+      - Leftover minelayer mines could outlive their fight. A mine
+        dropped just before the minelayer died stayed on screen, frozen,
+        through the exit zoom, and could even go off in the next stage
+        (say, a station approach with no fight at all). Mines now vanish
+        the moment the fight is over, are cleared whenever a new stage
+        starts, and are only drawn in normal play. Checked on a full job
+        with a forced minelayer: no mine survived any stage change.
+      - The "MINELAYER DOWN · NO MORE MINES" callout was immediately
+        replaced by the generic "HOSTILE DOWN". It now stays, as the ace
+        and tender ones do.
+      - My Core Samples entry had split a row in the Guide, so "Walkers
+        and tanks" sat beside the core samples text. Fixed.
+      Checked clean: Core Samples can always be finished and its craters
+      are always reachable, the minelayer cannot double count or mark a
+      fighter that is already an ace or tender, contact facts never show
+      before their letter, old saves load, and no new text breaks the
+      punctuation rules.
+
