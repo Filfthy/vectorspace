@@ -1630,3 +1630,9 @@ v1630 Crystal spires catch the light
       as you fly through. Every world type now has something moving on it:
       geysers on ice, vents and ash on volcanic worlds, glints on crystal,
       dust on arid worlds and traffic into town.
+
+v1640 Wildlife over green and blue worlds
+      Two or three flocks of birds wheel over the plains on forest and
+      wetland worlds: loose clouds of small flapping V shapes circling at a
+      height, as the nav chatter's "WILDLIFE ON THE PLAINS" always promised.
+      Scenery only. Now every world type has life or weather of its own.

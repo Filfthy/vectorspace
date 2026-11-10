@@ -231,7 +231,7 @@ class SurfaceDestinationApproachController {
     this.targetWorldZ=Number.isFinite(Number(resolved?.targetWorldZ))?Number(resolved.targetWorldZ):this.routeLength;
     this.targetX=Number.isFinite(Number(resolved?.targetX))?Number(resolved.targetX):0;
     this.entryRadius=clamp(Number(resolved?.entryRadius)||36,24,60);
-    this.buildScenery();this.buildFissures();this.buildTraffic();this.buildSurvey(resolved?.crashSites||resolved?.surveyPoints,!!resolved?.crashSites);this.buildBeacon();
+    this.buildScenery();this.buildFissures();this.buildTraffic();this.buildFlocks();this.buildSurvey(resolved?.crashSites||resolved?.surveyPoints,!!resolved?.crashSites);this.buildBeacon();
     if(this.destination==='forest')this.buildForestBoundary();
     else if(this.destination==='swamp')this.buildSwampBoundary();
     else if(this.destination==='bunker'||this.destination==='osd'){this.skyline.length=0;this.forestBands.length=0;this.forestFront.length=0}
@@ -723,6 +723,28 @@ class SurfaceDestinationApproachController {
       line(bx+tx*width*.5,y-dy*depth+ty*width*.5,x,y,C.y,1.3,.88);line(x,y,bx-tx*width*.5,y-dy*depth-ty*width*.5,C.y,1.3,.88)
     }
   }
+  // v1640: wildlife on green and blue worlds: two or three flocks wheeling over the plains,
+  // each a loose cloud of small flapping V shapes. Scenery only.
+  buildFlocks(){
+    this.flocks=[];if(!(this.worldKind==='temperate'||this.worldKind==='wet')||this.scenery==='rocks'||this.scenery==='swamp')return;
+    const m=typeof campaign!=='undefined'?campaign.currentMission:null;if(!m||m.training)return;
+    for(let n=0,N=2+Math.floor(this.rand()*2);n<N;n++){
+      const cx=this.targetX+(this.rand()-.5)*220,cz=40+this.rand()*(this.routeLength+60),r=14+this.rand()*20,y=this.groundY+7+this.rand()*8,dir=this.rand()<.5?-1:1;
+      this.flocks.push({cx,cz,r,y,dir,a:this.rand()*6.28,w:(.18+this.rand()*.12)*dir,birds:Array.from({length:6+Math.floor(this.rand()*6)},()=>({dx:(this.rand()-.5)*7,dy:(this.rand()-.5)*2.5,dz:(this.rand()-.5)*7,ph:this.rand()*6}))})
+    }
+  }
+  drawFlocks(){
+    if(!this.flocks?.length)return;const t=this.navPulse||0;
+    ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.strokeStyle=C.w;
+    for(const f of this.flocks){
+      const a=f.a+t*f.w,cx=f.cx+Math.sin(a)*f.r,cz=f.cz+Math.cos(a)*f.r,c=camPoint([cx,f.y,cz-travel]);if(c[2]<6||c[2]>340)continue;
+      ctx.globalAlpha=clamp(1.1-c[2]/340,.25,.75);ctx.beginPath();
+      for(const b of f.birds){const q=camPoint([cx+b.dx+Math.sin(t*.7+b.ph)*.8,f.y+b.dy+Math.sin(t*1.3+b.ph)*.4,cz+b.dz-travel]);if(q[2]<4)continue;const p=projectCam(q);if(!p)continue;
+        const s=clamp(p.k*.35,1.5,7),flap=Math.sin(t*9+b.ph)*.7;ctx.moveTo(p.x-s,p.y-s*flap);ctx.lineTo(p.x,p.y);ctx.lineTo(p.x+s,p.y-s*flap)}
+      ctx.stroke()
+    }
+    ctx.restore()
+  }
   // v1550: a road runs in to the city across the plains, with a little ground traffic on
   // it in both directions (the city's own hover cars, vans and haulers, drawn the same
   // way). Scenery only: they run below flying height and nothing collides with them.
@@ -841,7 +863,7 @@ class SurfaceDestinationApproachController {
   draw(){
     this.drawGround();this.drawRoad();this.drawFissures();const scene=[];this.appendEnvironmentObjects(scene);
     if(this.destination==='osd'&&bunkerRaid?.active)bunkerRaid.appendOsdSurfaceObjects(scene);
-    this.drawObjectScene(scene);this.drawWeather();this.drawNavigation()
+    this.drawObjectScene(scene);this.drawFlocks();this.drawWeather();this.drawNavigation()
   }
   // v1380: weather on the plains. Ice worlds can blow a blizzard and arid worlds a dust
   // storm: a haze thickening towards the horizon (tilted with the view as the drone banks),
