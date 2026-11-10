@@ -1433,3 +1433,21 @@ v1470 New enemy class: ghost constructs
       no industry and no allegiance, "someone left this problem behind"),
       and a requested voice line ("Ghost constructs. Fire when they form.")
       in VOICE_REQUESTS.txt. A six-ghost fight draws in about 7 ms a frame.
+
+v1480 Volcanic worlds
+      Half the orange worlds (decided by the job, so it is the same every
+      time you look) are now volcanic instead of plain arid country. The
+      plains approach and the dune armour fields show it:
+      - Cinder cones with a crater rim; a few big ones trail smoke.
+      - Active vents: red cones throwing embers up in arcs.
+      - Clusters of hexagonal basalt columns, and only charred dead pines.
+      - Glowing fissures across the plain along your route, red with orange
+        lips, pulsing, with embers spitting out of them.
+      - Ash fall weather (about two landings in five on board jobs): slow
+        grey flakes, rising embers, and haze ("ASH FALL · VISIBILITY LOW").
+      - Its own nav chatter ("ASH IN THE AIR · INTAKES FILTERED"...).
+      Red stays off the planet palette (core.js keeps planet and moon colours
+      to the six approved ones), so from orbit a volcanic world still looks
+      orange. Guide and Codex updated, with a new Codex entry "Volcanic
+      worlds" once you have landed on one. Frames cost about the same as an
+      arid landing (5 to 7 ms).

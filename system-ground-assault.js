@@ -655,9 +655,14 @@ class GroundAssaultController{
     // crystal spires, or rocks among dead pines on arid worlds).
     const world=typeof surfaceWorldKind==='function'?surfaceWorldKind():'temperate',mix=world==='wet'?0:(typeof SURFACE_WORLD_MIX!=='undefined'?(SURFACE_WORLD_MIX[world]||0):0); // no reed meshes on dunes
     if(typeof noteSurfaceWorld==='function')noteSurfaceWorld(world);
-    const reg=globalThis.AgentXForestScenery,ids=world==='ice'?['pineTall','pineYoung','pineDeadSparse','pineDeadSparse']:(world==='arid'?['pineDeadSparse','pineDeadSparse','pineYoung']:['pineTall','pineBroad','pineYoung','pineDeadSparse']);
+    const reg=globalThis.AgentXForestScenery,ids=world==='volcanic'?['pineDeadSparse']:world==='ice'?['pineTall','pineYoung','pineDeadSparse','pineDeadSparse']:(world==='arid'?['pineDeadSparse','pineDeadSparse','pineYoung']:['pineTall','pineBroad','pineYoung','pineDeadSparse']);
     let rockLo=1e9;for(const v of asteroidMesh.v)rockLo=Math.min(rockLo,v[1]);
     const addFeature=(x,wz,s)=>{
+      if(world==='volcanic'&&typeof surfaceCinderConeMesh!=='undefined'){
+        const cone=Math.random()<.62,mx=.85+Math.random()*.35,my=cone?.7+Math.random()*.5:.6+Math.random()*.4;s*=cone?1+Math.random()*.6:.6;
+        this.trees.push({kind:'rock',feature:cone?'cone':'basalt',mesh:cone?surfaceCinderConeMesh:surfaceBasaltMesh,x,wz,s,mx,my,mz:mx,bury:.04,base:0,col:cone?C.y:C.o,rot:[0,Math.random()*6.28,0],r:s*mx*(cone?1.4:.8),top:s*my*(cone?1.2:2.4)*.9});
+        return
+      }
       if(world==='arid'){
         const mx=1.05+Math.random()*1.25,my=.45+Math.random()*.62,mz=.95+Math.random()*1.1,bury=.12+Math.random()*.18;
         this.trees.push({kind:'rock',mesh:asteroidMesh,x,wz,s,mx,my,mz,bury,base:rockLo,col:landingWorldColour()===C.o?C.y:C.o,rot:[(Math.random()-.5)*.28,Math.random()*6.28,(Math.random()-.5)*.24],r:s*Math.max(mx,mz)*.85,top:s*my*(1-bury)*.9});

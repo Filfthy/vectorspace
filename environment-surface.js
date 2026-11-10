@@ -25,17 +25,46 @@ function surfaceShardMesh(sides,r,mid,top,lean){
 }
 const surfaceIceShardMesh=surfaceShardMesh(5,.62,1.55,2.55,.34);
 const surfaceCrystalMesh=surfaceShardMesh(6,.42,2.35,3.35,.08);
+// v1480 VOLCANIC WORLDS. Some orange worlds are still volcanic: ash plains cut by glowing
+// fissures, cinder cones trailing smoke, clusters of basalt columns and a few charred
+// pines. Solid meshes (with faces) so they hide what stands behind them.
+function surfaceRingsMesh(rings,sides){
+  const v=[],faces=[];
+  for(const[r,y]of rings)for(let i=0;i<sides;i++){const a=i*Math.PI*2/sides;v.push([Math.cos(a)*r,y,Math.sin(a)*r])}
+  for(let k=0;k<rings.length-1;k++)for(let i=0;i<sides;i++){const j=(i+1)%sides;faces.push([k*sides+i,k*sides+j,(k+1)*sides+j,(k+1)*sides+i])}
+  const seen=new Set(),e=[];for(const f of faces)for(let i=0;i<f.length;i++){const a=f[i],b=f[(i+1)%f.length],key=a<b?a+':'+b:b+':'+a;if(!seen.has(key)){seen.add(key);e.push([a,b])}}
+  return {v,e,faces}
+}
+// A cinder cone: broad base, steepening flank, a rim, and the crater dipping inside it.
+const surfaceCinderConeMesh=surfaceRingsMesh([[1.7,0],[1.3,.5],[.86,1.2],[.66,1.5],[.6,1.56],[.42,1.3]],9);
+// Basalt columns: five hexagonal prisms of different heights standing together.
+const surfaceBasaltMesh=(()=>{
+  const m={v:[],e:[],faces:[]};
+  for(const[cx,cz,h]of[[0,0,2.5],[.62,.12,1.8],[-.34,.56,1.35],[.18,-.62,2.05],[-.6,-.3,1.0]]){
+    const b=m.v.length;for(const y of[0,h])for(let i=0;i<6;i++){const a=i*Math.PI/3;m.v.push([cx+Math.cos(a)*.34,y,cz+Math.sin(a)*.34])}
+    m.faces.push([b+6,b+7,b+8,b+9,b+10,b+11]);
+    for(let i=0;i<6;i++){const j=(i+1)%6;m.faces.push([b+i,b+j,b+6+j,b+6+i]);m.e.push([b+i,b+j],[b+6+i,b+6+j],[b+i,b+6+i])}
+  }
+  return m
+})();
+// Same mission, same answer: half the orange worlds are volcanic, decided by the job itself.
+function surfaceVolcanicJob(m){
+  if(!m)return false;if(typeof m.volcanicWorld==='boolean')return m.volcanicWorld;
+  const s=String(m.id||m.title||'');let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}
+  return ((h>>>0)%100)<50
+}
 // v1230: one nav-computer line about the world, a few seconds after landing (plains only).
 const SURFACE_WORLD_CHATTER=Object.freeze({
   ice:['SURFACE TEMPERATURE · MINUS 80','ICE SHELF STABLE · NO ACTION','FROST ON SENSORS · CLEARING'],
   crystal:['SPIRE RESONANCE DETECTED · HARMLESS','CRYSTAL FIELD · SENSOR GLARE MINOR','MINING TRAFFIC ON LOCAL BAND'],
   arid:['DUST LOW · VISIBILITY GOOD','SURFACE TEMPERATURE · PLUS 52','DRY WIND FROM THE WEST'],
+  volcanic:['ASH IN THE AIR · INTAKES FILTERED','GROUND TEMPERATURE HIGH · KEEP MOVING','SEISMIC TREMOR · MINOR','SULPHUR READINGS HIGH · NO ACTION'],
   wet:['STANDING WATER BELOW · KEEP ALTITUDE','HUMIDITY HIGH · NO ACTION','REED BEDS AHEAD · LOW CLEARANCE'],
   temperate:['LOCAL WEATHER CALM','WILDLIFE ON THE PLAINS · IGNORE','ATMOSPHERE NOMINAL'],
   // On a moon, half the time the line is about the moon (the planet hangs to port, see drawSurfaceSkyPlanet).
   moon:['LOW GRAVITY · TRIM ADJUSTED','PARENT PLANET OFF THE PORT BOW','THIN ATMOSPHERE · SOUND WILL CARRY POORLY']
 });
-const SURFACE_WORLD_MIX=Object.freeze({ice:.42,crystal:.46,arid:.58,wet:.45});
+const SURFACE_WORLD_MIX=Object.freeze({ice:.42,crystal:.46,arid:.58,wet:.45,volcanic:.62});
 // v1050: remember which world types the player has landed on (Guide codex).
 function noteSurfaceWorld(kind){
   if(kind==='temperate'||typeof campaign==='undefined'||!campaign?.currentMission||campaign.currentMission.devTemplateTest||campaign.currentMission.training)return;
@@ -45,6 +74,7 @@ function surfaceWorldKind(){
   const c=typeof landingWorldColour==='function'?landingWorldColour():C.gd;
   if(c===C.c)return 'ice';
   if(c===C.m)return 'crystal';
+  if(c===C.o&&surfaceVolcanicJob(typeof campaign!=='undefined'?campaign.currentMission:null))return 'volcanic';
   if(c===C.y||c===C.o)return 'arid';
   if(c===C.u)return 'wet'; // v1130: blue worlds are wetlands, reed beds among the trees
   return 'temperate'
@@ -199,7 +229,7 @@ class SurfaceDestinationApproachController {
     this.targetWorldZ=Number.isFinite(Number(resolved?.targetWorldZ))?Number(resolved.targetWorldZ):this.routeLength;
     this.targetX=Number.isFinite(Number(resolved?.targetX))?Number(resolved.targetX):0;
     this.entryRadius=clamp(Number(resolved?.entryRadius)||36,24,60);
-    this.buildScenery();this.buildSurvey(resolved?.surveyPoints);this.buildBeacon();
+    this.buildScenery();this.buildFissures();this.buildSurvey(resolved?.surveyPoints);this.buildBeacon();
     if(this.destination==='forest')this.buildForestBoundary();
     else if(this.destination==='swamp')this.buildSwampBoundary();
     else if(this.destination==='bunker'||this.destination==='osd'){this.skyline.length=0;this.forestBands.length=0;this.forestFront.length=0}
@@ -218,7 +248,7 @@ class SurfaceDestinationApproachController {
     this.worldKind=world;noteSurfaceWorld(world);
     const ids=swamp
       ?['swampReedTall','swampReedFan','swampReedWide','swampReedSpike','alienBulbPlantConnected','alienUmbrellaPlantConnected','alienEggPodFat','alienEggClusterFat']
-      :(world==='ice'?['pineTall','pineYoung','pineDeadSparse','pineDeadSparse']:(world==='arid'?['pineDeadSparse','pineDeadSparse','pineYoung']:['pineTall','pineBroad','pineYoung','pineDeadSparse']));
+      :(world==='volcanic'?['pineDeadSparse']:world==='ice'?['pineTall','pineYoung','pineDeadSparse','pineDeadSparse']:(world==='arid'?['pineDeadSparse','pineDeadSparse','pineYoung']:['pineTall','pineBroad','pineYoung','pineDeadSparse']));
     const addTree=(id,x,wz,scale)=>{
       const fallback=swamp?(typeof alienSwampSceneryMesh==='function'?alienSwampSceneryMesh(id):null):(typeof forestSceneryMesh==='function'?forestSceneryMesh(id):null);
       const baseMesh=registry?.get?.(id)||fallback;if(!baseMesh)return;
@@ -253,7 +283,14 @@ class SurfaceDestinationApproachController {
       const base=reg?.get?.(id)||(typeof alienSwampSceneryMesh==='function'?alienSwampSceneryMesh(id):null);if(!base)return;
       this.trees.push({assetId:id,mesh:base,x,y:this.groundY-this.meshBaseY(base)*scale,worldZ:wz,s:scale,rot:[0,this.rand()*Math.PI*2,0],col:resolvePaletteColor(base.singleColorKey)||C.g,hit:false,my:1.55+this.rand()*.65,mx:1.08+this.rand()*.22,mz:1.0+this.rand()*.16})
     };
-    const addFeature=(x,wz,scale)=>{if(world==='arid')addRock(x,wz,scale*1.05);else if(world==='wet')addReed(x,wz,scale);else addShard(x,wz,scale)};
+    // Volcanic: mostly basalt columns and small cones, now and then a big cone that smokes.
+    const addVolcanic=(x,wz,scale)=>{
+      const cone=this.rand()<.62,big=cone&&this.rand()<.16,vent=cone&&!big&&this.rand()<.3,s=scale*(big?2.6+this.rand()*1.6:(cone?.9+this.rand()*.6:.5+this.rand()*.3));
+      if(this.sceneryReserved(x,wz,Math.max(1.5,s*(cone?1.7:.9))))return;
+      const mx=.85+this.rand()*.35,my=cone?.7+this.rand()*.5:.6+this.rand()*.4;
+      this.trees.push({kind:'rock',feature:cone?'cone':'basalt',smoke:big,vent,ph:this.rand()*6,mesh:cone?surfaceCinderConeMesh:surfaceBasaltMesh,x,y:this.groundY-.06*s,worldZ:wz,s,rot:[0,this.rand()*Math.PI*2,0],col:vent?C.r:(cone?C.y:C.o),mx,my,mz:mx,hit:false})
+    };
+    const addFeature=(x,wz,scale)=>{if(world==='arid')addRock(x,wz,scale*1.05);else if(world==='wet')addReed(x,wz,scale);else if(world==='volcanic')addVolcanic(x,wz,scale);else addShard(x,wz,scale)};
     const addClump=(centreX,centreWZ,count,xSpread,zSpread,baseScale=1,allowSingles=false)=>{
       for(let i=0;i<count;i++){
         const x=centreX+(this.rand()-.5)*xSpread,wz=centreWZ+(this.rand()-.5)*zSpread;
@@ -582,6 +619,7 @@ class SurfaceDestinationApproachController {
       scene.push({z:d,draw:()=>{
         if(t.kind==='rock'){
           drawMesh({type:'plainsRock',x:t.x,y:t.y,z,s:t.s,mx:t.mx||1,my:t.my||1,mz:t.mz||1,rot:t.rot||[0,0,0]},t.mesh,t.col||C.o,clamp(1.02-d/220,.28,.84));
+          if(t.smoke)this.drawConeSmoke(t,z);else if(t.vent)this.drawVentFountain(t,z);
           return
         }
         drawLayeredForestTree({type:'plainsTree',assetId:t.assetId,x:t.x,y:t.y,z,s:t.s,rot:t.rot},t.mesh,t.assetId,.88)
@@ -644,8 +682,66 @@ class SurfaceDestinationApproachController {
       line(bx+tx*width*.5,y-dy*depth+ty*width*.5,x,y,C.y,1.3,.88);line(x,y,bx-tx*width*.5,y-dy*depth-ty*width*.5,C.y,1.3,.88)
     }
   }
+  // v1480: glowing fissures across a volcanic plain, built once per landing. Each is a
+  // crooked crack with a red core and dimmer orange lips that pulse slowly.
+  buildFissures(){
+    this.fissures=[];if(this.worldKind!=='volcanic')return;
+    // Seen from two units up a flat crack is a hairline, so most of them lie across the
+    // line from the landing to the target, they are wide, and embers spit up out of them.
+    for(let n=0;n<60;n++){
+      const u=this.rand();let wz=-10+u*(this.targetWorldZ+60),x=this.targetX*clamp(u,0,1)+(this.rand()-.5)*(n<40?150:320),a=Math.PI/2+(this.rand()-.5)*1.6;x-=Math.sin(a)*18;wz-=Math.cos(a)*18;const pts=[[x,wz]];
+      for(let k=0,K=6+Math.floor(this.rand()*7);k<K;k++){a+=(this.rand()-.5)*.9;const L=3+this.rand()*5;x+=Math.sin(a)*L;wz+=Math.cos(a)*L;pts.push([x,wz])}
+      this.fissures.push({pts,w:.7+this.rand()*.8,ph:this.rand()*6})
+    }
+  }
+  drawFissures(){
+    if(!this.fissures?.length)return;
+    const y=this.groundY+.04,t=this.navPulse||0;
+    ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.lineJoin='round';
+    for(const f of this.fissures){
+      const mid=f.pts[f.pts.length>>1],dq=camPoint([mid[0],y,mid[1]-travel])[2];if(dq<-40||dq>300)continue;
+      const glow=.62+.3*Math.sin(t*1.6+f.ph),al=clamp(1.15-Math.max(0,dq)/300,.2,1);
+      for(const[side,col,k]of[[0,C.r,1],[1,C.o,.45],[-1,C.o,.45]]){
+        ctx.beginPath();let pen=false;
+        for(let i=0;i<f.pts.length;i++){
+          const p=f.pts[i],n=f.pts[Math.min(i+1,f.pts.length-1)],o=f.pts[Math.max(i-1,0)],dx=n[0]-o[0],dz=n[1]-o[1],l=Math.hypot(dx,dz)||1;
+          const w=side*f.w*(i===0||i===f.pts.length-1?.2:1),q=camPoint([p[0]-dz/l*w,y,p[1]-travel+dx/l*w]);
+          if(q[2]<=.4){pen=false;continue}const s=projectCam(q);if(!s){pen=false;continue}
+          if(pen)ctx.lineTo(s.x,s.y);else{ctx.moveTo(s.x,s.y);pen=true}
+        }
+        ctx.globalAlpha=al*glow*k;ctx.strokeStyle=col;ctx.stroke()
+      }
+      // Embers: short bright streaks thrown up from points along the crack.
+      if(dq<260)for(let i=1;i<f.pts.length-1;i++){
+        const u=((t*.8+f.ph+i*.37)%1),p=f.pts[i],h=u*u*3.8,q0=camPoint([p[0]+u*(i&1?.6:-.6),y+h,p[1]-travel]),q1=camPoint([p[0]+u*(i&1?.6:-.6),y+h+.8*(1-u*.5),p[1]-travel]);
+        if(q0[2]<=.4||q1[2]<=.4)continue;const a=projectCam(q0),b=projectCam(q1);if(!a||!b)continue;
+        ctx.globalAlpha=al*(1-u)*.9;ctx.strokeStyle=(i&2)?C.r:C.o;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()
+      }
+    }
+    ctx.restore()
+  }
+  // An active vent: embers thrown up out of the crater in arcs that fall back around it.
+  drawVentFountain(t,z){
+    const top=t.y+1.5*t.s*(t.my||1),g=camPoint([t.x,top,z]);if(!(g[2]>.3&&g[2]<300))return;
+    const tm=(this.navPulse||0)*.9+t.ph,al=clamp(1.15-g[2]/300,.25,.95),s=t.s;
+    ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;
+    for(let k=0;k<9;k++){const u=(tm*.55+k/9)%1,a=k*2.4+t.ph,r=u*s*1.4,h=(u*(1-u)*4)*s*2.6,du=.06;
+      const p0=camPoint([t.x+Math.cos(a)*r,top+h,z+Math.sin(a)*r]),u1=Math.min(1,u+du),r1=u1*s*1.4,h1=(u1*(1-u1)*4)*s*2.6,p1=camPoint([t.x+Math.cos(a)*r1,top+h1,z+Math.sin(a)*r1]);
+      if(p0[2]<=.3||p1[2]<=.3)continue;const A=projectCam(p0),B=projectCam(p1);if(!A||!B)continue;
+      ctx.globalAlpha=al*(1-u*.7);ctx.strokeStyle=k%3?C.o:C.r;ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.stroke()}
+    ctx.restore()
+  }
+  // Smoke off a big cinder cone: soft rings rising out of the crater and leaning downwind.
+  drawConeSmoke(t,z){
+    const top=t.y+1.1*t.s*(t.my||1),g=camPoint([t.x,top,z]);if(!(g[2]>.3&&g[2]<360))return;
+    const tm=this.navPulse||0,al=clamp(1.1-g[2]/360,.2,.7);
+    ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.strokeStyle=C.x;
+    for(let k=0;k<5;k++){const u=(tm*.1+k/5+t.s*.07)%1,q=camPoint([t.x+u*u*t.s*4.5,top+u*t.s*4,z+u*t.s*.6]);if(q[2]<=.3)continue;const p=projectCam(q);if(!p)continue;
+      const r=Math.max(2,p.k*t.s*(.22+u*.75));ctx.globalAlpha=al*(1-u);ctx.beginPath();ctx.ellipse(p.x,p.y,r,r*.42,0,0,Math.PI*2);ctx.stroke()}
+    ctx.restore()
+  }
   draw(){
-    this.drawGround();const scene=[];this.appendEnvironmentObjects(scene);
+    this.drawGround();this.drawFissures();const scene=[];this.appendEnvironmentObjects(scene);
     if(this.destination==='osd'&&bunkerRaid?.active)bunkerRaid.appendOsdSurfaceObjects(scene);
     this.drawObjectScene(scene);this.drawWeather();this.drawNavigation()
   }
@@ -661,6 +757,7 @@ class SurfaceDestinationApproachController {
     const r=Math.random(),side=Math.random()<.5?-1:1;
     if(this.worldKind==='ice'&&r<.45)this.weather={kind:'blizzard',col:C.w,wind:side*(7+Math.random()*5),haze:.9,say:'BLIZZARD ON THE PLAINS · VISIBILITY LOW'};
     else if(this.worldKind==='arid'&&r<.4)this.weather={kind:'dust',col:C.y,wind:side*(14+Math.random()*8),haze:.86,say:'DUST STORM · VISIBILITY LOW'};
+    else if(this.worldKind==='volcanic'&&r<.42)this.weather={kind:'ash',col:C.x,wind:side*(3+Math.random()*3),haze:.8,say:'ASH FALL · VISIBILITY LOW'};
     if(!this.weather)return;
     if(campaign.state&&campaign.statsLive?.())(campaign.state.mailFlags||(campaign.state.mailFlags={})).metStorm=true;   // opens the Codex entry
     this.weather.flakes=Array.from({length:340},()=>({x:Math.random()*60,y:Math.random()*8,z:Math.random()*45,ph:Math.random()*10}));
@@ -678,7 +775,16 @@ class SurfaceDestinationApproachController {
     }
     // Particles live in a box around the drone in its own heading, scrolled by the distance
     // flown and blown sideways by the wind.
-    const t=time,depth=45,cy=Math.cos(viewYaw),sy=Math.sin(viewYaw),dust=w.kind==='dust',dir=Math.sign(w.wind);
+    const t=time,depth=45,cy=Math.cos(viewYaw),sy=Math.sin(viewYaw),dust=w.kind==='dust',ash=w.kind==='ash',dir=Math.sign(w.wind);
+    // Ash falls slowly as soft flakes; one in eight is an ember rising instead.
+    if(ash){ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;let i=0;
+      for(const f of w.flakes){const ember=(i++%8)===0;
+        const lx=(((f.x+w.wind*t)%60)+60)%60-30,lz=(((f.z-surfaceDistance)%depth)+depth)%depth+.6;
+        const y=ember?this.groundY+((f.y+t*1.1+f.ph)%8+8)%8:this.groundY+((f.y-t*.7+f.ph)%8+8)%8;
+        const q=camPoint([shipX+lx*cy+lz*sy+(ember?0:Math.sin(t*.9+f.ph)*.4),y,lz*cy-lx*sy]);if(q[2]<.6)continue;const p=projectCam(q);if(!p)continue;
+        const s=Math.max(1,Math.min(5,p.k*.06));ctx.globalAlpha=clamp(1.05-q[2]/40,.08,ember?.9:.7);ctx.strokeStyle=ember?(f.ph>5?C.r:C.o):C.w;
+        ctx.beginPath();if(ember){ctx.moveTo(p.x,p.y);ctx.lineTo(p.x,p.y-s*1.6)}else{ctx.moveTo(p.x-s,p.y);ctx.lineTo(p.x+s,p.y+s*.3)}ctx.stroke()}
+      ctx.restore();return}
     ctx.save();ctx.strokeStyle=w.col;ctx.lineWidth=VECTOR_LINE_WIDTH;
     for(const f of w.flakes){
       const lx=(((f.x+w.wind*t)%60)+60)%60-30,lz=(((f.z-surfaceDistance)%depth)+depth)%depth+.6;
