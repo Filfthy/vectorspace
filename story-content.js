@@ -22,7 +22,7 @@ const sourceTrace = {
       stages:['Descend to Source World','Cross the Defences','Breach and Investigate Bunker','Recover Equipment','Deliver to OSD Compound']
     },
     offerMail:{
-      id:'kudo_offer_2',from:'Kudo Shang · Orbital Security Directorate',subject:'Source trace — planetary installation',category:'story',priority:'high',
+      id:'kudo_offer_2',from:'Kudo Shang · Orbital Security Directorate',subject:'Source trace: planetary installation',category:'story',priority:'high',
       body:[
         'The routing fragment from Relay 10 led somewhere useful. We have a probable source location on a planetary body.',
         'Descend to the site. Cross the defences and breach the bunker.',
@@ -399,7 +399,7 @@ const relay10={
       stages:['Defend Relay 10','Search Drone Wreckage','Upload Recovered Data','Clear Station and Return']
     },
     offerMail:{
-      id:'kudo_offer_1',from:'Kudo Shang · Orbital Security Directorate',subject:'Immediate tasking — station under attack',category:'story',priority:'high',
+      id:'kudo_offer_1',from:'Kudo Shang · Orbital Security Directorate',subject:'Immediate tasking: station under attack',category:'story',priority:'high',
       body:[
         'Venn forwarded your relay scan. We have seen Partition War-pattern drones making appearances recently. I will explain what we know when there is time.',
         'There is not time now. Relay 10 is under attack by those drones.',
@@ -524,7 +524,7 @@ const helixFieldSamples={
       description:'A station on the edge of xeno territory is under attack. Destroy the xenoforms, recover fresh biological material after the battle, then return the sample to the Helix orbital biolab for analysis.',
       modules:[{
         type:'station_defence_recovery',label:'Xeno Clearance and Sample Recovery',stationModel:'relay',approachDistance:305,
-        encounterChance:1,target:7,fighterHp:12,difficulty:3,profile:'xeno',startMessage:'Xeno attack — clear the station',
+        encounterChance:1,target:7,fighterHp:12,difficulty:3,profile:'xeno',startMessage:'Xeno attack: clear the station',
         combatVoiceSequence:['helixArrivingAtStation','helixDestroyXenos'],recoveryPromptVoice:'helixCollectTissueSample',
         stationAnchor:true,useCombatWrecks:true,biologicalRecovery:true,recoveryLabel:'xeno material',markerLabel:'XENO SAMPLE',
         recoveryHudPrefix:'XENO SAMPLE',captureRadius:21,markerGrowRange:105,tractorSeconds:2.2,recoveredMessage:'XENO MATERIAL SECURED'
@@ -793,7 +793,7 @@ const kudoFactoryMoon={
     },
 
     offerMail:{
-      id:'kudo_offer_3',from:'Kudo Shang · Orbital Security Directorate',subject:'Factory moon — strike order',category:'story',priority:'high',
+      id:'kudo_offer_3',from:'Kudo Shang · Orbital Security Directorate',subject:'Factory moon: strike order',category:'story',priority:'high',
       body:[
         'VOX passed me the carrier data. The factory is real, it is running, and it sits on an orange moon in the outer system. The armistice list says it was destroyed. The armistice list is wrong.',
         'OSD is not waiting for a committee to find its nerve. You are the strike.',
@@ -807,7 +807,7 @@ const kudoFactoryMoon={
     },
 
     completionMail:{
-      id:'kudo_wait_3',from:'Kudo Shang · Orbital Security Directorate',subject:'Factory moon — confirmed destroyed',category:'story',priority:'high',
+      id:'kudo_wait_3',from:'Kudo Shang · Orbital Security Directorate',subject:'Factory moon: confirmed destroyed',category:'story',priority:'high',
       body:[
         'Confirmed. The moon is debris. The factory is gone. Payment released.',
         'Decisive. That is how force is applied.',
@@ -840,17 +840,17 @@ const MARA='Mara Venn · Contractor Services, VOX',KUDO='Kudo Shang · Orbital S
   NAVIRA='Navira Derris · Helix Industrial Group',NYXO='Nyxo Malloc · Dispatch, QuickBite Orbital';
 const storyRetry={
   mara_signal_1:{from:MARA,label:'OPEN VOX CONTRACT',
-    failed:{subject:'Courier recovery — still open',body:['We lost the drone. The wreckage is still out there and so is whoever was sitting on it.','Allocation has another airframe ready. Go again.']},
-    abandoned:{subject:'Courier recovery — you pulled out',body:['You pulled out. Fine, the wreckage is not going anywhere.','Neither is the job. It is still yours when you are ready.']}},
+    failed:{subject:'Courier recovery: still open',body:['We lost the drone. The wreckage is still out there and so is whoever was sitting on it.','Allocation has another airframe ready. Go again.']},
+    abandoned:{subject:'Courier recovery: you pulled out',body:['You pulled out. Fine, the wreckage is not going anywhere.','Neither is the job. It is still yours when you are ready.']}},
   mara_signal_2:{from:MARA,label:'OPEN VOX CONTRACT',
-    failed:{subject:'Loose end — try again',body:['Your feed dropped in the swamp. Whatever is at those coordinates, it is still there.','I still want that scan.']},
-    abandoned:{subject:'Loose end — still loose',body:['You turned back. The coordinates have not moved.','When you are ready, go and look.']}},
+    failed:{subject:'Loose end: try again',body:['Your feed dropped in the swamp. Whatever is at those coordinates, it is still there.','I still want that scan.']},
+    abandoned:{subject:'Loose end: still loose',body:['You turned back. The coordinates have not moved.','When you are ready, go and look.']}},
   kudo_defence_1:{from:KUDO,label:'ACCEPT OSD TASKING',
-    failed:{subject:'Relay 10 — second wave',body:['Your drone went down. The attackers pulled back to regroup. They will hit Relay 10 again.','Be there when they do. Finish it.']},
-    abandoned:{subject:'Relay 10 — you broke off',body:['You broke off. The station held, barely. The drones will return.','Hold the line this time.']}},
+    failed:{subject:'Relay 10: second wave',body:['Your drone went down. The attackers pulled back to regroup. They will hit Relay 10 again.','Be there when they do. Finish it.']},
+    abandoned:{subject:'Relay 10: you broke off',body:['You broke off. The station held, barely. The drones will return.','Hold the line this time.']}},
   kudo_bunker_2:{from:KUDO,label:'ACCEPT OSD TASKING',
-    failed:{subject:'Source trace — hard target',body:['The installation killed your drone. That makes it a hard target, not an impossible one.','Go back in. Decisive force.']},
-    abandoned:{subject:'Source trace — incomplete',body:['You withdrew. The installation is still standing.','That is not an outcome I accept. Return and finish the job.']}},
+    failed:{subject:'Source trace: hard target',body:['The installation killed your drone. That makes it a hard target, not an impossible one.','Go back in. Decisive force.']},
+    abandoned:{subject:'Source trace: incomplete',body:['You withdrew. The installation is still standing.','That is not an outcome I accept. Return and finish the job.']}},
   corvella_manifest_1:{from:CORVELLA,label:'OPEN FREE TRADERS CONTRACT',
     failed:{subject:'Sweetie. The wreck.',body:['All those guns and you still came home without my flight recorder, sweetie. I had a whole picture in my head and you ruined it.','The wreck is still sitting out there. Go back and make it up to me.']},
     abandoned:{subject:'Babe, you walked out on me',body:['You took my job and then just turned that gorgeous machine around? Rude, babe.','The carrier is still out there. So am I. Go and get my records.']}},
@@ -858,23 +858,23 @@ const storyRetry={
     failed:{subject:'A minor setback',body:['The case did not arrive. How very disappointing for everyone concerned.','Fortunately my client is patient, and a second case has been prepared. I trust this one will enjoy a more uneventful journey.']},
     abandoned:{subject:'Second thoughts',body:['You appear to have had second thoughts. I find that people usually have third ones.','The penthouse is still expecting its delivery.']}},
   helix_xeno_samples_1:{from:NAVIRA,label:'ACCEPT HELIX TASK',
-    failed:{subject:'Field samples — telemetry received',body:['Your drone was lost. The telemetry up to that point is useful. Thank you for it.','The xenoforms are still attacking the station. I still need the sample.']},
-    abandoned:{subject:'Field samples — still required',body:['You withdrew before recovery. The infestation has not dispersed.','The opportunity remains. I would like the sample intact.']}},
+    failed:{subject:'Field samples: telemetry received',body:['Your drone was lost. The telemetry up to that point is useful. Thank you for it.','The xenoforms are still attacking the station. I still need the sample.']},
+    abandoned:{subject:'Field samples: still required',body:['You withdrew before recovery. The infestation has not dispersed.','The opportunity remains. I would like the sample intact.']}},
   taco_beacon_false_lead_1:{from:NYXO,label:'CONTACT QUICKBITE',
     failed:{subject:'Dude, the tacos',body:['So the order did not make it and now Support is on my back about refunds. Awesome.','There is another order up. Same route. Please make it this time.']},
     abandoned:{subject:'You bailed?',body:['Dude, you bailed. That customer is still hungry and now I have to listen to it.','Order is still up when you want it.']}},
   helix_xeno_nest_2:{from:NAVIRA,label:'COLLECT PHEROMONE MASK',
-    failed:{subject:'Nest strike — the nest responded',body:['The nest recognised the intrusion and responded decisively. That is fascinating, and inconvenient for your drone.','The masking compound is still viable. Try again.']},
-    abandoned:{subject:'Nest strike — not concluded',body:['You pulled out. The nest remains. So does my curiosity.','The mask is ready whenever you are.']}},
+    failed:{subject:'Nest strike: the nest responded',body:['The nest recognised the intrusion and responded decisively. That is fascinating, and inconvenient for your drone.','The masking compound is still viable. Try again.']},
+    abandoned:{subject:'Nest strike: not concluded',body:['You pulled out. The nest remains. So does my curiosity.','The mask is ready whenever you are.']}},
   quickbite_route_anomaly_2:{from:NYXO,label:'CHECK THE ROUTING BEACON',
     failed:{subject:'Beacon still screwing us',body:['So the beacon is still bending the route and my drivers are still taking the scenic tour. Great.','Can you go back and make it stop? Please?']},
     abandoned:{subject:'Uh, the beacon?',body:['You turned around. The beacon did not. It is still messing with everything.','Whenever you are ready, dude.']}},
   kudo_factory_3:{from:KUDO,label:'ACCEPT OSD STRIKE ORDER',
-    failed:{subject:'Factory moon — failed strike',body:['The moon is still there. So is the factory. That is a failed strike, and I do not accept failed strikes.','Another airframe is allocated. Go back in and finish it.']},
-    abandoned:{subject:'Factory moon — you broke off',body:['You broke off. The factory did not stop building.','Hold your nerve this time. Finish it.']}},
+    failed:{subject:'Factory moon: failed strike',body:['The moon is still there. So is the factory. That is a failed strike, and I do not accept failed strikes.','Another airframe is allocated. Go back in and finish it.']},
+    abandoned:{subject:'Factory moon: you broke off',body:['You broke off. The factory did not stop building.','Hold your nerve this time. Finish it.']}},
   mara_signal_3:{from:MARA,label:'OPEN VOX CONTRACT',
-    failed:{subject:'The corridor — one more window',body:['We lost the drone. The carrier is still in the corridor, still running slow.','We have one more window. Take it.']},
-    abandoned:{subject:'The corridor — still open',body:['You broke off. The carrier did not change course. It still thinks nobody is watching.','Go back when you are ready.']}}
+    failed:{subject:'The corridor: one more window',body:['We lost the drone. The carrier is still in the corridor, still running slow.','We have one more window. Take it.']},
+    abandoned:{subject:'The corridor: still open',body:['You broke off. The carrier did not change course. It still thinks nobody is watching.','Go back when you are ready.']}}
 };
 
 const cloneStory=value=>value==null?null:JSON.parse(JSON.stringify(value));

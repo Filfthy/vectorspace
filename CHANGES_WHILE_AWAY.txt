@@ -1716,3 +1716,18 @@ v1730 Debrief shows level-ups and achievements; guide tidied
         like the Controls table: a short label on the left, one idea a row.
       - DEV tests no longer mark enemy types as met in the real save (that
         spoiled the UNKNOWN CONTACTS first meeting and opened Codex entries).
+
+v1740 Header shows XP to the next level; text rule clean-up
+      - The hub header's XP box now says how far the next level is ("928 XP,
+        572 to level 3") instead of just "Experience".
+      - No semicolons or dashes in player-facing text: fixed the ones that
+        predate today. The 21 VOX story mail subjects ("Source trace —
+        planetary installation" is now "Source trace: planetary
+        installation"), the Skills intro, a sentence in About, and "ROWS 2–3"
+        in the skill tree. Music track titles ("Composer — Work") and the
+        credits list are left as they are.
+      - Drone bay: with one consumable slot the hint said "keys 1–1". It now
+        says "MMB or key 1 fires it".
+      Every hub screen was looked at at 1280x720 (contracts, networks, mail,
+      market, drone bay, skills, guide, debrief): no layout problems found
+      beyond the guide's wall of text, fixed in v1730.

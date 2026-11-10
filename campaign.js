@@ -2431,6 +2431,8 @@ class CampaignController {
   renderHeader(){
     agentLevelEl.textContent=this.levelForXP();
     agentXPEl.textContent=`${this.state.xp.toLocaleString()} XP`;
+    // v1740: the line under it says how far the next level is, not just "Experience".
+    {const lab=agentXPEl.nextElementSibling;if(lab)lab.textContent=`${this.xpToNextLevel().toLocaleString()} to level ${this.levelForXP()+1}`}
     agentMoneyEl.textContent=`CR ${this.state.money.toLocaleString()}`;
     agentDroneEl.textContent=this.state.drone;
     const titleEl=document.getElementById('agentTitle');if(titleEl){const t=this.state.title||'';titleEl.textContent=t.toUpperCase();titleEl.hidden=!t}
@@ -2740,7 +2742,7 @@ class CampaignController {
       <div class="frameTrait">${frame.bonusText}</div>
       <div class="bayStats">${this.statRows(stats).map(([k,label,,text])=>`<div class="bayStat" data-stat="${k}"><span>${label}</span><b>${text}</b><i></i></div>`).join('')}</div>
       <div class="baySlotHead">WEAPON</div><div class="baySlots weaponSlot"></div>
-      <div class="baySlotHead">CONSUMABLES <span>MMB fires slot 1 · keys 1–${cap}</span></div><div class="baySlots consumableSlots"></div>
+      <div class="baySlotHead">CONSUMABLES <span>${cap>1?`MMB fires slot 1 · keys 1 to ${cap}`:'MMB or key 1 fires it'}</span></div><div class="baySlots consumableSlots"></div>
       <div class="baySlotHead">INTERNALS</div><div class="baySlots internalSlots"></div>
       <div class="bayRestock"></div>`;
     drone.querySelectorAll('[data-frame-select]').forEach(b=>b.addEventListener('click',()=>this.selectFrame(b.dataset.frameSelect)));
@@ -2858,7 +2860,7 @@ class CampaignController {
   renderPerks(){
     const avail=this.skillPointsAvailable(),total=this.skillPointsTotal(),spent=this.skillPointsSpent(),locked=this.equipmentLocked();
     const notice=this.state.skillRefundNotice?`<div class="skillNotice"><span>THE SKILL TREE HAS BEEN REBUILT. YOUR POINTS HAVE BEEN REFUNDED: SPEND THEM AGAIN BELOW.</span><button type="button" data-dismiss-notice>OK</button></div>`:'';
-    perkGridEl.innerHTML=`${notice}<div class="skillTreeStatus"><span>SKILL POINTS <b>${avail}</b> / ${total}</span><span>SPENT <b>${spent}</b></span><span>1 POINT PER LEVEL · ROW 1 COSTS 1 · ROWS 2–3 COST 2 · ROW 4 COSTS 3</span><button type="button" data-respec ${locked||!this.state.skills.length||this.state.money<this.respecCost()?'disabled':''}>RESET SKILLS · CR ${this.respecCost().toLocaleString()}</button></div><div class="skillColumns"></div>`;
+    perkGridEl.innerHTML=`${notice}<div class="skillTreeStatus"><span>SKILL POINTS <b>${avail}</b> / ${total}</span><span>SPENT <b>${spent}</b></span><span>1 POINT PER LEVEL · ROW 1 COSTS 1 · ROWS 2 AND 3 COST 2 · ROW 4 COSTS 3</span><button type="button" data-respec ${locked||!this.state.skills.length||this.state.money<this.respecCost()?'disabled':''}>RESET SKILLS · CR ${this.respecCost().toLocaleString()}</button></div><div class="skillColumns"></div>`;
     perkGridEl.querySelector('[data-dismiss-notice]')?.addEventListener('click',()=>{this.state.skillRefundNotice=false;this.save();this.renderPerks()});
     perkGridEl.querySelector('[data-respec]')?.addEventListener('click',()=>this.respecSkills());
     const host=perkGridEl.querySelector('.skillColumns');
@@ -3175,6 +3177,11 @@ class CampaignController {
   }
   // What a finished job changed about the operator: level gained, XP to the next level,
   // and achievements earned since launch.
+  xpToNextLevel(){
+    const level=this.levelForXP(),th=this.xpThresholds(),xp=Number(this.state.xp)||0;
+    const nextAt=level<th.length?th[level]:th[th.length-1]+(level-th.length+1)*10000;
+    return Math.max(0,nextAt-xp)
+  }
   debriefProgress(levelBefore){
     const level=this.levelForXP(),th=this.xpThresholds(),xp=Number(this.state.xp)||0;
     const nextAt=level<th.length?th[level]:th[th.length-1]+(level-th.length+1)*10000;
