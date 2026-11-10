@@ -95,10 +95,11 @@
   };
 
   // Optional diversions (route-diversion.js): open-space moments only, never stacked.
-  const DIVERSIONS=[{id:'beacon',weight:40},{id:'derelict',weight:35},{id:'civilian',weight:25},{id:'skirmish',weight:22},{id:'minefield',weight:16},{id:'migration',weight:14},{id:'pod',weight:22},{id:'cache',weight:18}];
+  const DIVERSIONS=[{id:'beacon',weight:40},{id:'derelict',weight:35},{id:'civilian',weight:25},{id:'skirmish',weight:22},{id:'minefield',weight:16},{id:'migration',weight:14},{id:'lattice',weight:12,minLevel:4},{id:'pod',weight:22},{id:'cache',weight:18}];
   function maybeDiversion(modules,spots,risk,chance){
     if(Math.random()>=chance||modules.some(m=>m.type==='route_diversion'))return false;
-    const s=spots[Math.floor(Math.random()*spots.length)],d=pick(DIVERSIONS,x=>x.weight);
+    const lvl=globalThis.campaign?.levelForXP?.()||1;
+    const s=spots[Math.floor(Math.random()*spots.length)],d=pick(DIVERSIONS,x=>x.minLevel>lvl?0:x.weight);
     modules.splice(s.index,0,{type:'route_diversion',label:'Route Diversion',diversion:d.id,difficulty:risk,spaceCombat:false,fighterHp:12});
     return true
   }

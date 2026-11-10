@@ -126,6 +126,8 @@ const AgentXGhosts={
 
   // ---- State --------------------------------------------------------------------------
   solid(f){return !f?.ghost||!f.g||f.g.state==='formed'},
+  // Wake a dormant construct: it gathers at once.
+  wake(f){const g=f?.g;if(!g?.dormant)return;g.dormant=false;g.state='scattered';g.t=g.dur=0;f.provoked=true;f.shotsLeft=3},
   live(){return typeof fighters==='undefined'?[]:fighters.filter(f=>f.ghost&&!f.dead&&!f.dying&&f.t>=0)},
   jammed(){
     if(typeof mode==='undefined'||mode!=='play'||phase!=='space')return false;
@@ -152,6 +154,8 @@ const AgentXGhosts={
     // behind, so a scattered construct streams after its core and re-forms further on.
     const mx=f.x-g.px,my=f.y-g.py,mz=f.z-g.pz;g.px=f.x;g.py=f.y;g.pz=f.z;
     if(f.dying){g.state='formed';return}
+    // v1530: a dormant lattice (route-diversion.js) lies scattered and still until woken.
+    if(g.dormant){g.state='scattered';g.t=0;f.stunT=Math.max(f.stunT||0,.2);for(const s of g.frags){for(let i=0;i<3;i++)s.tum[i]+=s.tv[i]*dt*.25}return}
     if(g.state==='scattered'&&g.t>=g.dur){g.state='gathering';g.t=0;g.dur=1.05;for(const s of g.frags)s.from=s.off.slice();
       if(camPoint([f.x,f.y,f.z])[2]>0&&Math.hypot(f.x-shipX,f.y-shipY,f.z)<260)SoundFX.play?.('ghostForm',.75)}
     else if(g.state==='gathering'&&g.t>=g.dur){g.state='formed';g.t=0;g.dur=(f.ghost==='jammer'?5.5:4.2)+Math.random()*2;g.flash=.4}

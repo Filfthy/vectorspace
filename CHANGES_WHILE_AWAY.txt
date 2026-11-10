@@ -1498,3 +1498,13 @@ v1520 Craters on moons; cones collide properly
       (a cone only where its flank is higher than the drone). Before, every
       rock was tested as a thin post, so the drone could fly through the
       flank of a big cone.
+
+v1530 New route diversion: dormant lattice
+      A field of four to six sleeping ghost constructs across the route,
+      grey fragments around faint red cores ("DORMANT LATTICE · 5 CORES",
+      "LATTICE DORMANT" in cyan). Fly through without firing and without
+      passing close to a core and it never wakes ("LATTICE PASSED QUIETLY").
+      Fire while one is within range, or brush past a core, and the whole
+      lattice wakes and gathers into a fight. Clearing it pays a little and
+      earns OSD standing ("LATTICE CLEARED · OSD WILL LOG IT"). From operator
+      level 4. Guide updated.

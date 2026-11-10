@@ -15,6 +15,9 @@
 //                     optional: fly through. Mines arm when X comes close and blow half a
 //                     second later; shot mines go off harmlessly and set off neighbours.
 //                     Clearing most of the field earns OSD's thanks
+//   DORMANT LATTICE   a sleeping ghost-construct field across the route (v1530). Fly through
+//                     without firing or brushing a core and it never wakes. Wake it and
+//                     it gathers into a fight. Clearing it earns OSD's thanks
 //   XENO MIGRATION    huge peaceful drifters crossing the route with a hornet escort (v1400).
 //                     Fly alongside to scan them for Helix; fire on one and Helix will hear
 //                     of it, and the escort turns on X
@@ -63,6 +66,8 @@ const routeDiversion={
                  {faction:'quickbite',name:'QUICKBITE COURIERS',label:'QuickBite couriers',short:'COURIERS',col:C.y,drone:true,weight:25}]},
     minefield:{nav:'OLD MINEFIELD ON ROUTE · SHOOT OR STEER CLEAR',hud:'MINEFIELD',window:26,
       cleared:{say:'ORDNANCE CLEARED · OSD WILL LOG IT',pay:.06,rep:2,repFaction:'security',text:'War-era mines cleared'}},
+    lattice:{nav:'DORMANT GHOST LATTICE ON ROUTE · PASS QUIETLY OR WAKE IT',hud:'DORMANT LATTICE',window:28,
+      cleared:{say:'LATTICE CLEARED · OSD WILL LOG IT',pay:.12,rep:2,repFaction:'security',text:'Ghost lattice cleared'}},
     migration:{nav:'XENO MIGRATION CROSSING · FLY CLOSE TO SCAN · DO NOT FIRE',hud:'XENO MIGRATION',window:30,need:3,
       surveyed:{say:'MIGRATION SURVEYED · HELIX WILL WANT THIS',pay:.08,rep:3,repFaction:'helix',xp:.15,text:'Xeno migration surveyed'},
       fired:{text:'Fired on a xeno migration',rep:-4,repFaction:'helix'}},
@@ -83,6 +88,7 @@ const routeDiversion={
     if(kind==='skirmish')return this.beginSkirmish(stage,def);
     if(kind==='minefield')return this.beginMinefield(stage,def);
     if(kind==='migration')return this.beginMigration(stage,def);
+    if(kind==='lattice')return this.beginLattice(stage,def);
     if(kind==='civilian'){
       // Raiders chasing someone else. They hold fire on X unless X joins in, so the
       // event can genuinely be flown past. Destroying them all in time saves the civilian.
@@ -113,6 +119,8 @@ const routeDiversion={
     if(this.state==='fight')return this.stage?.hudTag||def.hud;
     if(this.state==='migration')return this.firedOnHerd?`${def.hud} · ESCORT HOSTILE`:`${def.hud} · SCANNED ${Math.min(this.scanned,def.need)}/${def.need} · ${left}s`;
     if(this.state==='minefield')return `${def.hud} · ${this.mines.filter(m=>!m.dead&&!m.passed).length} LEFT`;
+    if(this.state==='lattice')return `${def.hud} · ${fighters.filter(f=>f.ghost&&!f.dead).length} CORES`;
+    if(this.state==='latticeFight')return 'GHOST LATTICE · AWAKE';
     if(this.state==='skirmish'&&this.side)return `${def.hud} · ${this.side.short} ${this.allies.filter(a=>!a.dead).length}/${this.allies.length} · ${left}s`;
     return `${def.hud} · ${left}s`
   },
@@ -128,6 +136,8 @@ const routeDiversion={
       this.updateSkirmish(dt)
     }else if(this.state==='minefield'){
       this.updateMinefield(dt)
+    }else if(this.state==='lattice'||this.state==='latticeFight'){
+      this.updateLattice(dt)
     }else if(this.state==='migration'){
       this.updateMigration(dt)
     }else if(this.state==='pursuit'){
@@ -223,6 +233,56 @@ const routeDiversion={
     else if(!this.firedOnHerd){callout(this.scanned?`MIGRATION PASSED · ${this.scanned} SCANNED`:'MIGRATION PASSED',1.8);this.recordIgnored()}
     else callout('ESCORT GONE · ROUTE CONTINUES',1.6);
     fighters.length=0;bolts.length=0;this.herd=[];this.end()
+  },
+  // ---- Dormant lattice (v1530) ----
+  // Four to six sleeping ghost constructs scattered across the route ahead (ghosts.js, held
+  // dormant). Passing within 22 of a core, or firing while one is within 150, wakes the
+  // whole lattice. Otherwise it drifts past and the route continues.
+  beginLattice(stage,def){
+    if(!globalThis.AgentXGhosts)return this.beginMinefield(stage,this.KINDS.minefield);
+    const n=4+Math.floor(Math.random()*3),k=campaign.contractToughnessScale(campaign.currentMission?.risk||1);
+    stage.spaceCombat=true;
+    scenarioFlow.startFighterStage({...stage,target:n,fighterHp:Math.round(12*k),profile:'ghost',navMessage:null,silentStart:true},'ghost',{preservePhase:true});
+    scenarioFlow.encounterHudTag=def.hud;
+    // The whole lattice is placed now: no reserves arriving later, awake, mid-field.
+    interceptorGoal=fighterGroupTotal=fighterGroupSpawned=fighters.length;
+    this.anchors=[];
+    fighters.forEach((f,i)=>{
+      const onPath=i<2,w=cameraPointToWorld([onPath?(Math.random()-.5)*16:(i%2?1:-1)*(18+Math.random()*30),(Math.random()-.5)*(onPath?8:24),170+i*55+Math.random()*30]);
+      f.x=w[0];f.y=w[1];f.z=w[2];f.t=Math.max(0,f.t);if(f.g){f.g.dormant=true;f.g.px=f.x;f.g.py=f.y;f.g.pz=f.z}
+      this.anchors.push({f,x:w[0],y:w[1],z:w[2]})
+    });
+    AgentXGhosts.pending=[];
+    this.woken=false;this.state='lattice';callout(def.nav,2.6);return true
+  },
+  wakeLattice(reason){
+    if(this.woken)return;this.woken=true;this.state='latticeFight';
+    for(const f of fighters)if(!f.dead)AgentXGhosts.wake(f);
+    audio?.music?.setMode?.('violent');
+    callout(reason,2);
+  },
+  updateLattice(dt){
+    this.t+=dt;const k=OPEN_SPACE_CRUISE*dt;
+    if(this.state==='lattice'){
+      let ahead=0,nearest=1e9;
+      for(const a of this.anchors){
+        if(a.f.dead)continue;a.x-=spaceMoveX*k;a.y-=spaceMoveY*k;a.z-=spaceMoveZ*k;
+        a.f.x=a.x;a.f.y=a.y;a.f.z=a.z;a.f.vx=a.f.vy=a.f.vz=0;a.f.shotsLeft=0;
+        const d=Math.hypot(a.x-shipX,a.y-shipY,a.z);nearest=Math.min(nearest,d);if(a.z>-20)ahead++
+      }
+      const fired=typeof shots!=='undefined'&&shots.some(s=>s.age<dt*1.5);
+      if(nearest<22)return this.wakeLattice('TOO CLOSE · THE LATTICE IS WAKING');
+      if(fired&&nearest<150)return this.wakeLattice('YOU FIRED · THE LATTICE IS WAKING');
+      if(!ahead||this.t>=this.window){fighters.length=0;bolts.length=0;callout('LATTICE PASSED QUIETLY',1.6);this.recordIgnored();this.end()}
+      return
+    }
+    if(this.t>=this.window+30)this.finishLattice(false)
+  },
+  finishLattice(cleared){
+    const def=this.KINDS.lattice;
+    if(cleared){callout(def.cleared.say,2);SoundFX.objectiveComplete?.();this.record({id:'cleared',...def.cleared})}
+    else{callout('LATTICE BEHIND · ROUTE CONTINUES',1.6);this.recordIgnored()}
+    fighters.length=0;bolts.length=0;this.anchors=[];this.end()
   },
   // ---- Old minefield (v1370) ----
   // A slab of old contact mines ahead, drifting and tumbling, with a few right across the
@@ -363,6 +423,7 @@ const routeDiversion={
     if(this.state==='fight'){callout('HOSTILES CLEARED · CONTINUING ROUTE',1.6);this.record(this.pendingOutcome);this.end();return}
     if(this.state==='skirmish'){this.finishSkirmish(true);return}
     if(this.state==='migration'){this.onMigrationEscortCleared();return}
+    if(this.state==='latticeFight'){this.finishLattice(true);return}
     if(this.state==='pursuit')this.finishPursuit(true)
   },
   finishPursuit(helped,message=null){
@@ -431,7 +492,7 @@ const routeDiversion={
     ctx.strokeStyle=c.hp<.3?C.r:C.c;ctx.strokeText(`CIVILIAN ${Math.max(0,Math.ceil(c.hp*100))}%`,p.x,p.y-Math.max(16,3.4*p.k*.6));ctx.restore()
   },
   reset(){
-    this.civ=null;this.allies=[];this.tracers=[];this.side=null;this.mines=[];this.herd=[];
+    this.civ=null;this.allies=[];this.tracers=[];this.side=null;this.mines=[];this.herd=[];this.anchors=[];
     // Abandon/fail mid-diversion: release the marker this diversion borrowed.
     if(this.active&&salvageRecovery.stage?.type==='embedded_recovery')salvageRecovery.reset();
     this.active=false;this.state='idle';this.stage=null;this.t=0

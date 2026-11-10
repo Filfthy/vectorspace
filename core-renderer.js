@@ -769,8 +769,9 @@ class SceneRenderer {
    const liveHostiles=fighters.filter(f=>!f.dead&&!f.dying).length;
    const groupThin=!freezeObjectives&&fighterReservesRemaining()===0&&liveHostiles<=Math.max(2,Math.ceil(activeFighterCap()*.45));
    const holding=routeDiversion?.active&&routeDiversion.state==='migration'&&!routeDiversion.firedOnHerd;   // v1400: the migration escort holds fire
-   if(holding)ctx.strokeStyle=C.c;
-   ctx.strokeText(holding?'XENO ESCORT HOLDING FIRE':(groupThin?'HOSTILE GROUP THINNING':'HOSTILE CONTACTS'),W-12,10);
+   const dormant=routeDiversion?.active&&routeDiversion.state==='lattice';   // v1530: a sleeping lattice is not attacking
+   if(holding||dormant)ctx.strokeStyle=C.c;
+   ctx.strokeText(dormant?'LATTICE DORMANT':holding?'XENO ESCORT HOLDING FIRE':(groupThin?'HOSTILE GROUP THINNING':'HOSTILE CONTACTS'),W-12,10);
  }else if(mode==='play'&&phase==='surface'&&tutorialFinalRun.isActive()&&surfaceBunkerActive){
    ctx.strokeStyle=C.y;ctx.strokeText(`BUNKER ${Math.round(surfaceBunkerDistance())}`,W-12,10);
  }else if(mode==='play'&&phase==='surface'&&doorPylonsDestroyed<BUNKER_PYLON_GOAL){
