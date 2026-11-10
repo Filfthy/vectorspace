@@ -165,6 +165,8 @@ class CampaignController {
     if(kind==='reactors')return 5;
     if(kind==='aces')return 5; // v810: on top of the fighter kill itself
     if(kind==='tenders')return 3; // v1100: shield tenders, also on top of the kill
+    if(kind==='ghosts')return 1;  // v1470: ghost constructs are only open part of the time
+    if(kind==='jammers')return 2;
     // Armour fields are large (15-27 units), so each unit is worth less than a fighter duel.
     if(kind==='armour')return ['strider','crab','tesla'].includes(sub)?3:1;
     return 0
@@ -252,11 +254,11 @@ class CampaignController {
     fx.overchargeT=Math.max(0,fx.overchargeT-dt);fx.flareT=Math.max(0,fx.flareT-dt);fx.graceT=Math.max(0,fx.graceT-dt);fx.hotCD=Math.max(0,fx.hotCD-dt);
     if(fx.naniteLeft>0){fx.naniteT-=dt;if(fx.naniteT<=0){fx.naniteT=1.2;if(shield<this.maxShield()){shield++;hud()}fx.naniteLeft--;}}
     if(typeof fighters!=='undefined')for(const f of fighters)if(f.stunT>0)f.stunT=Math.max(0,f.stunT-dt);
-    globalThis.AgentXHijacked?.update(dt);globalThis.AgentXAces?.update(dt);globalThis.AgentXTenders?.update(dt)
+    globalThis.AgentXHijacked?.update(dt);globalThis.AgentXAces?.update(dt);globalThis.AgentXTenders?.update(dt);globalThis.AgentXGhosts?.update(dt)
   }
   onFighterKilled(f){
     globalThis.AgentXHijacked?.onKilled(f);
-    this.fx.streak++;this.bumpStat('kills.fighters');globalThis.AgentXAces?.onKilled(f);globalThis.AgentXTenders?.onKilled(f);
+    this.fx.streak++;this.bumpStat('kills.fighters');globalThis.AgentXAces?.onKilled(f);globalThis.AgentXTenders?.onKilled(f);globalThis.AgentXGhosts?.onKilled(f);
     // Field Lattice (Helix reward): every kill feeds the shield back by one.
     const gain=this.currentMission?this.internalSum('killShield'):0;
     if(gain>0&&typeof shield!=='undefined'&&shield<this.maxShield()){shield=Math.min(this.maxShield(),shield+gain);hud()}
@@ -2549,7 +2551,7 @@ class CampaignController {
       ['Elite contracts',n(st.contracts.elite)],['Agent missions',`${agent} / ${agentT}`],
       ['Credits earned',`CR ${n(st.creditsEarned)}`],['Bounties earned',`CR ${n(st.bountyEarned)}`],['Insurance paid',`CR ${n(st.insurancePaid)}`],['Drones lost',n(st.dronesLost)],['Projectiles shot down',n(st.shotDown)],
       ['Fighters destroyed',n(k.fighters)],['Ground armour destroyed',n(this.armourKills())],['Walker knees broken',n(k.knees)],['Generators destroyed',n(k.generators)],
-      ['Reactors destroyed',n(k.reactors)],['Aces destroyed',n(k.aces)],['Shield tenders destroyed',n(k.tenders)],['Stranded crews located',n(st.landBeacons)],['Moons destroyed',n(k.moons)],['Route encounters survived',n(st.routeEncounters)],['Diversions answered',n(st.diversionsInvestigated)],
+      ['Reactors destroyed',n(k.reactors)],['Aces destroyed',n(k.aces)],['Shield tenders destroyed',n(k.tenders)],['Ghost constructs destroyed',n((k.ghosts||0)+(k.jammers||0))],['Stranded crews located',n(st.landBeacons)],['Moons destroyed',n(k.moons)],['Route encounters survived',n(st.routeEncounters)],['Diversions answered',n(st.diversionsInvestigated)],
       ['Black contracts',`${n(st.blackDone)}${this.state.mailFlags?.blackThreat?` · threat ${this.state.mailFlags.blackThreat}`:''}`],
       ['Veteran bonus',this.veteranBonus()>0?`+${Math.round(this.veteranBonus()*100)}% pay`:'from level 21']];
     const got=this.state.achievements||{},ach=this.achievementDefs();

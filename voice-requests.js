@@ -37,7 +37,9 @@ globalThis.AgentXVoiceRequests={
   aceDown:'Ace down.',
   loyaltyConflict:'Loyalty conflict detected.',
   // v1100: shield tenders.
-  shieldTenderContact:'Shield tender detected. Take it out first.'
+  shieldTenderContact:'Shield tender detected. Take it out first.',
+  // v1470: ghost constructs.
+  ghostConstructsDetected:'Ghost constructs. Fire when they form.'
 };
 // Expected filename: the spoken text in lower case with spaces and punctuation removed.
 globalThis.AgentXVoiceRequestFile=text=>String(text).toLowerCase().replace(/[^a-z0-9]/g,'')+'.mp3';

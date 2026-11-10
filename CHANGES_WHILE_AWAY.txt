@@ -1400,3 +1400,36 @@ v1460 Fixes from a review of today's changes
       - Far trees: the faster distant-tree outline (v1330) was also used for
         swamp plants, dead pines and fallen trunks, turning them into leafy
         pines in the distance. Only living, upright pines get it now.
+
+v1470 New enemy class: ghost constructs
+      A fourth kind of enemy beside ships, drones and xenos. Partition War
+      area-denial systems: a lattice of armoured fragments run by one
+      controller, lying in wreck fields and old lanes as what looks like
+      debris. When something passes, the pieces gather into a weapon.
+      - Scattered: grey fragments tumbling round a dim red core. There is
+        nothing to hit. Shots pass through, nothing can be locked, and they
+        do not fire.
+      - Gathering: about a second, the fragments streaming in along faint
+        tethers and lighting up, with a rising shimmer.
+      - Formed: white and solid for four to six seconds, firing. Then it
+        breaks apart with a crackle and re-forms further on, keeping its
+        damage. A missile fired at a scattered ghost circles until it forms.
+      - Lance: the common one, a long spike with four swept blades and a
+        broken halo round its core.
+      - Jammer: a turning ring of panels with two red masts. It never fires,
+        but while it lives (and you are within range) missile lock fails and
+        the display crackles. The second ghost of a fight is a jammer, and a
+        big fight gets a second one. "JAMMER DOWN · LOCK-ON RESTORED".
+      Where they turn up (from operator level 4 for the random ones):
+      - A new route encounter, "DEBRIS FIELD WAKING · GHOST CONSTRUCTS", near
+        asteroids, stations and in orbit. Unknown contacts on first meeting.
+      - A new derelict outcome: "THE WRECKAGE IS WAKING".
+      - Board clearance jobs from four clients, each in their own voice
+        (Lattice Clearance, Wreck Field Sweep, Debris Field Anomaly, The Junk
+        Shoots Back...).
+      Bounties: a construct pays one unit on top of the kill, a jammer two.
+      The Operator record counts them. There is a Codex entry, a Guide
+      paragraph, a lore section (AGENT_X_WORLD_LORE.txt 3.4: human-made, but
+      no industry and no allegiance, "someone left this problem behind"),
+      and a requested voice line ("Ghost constructs. Fire when they form.")
+      in VOICE_REQUESTS.txt. A six-ghost fight draws in about 7 ms a frame.

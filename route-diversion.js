@@ -39,7 +39,9 @@ const routeDiversion={
         {id:'salvage',weight:36,say:'SALVAGE RIGHTS LOGGED',pay:.12,text:'Salvage rights'},
         {id:'logs',weight:22,say:'FLIGHT LOGS RECOVERED',xp:.3,text:'Recovered flight logs'},
         {id:'stripped',weight:22,say:'DERELICT ALREADY STRIPPED',text:'Derelict stripped'},
-        {id:'dormant',weight:20,say:'DORMANT DRONES ACTIVATED',voice:'dormantDronesActivated',fight:{profile:'rogue',hud:'DORMANT DRONES',min:4,max:5},pay:.08,text:'Dormant drones destroyed'}
+        {id:'dormant',weight:20,say:'DORMANT DRONES ACTIVATED',voice:'dormantDronesActivated',fight:{profile:'rogue',hud:'DORMANT DRONES',min:4,max:5},pay:.08,text:'Dormant drones destroyed'},
+        // v1470: the wreckage round the hulk was a ghost lattice all along.
+        {id:'lattice',weight:14,minLevel:4,say:'THE WRECKAGE IS WAKING · GHOST CONSTRUCTS',voice:'ghostConstructsDetected',fight:{profile:'ghost',hud:'GHOST CONSTRUCTS',min:3,max:4},pay:.1,text:'Ghost constructs destroyed'}
       ]},
     // v920: a drifting escape pod, and an unmarked smuggler cache that pays well and
     // pleases Red Jackal, at the cost of OSD standing (alsoRep adds a second entry).
@@ -340,7 +342,9 @@ const routeDiversion={
   },
   // v600: speaks a requested line (voice-requests.js) only once its recording exists.
   speak(key){if(key&&audio.hasVoice?.(key))audio.playVoice(key,{once:false,priority:false})},
-  pick(list){const total=list.reduce((n,o)=>n+o.weight,0);let r=Math.random()*total;for(const o of list){r-=o.weight;if(r<=0)return o}return list[0]},
+  pick(list){
+    const lvl=campaign.levelForXP?.()||1;list=list.filter(o=>!(o.minLevel>lvl));   // v1470: some outcomes wait for experience
+    const total=list.reduce((n,o)=>n+o.weight,0);let r=Math.random()*total;for(const o of list){r-=o.weight;if(r<=0)return o}return list[0]},
   investigated(){
     const def=this.KINDS[this.kind],o=this.pick(def.outcomes);
     if(o.fight){

@@ -86,6 +86,7 @@ class WeaponController {
    }
    for(const f of fighters){
      if(f.dead||f.dying||f.t<0)continue;
+     if(f.ghost&&!AgentXGhosts.solid(f))continue;   // v1470: a scattered ghost has nothing to hit
      const p=proj([f.x,f.y,f.z]);if(!p)continue;
      const d=Math.hypot(a.x-p.x,a.y-p.y),r=clamp(f.s*p.k*1.0*campaign.weaponAimMultiplier(),15,98);
      if(d<r&&d<bd){best=f;bp=p;bd=d;isBolt=false;hitPart='body'}

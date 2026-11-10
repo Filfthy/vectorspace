@@ -921,6 +921,7 @@ function lockCandidateAtAim(a){
  const cone=Math.max(52,Math.min(W,viewH)*.065);
  for(const f of fighters){
    if(f.dead||f.dying||f.t<0)continue;
+   if(f.ghost&&!AgentXGhosts.solid(f))continue;   // v1470: nothing to lock while scattered
    const q=fighterCam(f);if(!q||q[2]<=3||q[2]>105)continue;
    const p=projectCam(q);if(!p||p.x<0||p.x>W||p.y<0||p.y>viewH)continue;
    const r=clamp(f.s*p.k,15,86),d=Math.hypot(a.x-p.x,a.y-p.y),limit=cone+r*.45;
@@ -949,6 +950,8 @@ function establishSpaceLock(f){
 }
 function updateSpaceTargetLock(dt){
  if(mode!=='play'||phase!=='space'){spaceLockHeld=false;return}
+ // v1470: a ghost jammer in range breaks any lock and stops a new one forming.
+ if(globalThis.AgentXGhosts?.jammed()){if(spaceLockId)releaseSpaceLock();spaceLockAcquireId=0;spaceLockAcquireT=0;spaceLockAcquireGrace=0;if(spaceLockHeld)AgentXGhosts.noteJam();return}
  const a=aimScreen();
  let locked=fighters.find(f=>f.id===spaceLockId&&!f.dead&&!f.dying);
  if(spaceLockId&&!locked){releaseSpaceLock();locked=null}
@@ -1129,7 +1132,8 @@ function updatePlayerMissiles(dt){
    const speed=Math.hypot(m.vx,m.vy,m.vz)||1;m.vx=m.vx/speed*missileSpeed;m.vy=m.vy/speed*missileSpeed;m.vz=m.vz/speed*missileSpeed;
    m.x+=m.vx*dt;m.y+=m.vy*dt;m.z+=m.vz*dt;
    const impactDistance=Math.hypot(f.x-m.x,f.y-m.y,f.z-m.z);
-   if(impactDistance<Math.max(2.15,(f.s||1)*1.8)){
+   // v1470: a missile passes through a scattered ghost and comes round again until it forms.
+   if(impactDistance<Math.max(2.15,(f.s||1)*1.8)&&!(f.ghost&&!AgentXGhosts.solid(f))){
      const p=proj([f.x,f.y,f.z])||proj([m.x,m.y,m.z]);
      f.hp-=m.damage||PLAYER_MISSILE_DAMAGE;f.hitFx=HIT_FX_TOTAL;
      // v1460: a missile counts as firing on a fighter, as a laser hit does (a migration's

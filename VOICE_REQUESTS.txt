@@ -175,3 +175,13 @@ Spoken text:
 
 Expected filename:
     shieldtenderdetectedtakeitoutfirst.mp3
+
+
+GHOST CONSTRUCTS
+----------------
+
+Spoken text:
+    Ghost constructs. Fire when they form.
+
+Expected filename:
+    ghostconstructsfirewhentheyform.mp3

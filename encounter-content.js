@@ -38,6 +38,10 @@
     // fighting the new orders, so they stall at moments. Unknown on first meeting.
     {id:'hijacked_drones',ack:'rogue_drones',profile:'hijacked',nav:'HIJACKED MILITARY DRONES',hud:'HIJACKED DRONES',voice:'hijackedDronesDetected',unknownFirst:true,places:['station','asteroid','orbit'],weight:5,minLevel:5,
       factions:{security:1.4,helix:1.3,trade:1.1},variants:[['cell',3,4,1,.05],['flight',5,6,1.05,.08]]},
+    // v1470: ghost constructs (ghosts.js). Partition War lattices lying in old wreck
+    // fields that gather into weapons as traffic passes. Unknown on first meeting.
+    {id:'ghost_constructs',ack:'rogue_drones',profile:'ghost',nav:'DEBRIS FIELD WAKING · GHOST CONSTRUCTS',hud:'GHOST CONSTRUCTS',voice:'ghostConstructsDetected',unknownFirst:true,places:['asteroid','orbit','station'],weight:5,minLevel:4,
+      factions:{security:1.4,helix:1.4,trade:1.2},variants:[['lattice',3,4,1,.05],['field',5,6,1,.08]]},
     {id:'customs_sweep',ack:'customs_intercept',type:'customs_drones',profile:'customs',nav:'CUSTOMS INTERCEPT',hud:'CUSTOMS INTERCEPT',places:['orbit','departure'],weight:6,onlyFactions:['jackals'],
       variants:[['patrol',4,5,1,0],['sweep',6,7,1,.05]]}
   ];

@@ -208,7 +208,7 @@ class ScenarioFlowController {
     drawHudMarkerLabel(String(nav.stage?.markerLabel||nav.stage?.hud||'DELIVERY').toUpperCase(),x,y,s,col)
   }
   startFighterStage(stage,profile='standard',{preservePhase=false}={}){
-    this.encounterProfile=profile;globalThis.AgentXAces?.arm(profile);globalThis.AgentXTenders?.arm(profile);
+    this.encounterProfile=profile;globalThis.AgentXAces?.arm(profile);globalThis.AgentXTenders?.arm(profile);globalThis.AgentXGhosts?.arm(profile);
     // v410 route encounters: one short nav line, and a first meeting with an enemy
     // type stays UNKNOWN CONTACTS until it has been seen once.
     const seen=campaign.state.seenProfiles||(campaign.state.seenProfiles={});
@@ -247,6 +247,9 @@ class ScenarioFlowController {
         audio.playVoice('pirateInterceptDetected',{once:true,priority:false})
       }else if(profile==='rogue'){
         audio.playVoice('rogueDronesDetected',{once:true,priority:false})
+      }else if(profile==='ghost'){
+        audio.music.setMode('violent');
+        audio.playVoice(audio.hasVoice?.('ghostConstructsDetected')?'ghostConstructsDetected':'eliminateHostileGroup',{once:true,priority:false})
       }else if(profile==='hijacked'){
         audio.playVoice(audio.hasVoice?.('hijackedDronesDetected')?'hijackedDronesDetected':'eliminateHostileGroup',{once:true,priority:false})
       }else if(profile==='hostile'){

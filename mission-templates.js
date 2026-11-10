@@ -891,6 +891,7 @@
           {target:'pirate raiders',profile:'pirate',motive:'route security',situation:'A pirate group has been hitting Free Trader haulers along this corridor.',titles:['Pirate Suppression','Route Defence']},
           {target:'armed extortion crews',profile:'pirate',motive:'free passage',situation:'An armed crew has started demanding passage money from independent haulers.',titles:['Toll Breaker','Free Passage']},
           {target:'cargo raiders',profile:'pirate',motive:'retaliation',situation:'The same raiders have stripped two disabled merchant craft and returned for more.',titles:['Raider Retaliation','Merchant Defence']},
+          {target:'ghost constructs',profile:'ghost',motive:'route security',situation:'Haulers keep reporting old wreckage that pulls itself together behind them and opens fire.',titles:['Wreck Field Sweep','Ghosts on the Lane']},
           {target:'hired mercenaries',profile:'hostile',motive:'convoy protection',situation:'A mercenary group is blocking a commercial lane shortly before a scheduled convoy.',titles:['Convoy Route Sweep','Contracted Route Defence']}
         ],
         completionSubjects:['ROUTE THREAT REMOVED','HOSTILE GROUP CLEARED','TRAFFIC ROUTE REOPENED'],
@@ -907,6 +908,7 @@
           {target:'armed smuggler escorts',profile:'hostile',motive:'law enforcement',situation:'The escorts opened fire on an inspection patrol and refused orders to stand down.',titles:['Armed Smuggler Intercept','Enforcement Sweep']},
           {target:'rogue security drones',profile:'rogue',motive:'containment',situation:'A drone group has lost command authority and is moving toward controlled traffic lanes.',titles:['Rogue Drone Suppression','Control Failure']},
           {target:'outlaw militia fighters',profile:'hostile',motive:'public safety',situation:'An unauthorised armed group is assembling inside a restricted exclusion zone.',titles:['Exclusion Zone Sweep','Unauthorised Armed Group']},
+          {target:'ghost constructs',profile:'ghost',motive:'ordnance clearance',situation:'A Partition War lattice has woken in a debris field beside an authorised lane. It is ordnance, not a pilot.',titles:['Lattice Clearance','Wartime Ordnance Sweep']},
           {target:'hostile xenoforms',profile:'xeno',motive:'containment',situation:'Hostile xeno contacts are moving toward inhabited orbital traffic.',titles:['Xeno Containment','Hostile Xeno Contact']}
         ],
         completionSubjects:['HOSTILE GROUP NEUTRALISED','THREAT REMOVAL CONFIRMED','OPERATION CLOSED'],
@@ -938,6 +940,7 @@
           {target:'research thieves',profile:'hostile',motive:'proprietary security',situation:'An armed group involved in theft of Helix research data has been located before it can leave the region.',titles:['Proprietary Asset Security','Research Theft Response']},
           {target:'scavenger raiders',profile:'pirate',motive:'asset protection',situation:'Armed scavengers are stripping equipment from a Helix recovery site and attacking service craft.',titles:['Salvage Denial','Recovery Site Security']},
           {target:'competitor-hired mercenaries',profile:'hostile',motive:'industrial security',situation:'A mercenary screen is repeatedly interfering with survey operations around a Helix site.',titles:['Perimeter Interference','Survey Security']},
+          {target:'ghost constructs',profile:'ghost',motive:'site protection',situation:'A wreck field near a Helix survey buoy assembles itself into weapons whenever a service craft passes.',titles:['Debris Field Anomaly','Lattice Containment']},
           {target:'hostile xenoforms',profile:'xeno',motive:'site protection',situation:'A hostile xeno group has established itself inside the operating envelope of an active research site.',titles:['Research Perimeter Clearance','Xeno Site Suppression']}
         ],
         completionSubjects:['OPERATING ENVELOPE RESTORED','HOSTILE VARIABLE REMOVED','CLEARANCE CONFIRMED'],
@@ -953,6 +956,7 @@
           {target:'pirate raiders',profile:'pirate',motive:'courier security',situation:'Pirates keep jumping our couriers for the food.',titles:['Courier Route Cleanup','Pirate Problem']},
           {target:'delivery hijackers',profile:'pirate',motive:'retaliation',situation:'Same hijackers. Three stolen orders this week. I am getting bored of them.',titles:['Stop Stealing Lunch','Courier Hijacker Sweep']},
           {target:'rogue delivery drones',profile:'rogue',motive:'containment',situation:'Some delivery drones stopped listening to Dispatch and started shooting the replacements.',titles:['Dispatch Fault','Rogue Courier Drones']},
+          {target:'ghost constructs',profile:'ghost',motive:'route security',situation:'There is junk on the courier lane that turns into a gun when you fly past it. I did not make that up.',titles:['Haunted Lane','The Junk Shoots Back']},
           {target:'hostile xenoforms',profile:'xeno',motive:'route security',situation:'Xenos keep following our couriers. I think they like the food. Great.',titles:['Food Chain Problem','Courier Xeno Clearance']}
         ],
         completionSubjects:['ROUTE IS FIXED','THEY ARE GONE, APPARENTLY','COURIERS CAN WORK AGAIN'],

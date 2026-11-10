@@ -100,6 +100,7 @@ class MissionController {
    const style=chooseDogfightStyle();
    const rosterIndex=fighterGroupSpawned+i;
    const bugKind=xenoforms?((rosterIndex%3===2)?'larva':'hornet'):'';
+   const ghostKind=scenarioFlow?.encounterProfile==='ghost'&&globalThis.AgentXGhosts?AgentXGhosts.kindFor(rosterIndex):'';   // v1470 ghosts.js
    const bugMesh=bugKind?bugMeshes[bugKind]:null;
    const hp=bugKind==='hornet'?10:(bugKind==='larva'?14:(hijacked?Math.round(currentFighterHP*(globalThis.AgentXHijacked?.HP||1.3)):currentFighterHP));
    const f={
@@ -115,7 +116,7 @@ class MissionController {
      pursuitAcquireT:0,pursuitStrength:0,pursuitBreakUsed:false,pursuitBreakStart:0,pursuitBreakDuration:0,lastBreakSide:0,lastBreakVert:0,
      route:[],routeIndex:0,routeState:'',routeAge:0,routeSpeed:0,routeTurnRate:0,attackAge:0
    };
-   f.hullName=f.mesh?.name||'Legacy Fighter';if(hijacked)f.hijacked=true;globalThis.AgentXAces?.maybeMark(f,rosterIndex);globalThis.AgentXTenders?.maybeMark(f,rosterIndex);
+   f.hullName=f.mesh?.name||'Legacy Fighter';if(hijacked)f.hijacked=true;if(ghostKind)AgentXGhosts.init(f,ghostKind);globalThis.AgentXAces?.maybeMark(f,rosterIndex);globalThis.AgentXTenders?.maybeMark(f,rosterIndex);
    fighters.push(f);fighterGroupSpawned++;
    // The opening cast establishes the battle visually. Later reserves join as
    // purposeful attack entries rather than spending a pass meandering in front.
