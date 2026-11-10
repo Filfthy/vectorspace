@@ -41,10 +41,23 @@ function showSpeechSubtitle(key,text,audioDuration=0){
 // v400+ gameplay prompts (route encounters, diversions, bounties, loyalty conflicts)
 // were never seen. They now use the subtitle line itself, but only when no spoken
 // line is showing: speech always wins, and a callout never interrupts it.
+// v1440: a callout that arrives while a spoken line is showing used to be dropped, and
+// most callers never tried again ("CIVILIAN SAFE", "DRIFTER SCANNED" and others could
+// simply never appear). It now waits in a short queue and shows as soon as the line
+// clears; a queued line older than six seconds is no longer news and is let go.
+let calloutQueue=[];
 function callout(text,seconds=1.4){
   if(!text||mode==='idle'||mode==='dead'||gateVisible()||campaign?.isOpen?.()||options?.isOpen?.()||tutorialHudActive())return false;
-  if(speechSubtitleT>0&&!speechSubtitleCallout)return false;
+  if(speechSubtitleT>0&&!speechSubtitleCallout){
+    const s=String(text);if(!calloutQueue.some(q=>q.text===s)){calloutQueue.push({text:s,seconds,age:0});if(calloutQueue.length>3)calloutQueue.shift()}
+    return true
+  }
   speechSubtitleText=String(text);speechSubtitleT=Math.max(.6,Number(seconds)||1.4);speechSubtitleCallout=true;return true
+}
+function drainCallouts(dt){
+  if(!calloutQueue.length)return;
+  for(const q of calloutQueue)q.age+=dt;calloutQueue=calloutQueue.filter(q=>q.age<6);
+  if(calloutQueue.length&&!(speechSubtitleT>0)){const q=calloutQueue.shift();callout(q.text,q.seconds)}
 }
 function completeTutorialObjective(key=null){
   if(!tutorialHudActive())return false;

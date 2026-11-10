@@ -1360,3 +1360,13 @@ v1430 Crash sites on the landing plains, and two fixes
         also counted diversions you ignored and flew past. Only ones you
         actually took part in count now.
 
+v1440 Gameplay messages no longer get lost behind speech
+      Short on-screen messages (callouts) gave way to any spoken line, which
+      is right, but they were then simply dropped, and most never tried
+      again. So "CIVILIAN SAFE", "SURVIVORS RECOVERED", "DRIFTER SCANNED",
+      "HOSTILE DOWN · +CR", a diversion's result and the like could just
+      never appear if a voice line happened to be on screen. They now wait
+      in a short queue (up to three) and show as soon as the spoken line
+      clears; one still waiting after six seconds is no longer news and is
+      let go. Speech still always wins. (52 places use callouts.)
+
