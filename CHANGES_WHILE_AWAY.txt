@@ -1821,3 +1821,16 @@ v1800 A bot pilot for balance, and ghost bounties corrected by it
       The self-test also now reads every job's card and its done, failed and
       abandoned letters for every client (26 templates), looking for
       unfilled or broken text. All clean.
+
+      Balance notes from the bot (no change made). Pirate fights from the
+      board with matched gear, six fights each, a pilot that never dodges:
+        risk 1   6 enemies   Mk I,   6 shields    35 s   3.2 hits   0 lost
+        risk 3   8 enemies   Mk II,  7 shields    48 s   4.8 hits   2 lost
+        risk 5  10 enemies   Mk III, 9 shields    61 s   6.5 hits   0 lost
+        risk 7  12 enemies   Mk IV, 10 shields    87 s  10.2 hits   2 lost
+        risk 9  14 enemies   Mk V,  11 shields   103 s  10.8 hits   3 lost
+      One weapon tier behind: risk 5 takes 91 s (not 61), risk 7 takes 122 s
+      (not 87). So the curve is smooth, fights roughly triple in length from
+      risk 1 to risk 9, and under-gearing costs 40 to 50% more time. Weapon
+      damage tiers match enemy hull bands exactly, so what really grows with
+      risk is the number of enemies and their accuracy.
