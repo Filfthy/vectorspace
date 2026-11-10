@@ -1836,7 +1836,7 @@ v1800 A bot pilot for balance, and ghost bounties corrected by it
       risk is the number of enemies and their accuracy.
 
 v1810 Enemy hull follows risk on every job (it did not on five of them)
-      PLEASE CHECK THIS ONE: it makes some high-risk jobs harder, on purpose.
+      Makes some high-risk jobs harder, on purpose. You approved it on 10 Nov.
       Since v300 enemy hull grows with risk in step with weapon grades, so a
       drone with the expected weapon needs the same number of pulses a kill
       at every risk, and every contract card says "Expected weapon grade".
@@ -1856,7 +1856,6 @@ v1810 Enemy hull follows risk on every job (it did not on five of them)
       Xenos are still the easier fight, on the same curve. Pay is worked
       out before the scaling, as before. Contracts already on your board
       keep their old hull until they roll off.
-      If you would rather keep these jobs easy: git revert the v1810 commit.
       The self-test now checks that every board job's fight uses the hull
       band its card promises.
 
