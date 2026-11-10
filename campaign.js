@@ -2498,7 +2498,7 @@ class CampaignController {
   }
   jobType(m){
     const map={fighters:'combat',combat_recovery:'recovery',asteroids:'asteroids',asteroid_delivery:'delivery',station_delivery:'delivery',penthouse_delivery:'delivery',
-      forest_cabin_delivery:'delivery',swamp_relay_delivery:'delivery',secure_terminal_intrusion:'infiltration',deep_core:'assault',dune_armour_clearance:'assault',ice_field_armour:'assault',bunker_raid:'assault',groundside_pickup:'delivery',crystal_consignment:'delivery',survey_run:'delivery',vent_survey:'delivery',crash_recovery:'recovery',relay_repair:'delivery',lattice_survey:'infiltration',convoy_escort:'combat',nest_clearance:'assault',factory_strike:'assault',wreck_recovery:'recovery',station_defence:'combat',taco_run:'delivery',specimen_recovery:'recovery'};
+      forest_cabin_delivery:'delivery',swamp_relay_delivery:'delivery',secure_terminal_intrusion:'infiltration',deep_core:'assault',dune_armour_clearance:'assault',ice_field_armour:'assault',bunker_raid:'assault',groundside_pickup:'delivery',crystal_consignment:'delivery',survey_run:'delivery',vent_survey:'delivery',crater_cores:'delivery',crash_recovery:'recovery',relay_repair:'delivery',lattice_survey:'infiltration',convoy_escort:'combat',nest_clearance:'assault',factory_strike:'assault',wreck_recovery:'recovery',station_defence:'combat',taco_run:'delivery',specimen_recovery:'recovery'};
     return map[m?.templateId]||(m?.kind==='procedural'?'combat':'delivery')
   }
   jobTypeInfo(type){

@@ -67,7 +67,7 @@
     const flying=()=>campaign.currentMission&&campaign.currentStageIndex===idx&&phase==='destinationApproach';
     for(;f<maxSecs*30&&flying();f++){
       const left=S.surveyLeft().sort((a,b)=>a.worldZ-b.worldZ),t=left[0]?{x:left[0].x,z:left[0].worldZ}:{x:S.targetX,z:S.targetWorldZ};
-      inputX=clamp(wrapAngle(Math.atan2(t.x-shipX,t.z-travel)-viewYaw)*2.2,-1,1);inputY=0;update(1/30)
+      inputX=clamp(wrapAngle(Math.atan2(t.x-shipX,t.z-travel)-viewYaw)*2.2,-1,1);inputY=left[0]?.kind==='core'&&Math.hypot(t.x-shipX,t.z-travel)<45?1:0;update(1/30)
     }
     inputX=0;const done=!flying();return{done,secs:Math.round(f/30),points,left:done?0:S.surveyLeft().length}
   };
@@ -223,7 +223,7 @@
       hudFrame=f;if(f%2===0&&!fighters.some(x=>!x.dead&&!x.dying&&x.t>=0))render(performance.now());
       if(phase==='destinationApproach'&&surfaceDestination.active){
         const S=surfaceDestination,left=S.surveyLeft().sort((a,b)=>a.worldZ-b.worldZ),t=left[0]?{x:left[0].x,z:left[0].worldZ}:{x:S.targetX,z:S.targetWorldZ};
-        inputX=clamp(wrapAngle(Math.atan2(t.x-shipX,t.z-travel)-viewYaw)*2.2,-1,1);inputY=0
+        inputX=clamp(wrapAngle(Math.atan2(t.x-shipX,t.z-travel)-viewYaw)*2.2,-1,1);inputY=left[0]?.kind==='core'&&Math.hypot(t.x-shipX,t.z-travel)<45?1:0   // v1930: dive for core samples
       }else if(phase==='surface'&&groundAssault?.active&&groundAssault.units?.length)groundStep(skill);
       else{
         // The asteroid-base marker is drawn without a label while it is on screen, so the
@@ -302,7 +302,7 @@
 
     // Flown for real: no stage is skipped once the pilot has the controls.
     const pilotNotes=[];
-    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge','convoy_escort'],id=>{
+    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','crater_cores','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge','convoy_escort'],id=>{
       // v1910: the convoy escort flown by the job pilot: every wave must end and the job finish.
       if(id==='convoy_escort'){
         const line=flyJob('convoy_escort',{weapon:'laser3',frame:'AX-3B',level:10,stageCap:400,maxSecs:500,prepare:m=>{pilotNotes.__m=m}});

@@ -51,6 +51,8 @@ const surfaceBasaltMesh=(()=>{
 const SURVEY_TEXT=Object.freeze({
   survey:{intro:(n,d)=>`FLY THE ${n} SURVEY POINTS · THEN THE ${d}`,got:(g,t)=>`SURVEY POINT ${g} OF ${t} LOGGED`,done:'SURVEY COMPLETE · PROCEED TO DESTINATION',nag:n=>`SURVEY INCOMPLETE · ${n} POINT${n>1?'S':''} LEFT`,nav:'SURVEY POINT',hud:'SURVEY'},
   crash:{intro:(n,d)=>`FIND THE ${n} CRASH SITE${n>1?'S':''} · THEN THE ${d}`,got:(g,t)=>`CRASH SITE ${g} OF ${t} · RECORDER RECOVERED`,done:'ALL RECORDERS RECOVERED · PROCEED TO DESTINATION',nag:n=>`RECORDERS MISSING · ${n} CRASH SITE${n>1?'S':''} LEFT`,nav:'CRASH SITE',hud:'RECORDERS'},
+  // v1930 CORE SAMPLES (moons): each site is a crater, and the sampler only fires on a low pass.
+  core:{intro:(n,d)=>`TAKE ${n} CORE SAMPLES · DIVE LOW ACROSS EACH CRATER · THEN THE ${d}`,got:(g,t)=>`CORE SAMPLE ${g} OF ${t} TAKEN`,done:'ALL CORES TAKEN · PROCEED TO DESTINATION',nag:n=>`CORES MISSING · ${n} CRATER${n>1?'S':''} LEFT`,nav:'CORE SITE',hud:'CORES'},
   relay:{intro:(n,d)=>`RESET THE ${n} RELAY MASTS · THEN THE ${d}`,got:(g,t)=>`RELAY ${g} OF ${t} BACK ONLINE`,done:'ALL RELAYS ONLINE · PROCEED TO DESTINATION',nag:n=>`RELAYS DOWN · ${n} LEFT`,nav:'RELAY MAST',hud:'RELAYS'}
 });
 // A relay mast: a tapering four-legged lattice tower with cross bracing and an antenna.
@@ -247,7 +249,7 @@ class SurfaceDestinationApproachController {
     this.targetWorldZ=Number.isFinite(Number(resolved?.targetWorldZ))?Number(resolved.targetWorldZ):this.routeLength;
     this.targetX=Number.isFinite(Number(resolved?.targetX))?Number(resolved.targetX):0;
     this.entryRadius=clamp(Number(resolved?.entryRadius)||36,24,60);
-    this.buildScenery();this.buildFissures();this.buildTraffic();this.buildFlocks();this.buildSurvey(resolved?.crashSites||resolved?.relayMasts||resolved?.surveyPoints,resolved?.crashSites?'crash':(resolved?.relayMasts?'relay':'survey'));this.buildBeacon();
+    this.buildScenery();this.buildFissures();this.buildTraffic();this.buildFlocks();this.buildSurvey(resolved?.crashSites||resolved?.relayMasts||resolved?.coreSites||resolved?.surveyPoints,resolved?.crashSites?'crash':(resolved?.relayMasts?'relay':(resolved?.coreSites?'core':'survey')));this.buildBeacon();
     if(this.destination==='forest')this.buildForestBoundary();
     else if(this.destination==='swamp')this.buildSwampBoundary();
     else if(this.destination==='bunker'||this.destination==='osd'){this.skyline.length=0;this.forestBands.length=0;this.forestFront.length=0}
@@ -387,9 +389,13 @@ class SurfaceDestinationApproachController {
       const u=.22+(.58*(i+.5)/count)+(this.rand()-.5)*.08,side=i%2?1:-1,p={x:this.targetX+side*(20+this.rand()*26),worldZ:this.routeLength*u,done:false};
       if(crash){const mesh=(typeof pickEnemyFighterMesh==='function'?pickEnemyFighterMesh():null)||routeDiversion?.CIV_MESH;if(mesh){p.kind='crash';p.mesh=mesh;p.s=3.2+this.rand()*.8;p.rot=[-.3-this.rand()*.15,this.rand()*Math.PI*2,-.45+this.rand()*.2];p.noLabel=true}}
       if(mode==='relay'){p.kind='relay';p.yaw=this.rand()*Math.PI*2;p.off=side*3.2}
+      if(mode==='core')p.kind='core';
       this.survey.push(p)
     }
-    this.trees=this.trees.filter(t=>!this.survey.some(p=>Math.hypot(t.x-p.x,t.worldZ-p.worldZ)<9+(t.feature==='cone'?1.5*t.s*(t.mx||1):0)))
+    // v1930: each core site sits in a crater of its own (rim about 9 units out, never an
+    // obstacle), so the dive has an obvious target.
+    if(mode==='core')for(const p of this.survey)this.trees.push({kind:'rock',feature:'crater',noHit:true,coreSite:true,mesh:surfaceCraterMesh,x:p.x,y:this.groundY+.02,worldZ:p.worldZ,s:6,rot:[0,this.rand()*Math.PI*2,0],col:landingWorldColour(),mx:1,my:.8,mz:1,hit:false});
+    this.trees=this.trees.filter(t=>t.coreSite||!this.survey.some(p=>Math.hypot(t.x-p.x,t.worldZ-p.worldZ)<9+(t.feature==='cone'?1.5*t.s*(t.mx||1):0)))
   }
   // v1180 LAND DIVERSION: about one board plains approach in four carries an off-route
   // distress beacon from a stranded ground crew. Optional, like the space diversions:
@@ -467,12 +473,18 @@ class SurfaceDestinationApproachController {
     if(!this.survey?.length)return;
     const intro=this.surveyIntro;if(intro){intro.wait-=dt;if(intro.wait<=0||(typeof callout==='function'&&callout(intro.text,2.6)))this.surveyIntro=null}
     this.surveyNagT=Math.max(0,this.surveyNagT-dt);
-    for(const p of this.survey)if(!p.done&&Math.hypot(p.x-shipX,p.worldZ-travel)<8.5){
+    for(const p of this.survey){
+      if(p.done)continue;const pd=Math.hypot(p.x-shipX,p.worldZ-travel);
+      // v1930: a core only counts on a low pass across the bowl (hold down). Too high and
+      // the sampler cannot reach: say so, once per pass, and the site stays open.
+      if(p.kind==='core'){p.highT=Math.max(0,(p.highT||0)-dt);if(pd>=5.5)continue;if(shipY>-2.15){if(p.highT<=0&&typeof callout==='function'&&callout('TOO HIGH · COME ROUND AND DIVE INTO THE CRATER',1.6))p.highT=4;continue}}
+      else if(pd>=8.5)continue;
+      {
       p.done=true;const total=this.survey.length,got=total-this.surveyLeft().length;
       const T=SURVEY_TEXT[this.surveyMode||'survey'];
       if(typeof callout==='function')callout(got<total?T.got(got,total):T.done,1.8);
       SoundFX.objectiveComplete?.()
-    }
+    }}
   }
   buildSkyline(){
     this.skyline.length=0;

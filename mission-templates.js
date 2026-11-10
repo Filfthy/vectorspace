@@ -2461,6 +2461,53 @@
   // v1500: VENT SURVEY. The survey run on a volcanic world (always an orange planet that
   // is still volcanic): fly the survey points over cones and fissures, maybe through an
   // ash fall, then the pickup. Its own clients and voices.
+  // v1930: CORE SAMPLES. A moon survey for Helix and the Free Traders: three or four
+  // impact craters, each sampled on a low dive across the bowl (environment-surface.js
+  // survey mode 'core'), then the usual pickup and depot run.
+  const craterCores={
+    ...surveyRun,
+    id:'crater_cores',
+    minLevel:4,
+    defaults:{origin:'the core-sampling crew\'s lander',destination:'the Compact freight depot',cargo:'a rack of core tubes'},
+    allowedFactions:['helix','trade'],
+    factionWeights:{helix:5,trade:3},
+    board:{category:'delivery',weight:.45,maxPerBoard:1},
+    risk:{base:3,min:3,levelsPerStep:2,max:10,jitter:1},
+    planetaryRequirements:{landingBody:'moon',moonCount:{min:1,max:4}},
+    sections:surveyRun.sections.map((s,i)=>i===1?{...s,label:'Core Samples',params:{...s.params,surveyPoints:undefined,coreSites:{base:3,perRisk:.2,min:3,max:4,round:true}}}:s),
+    presentation:{
+      helix:{
+        contactId:'navira_derris',cargoStyle:'case',
+        titles:['Core Samples','Impact Record','Crater Cores'],
+        cargo:['a rack of core tubes','the sampler\'s cold store','a case of regolith cores'],
+        destinations:['the Compact freight depot','a Helix collection point at the depot'],
+        descriptions:[
+          'Every crater on this moon is a dated record of what hit it. Take a core from each marked crater. The sampler only reaches from low down, so dive across the bowl. Then collect {cargo} from {origin} and bring it to {destination}.',
+          'I want cores from the marked craters, taken from the floor, not the rim. Fly low across each one. The crew at {origin} has {cargo} waiting for {destination}.'
+        ],
+        completionSubjects:['Cores received','The impact record'],
+        completionBodies:['The cores are in and {cargo} reached the depot intact. One layer is older than the moon is supposed to be. I am going to enjoy that. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'navira_derris',subjects:['The core samples'],bodies:['Your drone was lost before the cores reached the depot. The craters will keep. They have kept for a very long time.']},
+        abandonMail:{contactId:'navira_derris',subjects:['Sampling abandoned'],bodies:['You left with craters still unsampled. The record is incomplete, which is the one thing a record should not be.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:3,chance:.22,subjects:['About the old layer'],bodies:['The old layer in your cores was not from the moon at all. Something brought it here. I have been thinking about what for a week.']}
+      },
+      trade:{
+        contactId:'corvella_pallis',cargoStyle:'case',
+        titles:['Claim Cores','Moon Rocks, Babe','Assay Run'],
+        cargo:['a rack of assay cores','the claim crew\'s core tubes','a case of moon rock'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'Sweetie, I want to know what is under those craters before I buy the moon. Well, part of the moon. Dive low over the marked craters for cores, then pick up {cargo} from {origin} and bring it to {destination}.',
+          'Babe, my assayer says the good stuff is at the bottom of the craters, so that is where you are going. Low and fast across each one. Then {cargo} from {origin} to {destination}.'
+        ],
+        completionSubjects:['Claim assayed','My moon'],
+        completionBodies:['The cores are in and {cargo} is at the depot. The assay is very promising, sweetie. I might name a crater after you. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the cores'],bodies:['The cores never reached the depot, babe. I was so looking forward to owning a bit of that moon.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, the craters'],bodies:['You left with craters still unsampled, sweetie. I cannot buy half a moon on a hunch. Well, I can. I would rather not.']}
+      }
+    }
+  };
+
   const ventSurvey={
     ...surveyRun,
     id:'vent_survey',
@@ -2930,7 +2977,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crash_recovery:crashRecovery,relay_repair:relayRepair,lattice_survey:latticeSurvey,convoy_escort:convoyEscort,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crater_cores:craterCores,crash_recovery:crashRecovery,relay_repair:relayRepair,lattice_survey:latticeSurvey,convoy_escort:convoyEscort,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();

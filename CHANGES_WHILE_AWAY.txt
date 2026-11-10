@@ -2152,6 +2152,26 @@ v1890 Fix: drone could freeze for good leaving a city pickup (old bug)
 
 NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
 
+  START HERE (kept up to date through the night)
+  New to play:
+    - Convoy Escort: a new board job. Keep a freighter alive through
+      waves of raiders. Free Traders, QuickBite and OSD, from level 3.
+    - Core Samples: a new moon-only land job. Dive low across marked
+      craters to take cores, then the usual pickup. Helix and Free
+      Traders, from level 4.
+  Changed:
+    - Contacts now often talk about the specific job on contract cards.
+    - New letter from Nyxo after your first ambushed asteroid clearance.
+    - Two new VOX Wire headlines.
+  Fixed:
+    - The drone could freeze for good after a city pickup (an old bug,
+      about 1 run in 6 on pickup jobs).
+  Waiting for you:
+    - Secure Terminal Intrusion pays about 1.6x the other jobs per
+      minute. Say if you want its fee trimmed.
+  Everything else below is detail. Each version is a git tag.
+
+
 v1900 Contacts talk about the job in hand, and an earnings sweep
       Contract cards: once you are on warm terms with a network (standing
       25), about half of its contact's card notes now speak to that kind
@@ -2250,4 +2270,22 @@ v1920 Sixth independent review, and some escort polish
       anyone shoot the fridge."), and two new VOX Wire headlines run once
       you have seen a convoy through or survived a field ambush.
       Convoy Escort turns up on 19 to 31% of boards (level 3 to 12).
+
+v1930 New job: Core Samples (moons)
+      The first board job that only lands on a moon. Three or four marked
+      craters on the moon plains, each with a core site in its bowl. The
+      sampler only reaches from low down, so you have to dive across the
+      crater floor (hold down as you cross it). Fly over too high and the
+      site stays open: "TOO HIGH · COME ROUND AND DIVE INTO THE CRATER",
+      so you turn and make another pass. Then the usual ground pickup,
+      lift-off and depot run, as on the other survey jobs.
+      HUD "CORES 0/4", markers read CORE SITE. Navira wants the impact
+      record ("One layer is older than the moon is supposed to be"),
+      Corvella wants to buy part of the moon. From level 4, filed as
+      DELIVERY like the other surveys.
+      Checked: it lands on a moon every time, four core craters are
+      placed, a pass at normal height takes none of them (all 4 still
+      open after 30 s of flying straight at them), and the pilot that
+      dives takes all of them in about 26 s. The self-test now flies it
+      every run (12 pilot flights).
 
