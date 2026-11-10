@@ -1669,3 +1669,9 @@ v1690 Comets
       direction like the stars, so it slides across the view as you turn.
       Chosen from the job itself, so it is the same comet for the whole trip.
       Scenery only, never in the simulator. New file space-ambience.js.
+
+v1700 You can see the convoy the nav computer mentions
+      On quiet trips the nav computer sometimes notes "CIVILIAN CONVOY
+      PASSING", "FREIGHTER TRAFFIC HEAVY" or an ice hauler convoy. Now that
+      stage shows it: a line of blinking navigation lights (red lead, white
+      and green behind) crossing slowly far off in the sky.
