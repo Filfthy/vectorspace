@@ -2113,3 +2113,22 @@ v1870 Asteroid clearance can be ambushed (your call)
       that must be paid or declined before Return unlocks. The game was
       right. The test now declines each claim before leaving.
 
+v1880 Asteroid clearance fee trimmed (your call, on top of the v1870 ambush)
+      Set from timings, not a guess. I flew 4 dogfights and 8 clearances
+      at each of risk 1, 3, 5, 7 and 9 with matched gear at 1280x720, and
+      counted the ambush odds, the ambush fight time and its bounties.
+      The new fee aims at about 1.25 times a dogfight's credits per minute
+      (a short, low-danger job should still be a decent earner).
+        risk   old fee   new fee    clearance vs dogfight, credits/min
+        1        2,820     2,840    1.17x
+        3        5,900     4,200    1.8x (1.3x without one 139 s dogfight)
+        5       10,400     6,400    1.48x
+        7       20,200    11,800    1.29x
+        9       35,100    19,900    1.21x   (was 3.4x before v1870)
+      XP is unchanged and now sits below a dogfight per minute (risk 9:
+      870 against 1,140), so fights stay the faster way to level.
+      The dogfight samples are small, so the middle risks are rough. If
+      risk 3 to 5 still feels too generous in play, the next step is a
+      smaller base fee. Contracts already on your board keep the old fee
+      until they roll off.
+

@@ -758,8 +758,12 @@
     allowedFactions:['trade','security','jackals','helix','quickbite'],
     board:{category:'combat',weight:1.15,maxPerBoard:2},
     risk:{base:1,min:1,levelsPerStep:2,max:9,jitter:1},
+    // v1880: fee trimmed (was basePay 1040, payPerRisk 690, payRiskSquare 184). Timed with
+    // the self-test pilot at 1280x720, including the v1870 ambush odds and its bounties, so
+    // that clearance earns about 1.25x a dogfight's credits per minute at every risk:
+    // about the same at risk 1, 30% less at risk 3, 40% less at risk 5, 44% less at risk 9.
     reward:{
-      basePay:1040,payPerRisk:690,payRiskSquare:184,payPerAsteroidWork:115,randomPay:220,roundPay:50,
+      basePay:1600,payPerRisk:150,payRiskSquare:110,payPerAsteroidWork:115,randomPay:220,roundPay:50,
       baseXp:55,xpPerRisk:25,xpRiskSquare:3,xpPerAsteroidWork:6
     },
     sections:[
