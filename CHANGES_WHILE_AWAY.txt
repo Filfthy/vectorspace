@@ -1508,3 +1508,9 @@ v1530 New route diversion: dormant lattice
       lattice wakes and gathers into a fight. Clearing it pays a little and
       earns OSD standing ("LATTICE CLEARED · OSD WILL LOG IT"). From operator
       level 4. Guide updated.
+
+v1540 Six new achievements
+      Ghostbreaker (destroy 15 ghost constructs), Signal Restored (5 ghost
+      jammers), Quiet Passage (fly past a dormant lattice without waking it),
+      Firewalker (land on a volcanic world), Vent Reader (3 Vent Surveys) and
+      Black Box (3 Crash Recoveries). 42 in all now.

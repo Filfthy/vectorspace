@@ -240,7 +240,14 @@ class CampaignController {
       {id:'crystalCourier',name:'Crystal Courier',text:'Complete 3 Crystal Consignments.',v:bt.crystal_consignment||0,goal:3},
       {id:'cartographer',name:'Cartographer',text:'Complete 5 Survey Runs.',v:bt.survey_run||0,goal:5},
       {id:'tenderBreaker',name:'Tender Breaker',text:'Destroy 10 shield tenders.',v:k.tenders||0,goal:10},
-      {id:'surveyor',name:'Surveyor',text:'Land on an ice, a crystal and an arid world.',v:['ice','crystal','arid'].filter(w=>this.state.seenProfiles?.[`world_${w}`]).length,goal:3}
+      {id:'surveyor',name:'Surveyor',text:'Land on an ice, a crystal and an arid world.',v:['ice','crystal','arid'].filter(w=>this.state.seenProfiles?.[`world_${w}`]).length,goal:3},
+      // v1540: ghost constructs, volcanic worlds and the new land jobs.
+      {id:'ghostbreaker',name:'Ghostbreaker',text:'Destroy 15 ghost constructs.',v:(k.ghosts||0)+(k.jammers||0),goal:15},
+      {id:'signalRestored',name:'Signal Restored',text:'Destroy 5 ghost jammers.',v:k.jammers||0,goal:5},
+      {id:'quietPassage',name:'Quiet Passage',text:'Fly past a dormant lattice without waking it.',v:s.latticesPassed||0,goal:1},
+      {id:'firewalker',name:'Firewalker',text:'Land on a volcanic world.',v:this.state.seenProfiles?.world_volcanic?1:0,goal:1},
+      {id:'ventReader',name:'Vent Reader',text:'Complete 3 Vent Surveys.',v:bt.vent_survey||0,goal:3},
+      {id:'blackBox',name:'Black Box',text:'Complete 3 Crash Recoveries.',v:bt.crash_recovery||0,goal:3}
     ]
   }
   checkAchievements(){
@@ -3002,7 +3009,7 @@ class CampaignController {
     for(const d of diversions)if(d.rep&&d.repFaction&&!d.repApplied&&this.factions[d.repFaction])this.applyRep(d.repFaction,d.rep);
     asteroidField.stop();
     this.state.money+=actualPay+hazardPay+diversionPay+bountyCr;this.state.xp+=m.xp+diversionXp+bountyXp;this.state.completed++;
-    {const st=this.stats();st.bountyEarned=(st.bountyEarned||0)+bountyCr;if(!m.private&&m.risk>=10)st.contracts.elite=(st.contracts.elite||0)+1;st.diversionsInvestigated=(st.diversionsInvestigated||0)+diversions.filter(d=>!d.side&&d.outcome!=='ignored'&&d.outcome!=='fired').length;   /* v1430: ignored ones and firing on a migration are not investigations */st.landBeacons=(st.landBeacons||0)+diversions.filter(d=>d.kind==='landBeacon').length;st.cachesClaimed=(st.cachesClaimed||0)+diversions.filter(d=>d.kind==='cache'&&!d.side&&d.outcome!=='tracker').length;if(m.routeEncounter)st.routeEncounters=(st.routeEncounters||0)+1;if(m.templateId){const bt=st.contracts.byTemplate||(st.contracts.byTemplate={});bt[m.templateId]=(bt[m.templateId]||0)+1}if(m.favourFaction)st.favoursDone=(st.favoursDone||0)+1;st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay+bountyCr;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
+    {const st=this.stats();st.bountyEarned=(st.bountyEarned||0)+bountyCr;if(!m.private&&m.risk>=10)st.contracts.elite=(st.contracts.elite||0)+1;st.diversionsInvestigated=(st.diversionsInvestigated||0)+diversions.filter(d=>!d.side&&d.outcome!=='ignored'&&d.outcome!=='fired').length;   /* v1430: ignored ones and firing on a migration are not investigations */st.landBeacons=(st.landBeacons||0)+diversions.filter(d=>d.kind==='landBeacon').length;st.latticesPassed=(st.latticesPassed||0)+(m.diversions||[]).filter(d=>d.kind==='lattice'&&d.outcome==='ignored').length;st.cachesClaimed=(st.cachesClaimed||0)+diversions.filter(d=>d.kind==='cache'&&!d.side&&d.outcome!=='tracker').length;if(m.routeEncounter)st.routeEncounters=(st.routeEncounters||0)+1;if(m.templateId){const bt=st.contracts.byTemplate||(st.contracts.byTemplate={});bt[m.templateId]=(bt[m.templateId]||0)+1}if(m.favourFaction)st.favoursDone=(st.favoursDone||0)+1;st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay+bountyCr;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
     let repGain=0;
     if(faction){
       const normalRepGain=Math.max(1,Math.round(8*this.positiveRepMultiplier()));
