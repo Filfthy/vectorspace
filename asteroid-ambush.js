@@ -81,7 +81,8 @@
       scenarioFlow.encounterProfile='standard';resetSpaceDogfightDirector();
       asteroidField.spaceBackdrop=false;phase='asteroids';mode='play';phaseT=modeT=0;
       audio.music.setMode(campaign.currentMission?.musicMode||'calm');
-      const st=campaign.stats?.();if(st&&!campaign.currentMission?.devTemplateTest){st.routeEncounters=(st.routeEncounters||0)+1;st.asteroidAmbushes=(st.asteroidAmbushes||0)+1}   // v1900: also drives Nyxo's first-ambush letter
+      // Counted when the job succeeds (campaign completion), not here: v1920 review fix.
+      if(campaign.currentMission)campaign.currentMission.ambushSurvived=true;
       this.state='done';
       const left=Math.max(0,asteroidField.goal-asteroidField.destroyed);
       callout(left?`FIELD CLEAR OF HOSTILES · ${left} MARKED ROCK${left===1?'':'S'} LEFT`:'FIELD CLEAR',2);

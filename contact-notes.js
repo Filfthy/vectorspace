@@ -110,7 +110,8 @@
       ice_field_armour:["Cold ground, heavy armour. Neither is an excuse.","Break the legs and the rest follows. Finish it."],
       lattice_survey:["I want the map, not the wreckage. Discipline over impulse, for once.","Do not fire. That is an order, and I expect it obeyed."],
       nest_clearance:["Infestations do not negotiate. Neither do we."],
-      asteroids:["Rock clearance is not glamorous. Neither is losing a convoy to a rock. Do it properly."]
+      asteroids:["Rock clearance is not glamorous. Neither is losing a convoy to a rock. Do it properly."],
+      convoy_escort:["The freighter does not fight. You do. Keep it that way.","Raiders go for the hull. Make them come to you instead."]
     },
     trade:{
       wreck_recovery:["Sweetie, there is a lost freighter out there with my name on half its cargo. Bring me something shiny.","Babe, wrecks are spooky. Good thing you are the scariest thing in that field."],
@@ -119,7 +120,8 @@
       fighters:["Pirates on my lane again, Sweetie. Go be big and loud at them. I will be thinking about it all day."],
       asteroids:["Rocks in the lane, Babe. Turn them into gravel and make it look easy. You always do."],
       station_defence:["Sweetie, somebody is bullying a station I like. Go and show them what a real drone looks like."],
-      survey_run:["Babe, it is a survey. Fly low, look pretty, come home. That is practically a date."]
+      survey_run:["Babe, it is a survey. Fly low, look pretty, come home. That is practically a date."],
+      convoy_escort:["Sweetie, that hauler is full of my money and she cannot shoot back. You can. Stay close to her.","Babe, the pirates always go for the fat slow one. Show them the fast dangerous one instead."]
     },
     jackals:{
       wreck_recovery:["The previous owners of that cargo have stopped needing it. It seems wasteful to leave it lying about."],
@@ -146,7 +148,8 @@
       station_delivery:["Station order. Do not open the box. I am serious, the box is not for you."],
       fighters:["So these guys keep shooting our couriers. I feel like that is their problem now. Go make it one."],
       relay_repair:["Relay is down, so nobody can order anything, so nobody is yelling at me. Fix it anyway, I guess."],
-      penthouse_delivery:["Penthouse order. Rich guy tips in exposure. Deliver it anyway, dude."]
+      penthouse_delivery:["Penthouse order. Rich guy tips in exposure. Deliver it anyway, dude."],
+      convoy_escort:["The freighter is basically a giant fridge with engines. Do not let anyone shoot the fridge.","If the freighter dies, I have to explain three hundred melted orders. Please do not make me do that."]
     }
   };
   const WARM=25,CLOSE=60;

@@ -428,7 +428,6 @@ const routeDiversion={
     const def=this.KINDS.escort,o=safe?def.safe:def.lost,m=campaign.currentMission;
     callout(o.say,2.4);if(safe)SoundFX.objectiveComplete?.();
     this.record({id:safe?'escorted':'lost',...o,repFaction:m?.faction||'trade'});
-    if(safe){const st=campaign.stats?.();if(st&&!m?.devTemplateTest)st.convoysSafe=(st.convoysSafe||0)+1}
     fighters.length=0;bolts.length=0;this.convoy=null;this.end()
   },
   // A long-haul freighter: spine, six cargo pods, bridge and engine block, all closed
@@ -604,7 +603,7 @@ const routeDiversion={
     const m=campaign.currentMission;if(!m||!o)return;
     const pay=o.pay?Math.round((m.pay*o.pay)/50)*50:0,xp=o.xp?Math.round(m.xp*o.xp):0;
     const repFaction=o.rep?(o.repFaction||m.faction||null):null;
-    (m.diversions||(m.diversions=[])).push({kind:this.kind,outcome:o.id,text:o.text,pay,xp,rep:o.rep||0,repFaction,...(this.stage?.main?{main:true}:{})});   // v1820: main = the job itself (Lattice Survey), not a side trip
+    (m.diversions||(m.diversions=[])).push({kind:this.kind,outcome:o.id,text:o.text,pay,xp,rep:o.rep||0,repFaction,...(this.stage?.main?{main:true,label:this.kind==='escort'?'Escort':'Survey'}:{})});   // v1820: main = the job itself (Lattice Survey), not a side trip
     if(o.alsoRep)m.diversions.push({kind:this.kind,outcome:o.id,side:true,text:o.alsoRep.text,pay:0,xp:0,rep:o.alsoRep.amount,repFaction:o.alsoRep.faction});
   },
   recordIgnored(){const m=campaign.currentMission;if(m)(m.diversions||(m.diversions=[])).push({kind:this.kind,outcome:'ignored',text:'Ignored',pay:0,xp:0,rep:0})},
@@ -643,7 +642,7 @@ const routeDiversion={
       const on=!!(p&&p.x>=0&&p.x<=W&&p.y>=0&&p.y<=viewH),pct=Math.max(0,Math.ceil(c.hp*100)),d=Math.round(Math.hypot(c.x-shipX,c.y-shipY,c.z));
       ctx.save();ctx.textAlign='center';ctx.textBaseline='bottom';ctx.font='400 10px Consolas,monospace';ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.strokeStyle=col;
       if(on)ctx.strokeText(`FREIGHTER ${pct}% · ${d}`,p.x,p.y-Math.max(18,c.s*p.k*.7));
-      else{const e=hudEdgeCue(q,0),tx=-e.dy,ty=e.dx;line(e.x,e.y,e.x-e.dx*10+tx*7,e.y-e.dy*10+ty*7,col,1.25,.9);line(e.x,e.y,e.x-e.dx*10-tx*7,e.y-e.dy*10-ty*7,col,1.25,.9);ctx.strokeText(`FREIGHTER ${pct}%`,e.x-e.dx*26,e.y-e.dy*26)}
+      else{const e=hudEdgeCue(q,0),tx=-e.dy,ty=e.dx;line(e.x,e.y,e.x-e.dx*10+tx*7,e.y-e.dy*10+ty*7,col,1.25,.9);line(e.x,e.y,e.x-e.dx*10-tx*7,e.y-e.dy*10-ty*7,col,1.25,.9);const t=`FREIGHTER ${pct}%`,hw=ctx.measureText(t).width/2+4;ctx.strokeText(t,clamp(e.x-e.dx*26,hw,W-hw),clamp(e.y-e.dy*26,24,viewH-6))}
       ctx.restore();return
     }
     if(this.active&&this.state==='lattice'&&this.surveyJob){

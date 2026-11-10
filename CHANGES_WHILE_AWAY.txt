@@ -2232,3 +2232,22 @@ v1910 New job: Convoy Escort
       that same wave as cleared every frame, so the next wave never came.
       The self-test now flies the whole job every run.
 
+v1920 Sixth independent review, and some escort polish
+      A fresh reviewer read everything from v1810 to v1910: no crash, no
+      way for a job to get stuck or finish twice. Four small things, all
+      fixed:
+      - A convoy result was labelled "Survey" on the debrief. It now reads
+        "Escort · Freighter escorted through" (checked on a real contract).
+      - The Guide said two or three waves. It is two to four.
+      - The FREIGHTER label next to the edge arrow could run off the side
+        of the screen. It is now kept on screen.
+      - Shepherd (convoys) and the asteroid ambush counts were added the
+        moment the event happened, so a drone lost later in the same job
+        still counted them (and could trigger Nyxo's letter). They now
+        count only when the job succeeds.
+      Also: Corvella, Nyxo and Kudo have card notes for the escort ("The
+      freighter is basically a giant fridge with engines. Do not let
+      anyone shoot the fridge."), and two new VOX Wire headlines run once
+      you have seen a convoy through or survived a field ambush.
+      Convoy Escort turns up on 19 to 31% of boards (level 3 to 12).
+

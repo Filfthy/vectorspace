@@ -65,7 +65,10 @@
     H('vent_gas','Helix confirms a new gas from a volcanic world survey. Its researchers describe it as "rude".',c=>(c.bt.vent_survey||0)>0),
     H('relays_back','Relay coverage returns to a frontier world after a storm. A courier firm reports its first on-time delivery in a week.',c=>(c.bt.relay_repair||0)>0),
     H('lattice_watched','A freighter captain swears a field of wreckage "watched her go by". OSD advises everyone to keep doing exactly that.',c=>(c.stats.latticesPassed||0)>0),
-    H('hijack_warning','OSD warns that stolen military drones are turning up in criminal hands. Pilots report they "hesitate, then fire".',c=>!!c.state?.seenProfiles?.hijacked)
+    H('hijack_warning','OSD warns that stolen military drones are turning up in criminal hands. Pilots report they "hesitate, then fire".',c=>!!c.state?.seenProfiles?.hijacked),
+    // v1910-20: the night's new jobs and surprises.
+    H('hauler_crews','Hauler crews on a pirate lane report fewer losses this month. One captain credits "a contractor drone that would not leave us alone".',c=>(c.stats.convoysSafe||0)>0),
+    H('belt_ambush','Belt clearance contractors are told to expect company. Pirates have taken to hiding in the very rock fields they are paid to clear.',c=>(c.stats.asteroidAmbushes||0)>0)
   ];
   globalThis.AgentXVoxWire={HEADLINES};
 })();
