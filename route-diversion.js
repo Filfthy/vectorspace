@@ -148,6 +148,7 @@ const routeDiversion={
   // within 14 a moment later, so a well-placed shot can clear a cluster.
   beginMinefield(stage,def){
     const n=24+Math.floor(Math.random()*7);this.mines=[];this.minesShot=0;this.minesTotal=n;
+    if(campaign.state&&campaign.statsLive?.())(campaign.state.mailFlags||(campaign.state.mailFlags={})).metMinefield=true;   // opens the Codex entry
     for(let i=0;i<n;i++){
       const onPath=i<9,x=onPath?(Math.random()-.5)*14:(Math.random()-.5)*90,y=onPath?(Math.random()-.5)*10:(Math.random()-.5)*38,z=110+(onPath?i/9:Math.random())*560;
       const w=cameraPointToWorld([x,y,z]);

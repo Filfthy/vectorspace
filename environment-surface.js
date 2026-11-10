@@ -629,6 +629,7 @@ class SurfaceDestinationApproachController {
     if(this.worldKind==='ice'&&r<.45)this.weather={kind:'blizzard',col:C.w,wind:side*(7+Math.random()*5),haze:.9,say:'BLIZZARD ON THE PLAINS · VISIBILITY LOW'};
     else if(this.worldKind==='arid'&&r<.4)this.weather={kind:'dust',col:C.y,wind:side*(14+Math.random()*8),haze:.86,say:'DUST STORM · VISIBILITY LOW'};
     if(!this.weather)return;
+    if(campaign.state&&campaign.statsLive?.())(campaign.state.mailFlags||(campaign.state.mailFlags={})).metStorm=true;   // opens the Codex entry
     this.weather.flakes=Array.from({length:340},()=>({x:Math.random()*60,y:Math.random()*8,z:Math.random()*45,ph:Math.random()*10}));
     this.chatter=null;   // the world's quiet nav chatter would contradict the storm
     this.weatherIntro=1.4

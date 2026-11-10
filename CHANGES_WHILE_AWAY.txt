@@ -1287,3 +1287,19 @@ v1380 Weather on the landing plains
       - The world's quiet nav chatter ("ICE SHELF STABLE · NO ACTION") is
         skipped in a storm, since it would contradict it.
       Not on the OSD compound approach, and never in training.
+
+v1390 The Guide and Codex cover today's additions
+      The Guide's encounters section now explains the fight in progress
+      (help the losers clear the raiders for their network's thanks), the
+      old minefield (not optional: shoot the mines, one can set off its
+      neighbours, or steer clear) and plains weather (the far edge fades
+      into a storm, so watch the nav marker).
+      Two new Codex entries open the first time you meet them: "Old
+      minefields" (Partition War contact mines that still arm; OSD logs
+      every field cleared) and "Surface storms".
+
+      Second regression sweep (no change needed). After v1330 to v1390:
+      all 22 board templates twice over (so different route encounters
+      and diversions come up), all 32 story, faction agent and Black
+      Contract missions, and the simulator training from a brand new save:
+      every stage entered and left with no errors.
