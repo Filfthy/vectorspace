@@ -1772,3 +1772,13 @@ v1770 Forest and swamp corridors draw faster, same picture
       pixel differs. Whole frames went from about 16.5 ms to about 14 ms.
       (Measured honestly: my first guess that this was the main cost was
       wrong, the gain is real but modest.)
+
+v1780 Corridor ground heights remembered between frames
+      A corridor's ground never changes during a run and every grid point
+      sits on whole numbers, so each height is now worked out once and
+      remembered, instead of about 7,000 look-ups every frame. The memory is
+      cleared when a corridor begins or resets and whenever its layout
+      changes. Checked on 19 frozen frames across the swamp and forest
+      corridors: no pixel differs from the old picture, and every remembered
+      height matched a fresh calculation exactly. Frames are a further 3 to
+      5 ms quicker in the test pane.

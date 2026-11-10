@@ -2,6 +2,7 @@
 class CorridorEnvironmentController {
   constructor(){this.reset()}
   reset(){
+    this._floorCache=null;   // v1780: remembered ground heights never outlive a run
     this.active=false;this.finishing=false;this.finishT=0;this.speed=20.5;this.length=650;
     this.startWorld=0;this.originX=0;this.seed=0x5f3759df;this.trees=[];this.obstacles=[];this.spitters=[];
     this.wallHitCD=0;this.suspendedMission=null;this.scenarioMode=false;this.baseCache=new WeakMap();
@@ -785,6 +786,7 @@ class CorridorEnvironmentController {
     }
   }
   begin(stage=null){
+    this._floorCache=null;
     if(this.active)this.stopForJump();
     // v520: keep the stage. Every per-mission setting below and later (presentation
     // text, terminalConfig, scanSeconds) is read from this.stage, which was never set,
@@ -1251,8 +1253,14 @@ class CorridorEnvironmentController {
     // edge is the next strip's near edge, and the grid lines run through the same points,
     // so the old code projected every point three times (about 18,700 a frame in the
     // swamp). Same pixels, about a third of the work.
+    // v1780: and the ground itself never changes during a run, and every grid point is on
+    // whole numbers, so its height is remembered from frame to frame (cleared whenever a
+    // corridor begins or its layout changes). Only the last, partial row is worked out fresh.
+    const sig=`${this.startWorld}|${this.length}|${this.seed}|${this.originX}|${this.isSwampVariant()}|${this.terminalDestination}|${this.gladeStartU}|${this.gladeCentreX}|${this.gladeFloor}`;
+    if(this._floorSig!==sig||!this._floorCache||this._floorCache.size>120000){this._floorSig=sig;this._floorCache=new Map()}
+    const fc=this._floorCache,floorOf=(wz,x)=>{if(!Number.isInteger(wz))return this.floorAt(wz,x);const k=wz*16384+x;let v=fc.get(k);if(v===undefined){v=this.floorAt(wz,x);fc.set(k,v)}return v};
     const rowCache=new Map();
-    const row=wz=>{let r=rowCache.get(wz);if(!r){r=[];for(let x=x0;x<=x1+.001;x+=1)r.push(proj([x,this.floorAt(wz,x),wz-travel])||null);rowCache.set(wz,r)}return r};
+    const row=wz=>{let r=rowCache.get(wz);if(!r){r=[];for(let x=x0;x<=x1+.001;x+=1)r.push(proj([x,floorOf(wz,x),wz-travel])||null);rowCache.set(wz,r)}return r};
     const gridCol=this.sceneGridColor();
     const terrainStrip=(wz0,wz1)=>{
       const A=row(wz0),B=row(wz1),near=[],farEdge=[];
