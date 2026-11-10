@@ -101,6 +101,63 @@
     inputX=inputY=0;st.secs=Math.round(st.frames/30);
     st.quiet=!st.woke&&(campaign.currentMission?.diversions||[]).some(d=>d.outcome==='surveyed');return st
   };
+  // v1830 JOB PILOT (console only, it takes minutes): plays a whole board job the way a
+  // player would. It shoots whatever hostile is nearest in front, and with nothing to
+  // shoot it steers at whatever objective marker or edge arrow the HUD last drew (it reads
+  // the HUD through drawHudMarkerLabel and hudEdgeCue, so it knows nothing a player does
+  // not). On a land approach it uses the approach pilot. A stage it cannot finish inside
+  // stageCap seconds is marked STUCK and skipped. It has no ground-attack or minefield
+  // skills, so those stages always show as stuck. It also shoots sleeping ghost cores, so
+  // it plays the "woken" ending of a Lattice Survey (flyLattice plays the quiet one).
+  //   __flyJob('station_defence')            one job, returns a line of stage times
+  //   await __flyAll()                       every board template
+  // One frame of dogfighting: turn towards the nearest live hostile in front (or round
+  // towards the nearest one at all) and fire in short bursts while the sight is on it.
+  // With nothing to shoot it steers at `mark` (a screen point) if one is given.
+  // Returns true while there is something to fight.
+  let trigT=0;
+  const fightStep=(skill=.9,mark=null)=>{
+    const dt=1/30;let best=null,bd=1e9,any=null,ad=1e9,tx=0,ty=0,on=false;
+    for(const x of fighters){if(x.dead||x.dying||x.t<0)continue;const q=camPoint([x.x,x.y,x.z]),d=Math.hypot(q[0],q[1],q[2]);if(d<ad){ad=d;any={x,q}}if(q[2]>2&&d<bd){bd=d;best={x,q}}}
+    if(best){const pp=projectCam(best.q);if(pp){tx=clamp((pp.x-W*.5)/(W*.5-22),-1,1);ty=clamp((pp.y-viewH*.48)/(viewH*.46-18),-1,1);const a=aimScreen();on=Math.hypot(a.x-pp.x,a.y-pp.y)<Math.max(14,best.x.s*pp.k*.8)}}
+    else if(any){const q=any.q;tx=clamp(q[0]/(Math.abs(q[2])+8)*2+(q[2]<0?Math.sign(q[0]||1):0),-1,1);ty=clamp(-q[1]/(Math.abs(q[2])+8)*2,-1,1)}
+    else if(mark){tx=clamp((mark.x-W*.5)/(W*.5)*1.4,-1,1);ty=clamp((mark.y-viewH*.48)/(viewH*.46)*1.4,-1,1)}
+    const rate=2.6*skill*dt;inputX=clamp(inputX+clamp(tx-inputX,-rate,rate),-1,1);inputY=clamp(inputY+clamp(ty-inputY,-rate,rate),-1,1);
+    if(on&&!fireHeld){fireHeld=true;beginLaserBurst()}if(fireHeld&&(++trigT>10||!on)){fireHeld=false;endLaserTrigger();trigT=0}
+    return !!any
+  };
+  const ceaseFire=()=>{fireHeld=false;try{endLaserTrigger()}catch(_){}inputX=inputY=0;trigT=0};
+  const hud={mark:null,edge:null};let hudFrame=0,hudHooked=false;
+  const hookHud=()=>{
+    if(hudHooked)return;hudHooked=true;const d0=window.drawHudMarkerLabel,e0=window.hudEdgeCue;
+    window.drawHudMarkerLabel=function(text,x,y,...r){hud.mark={x,y,f:hudFrame};return d0.call(this,text,x,y,...r)};
+    window.hudEdgeCue=function(q,...r){const v=e0.call(this,q,...r);hud.edge={x:v.x,y:v.y,f:hudFrame};return v}
+  };
+  const flyJob=(id,{maxSecs=900,stageCap=240,skill=.9,weapon='laser5',frame='AX-5A',level=20}={})=>{
+    const c=campaign,T=AgentXMissionData.templates;hookHud();reset();
+    c.state.xp=c.xpForLevel(level);if(!c.state.ownedFrames.includes(frame))c.state.ownedFrames.push(frame);c.state.drone=frame;c.state.inventory[weapon]=1;c.state.weaponLoadout=weapon;
+    c.launchDevTemplateTest(id,(T[id].allowedFactions||['trade'])[0]);invulnerable=true;inputX=inputY=0;
+    const m=c.currentMission,stages=[],dt=1/30;let idx=-1,sf=0,frames=0,ended=false;
+    for(let f=0;f<maxSecs*30&&c.currentMission;f++){
+      if(c.currentStageIndex!==idx){if(stages.length)stages[stages.length-1].secs=Math.round(sf/30);idx=c.currentStageIndex;sf=0;stages.push({type:c.currentStage()?.type})}
+      if(exiting()&&c.currentStageIndex>=m.modules.length-1){ended=true;break}
+      if(sf>stageCap*30&&!exiting()){stages[stages.length-1].stuck=`${mode}/${phase}`;scenarioFlow.completeCurrentStage?.();for(let k=0;k<5;k++)update(dt);continue}
+      hudFrame=f;if(f%2===0)render(performance.now());
+      if(phase==='destinationApproach'&&surfaceDestination.active){
+        const S=surfaceDestination,left=S.surveyLeft().sort((a,b)=>a.worldZ-b.worldZ),t=left[0]?{x:left[0].x,z:left[0].worldZ}:{x:S.targetX,z:S.targetWorldZ};
+        inputX=clamp(wrapAngle(Math.atan2(t.x-shipX,t.z-travel)-viewYaw)*2.2,-1,1);inputY=0
+      }else{
+        fightStep(skill,(hud.mark&&f-hud.mark.f<=2)?hud.mark:((hud.edge&&f-hud.edge.f<=2)?hud.edge:null))
+      }
+      update(dt);frames++;sf++
+    }
+    if(stages.length)stages[stages.length-1].secs=Math.round(sf/30);
+    ceaseFire();
+    const finished=ended||!c.currentMission;
+    return `${id} risk ${m.risk} ${finished?'finished':'cut off at '+c.currentStage?.()?.type} in ${Math.round(frames/30)} s :: ${stages.map(x=>`${x.type} ${x.secs}s${x.stuck?' STUCK('+x.stuck+')':''}`).join(' > ')}`
+  };
+  window.__flyJob=flyJob;
+  window.__flyAll=async(opts)=>{const out=[];for(const id of Object.keys(AgentXMissionData.templates)){out.push(flyJob(id,opts));console.log(out[out.length-1]);await pause()}return out};
   // From the console, after launching a job: __pilots.toStage('surface_destination_approach'),
   // __pilots.flyApproach(), __pilots.flyLattice(skill).
   window.__pilots={toStage,flyApproach,flyLattice};
@@ -221,7 +278,7 @@
     // Real campaign flows on the throwaway save: nothing here is a DEV test.
     const finishReal=m=>{c.launchMission(m.id);if(c.currentMission!==m)return 'did not launch';invulnerable=true;fly();for(let f=0;f<3000&&!c.isOpen();f++)update(1/30);return c.isOpen()?null:`never reached the debrief (${mode}/${phase})`};
     const closeHub=()=>{try{c.closeMissionDebrief?.('missions')}catch(_){}paused=false;document.body.classList.remove('paused')};
-    await group('campaign',['finish a real job','level up on the debrief','abandon a job','lose the drone','buy and fit gear','spend a skill point','save and reload','every mail reads','every hub panel draws','request new contracts'],what=>{
+    await group('campaign',['finish a real job','level up on the debrief','abandon a job','lose the drone','buy and fit gear','spend a skill point','save and reload','every mail reads','every hub panel draws','request new contracts','a woken lattice survey pays less'],what=>{
       // (reset() above cleared any mission; these use the real board.)
       if(c.isOpen())closeHub();
       if(what==='finish a real job'||what==='level up on the debrief'){
@@ -266,6 +323,24 @@
       }
       if(what==='every mail reads')for(const msg of c.state.mail){const r=c.resolveMail(msg);if(!r?.subject||!String(r.subject).trim())return `mail ${msg.id} has no subject`;if(!Array.isArray(r.body)||!r.body.join('').trim())return `mail ${msg.id} has no text`}
       if(what==='every hub panel draws'){c.showHub('missions');for(const pnl of['missions','factions','mail','shop','workshop','perks','guide','options']){c.setPanel(pnl);c.render()}closeHub()}
+      // v1830: a real Lattice Survey flown both ways. Quiet must be worth more than waking
+      // it and shooting it down (it used to be the other way round, because of bounties).
+      if(what==='a woken lattice survey pays less'){
+        const rd=routeDiversion,start=()=>{reset();c.state.xp=c.xpForLevel(12);c.state.inventory.laser5=1;c.state.weaponLoadout='laser5';
+          const m=c.makeTemplateContract(c.missionTemplate('lattice_survey'),0,{faction:'helix'});if(!m)return null;c.missions.push(m);c.launchMission(m.id);if(c.currentMission!==m)return null;invulnerable=true;
+          for(let i=0;i<900&&rd.state!=='lattice';i++)update(1/30);return rd.state==='lattice'?m:null};
+        const gains=(m,m0,x0)=>{for(let f=0;f<4000&&!c.isOpen();f++)update(1/30);const g={cr:(c.state.money-m0)/m.pay,xp:(c.state.xp-x0)/m.xp,open:c.isOpen()};closeHub();return g};
+        let quiet=null;
+        for(let k=0;k<5&&!quiet;k++){const m=start();if(!m)return 'a real survey did not start';const m0=c.state.money,x0=c.state.xp,r=flyLattice(1);if(r.quiet)quiet=gains(m,m0,x0);else{c.abandonCurrentMission('Self-test');closeHub()}}
+        if(!quiet)return 'the pilot could not finish a survey quietly in five tries';
+        const m=start();if(!m)return 'the second survey did not start';const m0=c.state.money,x0=c.state.xp;
+        rd.wakeLattice('SELF-TEST');for(let f=0;f<300*30&&c.currentMission&&!exiting();f++){fightStep(.9);update(1/30)}ceaseFire();
+        if(c.currentMission&&!exiting())return 'the woken lattice was not cleared in 300 s';
+        const woken=gains(m,m0,x0);
+        if(!quiet.open||!woken.open)return 'no debrief';
+        if(woken.cr>=quiet.cr)return `waking it paid ${woken.cr.toFixed(2)}x the fee, quiet paid ${quiet.cr.toFixed(2)}x`;
+        if(woken.xp>=quiet.xp)return `waking it gave ${woken.xp.toFixed(2)}x the XP, quiet gave ${quiet.xp.toFixed(2)}x`
+      }
       if(what==='request new contracts'){c.state.money=60000;const ids=c.missions.map(m=>m.id).join();c.refreshContracts();if(c.missions.map(m=>m.id).join()===ids)return 'the board did not change';if(c.missions.length<4)return 'the board is nearly empty'}
     });
 

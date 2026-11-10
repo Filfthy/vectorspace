@@ -178,6 +178,8 @@ class CampaignController {
   }
   recordBounty(keys,n=1){
     const m=this.currentMission;if(!m||m.training||m.devTest||m.devTemplateTest||m.devGroundTest)return;
+    // v1830: no bounty on a lattice you were paid to leave asleep (Lattice Survey, woken).
+    if(typeof routeDiversion!=='undefined'&&routeDiversion.active&&routeDiversion.surveyJob&&routeDiversion.state==='latticeFight')return;
     const units=this.bountyUnits(keys)*n;if(units<=0)return;
     const risk=Math.max(1,Number(m.risk)||1),b=this.missionBounty||(this.missionBounty={cr:0,xp:0,counts:{}});
     const cr=units*(100+90*risk)*this.contractPayMultiplier(risk)*(this.hasSkill('bountyBroker')?1.25:1);
@@ -257,7 +259,7 @@ class CampaignController {
       {id:'ventReader',name:'Vent Reader',text:'Complete 3 Vent Surveys.',v:bt.vent_survey||0,goal:3},
       {id:'blackBox',name:'Black Box',text:'Complete 3 Crash Recoveries.',v:bt.crash_recovery||0,goal:3},
       {id:'lightsOn',name:'Lights On',text:'Complete 3 Relay Repairs.',v:bt.relay_repair||0,goal:3},
-      {id:'lightTouch',name:'Light Touch',text:'Complete 3 Lattice Surveys.',v:bt.lattice_survey||0,goal:3}
+      {id:'lightTouch',name:'Light Touch',text:'Complete 3 Lattice Surveys without waking the lattice.',v:s.latticeQuiet||0,goal:3}
     ]
   }
   checkAchievements(){
@@ -3051,7 +3053,7 @@ class CampaignController {
     asteroidField.stop();
     const levelBefore=this.levelForXP();
     this.state.money+=actualPay+hazardPay+diversionPay+bountyCr;this.state.xp+=m.xp+diversionXp+bountyXp;this.state.completed++;
-    {const st=this.stats();st.bountyEarned=(st.bountyEarned||0)+bountyCr;if(!m.private&&m.risk>=10)st.contracts.elite=(st.contracts.elite||0)+1;st.diversionsInvestigated=(st.diversionsInvestigated||0)+diversions.filter(d=>!d.side&&!d.main&&d.outcome!=='ignored'&&d.outcome!=='fired'&&d.outcome!=='abandoned').length;   /* v1430: ignored ones and firing on a migration are not investigations */st.landBeacons=(st.landBeacons||0)+diversions.filter(d=>d.kind==='landBeacon').length;st.latticesPassed=(st.latticesPassed||0)+(m.diversions||[]).filter(d=>d.kind==='lattice'&&d.outcome==='ignored').length;st.cachesClaimed=(st.cachesClaimed||0)+diversions.filter(d=>d.kind==='cache'&&!d.side&&d.outcome!=='tracker').length;if(m.routeEncounter)st.routeEncounters=(st.routeEncounters||0)+1;if(m.templateId){const bt=st.contracts.byTemplate||(st.contracts.byTemplate={});bt[m.templateId]=(bt[m.templateId]||0)+1}if(m.favourFaction)st.favoursDone=(st.favoursDone||0)+1;st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay+bountyCr;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
+    {const st=this.stats();st.bountyEarned=(st.bountyEarned||0)+bountyCr;if(!m.private&&m.risk>=10)st.contracts.elite=(st.contracts.elite||0)+1;if(diversions.some(d=>d.main&&d.outcome==='surveyed'))st.latticeQuiet=(st.latticeQuiet||0)+1;st.diversionsInvestigated=(st.diversionsInvestigated||0)+diversions.filter(d=>!d.side&&!d.main&&d.outcome!=='ignored'&&d.outcome!=='fired'&&d.outcome!=='abandoned').length;   /* v1430: ignored ones and firing on a migration are not investigations */st.landBeacons=(st.landBeacons||0)+diversions.filter(d=>d.kind==='landBeacon').length;st.latticesPassed=(st.latticesPassed||0)+(m.diversions||[]).filter(d=>d.kind==='lattice'&&d.outcome==='ignored').length;st.cachesClaimed=(st.cachesClaimed||0)+diversions.filter(d=>d.kind==='cache'&&!d.side&&d.outcome!=='tracker').length;if(m.routeEncounter)st.routeEncounters=(st.routeEncounters||0)+1;if(m.templateId){const bt=st.contracts.byTemplate||(st.contracts.byTemplate={});bt[m.templateId]=(bt[m.templateId]||0)+1}if(m.favourFaction)st.favoursDone=(st.favoursDone||0)+1;st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay+bountyCr;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
     let repGain=0;
     if(faction){
       const normalRepGain=Math.max(1,Math.round(8*this.positiveRepMultiplier()));
@@ -3216,7 +3218,7 @@ class CampaignController {
       ${d.reason?`<div class="missionStatus bad">${d.reason}</div>`:''}
       <div class="debriefRow"><span>Contract payment</span><span>CR ${d.pay.toLocaleString()}</span></div>
       ${d.bounty?`<div class="debriefRow"><span>Bounties · ${this.escapeHtml(d.bounty.text)}${d.hazardLabel?` · ${this.escapeHtml(d.hazardLabel)}`:''} · +${d.bounty.xp} XP</span><span>CR ${d.bounty.cr.toLocaleString()}</span></div>`:''}
-      ${(d.diversions||[]).map(v=>`<div class="debriefRow"><span>${v.main?'Survey':'Diversion'} · ${this.escapeHtml(v.text)}${v.rep?` · standing ${v.rep>0?'+':''}${v.rep}`:''}${v.xp?` · +${v.xp} XP`:''}</span><span>${v.pay?'CR '+v.pay.toLocaleString():'-'}</span></div>`).join('')}
+      ${(d.diversions||[]).map(v=>`<div class="debriefRow"><span>${v.main?'Survey':'Diversion'} · ${this.escapeHtml(v.text)}${v.rep?` · standing ${v.rep>0?'+':''}${v.rep}`:''}${v.xp?` · ${v.xp>0?'+':''}${v.xp} XP`:''}</span><span>${v.pay?'CR '+v.pay.toLocaleString():'-'}</span></div>`).join('')}
       ${d.hazardPay>0?`<div class="debriefRow"><span>Hazard pay · ${this.escapeHtml(d.hazardLabel||'route encounter')}</span><span>CR ${d.hazardPay.toLocaleString()}</span></div>`:''}
       <div class="debriefRow"><span>Experience</span><span>${d.xp} XP</span></div>
       ${d.progress?.gained?`<div class="debriefRow debriefLevelUp"><span>LEVEL UP · Operator level ${d.progress.level}${d.progress.points>0?` · ${d.progress.points} skill point${d.progress.points===1?'':'s'} to spend`:''}</span><span>LEVEL ${d.progress.level}</span></div>`:''}

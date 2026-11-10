@@ -76,7 +76,11 @@ const routeDiversion={
     latticeSurvey:{nav:'DORMANT LATTICE · THREE SHELLS · SCAN THREE CORES IN EACH · DO NOT WAKE IT',hud:'LATTICE SURVEY',window:1e9,need:3,scanRange:46,scanSeconds:.9,
       shells:['OUTER SHELL','INNER SHELL','THE HEART'],
       surveyed:{say:'LATTICE SURVEYED · DATA SECURED',text:'Ghost lattice surveyed intact',xp:.1},
-      woken:{text:'Lattice woken and destroyed'}},
+      // v1830: waking it costs half the fee and 40% of the XP, and its constructs carry no
+      // bounty (campaign.recordBounty). Before this a woken lattice paid the full contract
+      // plus a bounty on every construct, so shooting first earned more than the quiet
+      // survey the client asked for.
+      woken:{text:'Lattice woken and destroyed, survey lost',pay:-.5,xp:-.4}},
     migration:{nav:'XENO MIGRATION CROSSING · FLY CLOSE TO SCAN · DO NOT FIRE',hud:'XENO MIGRATION',window:30,need:3,
       surveyed:{say:'MIGRATION SURVEYED · HELIX WILL WANT THIS',pay:.08,rep:3,repFaction:'helix',xp:.15,text:'Xeno migration surveyed'},
       fired:{text:'Fired on a xeno migration',rep:-4,repFaction:'helix'}},

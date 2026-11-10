@@ -1901,3 +1901,35 @@ v1820 Lattice Survey rebuilt as three shells, and a fix for stuck crystal glints
       6 of it in the traffic. It is all in filling car and building faces,
       and I found no saving that leaves the picture exactly as it is.
 
+v1830 A pilot that plays whole jobs, and what it found
+      The self-test page has a new console tool, __flyJob, that plays a
+      board job from launch to the end the way a player would: it shoots
+      the nearest hostile in front of it, and with nothing to shoot it
+      steers at whatever objective marker or edge arrow the HUD is showing
+      (it reads the HUD, so it knows nothing you would not). I ran it over
+      all 26 board jobs at risk 8 to 11 with a Mk V laser.
+      Finished end to end, every stage played: Station Defence, Specimen
+      Recovery, Wreck Recovery, Taco Run, Combat Recovery, Groundside
+      Pickup, Crystal Consignment, Survey Run, Vent Survey, Crash Recovery,
+      Relay Repair, Lattice Survey, Swamp Relay, Station Delivery,
+      Penthouse Delivery, Forest Cabin and the plain fighter sweep.
+      That covers the five jobs whose enemy hull I raised in v1810: their
+      fights take 80 to 170 s at risk 8 to 11, in line with a dogfight.
+      Not covered: the pilot cannot attack ground targets, thread a
+      minefield or shoot rocks, so the armour fields, factory, bunker,
+      nest, deep core, minefield station and asteroid jobs are still only
+      stepped through, not played. (You have flown those yourself, and I did not
+      change how they play today, apart from the walker patrols.)
+      What it found:
+      - Waking a Lattice Survey and shooting it down paid MORE than doing
+        the job properly. At risk 6: CR 11,900 and 751 XP woken, against
+        CR 7,950 and 691 XP for a clean survey, because every construct
+        carried a bounty. Now a woken survey loses half the fee and 40% of
+        the XP, and its constructs carry no bounty: CR 3,850 and 377 XP.
+        The debrief row reads "Survey · Lattice woken and destroyed,
+        survey lost" with the amounts in it.
+      - Light Touch counted woken surveys too. It now needs three surveys
+        finished without waking the lattice.
+      The self-test flies a real Lattice Survey both ways and fails if
+      waking it ever pays as much as the quiet route again.
+
