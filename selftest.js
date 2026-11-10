@@ -221,6 +221,45 @@
     try{localStorage.removeItem(c.storageKey)}catch(_){}
     window.__selftest={ok,results,seconds:Number(secs)}
   }
+  // BALANCE BOT (v1800). A simple pilot that plays a fight for real: it tracks the nearest
+  // solid target with limited hand speed and a little wobble, fires in bursts when on
+  // target, and takes real damage (it never dodges or shoots down incoming fire, so the
+  // damage it takes overstates a player's: compare enemy types with it, do not read the
+  // numbers as absolute). From the console on the ?selftest page:
+  //   __botFight('ghost',{target:6,risk:1,skill:.75})   one fight
+  //   await __balance()                                   every enemy type, eight fights each
+  window.__botFight=function(profile,{target=6,risk=1,maxSecs=240,skill=1}={}){
+    const c=campaign;reset();
+    const m=c.makeDevTemplatePreview('fighters','security'),fm=m.modules.find(x=>x.type==='fighters');fm.profile=profile;fm.target=target;m.risk=risk;
+    c.launchDevTemplateTest('fighters','security',{mission:m});invulnerable=false;
+    for(let i=0;i<300&&!fighters.length;i++)update(1/30);
+    const stat={profile,target,kills:0,secs:0,hits:0,minShield:shield,died:false,bursts:0,frames:0};let lastShield=shield,trig=0;const dt=1/30;
+    for(let f=0;f<maxSecs*30;f++){
+      if(mode==='dead'){stat.died=true;break}
+      if(!c.currentMission||c.currentStage?.()?.type!=='fighters'||mode!=='play')break;
+      let best=null,bd=1e9,any=null,ad=1e9;
+      for(const x of fighters){if(x.dead||x.dying||x.t<0)continue;const q=camPoint([x.x,x.y,x.z]),d=Math.hypot(q[0],q[1],q[2]);if(d<ad){ad=d;any={x,q}}if(x.ghost&&!AgentXGhosts.solid(x))continue;if(q[2]>2&&d<bd){bd=d;best={x,q}}}
+      let tx=0,ty=0,on=false;
+      if(best){const p=projectCam(best.q);if(p){tx=clamp((p.x-W*.5)/(W*.5-22),-1,1);ty=clamp((p.y-viewH*.48)/(viewH*.46-18),-1,1);const a=aimScreen();on=Math.hypot(a.x-p.x,a.y-p.y)<Math.max(14,best.x.s*p.k*.8)}}
+      else if(any){const q=any.q;tx=clamp(q[0]/(Math.abs(q[2])+8)*2+(q[2]<0?Math.sign(q[0]||1):0),-1,1);ty=clamp(-q[1]/(Math.abs(q[2])+8)*2,-1,1)}
+      const rate=2.6*skill*dt,wob=.035/skill;
+      inputX=clamp(inputX+clamp(tx-inputX,-rate,rate)+(Math.random()-.5)*wob,-1,1);inputY=clamp(inputY+clamp(ty-inputY,-rate,rate)+(Math.random()-.5)*wob,-1,1);
+      if(on&&!fireHeld){fireHeld=true;beginLaserBurst();stat.bursts++}
+      if(fireHeld&&(++trig>10||!on)){fireHeld=false;endLaserTrigger();trig=0}
+      update(dt);stat.frames++;
+      if(shield<lastShield)stat.hits+=lastShield-shield;lastShield=shield;if(shield<stat.minShield)stat.minShield=shield;
+      stat.kills=interceptorsDestroyed
+    }
+    stat.secs=Math.round(stat.frames/30);stat.cleared=stat.kills>=target;fireHeld=false;try{endLaserTrigger()}catch(_){}
+    invulnerable=true;return stat
+  };
+  window.__balance=async function({runs=8,target=6,risk=1,skill=.75,profiles=['pirate','rogue','hostile','hijacked','xeno','ghost']}={}){
+    const table={};
+    for(const p of profiles){const rs=[];for(let i=0;i<runs;i++){rs.push(window.__botFight(p,{target,risk,skill}));await pause()}
+      const ok=rs.filter(r=>r.cleared),avg=(a,k)=>a.length?+(a.reduce((n,r)=>n+r[k],0)/a.length).toFixed(1):null;
+      table[p]={secondsToClear:avg(ok,'secs'),hitsTaken:avg(rs,'hits'),cleared:`${ok.length}/${runs}`,lost:rs.filter(r=>r.died).length}}
+    console.table(table);return table
+  };
   // Rerun from the console with __selftestRun() (the report starts again).
   window.__selftestRun=()=>{results.length=0;errs.length=0;window.__selftest=null;return main()};
   // Fresh boots first. A start-up fault can depend on what the first contract board rolls

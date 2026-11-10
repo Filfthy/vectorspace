@@ -14,7 +14,7 @@ python -m http.server 8798
 
 Then go to <http://localhost:8798/>. The game asks for fullscreen before it starts.
 
-To check a change, open <http://localhost:8798/?selftest>. It boots a throwaway save five times, steps every board job, story mission, Black Contract, diversion and the simulator, draws every enemy and world type, checks the written text, and prints a pass or fail report (`selftest.js`). Your campaign is not touched.
+To check a change, open <http://localhost:8798/?selftest>. It boots a throwaway save five times, steps every board job, story mission, Black Contract, diversion and the simulator, draws every enemy and world type, checks the written text, and prints a pass or fail report (`selftest.js`). Your campaign is not touched. On that page the console also has a balance bot: `await __balance()` plays eight fights against each enemy type with a simple pilot that takes real damage, and prints how long each took and how many hits it cost.
 
 Progress is saved in the browser and belongs to that address only. Use **Settings > Campaign > Save to file** to back a campaign up or move it to another browser or address.
 

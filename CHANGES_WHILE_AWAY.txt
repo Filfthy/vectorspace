@@ -1800,3 +1800,24 @@ v1790 New job: Lattice Survey (the first job where you must not shoot)
       the station) were never stepped, in the self-test or in any of my
       sweeps today. It now flies through lift-offs to the true end. Those
       stages all pass. 26 templates, 10 diversion kinds.
+
+v1800 A bot pilot for balance, and ghost bounties corrected by it
+      All my testing flies an invulnerable drone, so I could not say how hard
+      a fight really is. The self-test page now has a bot pilot that plays a
+      fight for real: it tracks the nearest target with limited hand speed
+      and some wobble, fires in bursts when on target, and takes real damage.
+      (It never dodges or shoots down incoming fire, so it takes more damage
+      than a player would. It is for comparing enemy types.) From the console
+      on the ?selftest page: await __balance().
+      What it measured, six enemies at risk 1, eight fights each:
+        xenos                 34 s to clear, 3.0 hits taken
+        pirates               57 s, 4.9 hits
+        ghost constructs      64 s, 4.4 hits   (53 s against 42 s for a
+                                                sharper pilot)
+      So ghosts cost 11 to 26% more time than pirates and no more damage.
+      In v1720 I had tripled their bounty on a guess that they were much
+      harder. They are back to 1 extra bounty unit, and jammers 2, as at
+      launch. Xenos are notably the easiest fight in the game.
+      The self-test also now reads every job's card and its done, failed and
+      abandoned letters for every client (26 templates), looking for
+      unfilled or broken text. All clean.

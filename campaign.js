@@ -168,8 +168,10 @@ class CampaignController {
     if(kind==='reactors')return 5;
     if(kind==='aces')return 5; // v810: on top of the fighter kill itself
     if(kind==='tenders')return 3; // v1100: shield tenders, also on top of the kill
-    if(kind==='ghosts')return 2;  // v1470: ghost constructs are only open part of the time (v1720: 1 -> 2)
-    if(kind==='jammers')return 3; // (v1720: 2 -> 3)
+    // v1800: back to 1 and 2. A bot pilot (selftest.js) clears six ghosts only 11 to 26%
+    // slower than six pirates, taking the same hits, so v1720's 2 and 3 overpaid them.
+    if(kind==='ghosts')return 1;
+    if(kind==='jammers')return 2;
     // Armour fields are large (15-27 units), so each unit is worth less than a fighter duel.
     if(kind==='armour')return ['strider','crab','tesla'].includes(sub)?3:1;
     return 0
