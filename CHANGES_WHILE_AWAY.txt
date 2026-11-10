@@ -1662,3 +1662,10 @@ v1670 New land job: Relay Repair
 v1680 Lights On achievement and a relay headline
       Lights On: complete 3 Relay Repairs (43 achievements now). VOX Wire
       reports relay coverage coming back once you have done one.
+
+v1690 Comets
+      About one job in four now has a comet hanging far off in the sky on its
+      open-space legs: a bright head with a fanning, fading tail, fixed in
+      direction like the stars, so it slides across the view as you turn.
+      Chosen from the job itself, so it is the same comet for the whole trip.
+      Scenery only, never in the simulator. New file space-ambience.js.
