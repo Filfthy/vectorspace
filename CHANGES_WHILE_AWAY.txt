@@ -2159,6 +2159,8 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
     - Core Samples: a new moon-only land job. Dive low across marked
       craters to take cores, then the usual pickup. Helix and Free
       Traders, from level 4.
+    - Minelayer: a new enemy in some pirate and mercenary fights from
+      level 5. An orange raider that seeds proximity mines. Kill it first.
   Changed:
     - Contacts now often talk about the specific job on contract cards.
     - New letter from Nyxo after your first ambushed asteroid clearance.
@@ -2303,4 +2305,24 @@ v1940 Letters, notes and records for the new jobs
       - Codex: "Moon craters", unlocked by your first Core Samples job.
       - Achievement: Impact Record (complete 3 Core Samples jobs).
       Self-test passes.
+
+v1950 New enemy: the minelayer
+      About one pirate or mercenary fight in four from level 5 includes a
+      minelayer: an orange raider, 40% tougher than its wing, that drops a
+      proximity mine every few seconds while it is ahead of you. A mine
+      arms when you come within 14 units and goes off a quarter of a
+      second later, so flying close past one hurts. Shoot a mine (one
+      hit) to clear it. Kill the layer and no more are laid
+      ("MINELAYER DOWN · NO MORE MINES"), and mines left over fade a few
+      seconds after the fight ends. Worth an extra bounty (2 units on top
+      of the kill), named on the debrief. In the Guide under Surprises.
+      Measured with the pilot (drone can be lost, risk 5, 10 pirates):
+        with a minelayer   75 s, 8.4 shield lost, 1 drone lost in 5,
+                           about one mine blast per fight, 5 to 9 mines
+        without            68 s, 6.6 shield lost, none lost in 5
+      The pilot never dodges or shoots mines, so a player who does will
+      take less. A first version armed at 9 units with a half-second fuse
+      and never hurt anyone: at cruise speed you were past before it went
+      off, so the fuse is now short and the trigger wider.
+      The self-test flies a forced minelayer fight every run.
 

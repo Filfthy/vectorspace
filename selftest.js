@@ -302,7 +302,14 @@
 
     // Flown for real: no stage is skipped once the pilot has the controls.
     const pilotNotes=[];
-    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','crater_cores','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge','convoy_escort'],id=>{
+    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','crater_cores','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge','convoy_escort','minelayer'],id=>{
+      // v1950: a pirate fight with its minelayer forced: it must lay mines and the fight must end.
+      if(id==='minelayer'){
+        const ML=globalThis.AgentXMinelayers;if(!ML)return 'minelayers.js is not loaded';let laid=0,marked=false;const seen=new Set();
+        const u0=ML.update;ML.update=function(dt){const r=u0.call(this,dt);if(this.live().length)marked=true;for(const m of this.mines)if(!seen.has(m)){seen.add(m);laid++}return r};
+        let line;try{line=flyJob('fighters',{weapon:'laser3',frame:'AX-3B',level:10,risk:5,stageCap:300,maxSecs:400,prepare:m=>{const f=m.modules.find(x=>x.type==='fighters');f.profile='pirate';f.target=10;ML.force=true}})}finally{ML.update=u0;ML.force=false}
+        pilotNotes.push(`minelayer ${laid} mines`);if(!marked)return 'no minelayer appeared';if(!laid)return 'the minelayer laid no mines';if(!/finished/.test(line)||/STUCK/.test(line))return line;return
+      }
       // v1910: the convoy escort flown by the job pilot: every wave must end and the job finish.
       if(id==='convoy_escort'){
         const line=flyJob('convoy_escort',{weapon:'laser3',frame:'AX-3B',level:10,stageCap:400,maxSecs:500,prepare:m=>{pilotNotes.__m=m}});

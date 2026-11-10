@@ -168,6 +168,7 @@ class CampaignController {
     if(kind==='reactors')return 5;
     if(kind==='aces')return 5; // v810: on top of the fighter kill itself
     if(kind==='tenders')return 3; // v1100: shield tenders, also on top of the kill
+    if(kind==='minelayers')return 2; // v1950: on top of the kill
     // v1800: back to 1 and 2. A bot pilot (selftest.js) clears six ghosts only 11 to 26%
     // slower than six pirates, taking the same hits, so v1720's 2 and 3 overpaid them.
     if(kind==='ghosts')return 1;
@@ -195,7 +196,7 @@ class CampaignController {
   bountyTag(){const b=this.lastBounty;return b&&performance.now()-b.at<400&&b.cr>0?` · +CR ${b.cr.toLocaleString()}`:''}
   bountySummary(){
     const b=this.missionBounty;if(!b||b.cr<=0)return null;
-    const names={ghosts:['ghost construct','ghost constructs'],jammers:['ghost jammer','ghost jammers'],fighters:['fighter','fighters'],armour:['armour unit','armour units'],'heavy walkers':['heavy walker','heavy walkers'],generators:['generator','generators'],reactors:['reactor','reactors'],aces:['named ace','named aces'],tenders:['shield tender','shield tenders']};
+    const names={ghosts:['ghost construct','ghost constructs'],jammers:['ghost jammer','ghost jammers'],fighters:['fighter','fighters'],armour:['armour unit','armour units'],'heavy walkers':['heavy walker','heavy walkers'],generators:['generator','generators'],reactors:['reactor','reactors'],aces:['named ace','named aces'],tenders:['shield tender','shield tenders'],minelayers:['minelayer','minelayers']};
     const text=Object.entries(b.counts).map(([k,v])=>`${v} ${(names[k]||[k,k])[v===1?0:1]}`).join(', ');
     return {cr:Math.round(b.cr/50)*50,xp:Math.round(b.xp),text}
   }
@@ -275,11 +276,11 @@ class CampaignController {
     fx.overchargeT=Math.max(0,fx.overchargeT-dt);fx.flareT=Math.max(0,fx.flareT-dt);fx.graceT=Math.max(0,fx.graceT-dt);fx.hotCD=Math.max(0,fx.hotCD-dt);
     if(fx.naniteLeft>0){fx.naniteT-=dt;if(fx.naniteT<=0){fx.naniteT=1.2;if(shield<this.maxShield()){shield++;hud()}fx.naniteLeft--;}}
     if(typeof fighters!=='undefined')for(const f of fighters)if(f.stunT>0)f.stunT=Math.max(0,f.stunT-dt);
-    globalThis.AgentXHijacked?.update(dt);globalThis.AgentXAces?.update(dt);globalThis.AgentXTenders?.update(dt);globalThis.AgentXGhosts?.update(dt)
+    globalThis.AgentXHijacked?.update(dt);globalThis.AgentXAces?.update(dt);globalThis.AgentXTenders?.update(dt);globalThis.AgentXMinelayers?.update(dt);globalThis.AgentXGhosts?.update(dt)
   }
   onFighterKilled(f){
     globalThis.AgentXHijacked?.onKilled(f);
-    this.fx.streak++;this.bumpStat('kills.fighters');globalThis.AgentXAces?.onKilled(f);globalThis.AgentXTenders?.onKilled(f);globalThis.AgentXGhosts?.onKilled(f);
+    this.fx.streak++;this.bumpStat('kills.fighters');globalThis.AgentXAces?.onKilled(f);globalThis.AgentXTenders?.onKilled(f);globalThis.AgentXMinelayers?.onKilled(f);globalThis.AgentXGhosts?.onKilled(f);
     // Field Lattice (Helix reward): every kill feeds the shield back by one.
     const gain=this.currentMission?this.internalSum('killShield'):0;
     if(gain>0&&typeof shield!=='undefined'&&shield<this.maxShield()){shield=Math.min(this.maxShield(),shield+gain);hud()}
