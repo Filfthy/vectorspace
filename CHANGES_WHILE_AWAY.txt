@@ -1334,3 +1334,12 @@ v1410 Lighter xeno models (speed)
       now costs 0.35 ms and a hornet 0.4 to 0.8 ms. The Drifter is
       lighter too. Other new scenes measured 3 to 4 ms a frame (fight in
       progress, minefield, plains with and without a blizzard).
+
+v1420 Lighter walker detail (speed)
+      The same check on the v1350 walkers: the new Hound cost about 60%
+      more to draw than the old one, which adds up across a dune field of
+      15 machines. Thin parts are now plain lines: the leg rams, the
+      Hound's ears, visor, gun barrels and tail, the Strider's antennae and
+      visor, the Crab's eye stalks and the Stilt's lens rings and mast.
+      The new Hound now draws in about the same time as the old one.
+

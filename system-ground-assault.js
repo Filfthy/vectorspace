@@ -39,11 +39,15 @@ function gaBuilder(topo){
   m.marks=marks;
   return m
 }
+// v1420: a plain line (no faces, so it hides nothing and costs little to draw) for thin
+// parts such as rams, antennae and masts. Works in both builder modes (topology or pose).
+function gaLine(m,pts,closed=false){const T=m.T||(p=>p),b=m.v.length;for(const p of pts){const q=T(p);m.v.push([q[0],q[1],q[2]])}
+  if(m.e){for(let i=0;i<pts.length-1;i++)m.e.push([b+i,b+i+1]);if(closed)m.e.push([b+pts.length-1,b])}}
 // One leg in already-posed model coordinates.
 function gaLeg(m,L,t,i){
   m.beam(L.hip,L.knee,t,t*1.3);
   // v1350: a hydraulic ram from the thigh to the shin, behind the knee.
-  {const mix=(a,b,k)=>[a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k,a[2]+(b[2]-a[2])*k];m.beam(mix(L.hip,L.knee,.3),mix(L.knee,L.ankle,.38),t*.32,t*.32)}
+  {const mix=(a,b,k)=>[a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k,a[2]+(b[2]-a[2])*k];gaLine(m,[mix(L.hip,L.knee,.3),mix(L.knee,L.ankle,.38)])}
   m.mark('knee'+i,()=>m.box(L.knee,[t*1.6,t*1.6,t*1.6]));
   m.beam(L.knee,L.ankle,t*.8,t*1.1);
   m.box(L.ankle,[t*1.25,t*1.25,t*1.25]);
@@ -82,8 +86,8 @@ const GA_KINDS=(()=>{
         m.loft([m.ringXZ(0,H-1.7,0,1.7,1.7,8,Math.PI/8),m.ringXZ(0,H-1.1,0,3.0,3.1,8,Math.PI/8),m.ringXZ(0,H-.3,0,3.45,3.55,8,Math.PI/8),m.ringXZ(0,H+.6,0,3.2,3.3,8,Math.PI/8),m.ringXZ(0,H+1.3,0,2.4,2.5,8,Math.PI/8),m.ringXZ(0,H+1.8,0,1.3,1.35,8,Math.PI/8)]);
         m.loft([m.ringXZ(0,H+1.7,.3,1.1,1.1,6),m.ringXZ(0,H+2.2,.3,.75,.75,6)]);
         m.loft([[[-.9,H-.6,-3.2],[.9,H-.6,-3.2],[1.0,H+.5,-3.1],[-1.0,H+.5,-3.1]],[[-.7,H-.45,-4.0],[.7,H-.45,-4.0],[.75,H+.35,-3.95],[-.75,H+.35,-3.95]]]);
-        m.box([0,H+.05,-4.02],[1.2,.18,.06]);
-        for(const sx of[-1,1])m.beam([sx*.5,H+.45,-3.6],[sx*.9,H+1.6,-4.3],.08,.08,.5);
+        gaLine(m,[[-.6,H+.05,-4.03],[.6,H+.05,-4.03]]);
+        for(const sx of[-1,1])gaLine(m,[[sx*.5,H+.45,-3.6],[sx*.9,H+1.6,-4.3]]);
         m.box([0,H-2.0,0],[.9,1.0,.9]);
         m.loft([[[-1.1,H-2.9,-1.4],[1.1,H-2.9,-1.4],[1.1,H-2.2,-1.6],[-1.1,H-2.2,-1.6]],[[-1.2,H-3.0,1.2],[1.2,H-3.0,1.2],[1.2,H-2.1,1.2],[-1.2,H-2.1,1.2]]]);
         for(const x of[-.6,0,.6])m.barrel(x,H-2.55,-1.4,-4.2,.16);
@@ -101,7 +105,7 @@ const GA_KINDS=(()=>{
       body(m){
         // v1350: a domed carapace with eye stalks, and claw arms that carry the twin cannons.
         m.loft([shell(Y-.8,1.6,2.6),shell(Y-.1,2.35,3.3),shell(Y+.6,2.45,3.4),shell(Y+1.15,1.9,2.8),shell(Y+1.45,1.1,1.9)]);
-        for(const sx of[-1,1]){m.beam([sx*.6,Y+.9,-2.6],[sx*.9,Y+1.9,-3.1],.12,.12,.7);m.box([sx*.92,Y+1.98,-3.15],[.3,.24,.3])}
+        for(const sx of[-1,1]){gaLine(m,[[sx*.6,Y+.9,-2.6],[sx*.9,Y+1.9,-3.1]]);m.box([sx*.92,Y+1.98,-3.15],[.3,.24,.3])}
         for(const sx of[-1,1]){const x=sx*.75;
           m.beam([sx*1.7,Y-.1,-2.6],[sx*1.95,Y+.1,-3.5],.4,.4,.8);m.beam([sx*1.95,Y+.1,-3.5],[x,Y-.2,-4.05],.32,.32,.85);
           m.loft([[[x-.32,Y-.5,-3.9],[x+.32,Y-.5,-3.9],[x+.32,Y+.1,-3.9],[x-.32,Y+.1,-3.9]],[[x-.22,Y-.42,-4.9],[x+.22,Y-.42,-4.9],[x+.22,Y+.02,-4.9],[x-.22,Y+.02,-4.9]]]);
@@ -136,10 +140,10 @@ const GA_KINDS=(()=>{
         m.beam([0,Y+.05,-1.15],[0,Y+.45,-1.65],.32,.36,.85);
         m.loft([[[-.2,Y+.28,-1.55],[.2,Y+.28,-1.55],[.22,Y+.62,-1.6],[-.22,Y+.62,-1.6]],[[-.16,Y+.32,-2.15],[.16,Y+.32,-2.15],[.18,Y+.56,-2.15],[-.18,Y+.56,-2.15]],[[-.08,Y+.36,-2.55],[.08,Y+.36,-2.55],[.09,Y+.48,-2.5],[-.09,Y+.48,-2.5]]]);
         m.loft([[[-.15,Y+.12,-1.65],[.15,Y+.12,-1.65],[.16,Y+.26,-1.65],[-.16,Y+.26,-1.65]],[[-.07,Y+.16,-2.35],[.07,Y+.16,-2.35],[.08,Y+.26,-2.3],[-.08,Y+.26,-2.3]]]);
-        m.box([0,Y+.5,-2.12],[.3,.06,.08]);
-        for(const sx of[-1,1])m.beam([sx*.16,Y+.6,-1.62],[sx*.34,Y+.92,-1.3],.08,.16,.3);
-        for(const sx of[-1,1]){m.box([sx*.36,Y+.34,-.45],[.2,.2,.6]);m.barrel(sx*.36,Y+.34,-.6,-1.5,.06)}
-        m.beam([0,Y+.2,1.0],[0,Y+.75,1.55],.06,.06,.5);
+        gaLine(m,[[-.15,Y+.5,-2.13],[.15,Y+.5,-2.13]]);
+        for(const sx of[-1,1])gaLine(m,[[sx*.12,Y+.6,-1.66],[sx*.36,Y+.95,-1.3],[sx*.22,Y+.62,-1.5]]);
+        for(const sx of[-1,1]){m.box([sx*.36,Y+.34,-.45],[.2,.2,.6]);gaLine(m,[[sx*.36,Y+.34,-.75],[sx*.36,Y+.34,-1.5]])}
+        gaLine(m,[[0,Y+.2,1.0],[0,Y+.5,1.3],[0,Y+.75,1.55]]);
       }}
   }
   { // L2 STILT: tripod scout
@@ -153,8 +157,8 @@ const GA_KINDS=(()=>{
         // v1350: a rounded sensor eye on three legs: a lens set into its front and an
         // antenna mast behind.
         m.loft([m.ringXZ(0,H-.45,0,.3,.3,8),m.ringXZ(0,H-.25,0,.75,.75,8),m.ringXZ(0,H+.05,0,.98,.98,8),m.ringXZ(0,H+.35,0,.85,.85,8),m.ringXZ(0,H+.58,0,.45,.45,8)]);
-        m.loft([m.ringXY(0,H+.05,-.9,.42,8),m.ringXY(0,H+.05,-1.02,.36,8),m.ringXY(0,H+.05,-.98,.14,8)],false,false);
-        m.beam([0,H+.55,.2],[0,H+1.35,.45],.05,.05,.6);m.box([0,H+1.38,.46],[.12,.12,.12]);
+        gaLine(m,m.ringXY(0,H+.05,-.93,.42,8),true);gaLine(m,m.ringXY(0,H+.05,-.99,.16,6),true);
+        gaLine(m,[[0,H+.55,.2],[0,H+1.35,.45]]);m.box([0,H+1.38,.46],[.12,.12,.12]);
         for(const x of[-.3,.3])m.barrel(x,H-.2,-.5,-1.6,.07);
         for(const L of legs)m.box(L.hip,[.3,.3,.3]);
       }}
