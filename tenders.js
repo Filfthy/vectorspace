@@ -32,7 +32,7 @@ const AgentXTenders={
   laserMultiplier(f){return this.shielded(f)?this.LASER_MULT:1},
   update(dt){
     const p=this.pending;if(!p)return;p.wait-=dt;
-    if(p.wait<=0||(typeof callout==='function'&&callout(p.text,2.4))){if(p.wait>0&&audio?.hasVoice?.('shieldTenderContact'))audio.playVoice('shieldTenderContact',{once:false,priority:false});this.pending=null}
+    if(p.wait<=0||(typeof callout==='function'&&callout(p.text,2.4,false))){if(p.wait>0&&audio?.hasVoice?.('shieldTenderContact'))audio.playVoice('shieldTenderContact',{once:false,priority:false});this.pending=null}
   },
   onKilled(f){
     if(!f?.tender)return;

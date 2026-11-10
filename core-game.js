@@ -108,7 +108,7 @@ class Game {
  flash=.12;say(msg,.45);shake=5
 }
   update(dt){
- if(paused)return;if(statusHold>0){statusHold-=dt;if(statusHold<=0)hud()}if(mode==='idle'||mode==='dead')return;
+ if(paused)return;if(statusHold>0){statusHold-=dt;if(statusHold<=0)hud()}if(mode==='idle'||mode==='dead'){drainCallouts(dt);return}
  updatePlayerMissiles(dt);
  time+=dt;modeT+=dt;shotCD=Math.max(0,shotCD-dt);playerGunKick=Math.max(0,playerGunKick-dt);playerGunKicks[0]=Math.max(0,playerGunKicks[0]-dt);playerGunKicks[1]=Math.max(0,playerGunKicks[1]-dt);flash=Math.max(0,flash-dt);
  speechSubtitleT=Math.max(0,speechSubtitleT-dt);if(speechSubtitleT<=0)speechSubtitleText='';drainCallouts(dt);

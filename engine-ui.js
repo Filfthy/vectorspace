@@ -46,9 +46,12 @@ function showSpeechSubtitle(key,text,audioDuration=0){
 // simply never appear). It now waits in a short queue and shows as soon as the line
 // clears; a queued line older than six seconds is no longer news and is let go.
 let calloutQueue=[];
-function callout(text,seconds=1.4){
+// A caller that pairs its callout with a voice line passes queue=false: it keeps waiting
+// for the current spoken line to finish (callout returns false) so the two arrive together.
+function callout(text,seconds=1.4,queue=true){
   if(!text||mode==='idle'||mode==='dead'||gateVisible()||campaign?.isOpen?.()||options?.isOpen?.()||tutorialHudActive())return false;
   if(speechSubtitleT>0&&!speechSubtitleCallout){
+    if(!queue)return false;
     const s=String(text);if(!calloutQueue.some(q=>q.text===s)){calloutQueue.push({text:s,seconds,age:0});if(calloutQueue.length>3)calloutQueue.shift()}
     return true
   }
@@ -56,6 +59,8 @@ function callout(text,seconds=1.4){
 }
 function drainCallouts(dt){
   if(!calloutQueue.length)return;
+  // Nothing queued in one run carries over a death, a debrief or the next mission.
+  if(mode==='idle'||mode==='dead'){calloutQueue.length=0;return}
   for(const q of calloutQueue)q.age+=dt;calloutQueue=calloutQueue.filter(q=>q.age<6);
   if(calloutQueue.length&&!(speechSubtitleT>0)){const q=calloutQueue.shift();callout(q.text,q.seconds)}
 }

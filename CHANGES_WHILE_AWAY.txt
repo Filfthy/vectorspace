@@ -1377,3 +1377,26 @@ v1450 Xeno migrations draw faster
       as plain lines, which look the same from any distance. The herd now
       takes about 2.8 ms a frame instead of 4.5 ms, and a whole migration
       frame about 10 ms instead of 15 ms.
+
+v1460 Fixes from a review of today's changes
+      - Missiles now count as firing, as lasers do. Two missiles into a
+        migration's escort used to go unnoticed (no Helix penalty, no angry
+        escort), and clearing a fight in progress with missiles alone was
+        recorded as ignoring it, with no pay.
+      - Firing on a migration now costs the Helix standing at once, as the
+        notes said, even if the job then fails or is abandoned. The escort's
+        music also turns violent when it attacks.
+      - Minefield: a mine you shot just before its neighbour's blast set it
+        off was counted twice, which made "minefield cleared" easier than
+        meant. Mines set off by a chain that was set off by your shot now
+        count too.
+      - Plains weather (blizzards, dust storms) is for board jobs only, as
+        intended. Story, faction agent and Black Contract missions no longer
+        get it.
+      - Messages waiting behind speech are dropped on death and between
+        missions, so a stale "DRIFTER SCANNED" can't appear in the next one.
+        Ace, shield tender and loyalty conflict warnings, which come with a
+        voice line, wait for the current line to finish as before.
+      - Far trees: the faster distant-tree outline (v1330) was also used for
+        swamp plants, dead pines and fallen trunks, turning them into leafy
+        pines in the distance. Only living, upright pines get it now.

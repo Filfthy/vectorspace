@@ -1132,6 +1132,9 @@ function updatePlayerMissiles(dt){
    if(impactDistance<Math.max(2.15,(f.s||1)*1.8)){
      const p=proj([f.x,f.y,f.z])||proj([m.x,m.y,m.z]);
      f.hp-=m.damage||PLAYER_MISSILE_DAMAGE;f.hitFx=HIT_FX_TOTAL;
+     // v1460: a missile counts as firing on a fighter, as a laser hit does (a migration's
+     // escort turns hostile, joining a fight in progress counts).
+     if(!(xenoNest.active&&f.hiveNest))routeDiversion?.onPlayerHitFighter?.(f);
      if(p){spark(p.x,p.y,C.y,18);registerFighterHit(f,p,p)}
      if(f.hp<=0)queueObjectDestruction(f,p);else SoundFX.hit();
      // Chain Warhead: a killing missile carries on once to the nearest other hostile.

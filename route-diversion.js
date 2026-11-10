@@ -196,7 +196,12 @@ const routeDiversion={
     if(this.firedOnHerd)return;this.firedOnHerd=true;
     for(const f of fighters)if(!f.dead){f.provoked=true;f.shotsLeft=3}
     callout('YOU FIRED ON THE MIGRANTS · ESCORT ATTACKING',2);
-    this.record({id:'fired',...this.KINDS.migration.fired,repFaction:'helix'})
+    if(audio?.music?.setMode)audio.music.setMode('violent');
+    this.record({id:'fired',...this.KINDS.migration.fired,repFaction:'helix'});
+    // v1460: Helix hears of it at once, so the standing drops now, even if the job later
+    // fails or is abandoned. The debrief still lists it but does not apply it twice.
+    const m=campaign.currentMission,d=m?.diversions?.[m.diversions.length-1];
+    if(d&&d.outcome==='fired'&&campaign.statsLive?.()&&campaign.factions?.helix){campaign.applyRep('helix',d.rep);d.repApplied=true}
   },
   drifterShotCandidate(aim,bestDistance=1e9){
     if(!this.active||this.state!=='migration'||phase!=='space')return null;let best=null,bd=bestDistance,bp=null;
@@ -248,11 +253,13 @@ const routeDiversion={
   },
   detonateMine(m,byShot){
     if(m.dead)return;m.dead=true;
+    // v1460: a mine X shot, or one set off by a chain X started, counts as cleared once.
+    const mine=byShot||m.chained;if(mine)m.cleared=true;
     const p=proj([m.x,m.y,m.z]);if(p){if(typeof explodeMesh==='function')explodeMesh(m,stationProximityMineMesh,p,C.r);spark(p.x,p.y,C.y,10)}
     SoundFX.explosion?.();
     if(Math.hypot(m.x-shipX,m.y-shipY,m.z)<10)damage('MINE BLAST');
     // Neighbours catch the blast a moment later.
-    for(const o of this.mines)if(!o.dead&&!o.passed&&o!==m&&Math.hypot(o.x-m.x,o.y-m.y,o.z-m.z)<14&&!(o.armed&&o.armT<.25)){o.armed=true;o.armT=.25;o.chained=byShot||o.chained}
+    for(const o of this.mines)if(!o.dead&&!o.passed&&o!==m&&Math.hypot(o.x-m.x,o.y-m.y,o.z-m.z)<14&&!(o.armed&&o.armT<.25)){o.armed=true;o.armT=.25;o.chained=mine||o.chained}
   },
   mineShotCandidate(aim,bestDistance=1e9){
     if(!this.active||this.state!=='minefield'||phase!=='space')return null;let best=null,bd=bestDistance,bp=null;
@@ -260,10 +267,10 @@ const routeDiversion={
       const d=Math.hypot(aim.x-p.x,aim.y-p.y),r=clamp(m.s*p.k*2.2,14,72);if(d<r&&d<bd){best=m;bd=d;bp=p}}
     return best?{mine:best,distance:bd,point:bp}:null
   },
-  hitMine(m){if(!m||m.dead)return;this.minesShot++;this.detonateMine(m,true)},
+  hitMine(m){if(!m||m.dead)return;this.minesShot++;this.detonateMine(m,true)},   // minesShot is kept for the record only
   finishMinefield(){
     // Mines X shot, plus those they set off, count as cleared; ones X blundered into don't.
-    const def=this.KINDS.minefield,gone=this.minesShot+this.mines.filter(m=>m.dead&&m.chained).length;this.mines=[];
+    const def=this.KINDS.minefield,gone=this.mines.filter(m=>m.dead&&m.cleared).length;this.mines=[];
     if(gone>=Math.ceil(this.minesTotal*.4)){callout(def.cleared.say,2);SoundFX.objectiveComplete?.();this.record({id:'cleared',...def.cleared})}
     else{callout('MINEFIELD BEHIND · ROUTE CONTINUES',1.8);this.recordIgnored()}
     this.end()

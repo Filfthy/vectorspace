@@ -1656,7 +1656,7 @@ function resolvePaletteColor(col){
 // outline (three filled tiers on a trunk) instead of every face of its layered mesh.
 // One fill and one stroke instead of dozens: the dense forest edge on the plains drew
 // at a quarter of the frame rate without it, and nothing is lost at that size.
-const FOREST_TREE_FAR=72;
+const FOREST_TREE_FAR=72,FOREST_FAR_PINES=new Set(['pineTall','pineBroad','pineYoung']);
 function forestTreeBounds(mesh){
   if(mesh._lodBounds)return mesh._lodBounds;
   let minY=Infinity,maxY=-Infinity,r=0;for(const v of mesh.v){minY=Math.min(minY,v[1]);maxY=Math.max(maxY,v[1]);r=Math.max(r,Math.hypot(v[0],v[2]))}
@@ -1684,7 +1684,10 @@ function drawLayeredForestTree(obj,mesh,assetId,alphaScale=1){
   if(!obj||!mesh)return false;
   const layout=forestTreeLayer(mesh,assetId);
   if(!layout){drawMesh(obj,mesh,resolvePaletteColor(obj?.col)||resolvePaletteColor(mesh?.singleColorKey)||C.g,alphaScale);return true}
-  {const d=camPoint([obj.x,obj.y,obj.z])[2];obj._farTree=false;if(d>FOREST_TREE_FAR)return drawFarForestTree(obj,mesh,layout,d,alphaScale)}
+  // v1460: only living pines standing upright get the far outline. Swamp plants, dead
+  // pines and fallen or leaning trunks keep their own shapes at any distance.
+  {const d=camPoint([obj.x,obj.y,obj.z])[2];obj._farTree=false;
+    if(d>FOREST_TREE_FAR&&FOREST_FAR_PINES.has(assetId)&&!obj.obstacle&&Math.abs(obj.rot?.[0]||0)<.25&&Math.abs(obj.rot?.[2]||0)<.25)return drawFarForestTree(obj,mesh,layout,d,alphaScale)}
   const woodCol=resolvePaletteColor(layout.woodColorKey||layout.woodColor||mesh.woodColorKey||mesh.woodColor)||C.o;
   const foliageCol=resolvePaletteColor(layout.foliageColorKey||layout.foliageColor||mesh.foliageColorKey||mesh.foliageColor)||C.g;
   const rot=obj.rot||[0,0,0],mx=obj.mx||1,my=obj.my||1,mz=obj.mz||1;

@@ -657,6 +657,7 @@ class SurfaceDestinationApproachController {
     this.weather=null;this.weatherIntro=0;
     const m=typeof campaign!=='undefined'?campaign.currentMission:null;
     if(!m||m.training||m.devGroundTest||this.destination==='osd')return;
+    if(!this.forceWeather&&(m.kind==='story'||m.factionChain||m.factionEpilogue||!m.templateId))return;   // v1460: board jobs only, as the note says
     const r=Math.random(),side=Math.random()<.5?-1:1;
     if(this.worldKind==='ice'&&r<.45)this.weather={kind:'blizzard',col:C.w,wind:side*(7+Math.random()*5),haze:.9,say:'BLIZZARD ON THE PLAINS · VISIBILITY LOW'};
     else if(this.worldKind==='arid'&&r<.4)this.weather={kind:'dust',col:C.y,wind:side*(14+Math.random()*8),haze:.86,say:'DUST STORM · VISIBILITY LOW'};
