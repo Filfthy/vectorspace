@@ -1859,3 +1859,45 @@ v1810 Enemy hull follows risk on every job (it did not on five of them)
       If you would rather keep these jobs easy: git revert the v1810 commit.
       The self-test now checks that every board job's fight uses the hull
       band its card promises.
+
+v1820 Lattice Survey rebuilt as three shells, and a fix for stuck crystal glints
+      Until now my self-test skipped each stage after a second or two, so
+      it proved nothing could crash but not that a job could be finished.
+      It now has pilots that fly by steering alone. What they found:
+      - The four survey land jobs (Survey Run, Vent Survey, Crash Recovery,
+        Relay Repair) fly to the end with every marker reached, in 23 to
+        26 s of plains flying. Nothing to change.
+      - Lattice Survey, added in v1790, was over in 10 seconds: three cores
+        passed at cruise speed, for more pay than a full dogfight. Not
+        good enough, so it is now three shells of three scans each:
+          OUTER SHELL   cores strung out wide, skirt each in turn (as before)
+          INNER SHELL   cores in pairs 62 apart, fly between them (both scan)
+          THE HEART     a slalom, cores 20 to 28 off your line on alternate
+                        sides, so flying straight wakes it
+        The HUD names the shell and its count ("INNER SHELL · 2/3"). When a
+        shell is mapped you still have to keep clear of what is left of it,
+        and the next one comes up once that is behind you. After the last
+        scan the data is safe and the remaining cores cannot wake.
+        The pilot now takes 31 to 44 s and gets through quietly 17 to 20
+        times in 20, depending on how I set its hands. A straight line
+        always wakes it. Pay and XP are down by about a third (risk 6:
+        about CR 6,900 and 630 XP), since it is still a short job.
+      - If you turned away from the lattice it used to wait for you along
+        its original line. It now judges "behind you" from where you are
+        looking, so it always comes round.
+      A fifth independent review (v1700 to v1810) found one real bug:
+      - Crystal spire glints had been stuck on since v1710. A comment I
+        added on the same line swallowed the "only now and then" test, so
+        every spire showed its star all the time. Fixed, and the self-test
+        now checks that a spire glints about an eighth of the time.
+      and two small things, also fixed:
+      - A Lattice Survey's result was booked as a diversion: it counted
+        towards Good Samaritan and the debrief called it "Diversion". It
+        now reads "Survey · Ghost lattice surveyed intact" and does not
+        count.
+      - The forest and swamp ground cache was being thrown away whenever a
+        swamp spitter fired (harmless, just wasted work).
+      Also measured, no change: city scenes cost about 10 ms a frame here,
+      6 of it in the traffic. It is all in filling car and building faces,
+      and I found no saving that leaves the picture exactly as it is.
+

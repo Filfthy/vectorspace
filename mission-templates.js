@@ -2686,7 +2686,9 @@
     factionWeights:{helix:5,security:3},
     board:{enabled:true,category:'intrusion',weight:.5,maxPerBoard:1},
     risk:{base:3,min:3,levelsPerStep:2,max:9,jitter:1},
-    reward:{basePay:1500,payPerRisk:950,payRiskSquare:95,randomPay:300,roundPay:50,baseXp:240,xpPerRisk:72,xpRiskSquare:7},
+    // v1820: about a third less. A bot flies the three shells in well under a minute, and
+    // the old figures paid more than a full dogfight at the same risk.
+    reward:{basePay:1000,payPerRisk:620,payRiskSquare:60,randomPay:300,roundPay:50,baseXp:160,xpPerRisk:48,xpRiskSquare:5},
     defaults:{},
     sections:[
       {type:'route_diversion',label:'Survey the Lattice',params:{diversion:'latticeSurvey',main:true,spaceCombat:false,fighterHp:12}}
@@ -2696,8 +2698,8 @@
         contactId:'navira_derris',
         titles:['Lattice Survey','Sleeping Ordnance','Do Not Wake It'],
         descriptions:[
-          'There is a dormant lattice on this lane and I want its controller mapped while it is still asleep. Fly close enough to three of its cores to scan them. Do not fire, and do not brush a core. If it wakes there will be nothing left for me to study.',
-          'A sleeping ghost lattice, intact, is the rarest thing I have been offered this year. Scan three cores from close range and come away. Quietly. I cannot stress quietly enough.'
+          'There is a dormant lattice on this lane and I want its controller mapped while it is still asleep. It has three shells. Fly close enough to scan three cores in each. Do not fire, and do not brush a core. If it wakes there will be nothing left for me to study.',
+          'A sleeping ghost lattice, intact, is the rarest thing I have been offered this year. Three shells, three cores scanned in each from close range, and then come away. Quietly. I cannot stress quietly enough.'
         ],
         completionSubjects:['Lattice telemetry received','The survey'],
         completionBodies:['The telemetry is in. CR {credits} released. Standing: +{rep}. If the lattice is still asleep, you have my thanks. If it is not, we will discuss what the word quietly means.'],
@@ -2709,8 +2711,8 @@
         contactId:'kudo_shang',
         titles:['Ordnance Mapping','Lattice Reconnaissance','Quiet Sweep'],
         descriptions:[
-          'OSD needs a dormant lattice mapped before a clearance team goes in. Scan three cores at close range. Do not fire and do not wake it. A woken lattice costs me a team.',
-          'Reconnaissance, not clearance. Three cores scanned, the lattice left asleep, and you gone. If it wakes, finish it. But it should not wake.'
+          'OSD needs a dormant lattice mapped before a clearance team goes in. It has three shells. Scan three cores in each at close range. Do not fire and do not wake it. A woken lattice costs me a team.',
+          'Reconnaissance, not clearance. Three shells, three cores scanned in each, the lattice left asleep, and you gone. If it wakes, finish it. But it should not wake.'
         ],
         completionSubjects:['Lattice mapped','Reconnaissance complete'],
         completionBodies:['The scans are with the clearance team. Payment: CR {credits}. Standing: +{rep}.'],

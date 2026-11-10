@@ -19,6 +19,7 @@
 //               spend a skill point, save and reload, every mail and hub panel
 //   letters     every template for every client: the card, and the done, failed and
 //               abandoned letters, checked for unfilled or broken text
+//   pilots      the survey land jobs and the Lattice Survey flown by steering, nothing skipped
 //   data        achievements, codex, wire and contact letters evaluate. No semicolons or
 //               dashes in written content
 //
@@ -47,6 +48,62 @@
       for(let k=0;k<5;k++)update(1/30)
     }
   };
+  // v1820 PILOTS. These fly a stage by steering, the way a player has to, with nothing
+  // skipped, to prove the stage can actually be finished.
+  // Step (and skip) forward until the mission is on the given stage type.
+  const toStage=type=>{
+    for(let k=0;k<40&&campaign.currentMission&&campaign.currentStage()?.type!==type;k++){
+      for(let i=0;i<30;i++)update(1/30);
+      if(exiting()){for(let i=0;i<900&&campaign.currentMission&&exiting();i++)update(1/30);continue}
+      if(campaign.currentStage()?.type!==type)scenarioFlow.completeCurrentStage?.()
+    }
+    return campaign.currentStage?.()?.type===type
+  };
+  // Land approach: turn towards each survey marker in route order, then the destination.
+  const flyApproach=(maxSecs=240)=>{
+    const S=surfaceDestination;for(let i=0;i<400&&phase!=='destinationApproach';i++)update(1/30);
+    const idx=campaign.currentStageIndex,points=S.survey?.length||0;let f=0;
+    const flying=()=>campaign.currentMission&&campaign.currentStageIndex===idx&&phase==='destinationApproach';
+    for(;f<maxSecs*30&&flying();f++){
+      const left=S.surveyLeft().sort((a,b)=>a.worldZ-b.worldZ),t=left[0]?{x:left[0].x,z:left[0].worldZ}:{x:S.targetX,z:S.targetWorldZ};
+      inputX=clamp(wrapAngle(Math.atan2(t.x-shipX,t.z-travel)-viewYaw)*2.2,-1,1);inputY=0;update(1/30)
+    }
+    inputX=0;const done=!flying();return{done,secs:Math.round(f/30),points,left:done?0:S.surveyLeft().length}
+  };
+  // Lattice Survey, one frame of steering: lean away from every core whose line would
+  // pass too close (sooner ones count for more), otherwise drift in towards the next
+  // core still to scan. Limited hand speed and a little wobble, like the fight bot.
+  const latticeSteer=(skill=1)=>{
+    const rd=routeDiversion,rate=.09*skill,keep=26+3/skill;let ax=0,ay=0,tgt=null,tz=1e9;
+    for(const a of rd.anchors){
+      if(a.f.dead)continue;const q=camPoint([a.x,a.y,a.z]),miss=Math.hypot(q[0],q[1]);
+      if(q[2]>-18&&q[2]<150&&miss<keep){const w=(keep-miss+4)/keep*60/Math.max(25,q[2]+25),m=Math.max(.01,miss);ax-=q[0]/m*w;ay+=q[1]/m*w}
+      if(!a.scanned&&q[2]>10&&q[2]<tz){tz=q[2];tgt={q,miss}}
+    }
+    let tx=0,ty=0;
+    if(!rd.surveyDone){
+      if(ax||ay){const m=Math.max(1,Math.hypot(ax,ay));tx=ax/m;ty=ay/m}
+      else if(tgt&&tgt.miss>40&&rd.passScanned<rd.KINDS.latticeSurvey.need){tx=tgt.q[0]/tgt.miss*.6;ty=-tgt.q[1]/tgt.miss*.6}
+    }
+    inputX=clamp(inputX+clamp(tx-inputX,-rate,rate)+(Math.random()-.5)*.03/skill,-1,1);
+    inputY=clamp(inputY+clamp(ty-inputY,-rate,rate)+(Math.random()-.5)*.03/skill,-1,1)
+  };
+  // Fly a launched Lattice Survey to its end. Stops (woke:true) if the lattice wakes.
+  const flyLattice=(skill=1,maxSecs=200)=>{
+    const rd=routeDiversion;inputX=inputY=0;for(let i=0;i<900&&rd.state!=='lattice';i++)update(1/30);
+    if(rd.state!=='lattice')return{started:false};
+    const idx=campaign.currentStageIndex,st={started:true,woke:false,frames:0};
+    for(;st.frames<maxSecs*30&&campaign.currentMission&&campaign.currentStageIndex===idx;st.frames++){
+      if(rd.state==='latticeFight'){st.woke=true;st.at=`${rd.KINDS.latticeSurvey.shells[rd.pass]} after ${rd.passScanned}`;break}
+      if(rd.state!=='lattice')break;
+      latticeSteer(skill);update(1/30)
+    }
+    inputX=inputY=0;st.secs=Math.round(st.frames/30);
+    st.quiet=!st.woke&&(campaign.currentMission?.diversions||[]).some(d=>d.outcome==='surveyed');return st
+  };
+  // From the console, after launching a job: __pilots.toStage('surface_destination_approach'),
+  // __pilots.flyApproach(), __pilots.flyLattice(skill).
+  window.__pilots={toStage,flyApproach,flyLattice};
   async function group(name,items,run){
     const details=[];let n=0;
     for(const it of items){
@@ -82,11 +139,31 @@
 
     await group('diversions',Object.keys(routeDiversion.KINDS),kind=>{const m=c.makeDevTemplatePreview('asteroid_delivery','security');m.routeEncounter=null;m.modules=m.modules.filter(x=>x.type!=='route_diversion'&&!x.routeEncounter);m.modules.splice(0,0,{type:'route_diversion',label:'Route Diversion',diversion:kind,difficulty:2,spaceCombat:false,fighterHp:12});m.stages=m.modules.map(x=>x.label);
       c.launchDevTemplateTest('asteroid_delivery','security',{mission:m});invulnerable=true;for(let i=0;i<600&&!routeDiversion.active;i++)update(1/30);if(!routeDiversion.active)return 'never started';
-      for(let i=0;i<30*90&&routeDiversion.active;i++){
-        // A survey only ends when cores are scanned: skirt the nearest core (scanned or not), inside scan range.
-        if(kind==='latticeSurvey'&&routeDiversion.state==='lattice'){const a=routeDiversion.anchors.filter(x=>!x.f.dead).sort((p,q)=>Math.abs(p.z)-Math.abs(q.z))[0];if(a){shipX=a.x+32;shipY=a.y}}
+      const secs=kind==='latticeSurvey'?200:90;
+      for(let i=0;i<30*secs&&routeDiversion.active;i++){
+        // A survey only ends when its shells are scanned, so the pilot flies it. If the
+        // pilot wakes it, the other ending is exercised instead: the lattice is cleared.
+        if(kind==='latticeSurvey'){if(routeDiversion.state==='lattice')latticeSteer(1);else if(routeDiversion.state==='latticeFight'){routeDiversion.finishLattice(true);break}}
         update(1/30);if(i%60===0)render(performance.now())}
-      if(routeDiversion.active)return `still running after 90 s in state ${routeDiversion.state}`});
+      inputX=inputY=0;
+      if(routeDiversion.active)return `still running after ${secs} s in state ${routeDiversion.state}`});
+
+    // Flown for real: no stage is skipped once the pilot has the controls.
+    const pilotNotes=[];
+    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','lattice_survey'],id=>{
+      if(id==='lattice_survey'){
+        const tries=[];
+        for(let k=0;k<4;k++){reset();c.launchDevTemplateTest(id,'helix');invulnerable=true;const r=flyLattice(1);tries.push(r);if(!r.started)return 'the lattice never appeared';if(r.quiet){pilotNotes.push(`lattice ${r.secs}s`);
+          if(r.secs<20)return `all three shells took only ${r.secs} s`;return}}
+        return `the pilot woke it ${tries.length} times of ${tries.length} (${tries.map(r=>r.at||'timed out').join(', ')})`
+      }
+      c.launchDevTemplateTest(id,(T[id].allowedFactions||['trade'])[0]);invulnerable=true;
+      if(!toStage('surface_destination_approach'))return 'never reached the land approach';
+      const r=flyApproach();pilotNotes.push(`${id.split('_')[0]} ${r.secs}s`);
+      if(!r.points)return 'no markers were placed';
+      if(!r.done)return `not finished after ${r.secs} s, ${r.left} of ${r.points} markers left`
+    });
+    {const r=results[results.length-1];if(r?.name==='pilots'&&pilotNotes.length){r.summary+=`  (${pilotNotes.join(', ')})`;paint()}}
 
     await group('simulator',['tutorial'],()=>{const m=c.tutorialMission();c.pendingMission=m;c.launchMission(m.id);if(!c.currentMission)return 'did not launch';invulnerable=true;const seen=new Set();
       for(let s=0;s<30&&c.currentMission;s++){const idx=c.currentStageIndex;seen.add(c.currentStage?.()?.type);for(let f=0;f<150&&c.currentMission&&c.currentStageIndex===idx;f++){update(1/30);if(f%50===0)render(performance.now())}if(c.currentMission&&c.currentStageIndex===idx)scenarioFlow.completeCurrentStage?.()}
@@ -126,7 +203,14 @@
           for(let k=0;k<6;k++)update(1/30);sd.draw();kinds.push(sd.worldKind);
           // every feature with an effect is drawn once, wherever it stands
           for(const t of sd.trees){const z=t.worldZ-travel;if(t.smoke)sd.drawConeSmoke(t,z);if(t.vent)sd.drawVentFountain(t,z);if(t.geyser)sd.drawGeyser(t,z);if(t.feature==='crystal')sd.drawGlint(t,z,50)}
-          sd.drawFissures();sd.drawFlocks();sd.drawRoad();sd.drawWeather()
+          sd.drawFissures();sd.drawFlocks();sd.drawRoad();sd.drawWeather();
+          // v1820: a spire's star must blink (about an eighth of the time), not stay lit.
+          if(col===C.m&&!moon){
+            const sp=sd.trees.filter(t=>{if(t.feature!=='crystal')return false;const z=t.worldZ-travel,q=camPoint([t.x,t.y+3.2*t.s*(t.my||1),z]);return q[2]>1&&projectCam(q)}).slice(0,10);
+            if(sp.length){let on=0,all=0;const np=sd.navPulse;ctx.stroke=()=>{on++};
+              try{for(let k=0;k<40;k++){sd.navPulse=k*.23;for(const t of sp){all++;sd.drawGlint(t,t.worldZ-travel,50)}}}finally{delete ctx.stroke;sd.navPulse=np}
+              if(!on)return 'crystal spires never glint';if(on>all*.3)return `crystal spires glint ${Math.round(on/all*100)}% of the time (should be about 12%)`}
+          }
         }
         if(new Set(kinds).size<6)return `only ${new Set(kinds).size} world kinds built (${[...new Set(kinds)].join(', ')})`;
         if(moon&&!sd.trees.some(t=>t.feature==='crater'))return 'no craters on a moon';

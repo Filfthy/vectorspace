@@ -70,7 +70,11 @@ const routeDiversion={
       cleared:{say:'LATTICE CLEARED · OSD WILL LOG IT',pay:.12,rep:2,repFaction:'security',text:'Ghost lattice cleared'}},
     // v1790: the same sleeping lattice as a job in its own right (the Lattice Survey board
     // contract): scan three cores from inside scan range but outside the range that wakes it.
-    latticeSurvey:{nav:'DORMANT LATTICE AHEAD · SCAN THREE CORES · DO NOT WAKE IT',hud:'LATTICE SURVEY',window:1e9,need:3,scanRange:46,scanSeconds:.9,
+    // v1820: three shells of three scans each (a bot flew the single pass in ten seconds).
+    // The outer shell is strung out wide, the inner shell is pairs to thread between, and
+    // the heart is a slalom close to the line. See latticeLayout.
+    latticeSurvey:{nav:'DORMANT LATTICE · THREE SHELLS · SCAN THREE CORES IN EACH · DO NOT WAKE IT',hud:'LATTICE SURVEY',window:1e9,need:3,scanRange:46,scanSeconds:.9,
+      shells:['OUTER SHELL','INNER SHELL','THE HEART'],
       surveyed:{say:'LATTICE SURVEYED · DATA SECURED',text:'Ghost lattice surveyed intact',xp:.1},
       woken:{text:'Lattice woken and destroyed'}},
     migration:{nav:'XENO MIGRATION CROSSING · FLY CLOSE TO SCAN · DO NOT FIRE',hud:'XENO MIGRATION',window:30,need:3,
@@ -124,7 +128,8 @@ const routeDiversion={
     if(this.state==='fight')return this.stage?.hudTag||def.hud;
     if(this.state==='migration')return this.firedOnHerd?`${def.hud} · ESCORT HOSTILE`:`${def.hud} · SCANNED ${Math.min(this.scanned,def.need)}/${def.need} · ${left}s`;
     if(this.state==='minefield')return `${def.hud} · ${this.mines.filter(m=>!m.dead&&!m.passed).length} LEFT`;
-    if(this.state==='lattice')return this.surveyJob?`${def.hud} · SCANNED ${Math.min(this.scanned,def.need)}/${def.need}`:`${def.hud} · ${fighters.filter(f=>f.ghost&&!f.dead).length} CORES`;
+    if(this.state==='lattice'&&this.surveyJob)return this.surveyDone?`${def.hud} · DATA SECURED`:`${def.hud} · ${def.shells[this.pass]||''} · ${Math.min(this.passScanned,def.need)}/${def.need}`;
+    if(this.state==='lattice')return `${def.hud} · ${fighters.filter(f=>f.ghost&&!f.dead).length} CORES`;
     if(this.state==='latticeFight')return 'GHOST LATTICE · AWAKE';
     if(this.state==='skirmish'&&this.side)return `${def.hud} · ${this.side.short} ${this.allies.filter(a=>!a.dead).length}/${this.allies.length} · ${left}s`;
     return `${def.hud} · ${left}s`
@@ -251,19 +256,43 @@ const routeDiversion={
     scenarioFlow.encounterHudTag=def.hud;
     // The whole lattice is placed now: no reserves arriving later, awake, mid-field.
     interceptorGoal=fighterGroupTotal=fighterGroupSpawned=fighters.length;
-    this.anchors=[];this.surveyJob=this.kind==='latticeSurvey';this.scanned=0;
+    this.anchors=[];this.surveyJob=this.kind==='latticeSurvey';this.scanned=0;this.pass=0;this.passScanned=0;this.surveyDone=false;
+    const layout=this.surveyJob?this.latticeLayout(fighters.length,0):null;
     fighters.forEach((f,i)=>{
-      const w=this.latticePlace(i,this.surveyJob);
+      const w=layout?layout[i]:this.latticePlace(i);
       f.x=w[0];f.y=w[1];f.z=w[2];f.t=Math.max(0,f.t);if(f.g){f.g.dormant=true;f.g.px=f.x;f.g.py=f.y;f.g.pz=f.z}
       this.anchors.push({f,x:w[0],y:w[1],z:w[2],scanT:0,scanned:false})
     });
     AgentXGhosts.pending=[];
     this.woken=false;this.state='lattice';callout(def.nav,this.surveyJob?3.2:2.6);return true
   },
-  // Where the nth sleeping core goes, ahead of the drone. A survey strings them out further
-  // apart and alternates sides, so each one can be skirted in turn.
-  latticePlace(i,survey=false){
-    if(survey)return cameraPointToWorld([(i%2?1:-1)*(10+Math.random()*30),(Math.random()-.5)*14,190+i*95+Math.random()*30]);
+  // v1820: where a survey's cores go for each shell, ahead of the drone (camera space).
+  // Shell 0 strings them out wide on alternate sides, so each can be skirted in turn.
+  // Shell 1 is gates: two cores 62 apart with the gap to thread (31 from each in the
+  //   middle, so there are 9 units to spare either way before the nearer one wakes).
+  // Shell 2 is a slalom: cores 20 to 28 off the line on alternate sides, 105 apart, so a
+  //   straight line wakes it and each one needs a small step away.
+  latticeLayout(n,pass=0){
+    const R=Math.random,pts=[];
+    if(pass===1){
+      for(let i=0;i<n;i+=2){
+        const z=200+(i/2)*150+R()*20,cx=(R()-.5)*30,cy=(R()-.5)*10;
+        if(i+1<n)pts.push([cx-31,cy+(R()-.5)*4,z],[cx+31,cy+(R()-.5)*4,z+(R()-.5)*8]);
+        else pts.push([(R()<.5?-1:1)*(26+R()*12),cy,z])
+      }
+    }else if(pass>=2){
+      const s=R()<.5?-1:1;for(let i=0;i<n;i++)pts.push([s*(i%2?1:-1)*(20+R()*8),(R()-.5)*10,190+i*105+R()*12])
+    }else for(let i=0;i<n;i++)pts.push([(i%2?1:-1)*(10+R()*30),(R()-.5)*14,190+i*95+R()*30]);
+    return pts.map(q=>cameraPointToWorld(q))
+  },
+  // Put the live cores of a survey where the given shell wants them (out of sight: only
+  // called when the field is behind or far away).
+  latticeArrange(pass,fresh){
+    const live=this.anchors.filter(a=>!a.f.dead),pts=this.latticeLayout(live.length,pass);
+    live.forEach((a,i)=>{const w=pts[i];a.x=w[0];a.y=w[1];a.z=w[2];a.scanT=0;if(fresh)a.scanned=false;a.f.x=a.x;a.f.y=a.y;a.f.z=a.z;if(a.f.g){a.f.g.px=a.x;a.f.g.py=a.y;a.f.g.pz=a.z}})
+  },
+  // Where the nth sleeping core of a route diversion goes, ahead of the drone.
+  latticePlace(i){
     const onPath=i<2;return cameraPointToWorld([onPath?(Math.random()-.5)*16:(i%2?1:-1)*(18+Math.random()*30),(Math.random()-.5)*(onPath?8:24),170+i*55+Math.random()*30])
   },
   wakeLattice(reason){
@@ -280,21 +309,36 @@ const routeDiversion={
       for(const a of this.anchors){
         if(a.f.dead)continue;a.x-=spaceMoveX*k;a.y-=spaceMoveY*k;a.z-=spaceMoveZ*k;
         a.f.x=a.x;a.f.y=a.y;a.f.z=a.z;a.f.vx=a.f.vy=a.f.vz=0;a.f.shotsLeft=0;a.f.t=Math.max(0,a.f.t);
-        const d=Math.hypot(a.x-shipX,a.y-shipY,a.z);nearest=Math.min(nearest,d);if(a.z>-20)ahead++
+        const d=Math.hypot(a.x-shipX,a.y-shipY,a.z);nearest=Math.min(nearest,d);
+        // v1820: "still in play" is judged from where the drone is looking, not along the
+        // world axis, so a pilot who turns away is brought round as well. A core counts
+        // while it is in front (or just behind) and within 700.
+        if(d<700&&camPoint([a.x,a.y,a.z])[2]>-20)ahead++
       }
       const fired=typeof shots!=='undefined'&&shots.some(s=>s.age<dt*1.5);
-      if(nearest<22)return this.wakeLattice('TOO CLOSE · THE LATTICE IS WAKING');
-      if(fired&&nearest<150)return this.wakeLattice('YOU FIRED · THE LATTICE IS WAKING');
+      if(!this.surveyDone){
+        if(nearest<22)return this.wakeLattice('TOO CLOSE · THE LATTICE IS WAKING');
+        if(fired&&nearest<150)return this.wakeLattice('YOU FIRED · THE LATTICE IS WAKING')
+      }
       if(this.surveyJob){
         // Scan a core by holding inside scan range (and outside the 22 that wakes it).
-        const def=this.KINDS.latticeSurvey;
-        for(const a of this.anchors){if(a.f.dead||a.scanned)continue;const d=Math.hypot(a.x-shipX,a.y-shipY,a.z);
-          if(d<def.scanRange){a.scanT+=dt;if(a.scanT>=def.scanSeconds){a.scanned=true;this.scanned++;SoundFX.objectiveComplete?.();if(this.scanned<def.need)callout(`CORE SCANNED · ${this.scanned} OF ${def.need}`,1.4)}}
+        const def=this.KINDS.latticeSurvey,shells=def.shells;
+        if(!this.surveyDone&&this.passScanned<def.need)for(const a of this.anchors){if(a.f.dead||a.scanned)continue;const d=Math.hypot(a.x-shipX,a.y-shipY,a.z);
+          if(d<def.scanRange){a.scanT+=dt;if(a.scanT>=def.scanSeconds){a.scanned=true;this.scanned++;this.passScanned++;SoundFX.objectiveComplete?.();
+            if(this.passScanned<def.need)callout(`CORE SCANNED · ${this.passScanned} OF ${def.need}`,1.4);
+            else if(this.passScanned===def.need){
+              // The last shell: the data is safe from here, and the cores still ahead are
+              // only scenery (they can no longer be woken). Earlier shells: keep clear of
+              // what is left of this one, the next is placed once it is behind.
+              if(this.pass>=shells.length-1){this.surveyDone=true;callout(def.surveyed.say,2.2)}
+              else callout(`${shells[this.pass]} MAPPED · KEEP CLEAR · ${shells[this.pass+1]} NEXT`,2.2)}}}
           else a.scanT=Math.max(0,a.scanT-dt*.5)}
-        if(this.scanned>=def.need){callout(def.surveyed.say,2.2);const m=campaign.currentMission;this.record({id:'surveyed',...def.surveyed,rep:2,repFaction:m?.faction||'helix'});fighters.length=0;bolts.length=0;this.anchors=[];this.end();return}
-        // The field has drifted behind: the cores still to scan are ahead again on the next pass.
-        if(!ahead){let i=0;for(const a of this.anchors){if(a.f.dead)continue;const w=this.latticePlace(i++,true);a.x=w[0];a.y=w[1];a.z=w[2];a.scanT=0;a.f.x=a.x;a.f.y=a.y;a.f.z=a.z;if(a.f.g){a.f.g.px=a.x;a.f.g.py=a.y;a.f.g.pz=a.z}}
-          callout('COMING ROUND · LATTICE AHEAD AGAIN',1.8)}
+        if(!ahead){
+          if(this.surveyDone){const m=campaign.currentMission;this.record({id:'surveyed',...def.surveyed,rep:2,repFaction:m?.faction||'helix'});fighters.length=0;bolts.length=0;this.anchors=[];this.end();return}
+          if(this.passScanned>=def.need){this.pass++;this.passScanned=0;this.latticeArrange(this.pass,true);callout(`${shells[this.pass]} AHEAD`,1.8)}
+          // The field has drifted behind with cores still to scan: the same shell comes round.
+          else{this.latticeArrange(this.pass,false);callout(`COMING ROUND · ${shells[this.pass]} AHEAD AGAIN`,1.8)}
+        }
         return
       }
       if(!ahead||this.t>=this.window){fighters.length=0;bolts.length=0;callout('LATTICE PASSED QUIETLY',1.6);this.recordIgnored();this.end()}
@@ -471,7 +515,7 @@ const routeDiversion={
     const m=campaign.currentMission;if(!m||!o)return;
     const pay=o.pay?Math.round((m.pay*o.pay)/50)*50:0,xp=o.xp?Math.round(m.xp*o.xp):0;
     const repFaction=o.rep?(o.repFaction||m.faction||null):null;
-    (m.diversions||(m.diversions=[])).push({kind:this.kind,outcome:o.id,text:o.text,pay,xp,rep:o.rep||0,repFaction});
+    (m.diversions||(m.diversions=[])).push({kind:this.kind,outcome:o.id,text:o.text,pay,xp,rep:o.rep||0,repFaction,...(this.stage?.main?{main:true}:{})});   // v1820: main = the job itself (Lattice Survey), not a side trip
     if(o.alsoRep)m.diversions.push({kind:this.kind,outcome:o.id,side:true,text:o.alsoRep.text,pay:0,xp:0,rep:o.alsoRep.amount,repFaction:o.alsoRep.faction});
   },
   recordIgnored(){const m=campaign.currentMission;if(m)(m.diversions||(m.diversions=[])).push({kind:this.kind,outcome:'ignored',text:'Ignored',pay:0,xp:0,rep:0})},
@@ -505,7 +549,7 @@ const routeDiversion={
     if(this.active&&this.state==='lattice'&&this.surveyJob){
       const def=this.KINDS.latticeSurvey;
       ctx.save();ctx.textAlign='center';ctx.textBaseline='bottom';ctx.font='400 10px Consolas,monospace';ctx.lineWidth=VECTOR_LINE_WIDTH;
-      for(const a of this.anchors){if(a.f.dead)continue;const q=camPoint([a.x,a.y,a.z]);if(q[2]<=.18)continue;const p=projectCam(q);if(!p)continue;
+      for(const a of this.anchors){if(a.f.dead||(this.surveyDone&&!a.scanned))continue;const q=camPoint([a.x,a.y,a.z]);if(q[2]<=.18)continue;const p=projectCam(q);if(!p)continue;
         const d=Math.hypot(a.x-shipX,a.y-shipY,a.z),close=d<30&&!a.scanned;
         ctx.strokeStyle=a.scanned?C.g:(close?C.r:(d<def.scanRange?C.y:C.c));
         ctx.strokeText(a.scanned?'SCANNED':(close?'TOO CLOSE':(a.scanT>0?`SCANNING ${Math.min(99,Math.round(a.scanT/def.scanSeconds*100))}%`:`CORE ${Math.round(d)}`)),p.x,p.y-Math.max(16,p.k*2.2))}

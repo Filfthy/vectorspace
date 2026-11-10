@@ -1256,7 +1256,7 @@ class CorridorEnvironmentController {
     // v1780: and the ground itself never changes during a run, and every grid point is on
     // whole numbers, so its height is remembered from frame to frame (cleared whenever a
     // corridor begins or its layout changes). Only the last, partial row is worked out fresh.
-    const sig=`${this.startWorld}|${this.length}|${this.seed}|${this.originX}|${this.isSwampVariant()}|${this.terminalDestination}|${this.gladeStartU}|${this.gladeCentreX}|${this.gladeFloor}`;
+    const sig=`${this.startWorld}|${this.length}|${this.originX}|${this.isSwampVariant()}|${this.terminalDestination}|${this.gladeStartU}|${this.gladeCentreX}|${this.gladeFloor}`;
     if(this._floorSig!==sig||!this._floorCache||this._floorCache.size>120000){this._floorSig=sig;this._floorCache=new Map()}
     const fc=this._floorCache,floorOf=(wz,x)=>{if(!Number.isInteger(wz))return this.floorAt(wz,x);const k=wz*16384+x;let v=fc.get(k);if(v===undefined){v=this.floorAt(wz,x);fc.set(k,v)}return v};
     const rowCache=new Map();
