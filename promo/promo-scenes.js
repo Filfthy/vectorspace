@@ -455,19 +455,23 @@ function danceAt(c,t){
 // notes (tensing with the trill); the choir swing theirs with the dance. On the last chord
 // everyone's arms go up with the wings, and in the bow one sweeps across the body and the
 // other out to the side. Positions are where each claw is, in the hornet's own space.
-const ARM={rest:[[-.4,.32,-.42],[.4,.32,-.42]],chest:[-.1,.8,-.44],open:[[-1.15,1.0,-.3],[1.15,1.0,-.3]],up:[[-.72,2.1,-.15],[.72,2.1,-.15]],bow:[[.22,.5,-.55],[1.15,.55,-.05]]};
+const ARM={rest:[[-.18,.62,-.62],[.18,.62,-.62]],chest:[-.06,.8,-.5],chestOther:[.34,.52,-.6],open:[[-1.05,.72,-.75],[1.05,.72,-.75]],up:[[-.5,1.92,-.38],[.5,1.92,-.38]],bow:[[.12,.55,-.62],[.92,.62,-.08]]};
 const mix3=(a,b,w)=>[a[0]+(b[0]-a[0])*w,a[1]+(b[1]-a[1])*w,a[2]+(b[2]-a[2])*w];
 function openAt(t){const L=voices.lead;let lo=0,hi=L.length-1,k=-1;while(lo<=hi){const m=(lo+hi)>>1;if(L[m].t<=t){k=m;lo=m+1}else hi=m-1}
   let w=0;for(const n of[L[k],L[k-1]])if(n&&n.d>.7)w=Math.max(w,ease(clamp((t-n.t)/.35,0,1))*ease(clamp((n.t+n.d+.3-t)/.35,0,1)));return w}
 function armsFor(c,t,d){
   let R=ARM.rest[0],L=ARM.rest[1];
   if(c.sing==='lead'){
-    R=mix3(R,ARM.chest,ramp(t,T.breakdown+.3,.8)*(1-ramp(t,T.verse3,1.2)));
-    const o=openAt(t);R=mix3(R,ARM.open[0],o);L=mix3(L,ARM.open[1],o);
+    const ch=ramp(t,T.breakdown+.3,.8)*(1-ramp(t,T.verse3,1.2));R=mix3(R,ARM.chest,ch);L=mix3(L,ARM.chestOther,ch);
+    // the right arm leads the gesture, the left follows a moment later
+    R=mix3(R,ARM.open[0],openAt(t));L=mix3(L,ARM.open[1],openAt(t-.18));
     const st=strainAt(t);if(st){const q=Math.sin(t*Math.PI*2*7.7)*.05*st;R=[R[0]-q,R[1]+.1*st,R[2]];L=[L[0]+q,L[1]+.1*st,L[2]]}
   }else{const sw=d.sway/.13;R=[R[0],R[1]+.08*Math.abs(sw),R[2]-.2*sw];L=[L[0],L[1]+.08*Math.abs(sw),L[2]+.2*sw]}
   const up=d.fin*(1-d.bowW);R=mix3(R,ARM.up[0],up);L=mix3(L,ARM.up[1],up);
   R=mix3(R,ARM.bow[0],d.bowW);L=mix3(L,ARM.bow[1],d.bowW);
+  // never quite still: a slow drift, different for each arm and each singer
+  const ph=(c.at?c.at[0]:0)*1.7,dr=(a,f)=>.03*Math.sin(t*f+ph+a);
+  R=[R[0]+dr(0,1.3),R[1]+dr(1,1.7),R[2]+dr(2,1.1)];L=[L[0]+dr(3,1.5),L[1]+dr(4,1.2),L[2]+dr(5,1.9)];
   return{handR:R,handL:L}
 }
 function drawSinger(c,t){

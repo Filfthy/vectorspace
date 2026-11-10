@@ -1172,3 +1172,9 @@ v1310 The forest edge matches the forest
       tightly as the run, with an opening only the width of the run's lane:
       a dark wall of trees with one path cut into it, so flying in is
       continuous. The swamp edge is unchanged.
+
+v1320 The forest lane closes in trees
+      From a distance the narrow opening into the forest still showed a
+      straight gap through to the horizon. Past the stretch of lane lined
+      with trees, the lane now closes in pines as if it bends away among
+      them, so the way in reads as a path into the wood.

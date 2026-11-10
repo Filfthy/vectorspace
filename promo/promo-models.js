@@ -165,10 +165,25 @@ function buildHornet(m,p){
     const Wg=q=>{const dx=q[0]-r[0],dz=q[2]-r[2];return[r[0]+dx*c-dz*si,q[1]+Math.abs(dx)*(.12*lift*(1-sp)+.5*sp),r[2]+dx*si+dz*c]};
     m.loft([[r,r,r],[Wg([s*tip[0],tip[1],tip[2]]),Wg([s*(tip[0]+trail[0])/2,(tip[1]+trail[1])/2+.06,(tip[2]+trail[2])/2+.08]),Wg([s*trail[0],trail[1],trail[2]])]],false,false)}});
   if(band)buildBandArms(m,p,band);
-  else m.mark('arms',()=>{hornetArm(m,-1,p.handR||HAND_REST[0]);hornetArm(m,1,p.handL||HAND_REST[1])})
+  else m.mark('arms',()=>{singerArm(m,-1,p.handR||HAND_REST[0]);singerArm(m,1,p.handL||HAND_REST[1])})
 }
-// A singer's claws at rest: low in front of the thorax (right is -x, the model faces -z).
-const HAND_REST=[[-.4,.32,-.42],[.4,.32,-.42]];
+// A singer's claws at rest: together in front of the chest (right is -x, the model faces -z).
+const HAND_REST=[[-.18,.62,-.62],[.18,.62,-.62]];
+// A singer's arm, insect-like: a stout upper segment and a slimmer forearm of fixed lengths,
+// bent at a knobbed elbow that hangs down, a little out from the body (solved like a two-bone limb, so the
+// arm never stretches or folds flat), ending in a two-hooked claw.
+const ARM_UPPER=.56,ARM_FORE=.6;
+function singerArm(m,s,hand){
+  const sh=[s*.3,.92,-.1],d=[hand[0]-sh[0],hand[1]-sh[1],hand[2]-sh[2]],len=Math.hypot(d[0],d[1],d[2])||1,u=[d[0]/len,d[1]/len,d[2]/len];
+  const r=clamp(len,Math.abs(ARM_UPPER-ARM_FORE)+.02,ARM_UPPER+ARM_FORE-.02),x=(ARM_UPPER*ARM_UPPER-ARM_FORE*ARM_FORE+r*r)/(2*r),h=Math.sqrt(Math.max(0,ARM_UPPER*ARM_UPPER-x*x));
+  const pole=[s*.3,-1,.15],pd=pole[0]*u[0]+pole[1]*u[1]+pole[2]*u[2],pp=vnorm3([pole[0]-u[0]*pd,pole[1]-u[1]*pd,pole[2]-u[2]*pd]);
+  const el=[sh[0]+u[0]*x+pp[0]*h,sh[1]+u[1]*x+pp[1]*h,sh[2]+u[2]*x+pp[2]*h],w=[sh[0]+u[0]*r,sh[1]+u[1]*r,sh[2]+u[2]*r];
+  m.beam(sh,el,.1,.085,.9);m.box(el,[.11,.11,.11]);m.beam(el,w,.075,.05,.8);
+  // The claw: two hooks curling forward and in, and a short thumb spur.
+  const f=vnorm3([w[0]-el[0],w[1]-el[1],w[2]-el[2]]);
+  for(const k of[-1,1]){const a=[w[0]+f[0]*.12+k*.04,w[1]+f[1]*.12+.03,w[2]+f[2]*.12],b=[a[0]+f[0]*.08-s*.05,a[1]+.03,a[2]+f[2]*.08-.06];m.beam(w,a,.03,.025,.3);m.beam(a,b,.025,.015,.3)}
+  m.beam(w,[w[0]-s*.08,w[1]+.06,w[2]-.03],.025,.015,.2)
+}
 // Arms from the front of the thorax: shoulder, elbow, a three-fingered claw.
 function hornetArm(m,s,hand,fingers=true,elbow=null){const sh=[s*.34,.85,-.12],mid=elbow||[(sh[0]+hand[0])/2+s*.22,(sh[1]+hand[1])/2-.2,(sh[2]+hand[2])/2+.05];
   m.beam(sh,mid,.1,.1,.8);m.beam(mid,hand,.08,.08,.7);if(fingers)for(const c of[-1,0,1])m.beam(hand,[hand[0]+s*.1,hand[1]+.06+c*.07,hand[2]-.1],.03,.03,.2)}
@@ -204,8 +219,8 @@ function buildBandArms(m,p,band){
     m.mark('sticks',()=>{m.beam(handL,tip(handL,L),.035,.035,.6);m.beam(handR,tip(handR,R),.035,.035,.6)})
   }
 }
-const hornetColours=(body,trim)=>({body,sting:trim,bands:trim,head:body,eyes:C.y,antennae:trim,mandibles:C.w,jaw:body,throat:C.y,wings:C.c,arms:body,guitar:C.r,pickups:C.w,strings:C.w,sticks:C.w});
-function makeHornet(body=C.m,trim=C.y,band=null,axe=null){const mesh=posedMesh((m,p)=>buildHornet(m,{...p,band,axe}),hornetColours(body,trim));mesh.band=band;return mesh}
+const hornetColours=(body,trim,band)=>({body,sting:trim,bands:trim,head:body,eyes:C.y,antennae:trim,mandibles:C.w,jaw:body,throat:C.y,wings:C.c,arms:band?body:trim,guitar:C.r,pickups:C.w,strings:C.w,sticks:C.w});
+function makeHornet(body=C.m,trim=C.y,band=null,axe=null){const mesh=posedMesh((m,p)=>buildHornet(m,{...p,band,axe}),hornetColours(body,trim,band));mesh.band=band;return mesh}
 
 const KIT_T=p=>[p[0]*1.35,p[1]*1.35-.1,p[2]*1.25-.05];
 // The drum kit: bass drum facing the audience, snare and two toms, hi-hat and a crash

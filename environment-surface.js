@@ -401,6 +401,15 @@ class SurfaceDestinationApproachController {
       const mesh=forestShortTrunkMesh(base,id),y=this.groundY-this.meshBaseY(base)*scale;
       this.forestFront.push({assetId:id,mesh,x,y,worldZ:wz,s:scale,rot:[0,this.rand()*Math.PI*2,0]})
     }
+    // v1320: past the lined stretch the lane closes in trees, as if it bends away
+    // among them, so the opening never shows a straight gap to the horizon.
+    for(let row=0;row<3;row++)for(let i=-2;i<=2;i++){
+      const id=ids[Math.floor(this.rand()*ids.length)],base=registry?.get?.(id)||(typeof forestSceneryMesh==='function'?forestSceneryMesh(id):null);
+      if(!base)continue;
+      const scale=1.3+this.rand()*1.3,x=this.targetX+i*2.6+(row%2)*1.3+this.rand()*.8,wz=this.targetWorldZ+44+row*4.5+this.rand()*2;
+      const mesh=forestShortTrunkMesh(base,id),y=this.groundY-this.meshBaseY(base)*scale;
+      this.forestFront.push({assetId:id,mesh,x,y,worldZ:wz,s:scale,rot:[0,this.rand()*Math.PI*2,0]})
+    }
   }
   buildSwampBoundary(){
     this.skyline.length=0;this.forestBands.length=0;this.forestFront.length=0;
