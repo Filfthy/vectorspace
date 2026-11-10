@@ -687,7 +687,10 @@ class RedJackalDeliveryController {
       shipY=lerp(shipY,this.groundY+2.15,clamp(dt*2.8,0,1));
       viewYaw=Math.PI;viewPitch=lerp(viewPitch,0,clamp(dt*5,0,1));viewRoll=lerp(viewRoll,0,clamp(dt*6,0,1));
       this.hatchOpen=clamp(1-u*1.25,0,1);
-      if(travel<=this.outboundMergeEndTravel){
+      // v1890: hand back at the same .04 margin the speed rule stops at (see autoSpeed).
+      // It used to wait for travel<=end exactly, so a frame landing in the last .04 left
+      // the drone stopped in REJOINING CITY ROAD with no control, for good.
+      if(travel<=this.outboundMergeEndTravel+.04){
         travel=this.outboundMergeEndTravel;shipX=this.outboundRoadX;viewYaw=Math.PI;viewPitch=viewRoll=0;
         this.state='cityOutbound';mode='play';modeT=0;inputX=inputY=aimX=aimY=0
       }

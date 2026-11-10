@@ -2132,3 +2132,21 @@ v1880 Asteroid clearance fee trimmed (your call, on top of the v1870 ambush)
       smaller base fee. Contracts already on your board keep the old fee
       until they roll off.
 
+v1890 Fix: drone could freeze for good leaving a city pickup (old bug)
+      After a city ground pickup, a short autopilot (REJOINING CITY ROAD)
+      backs the drone onto the road and hands control back. It stopped
+      moving 0.04 short of its end point but only handed back AT the end
+      point, so if a frame landed in that gap the drone sat there with no
+      control, permanently. About 1 run in 6 at 60 fps, on every job with
+      a city pickup (Groundside Pickup, Crystal Consignment, the survey
+      jobs, Crash Recovery, Relay Repair, Station Delivery). It came over
+      with the original game, so you may have met it. Found by the pilot
+      sweep (it hung twice in 4 pickup jobs). Now it hands back at the
+      same margin it stops at, like the other city autopilots. After the
+      fix, 16 pickup-route flights in a row ran clean. I checked the
+      station, nest and penthouse autopilots for the same mistake: fine.
+      A self-test check that parks the drone inside the old gap was added
+      but has not been run yet (the page was busy with the sweep).
+      Not finished: a full credits-per-minute sweep of all 26 jobs at
+      risk 9 (43 of about 52 flights done when I stopped).
+

@@ -301,7 +301,15 @@
 
     // Flown for real: no stage is skipped once the pilot has the controls.
     const pilotNotes=[];
-    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush'],id=>{
+    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge'],id=>{
+      // v1890: the city road rejoin after a pickup must hand control back even when a frame
+      // stops it within the last .04 of the merge (it used to hang there for good).
+      if(id==='city merge edge'){
+        c.launchDevTemplateTest('groundside_pickup','trade');invulnerable=true;if(!toStage('urban_exit'))return 'never reached the city exit';
+        const J=jackalDelivery;for(let k=0;k<600&&J.state!=='outboundMerge';k++)update(1/30);if(J.state!=='outboundMerge')return `the merge never started (${J.state})`;
+        travel=J.outboundMergeEndTravel+.02;for(let k=0;k<30&&J.state==='outboundMerge';k++)update(1/30);
+        if(J.state==='outboundMerge')return 'stuck in REJOINING CITY ROAD with the drone .02 short of the end';return
+      }
       // v1870: an asteroid clearance with its ambush forced: the fight must start partway
       // through, end, and hand back to the rocks, and the job must finish.
       if(id==='asteroid ambush'){
