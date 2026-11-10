@@ -464,7 +464,8 @@ class SurfaceDestinationApproachController {
     if(this.survey?.length)this.surveyIntro={text:`FLY THE ${this.survey.length} SURVEY POINTS · THEN THE ${this.destination==='forest'?'FOREST':'CITY'}`,wait:6};
     else if(this.destination==='swamp')say('PROCEED TO SWAMP',.85);
     else if(this.destination==='osd')say('PROCEED TO OSD FACILITY',.85);
-    else audio.playVoice(this.destination==='forest'?'proceedToForest':'proceedToCity',{once:false,priority:true})
+    else audio.playVoice(this.destination==='forest'?'proceedToForest':'proceedToCity',{once:false,priority:true});
+    this.chooseWeather()
   }
   stopForJump(){this.active=false;this.finishing=false;this.trees.length=0;this.skyline.length=0;this.forestBands.length=0;this.forestFront.length=0}
   consumeHandoff(){const h=this.lastHandoff;this.lastHandoff=null;return h}
@@ -501,6 +502,7 @@ class SurfaceDestinationApproachController {
       }
     }
     this.updateSurvey(dt);this.updateBeacon();
+    if(this.weather&&this.weatherIntro>0){this.weatherIntro-=dt;if(this.weatherIntro<=0&&!(typeof callout==='function'&&callout(this.weather.say,2.2)))this.weatherIntro=.5}
     const ch=this.chatter;if(ch){if(ch.delay>0)ch.delay-=dt;else{ch.wait-=dt;if(ch.wait<=0)this.chatter=null;else if(!(speechSubtitleT>0)&&typeof callout==='function'&&callout(ch.text,1.8))this.chatter=null}}
     const d=this.distance();
     if(!this.finishing&&d<78&&this.surveyLeft?.().length){
@@ -613,7 +615,46 @@ class SurfaceDestinationApproachController {
   draw(){
     this.drawGround();const scene=[];this.appendEnvironmentObjects(scene);
     if(this.destination==='osd'&&bunkerRaid?.active)bunkerRaid.appendOsdSurfaceObjects(scene);
-    this.drawObjectScene(scene);this.drawNavigation()
+    this.drawObjectScene(scene);this.drawWeather();this.drawNavigation()
+  }
+  // v1380: weather on the plains. Ice worlds can blow a blizzard and arid worlds a dust
+  // storm: a haze thickening towards the horizon (tilted with the view as the drone banks),
+  // so distant trees and hills fade into it, and wind-driven snow or sand streaking past.
+  // Board jobs only, and never at the OSD compound.
+  chooseWeather(){
+    this.weather=null;this.weatherIntro=0;
+    const m=typeof campaign!=='undefined'?campaign.currentMission:null;
+    if(!m||m.training||m.devGroundTest||this.destination==='osd')return;
+    const r=Math.random(),side=Math.random()<.5?-1:1;
+    if(this.worldKind==='ice'&&r<.45)this.weather={kind:'blizzard',col:C.w,wind:side*(7+Math.random()*5),haze:.9,say:'BLIZZARD ON THE PLAINS · VISIBILITY LOW'};
+    else if(this.worldKind==='arid'&&r<.4)this.weather={kind:'dust',col:C.y,wind:side*(14+Math.random()*8),haze:.86,say:'DUST STORM · VISIBILITY LOW'};
+    if(!this.weather)return;
+    this.weather.flakes=Array.from({length:340},()=>({x:Math.random()*60,y:Math.random()*8,z:Math.random()*45,ph:Math.random()*10}));
+    this.chatter=null;   // the world's quiet nav chatter would contradict the storm
+    this.weatherIntro=1.4
+  }
+  drawWeather(){
+    const w=this.weather;if(!w)return;
+    const far=d=>proj([shipX+Math.sin(viewYaw+d)*300,shipY,Math.cos(viewYaw+d)*300]),a=far(-.4),b=far(.4);
+    if(a&&b){
+      const ang=Math.atan2(b.y-a.y,b.x-a.x),H=viewH*.34;
+      ctx.save();ctx.translate((a.x+b.x)/2,(a.y+b.y)/2);ctx.rotate(ang);
+      const g=ctx.createLinearGradient(0,-H*.3,0,H);g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(.24,`rgba(0,0,0,${w.haze})`);g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=g;ctx.fillRect(-W*2,-H*.3,W*4,H*1.3);ctx.restore()
+    }
+    // Particles live in a box around the drone in its own heading, scrolled by the distance
+    // flown and blown sideways by the wind.
+    const t=time,depth=45,cy=Math.cos(viewYaw),sy=Math.sin(viewYaw),dust=w.kind==='dust',dir=Math.sign(w.wind);
+    ctx.save();ctx.strokeStyle=w.col;ctx.lineWidth=VECTOR_LINE_WIDTH;
+    for(const f of w.flakes){
+      const lx=(((f.x+w.wind*t)%60)+60)%60-30,lz=(((f.z-surfaceDistance)%depth)+depth)%depth+.6;
+      const y=dust?this.groundY+.25+f.y*.5+Math.sin(t*1.7+f.ph)*.35:this.groundY+((f.y-t*2.4+f.ph)%8+8)%8;
+      const q=camPoint([shipX+lx*cy+lz*sy,y,lz*cy-lx*sy]);if(q[2]<.6)continue;const p=projectCam(q);if(!p)continue;
+      const len=Math.max(2,Math.min(26,p.k*(dust?.5:.24)))*dir;
+      ctx.globalAlpha=clamp(1.05-q[2]/40,.08,.8);
+      ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x-len,p.y+(dust?0:Math.abs(len)*.35));ctx.stroke()
+    }
+    ctx.restore()
   }
   hudRight(){
     const label=this.destination==='bunker'?'BUNKER':(this.destination==='forest'?'FOREST':(this.destination==='swamp'?'SWAMP':(this.destination==='osd'?'OSD':'CITY')));

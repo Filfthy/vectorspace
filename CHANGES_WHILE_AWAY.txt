@@ -1272,3 +1272,18 @@ v1370 New route diversion: Old minefield
         set off) and OSD logs it: standing +2 and a small bonus, shown on
         the debrief as "War-era mines cleared".
       It reuses the station minefield's spiked mine model, in red.
+
+v1380 Weather on the landing plains
+      From the direction notes ("weather / visibility event"). On board
+      jobs, the plains approach on an ice world now has a 45% chance of a
+      blizzard, and on a yellow or orange arid world a 40% chance of a dust
+      storm, announced with "BLIZZARD ON THE PLAINS · VISIBILITY LOW" or
+      "DUST STORM · VISIBILITY LOW".
+      - A haze thickens towards the horizon, so the distant trees, hills
+        and the far edge of the plain fade into the storm and come out of
+        it as you get closer. It tilts with the view as the drone banks.
+      - Wind-driven snow, or sand streaking low over the ground, blows past
+        the drone, drifting across with the wind.
+      - The world's quiet nav chatter ("ICE SHELF STABLE · NO ACTION") is
+        skipped in a storm, since it would contradict it.
+      Not on the OSD compound approach, and never in training.
