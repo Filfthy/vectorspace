@@ -1256,3 +1256,19 @@ v1360 New route diversion: Fight in progress
         usually lost in about twenty seconds).
       Diversions now come up as: beacon 40, derelict 35, civilian 25, pod
       22, fight in progress 22, cache 18 (relative weights).
+
+v1370 New route diversion: Old minefield
+      Also from the direction notes. A field of 24 to 30 Partition War
+      contact mines drifting and tumbling across the route, about 13
+      seconds of flying, with several right in the flight path. "OLD
+      MINEFIELD ON ROUTE · SHOOT OR STEER CLEAR". This one is not
+      optional: you fly through it.
+      - A mine you come within 12 of arms (blinks white) and blows half a
+        second later; inside 10 the blast costs a shield. Flown straight
+        through blind, it cost 3 shields in testing.
+      - Shot mines go off where they are and set off any neighbour within
+        14 a moment later, so one good shot can clear a cluster.
+      - Clear at least 40% of the field (mines you shot plus the ones they
+        set off) and OSD logs it: standing +2 and a small bonus, shown on
+        the debrief as "War-era mines cleared".
+      It reuses the station minefield's spiked mine model, in red.

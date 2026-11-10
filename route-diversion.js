@@ -11,6 +11,10 @@
 //   FIGHT IN PROGRESS a patrol or escort already fighting raiders (v1360); they fire back,
 //                     but are losing. Join in and save some of them for their network's
 //                     thanks, or fly on and leave them to it
+//   OLD MINEFIELD     Partition War contact mines drifting across the route (v1370). Not
+//                     optional: fly through. Mines arm when X comes close and blow half a
+//                     second later; shot mines go off harmlessly and set off neighbours.
+//                     Clearing most of the field earns OSD's thanks
 //
 // Flying away from the marker, or simply letting the window run out, ignores it and the
 // route continues. Rewards are small: a little money, experience or standing. They are
@@ -52,6 +56,8 @@ const routeDiversion={
       defenders:[{faction:'security',name:'OSD PATROL',label:'OSD patrol',short:'PATROL',col:C.u,drone:true,weight:45},
                  {faction:'trade',name:'FREE TRADER ESCORT',label:'Free Trader escort',short:'ESCORT',col:C.c,drone:false,weight:30},
                  {faction:'quickbite',name:'QUICKBITE COURIERS',label:'QuickBite couriers',short:'COURIERS',col:C.y,drone:true,weight:25}]},
+    minefield:{nav:'OLD MINEFIELD ON ROUTE · SHOOT OR STEER CLEAR',hud:'MINEFIELD',window:26,
+      cleared:{say:'ORDNANCE CLEARED · OSD WILL LOG IT',pay:.06,rep:2,repFaction:'security',text:'War-era mines cleared'}},
     civilian:{nav:'CIVILIAN CRAFT UNDER PURSUIT',voice:'civilianCraftUnderAttack',hud:'CIVILIAN UNDER ATTACK',window:24,
       helped:{say:'CIVILIAN SAFE',voice:'civilianSafe',pay:.1,rep:3,repFaction:'security',text:'Civilian rescued'},
       ignored:{say:'CIVILIAN CONTACT LOST',voice:'civilianContactLost'}}
@@ -67,6 +73,7 @@ const routeDiversion={
     resetPlanetBearing();resetSpaceMotion();resetSpaceDogfightDirector();
     audio.music.setMode(campaign.currentMission?.musicMode||'calm');
     if(kind==='skirmish')return this.beginSkirmish(stage,def);
+    if(kind==='minefield')return this.beginMinefield(stage,def);
     if(kind==='civilian'){
       // Raiders chasing someone else. They hold fire on X unless X joins in, so the
       // event can genuinely be flown past. Destroying them all in time saves the civilian.
@@ -95,6 +102,7 @@ const routeDiversion={
     if(!this.active)return '';
     const left=Math.max(0,Math.ceil(this.window-this.t)),def=this.KINDS[this.kind];
     if(this.state==='fight')return this.stage?.hudTag||def.hud;
+    if(this.state==='minefield')return `${def.hud} · ${this.mines.filter(m=>!m.dead&&!m.passed).length} LEFT`;
     if(this.state==='skirmish'&&this.side)return `${def.hud} · ${this.side.short} ${this.allies.filter(a=>!a.dead).length}/${this.allies.length} · ${left}s`;
     return `${def.hud} · ${left}s`
   },
@@ -108,6 +116,8 @@ const routeDiversion={
       if(this.t>=this.window||behind||movedAway)this.ignore(`${this.KINDS[this.kind].marker} OUT OF RANGE`);
     }else if(this.state==='skirmish'){
       this.updateSkirmish(dt)
+    }else if(this.state==='minefield'){
+      this.updateMinefield(dt)
     }else if(this.state==='pursuit'){
       this.t+=dt;
       for(const f of fighters)if(!f.dead&&!f.dying&&!f.provoked)f.shotsLeft=0;
@@ -131,6 +141,56 @@ const routeDiversion={
   },
   // A shot at a pursuer means X has joined in: that raider fights back.
   onPlayerHitFighter(f){if(this.active&&(this.state==='pursuit'||this.state==='skirmish')&&f){f.provoked=true;this.joined=true;if(!(f.shotsLeft>0))f.shotsLeft=3}},
+  // ---- Old minefield (v1370) ----
+  // A slab of old contact mines ahead, drifting and tumbling, with a few right across the
+  // flight path. A mine within 12 arms (blinking white) and blows 0.45 s later; inside 10 the
+  // blast costs a shield. Shot mines detonate where they are and set off any neighbour
+  // within 14 a moment later, so a well-placed shot can clear a cluster.
+  beginMinefield(stage,def){
+    const n=24+Math.floor(Math.random()*7);this.mines=[];this.minesShot=0;this.minesTotal=n;
+    for(let i=0;i<n;i++){
+      const onPath=i<9,x=onPath?(Math.random()-.5)*14:(Math.random()-.5)*90,y=onPath?(Math.random()-.5)*10:(Math.random()-.5)*38,z=110+(onPath?i/9:Math.random())*560;
+      const w=cameraPointToWorld([x,y,z]);
+      this.mines.push({x:w[0],y:w[1],z:w[2],s:1.25+Math.random()*.5,rot:[Math.random()*6,Math.random()*6,0],spin:[(Math.random()-.5)*1.2,(Math.random()-.5)*1.4,0],
+        drift:[(Math.random()-.5)*2,(Math.random()-.5)*1.2,0],armT:0,armed:false,dead:false,passed:false})
+    }
+    this.state='minefield';callout(def.nav,2.6);return true
+  },
+  updateMinefield(dt){
+    this.t+=dt;const k=OPEN_SPACE_CRUISE*dt;
+    for(const m of this.mines){
+      if(m.dead||m.passed)continue;
+      m.x-=spaceMoveX*k;m.y-=spaceMoveY*k;m.z-=spaceMoveZ*k;
+      m.x+=m.drift[0]*dt;m.y+=m.drift[1]*dt;m.rot[0]+=m.spin[0]*dt;m.rot[1]+=m.spin[1]*dt;
+      if(m.z<-12){m.passed=true;continue}
+      const d=Math.hypot(m.x-shipX,m.y-shipY,m.z);
+      if(!m.armed&&d<12){m.armed=true;m.armT=.45}
+      if(m.armed){m.armT-=dt;if(m.armT<=0)this.detonateMine(m,false)}
+    }
+    if(!this.mines.some(m=>!m.dead&&!m.passed)||this.t>=this.window)this.finishMinefield()
+  },
+  detonateMine(m,byShot){
+    if(m.dead)return;m.dead=true;
+    const p=proj([m.x,m.y,m.z]);if(p){if(typeof explodeMesh==='function')explodeMesh(m,stationProximityMineMesh,p,C.r);spark(p.x,p.y,C.y,10)}
+    SoundFX.explosion?.();
+    if(Math.hypot(m.x-shipX,m.y-shipY,m.z)<10)damage('MINE BLAST');
+    // Neighbours catch the blast a moment later.
+    for(const o of this.mines)if(!o.dead&&!o.passed&&o!==m&&Math.hypot(o.x-m.x,o.y-m.y,o.z-m.z)<14&&!(o.armed&&o.armT<.25)){o.armed=true;o.armT=.25;o.chained=byShot||o.chained}
+  },
+  mineShotCandidate(aim,bestDistance=1e9){
+    if(!this.active||this.state!=='minefield'||phase!=='space')return null;let best=null,bd=bestDistance,bp=null;
+    for(const m of this.mines){if(m.dead||m.passed)continue;const p=proj([m.x,m.y,m.z]);if(!p)continue;
+      const d=Math.hypot(aim.x-p.x,aim.y-p.y),r=clamp(m.s*p.k*2.2,14,72);if(d<r&&d<bd){best=m;bd=d;bp=p}}
+    return best?{mine:best,distance:bd,point:bp}:null
+  },
+  hitMine(m){if(!m||m.dead)return;this.minesShot++;this.detonateMine(m,true)},
+  finishMinefield(){
+    // Mines X shot, plus those they set off, count as cleared; ones X blundered into don't.
+    const def=this.KINDS.minefield,gone=this.minesShot+this.mines.filter(m=>m.dead&&m.chained).length;this.mines=[];
+    if(gone>=Math.ceil(this.minesTotal*.4)){callout(def.cleared.say,2);SoundFX.objectiveComplete?.();this.record({id:'cleared',...def.cleared})}
+    else{callout('MINEFIELD BEHIND · ROUTE CONTINUES',1.8);this.recordIgnored()}
+    this.end()
+  },
   // ---- Fight in progress (v1360) ----
   // Three friendly craft are already exchanging fire with four or five raiders ahead and off
   // to one side. The raiders are busy with them and hold fire on X unless X joins in. The
@@ -252,6 +312,8 @@ const routeDiversion={
        [20,0],[20,3],[21,1],[21,2],[20,21]]
   },
   appendScene(scene){
+    if(this.active&&this.state==='minefield'){for(const m of this.mines){if(m.dead||m.passed)continue;const q=camPoint([m.x,m.y,m.z]);
+      if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(m,stationProximityMineMesh,m.armed&&Math.sin(m.armT*60)>0?C.w:C.r)})}return}
     if(this.active&&this.state==='skirmish'){for(const a of this.allies){if(a.dead)continue;const q=camPoint([a.x,a.y,a.z]);if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(a,a.mesh,a.hitT>0?C.w:(a.hp<.3?C.r:this.side.col))})}return}
     const c=this.civ;if(!this.active||this.state!=='pursuit'||!c||c.dead)return;
     const q=camPoint([c.x,c.y,c.z]);if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(c,this.CIV_MESH,c.hitT>0?C.w:(c.hp<.3?C.r:C.c))})
@@ -270,7 +332,7 @@ const routeDiversion={
     ctx.strokeStyle=c.hp<.3?C.r:C.c;ctx.strokeText(`CIVILIAN ${Math.max(0,Math.ceil(c.hp*100))}%`,p.x,p.y-Math.max(16,3.4*p.k*.6));ctx.restore()
   },
   reset(){
-    this.civ=null;this.allies=[];this.tracers=[];this.side=null;
+    this.civ=null;this.allies=[];this.tracers=[];this.side=null;this.mines=[];
     // Abandon/fail mid-diversion: release the marker this diversion borrowed.
     if(this.active&&salvageRecovery.stage?.type==='embedded_recovery')salvageRecovery.reset();
     this.active=false;this.state='idle';this.stage=null;this.t=0
