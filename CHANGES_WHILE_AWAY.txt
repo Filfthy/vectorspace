@@ -1588,3 +1588,17 @@ v1590 A "new on the routes" bulletin for campaigns already under way
       Surveys and Crash Recoveries, crash sites, storms and roads, the
       Lattice Node), with a button to the operator guide. New campaigns never
       see it.
+
+v1600 Walker groups patrol together (the reindeer's way of moving)
+      You said the promo reindeer moved better than the game's mechs. They
+      are built on the game's own hound walker, so the difference was mostly
+      how they moved: as a herd, along one path, each keeping its place.
+      In the game an idle walker picked a random point, walked to it, stopped,
+      and picked another. Now, on the dune and ice armour fields, an idle
+      group walks a loop round its area together at a steady pace (half the
+      slowest member's speed, so heavy armour sets a lumbering pace), each
+      unit holding its place in a loose V behind the lead, turning smoothly.
+      Units peel off to attack when you come in range, as before, and fall
+      back into the line afterwards. Every walker is now on the move instead
+      of standing about. The factory strike's generator guards, dome striders
+      and bunker guard keep their old station-keeping.

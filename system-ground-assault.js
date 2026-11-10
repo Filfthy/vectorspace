@@ -897,6 +897,12 @@ class GroundAssaultController{
       // Stay roughly on station: the nav area remains the fight's centre.
       const home=Math.hypot(tx-g.cx,tz-g.cwz),leash=u.leash||(hound?170:55);
       if(home>leash){const s=leash/home;tx=g.cx+(tx-g.cx)*s;tz=g.cwz+(tz-g.cwz)*s}
+    }else if(this.patrols(u)){
+      // v1600: an idle group walks a loop round its area together, each unit holding its
+      // place in a loose V behind the lead, instead of each wandering off and stopping.
+      const P=this.patrolPoint(g,dt),sl=u.slot||(u.slot=this.patrolSlot(u,g));
+      const fwx=Math.sin(P.h),fwz=Math.cos(P.h),rtx=Math.cos(P.h),rtz=-Math.sin(P.h);
+      tx=P.x+rtx*sl[0]-fwx*sl[1];tz=P.z+rtz*sl[0]-fwz*sl[1];u.patrolV=P.v
     }else{
       u.wanderT-=dt;
       if(u.wanderT<=0||Math.hypot(u.goalX-u.x,u.goalWZ-u.wz)<3){const a=Math.random()*Math.PI*2,r=(u.minWander||0)+Math.random()*((u.wanderR||18)-(u.minWander||0));u.goalX=g.cx+Math.sin(a)*r;u.goalWZ=g.cwz+Math.cos(a)*r;u.wanderT=6+Math.random()*8}
@@ -906,10 +912,29 @@ class GroundAssaultController{
     const diff=wrapAngle(want-u.h),turn=K.turn*(u.aggro?1:.6);
     u.h=wrapAngle(u.h+clamp(diff,-turn*dt,turn*dt));
     let sp=K.speed*(u.aggro?1:(hound?.22:.55))*(Math.abs(diff)>1.2?(hound?.55:.35):1)*(dist<2.5?0:1);
+    // On patrol: the group's pace, a little faster to catch up with a slot, slower if ahead.
+    if(!u.aggro&&u.patrolV!==undefined&&this.patrols(u))sp=clamp(u.patrolV+(dist-1.5)*.7,0,K.speed*.8)*(Math.abs(diff)>1.6?.5:1);
     if(u.knees){const broken=u.knees.filter(k=>k.broken).length;if(broken)sp*=.35}
     u.speed=moveToward(u.speed,sp,dt*(K.heavy?.8:(hound?9:3.5)));
     // Tank turrets track the player independently of the hull.
     if(K.turret){const loc=this.toLocal(u,shipX,travel),desired=Math.atan2(-loc[0],-loc[1]);u.turretYaw+=clamp(wrapAngle(desired-u.turretYaw),-dt*1.4,dt*1.4)}
+  }
+  // v1600 group patrols (dune and ice armour fields only: the factory's guards, domes and
+  // tesla walkers keep their own station-keeping).
+  patrols(u){const K=u.K;return this.variant!=='factory'&&!u.group?.guard&&!u.minWander&&K.speed>0&&!K.tesla}
+  patrolPoint(g,dt){
+    const P=g.patrol||(g.patrol={a:Math.random()*Math.PI*2,dir:Math.random()<.5?-1:1,t:-1,x:g.cx,z:g.cwz,h:0,v:0});
+    if(P.t!==time){P.t=time;
+      const members=this.units.filter(o=>o.group===g&&!o.dead&&o.state==='alive'&&this.patrols(o));
+      const r=clamp(10+members.length*2.2,12,26);
+      P.v=members.length?Math.min(...members.map(o=>o.K.speed))*.5:0;
+      P.a+=P.dir*P.v/r*dt;P.x=g.cx+Math.sin(P.a)*r;P.z=g.cwz+Math.cos(P.a)*r;P.h=Math.atan2(Math.cos(P.a)*P.dir,-Math.sin(P.a)*P.dir)}
+    return P
+  }
+  // Slot in the V: the first unit leads, the rest fall in alternately left and right.
+  patrolSlot(u,g){
+    const order=this.units.filter(o=>o.group===g&&this.patrols(o)).sort((a,b)=>a.id-b.id),i=Math.max(0,order.indexOf(u));
+    return[(i%2?1:-1)*Math.ceil(i/2)*4.5,Math.ceil(i/2)*4]
   }
   move(u,dt){
     u.x+=Math.sin(u.h)*u.speed*dt;u.wz+=Math.cos(u.h)*u.speed*dt;
