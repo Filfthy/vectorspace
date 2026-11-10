@@ -2022,11 +2022,30 @@ v1860 Every mission in the game finished by a pilot. One finding for you.
         ASTEROID CLEARANCE. The pilot clears it in 14 to 18 s at risk 1
         and 26 to 29 s at risk 9, losing no shield at all (0 to 2 points
         in 21 flights). It pays about CR 3,500 at risk 1 and CR 34,000 at
-        risk 9 (45,000 at risk 10). For the same pilot that is about 2.7
-        times what a dogfight earns per second at risk 9, with none of
-        the danger. Its XP is in line with a dogfight. The rocks get only
-        2 more hit points across the whole risk range and the count goes
-        from 8 to 14, while the fee grows with the square of the risk.
+        risk 9 (45,000 at risk 10). The rocks get only 2 more hit points
+        across the whole risk range and the count goes from 8 to 14, while
+        the fee grows with the square of the risk.
+        Corrected figures (an earlier version of this entry said "about
+        2.7 times" and "XP in line with a dogfight", both wrong). At risk
+        9, counting kill bounties, per minute of flying for this pilot:
+                              credits    XP     per job
+          asteroid clearance   78,000   1,340   CR 35,000,   600 XP
+          dogfight             17,000     860   CR 47,000, 2,350 XP
+          station defence      20,000     910   CR 50,000, 2,280 XP
+          survey run           24,000   1,000   CR 42,000, 1,730 XP
+        So per job it pays a little less money and a quarter of the XP,
+        but it is so short that per minute it is 4.5 times the credits and
+        1.6 times the XP. A person aims slower than the pilot and there is
+        time in the hub between jobs, which narrows the gap but does not
+        close it.
+        It never carries extra combat: it has no descent, station or
+        departure, so no route fight or diversion can attach to it.
+        How often it is offered (150 boards of 6 at each level):
+          level 1   16% of contracts, on 71% of boards (7 job types open)
+          level 3    9%, on 45%
+          level 6+   6 to 8%, on 34 to 42% (22 to 25 job types open)
+        It thins out only because more job types unlock. Its own weight
+        does not change with level, and a board can show two of them.
       This one is your original job, not something I added, so I have NOT
       changed it. Options if you want it brought in line: trim the fee,
       or make it a bigger job at high risk (more marked rocks, tougher
