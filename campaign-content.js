@@ -26,10 +26,10 @@ globalThis.AgentXCampaignContent={
     for(const c of Object.values(target.mailContacts))(target.contactIdsByFaction[c.faction]??=[]).push(c.id);
     target.missions=[];
     const tierInfo={
-      1:{roman:'I',colour:'White'},2:{roman:'II',colour:'Green'},3:{roman:'III',colour:'Blue'},4:{roman:'IV',colour:'Purple'},5:{roman:'V',colour:'Orange'}
+      1:{roman:'I',grade:'Surplus'},2:{roman:'II',grade:'Licensed'},3:{roman:'III',grade:'Military'},4:{roman:'IV',grade:'Experimental'},5:{roman:'V',grade:'Partition'}   // v2240: grade names, not colours
     };
     const slotLabel={consumable:'Consumable',internal:'Internal',weapon:'Weapon'};
-    const gear=(id,name,price,slot,tier,note,extra={})=>({id,name,price,slot,tier,kind:`${slotLabel[slot]||'Internal'} · Tier ${tierInfo[tier].roman} · ${tierInfo[tier].colour}`,note,...extra});
+    const gear=(id,name,price,slot,tier,note,extra={})=>({id,name,price,slot,tier,kind:`${slotLabel[slot]||'Internal'} · ${tierInfo[tier].grade} (${tierInfo[tier].roman})`,note,...extra});
     // v300 progression: consumables are sold per CHARGE and fitted as a PACK (a slot
     // holds `pack` charges). Charge prices double per tier (hardware quadruples), so a
     // shield boost is an everyday tool rather than a once-a-mission luxury.
@@ -104,20 +104,20 @@ globalThis.AgentXCampaignContent={
     // built-in bonuses are intentionally modest so fitted equipment still matters.
     target.frames={
       'AX-1':{id:'AX-1',name:'AX-1 Standard',tier:1,price:3500,shields:6,consumables:1,internals:1,note:'Disposable starter combat frame. Replacement is always free.',bonusText:'No built-in bonus.'},
-      'AX-2I':{id:'AX-2I',name:'AX-2I Integrator',tier:2,price:18000,shields:7,consumables:1,internals:2,regenMult:.95,note:'Green-tier systems frame with room for two passive internals.',bonusText:'Shield rebuild 5% faster.'},
-      'AX-2R':{id:'AX-2R',name:'AX-2R Runner',tier:2,price:17000,shields:6,consumables:2,internals:1,packBonus:1,note:'Green-tier attack frame with a second consumable hardpoint.',bonusText:'+1 charge in every consumable pack.'},
+      'AX-2I':{id:'AX-2I',name:'AX-2I Integrator',tier:2,price:18000,shields:7,consumables:1,internals:2,regenMult:.95,note:'Licensed systems frame with room for two passive internals.',bonusText:'Shield rebuild 5% faster.'},
+      'AX-2R':{id:'AX-2R',name:'AX-2R Runner',tier:2,price:17000,shields:6,consumables:2,internals:1,packBonus:1,note:'Licensed attack frame with a second consumable hardpoint.',bonusText:'+1 charge in every consumable pack.'},
       'OSD-2S':{id:'OSD-2S',name:'OSD-2 Sentinel',tier:2,price:22000,shields:8,consumables:1,internals:2,enemyHitMult:.96,faction:'security',repReq:25,minLevel:2,note:'Orbital Security derivative built around survivability.',bonusText:'Enemy hit intent -4%.',factionName:'Orbital Security Directorate'},
 
-      'AX-3B':{id:'AX-3B',name:'AX-3B Bastion',tier:3,price:72000,shields:9,consumables:1,internals:3,regenMult:.95,note:'Blue-tier defensive chassis with extensive internal capacity.',bonusText:'Shield rebuild 5% faster.'},
-      'AX-3S':{id:'AX-3S',name:'AX-3S Striker',tier:3,price:68000,shields:8,consumables:2,internals:2,burstBonus:1,note:'Blue-tier balanced combat frame with two active stores.',bonusText:'+1 laser pulse per burst.'},
+      'AX-3B':{id:'AX-3B',name:'AX-3B Bastion',tier:3,price:72000,shields:9,consumables:1,internals:3,regenMult:.95,note:'Military defensive chassis with extensive internal capacity.',bonusText:'Shield rebuild 5% faster.'},
+      'AX-3S':{id:'AX-3S',name:'AX-3S Striker',tier:3,price:68000,shields:8,consumables:2,internals:2,burstBonus:1,note:'Military balanced combat frame with two active stores.',bonusText:'+1 laser pulse per burst.'},
       'HIG-3V':{id:'HIG-3V',name:'HIG-3 Vector',tier:3,price:84000,shields:8,consumables:1,internals:3,regenMult:.85,faction:'helix',repReq:35,minLevel:5,note:'Helix Industrial engineering derivative with an unusually efficient field bus.',bonusText:'Shield rebuild 15% faster.',factionName:'Helix Industrial Group'},
 
-      'AX-4W':{id:'AX-4W',name:'AX-4W Warden',tier:4,price:288000,shields:10,consumables:2,internals:3,enemyHitMult:.94,note:'Purple-tier defensive frame designed to survive sustained hostile attention.',bonusText:'Enemy hit intent -6%.'},
-      'AX-4L':{id:'AX-4L',name:'AX-4L Lancer',tier:4,price:272000,shields:9,consumables:3,internals:2,fireIntervalMult:.95,note:'Purple-tier assault frame favouring active stores and sustained firing.',bonusText:'Laser firing cycle 5% faster.'},
+      'AX-4W':{id:'AX-4W',name:'AX-4W Warden',tier:4,price:288000,shields:10,consumables:2,internals:3,enemyHitMult:.94,note:'Experimental defensive frame designed to survive sustained hostile attention.',bonusText:'Enemy hit intent -6%.'},
+      'AX-4L':{id:'AX-4L',name:'AX-4L Lancer',tier:4,price:272000,shields:9,consumables:3,internals:2,fireIntervalMult:.95,note:'Experimental assault frame favouring active stores and sustained firing.',bonusText:'Laser firing cycle 5% faster.'},
       'RJC-4M':{id:'RJC-4M',name:'RJC-4 Marauder',tier:4,price:320000,shields:8,consumables:3,internals:2,burstBonus:2,lockMult:.5,faction:'jackals',repReq:45,minLevel:9,note:'Red Jackal hot-rod frame: lightly protected, heavily biased toward attack.',bonusText:'+2 laser pulses. Locks in half the time.',factionName:'Red Jackal Combine'},
 
-      'AX-5A':{id:'AX-5A',name:'AX-5A Apex',tier:5,price:1080000,shields:11,consumables:3,internals:3,aimMult:1.05,boltTolMult:1.25,note:'Orange-tier balanced endgame frame with no obvious weak system.',bonusText:'Aim tolerance +5%. Incoming projectiles 25% easier to shoot down.'},
-      'AX-5C':{id:'AX-5C',name:'AX-5C Citadel',tier:5,price:1160000,shields:12,consumables:2,internals:4,regenMult:.88,note:'Orange-tier systems fortress with four internal bays.',bonusText:'Shield rebuild 12% faster.'},
+      'AX-5A':{id:'AX-5A',name:'AX-5A Apex',tier:5,price:1080000,shields:11,consumables:3,internals:3,aimMult:1.05,boltTolMult:1.25,note:'Partition balanced endgame frame with no obvious weak system.',bonusText:'Aim tolerance +5%. Incoming projectiles 25% easier to shoot down.'},
+      'AX-5C':{id:'AX-5C',name:'AX-5C Citadel',tier:5,price:1160000,shields:12,consumables:2,internals:4,regenMult:.88,note:'Partition systems fortress with four internal bays.',bonusText:'Shield rebuild 12% faster.'},
       'FTC-5N':{id:'FTC-5N',name:'FTC-5 Nomad',tier:5,price:1280000,shields:10,consumables:3,internals:3,packBonus:1,lockMult:.6,faction:'trade',repReq:60,minLevel:14,note:'Free Traders premium long-range combat courier derivative.',bonusText:'+1 charge in every pack. Faster lock.',factionName:'Free Traders Compact'}
     };
     target.marketTierView='accessible';

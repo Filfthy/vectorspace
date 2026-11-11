@@ -2863,3 +2863,19 @@ v2230 Asteroid delivery bay: furniture in its own colours
       cyan. The same bay is used by the taco run's asteroid delivery.
       Checked on a frame of the bay during a delivery.
 
+v2240 Gear quality has names, colour only marks it
+      You said the market grades are a quality filter, not a colour
+      filter. The five grades are now Surplus, Licensed, Military,
+      Experimental and Partition (I to V), and the colour words are gone
+      from all text: the market filter buttons, the market access line
+      ("MARKET ACCESS: MILITARY"), item and frame details ("Frame ·
+      Military (III)"), frame descriptions, the level 14 notice and the
+      Guide (which now names each grade with its colour once).
+      Colour now marks the product, not its name: in the market each row
+      has a bar in its grade colour, the item icon and its frame take the
+      colour, and each grade filter button is outlined in it. Item names
+      are plain white. Drone bay slots and stored items already outlined
+      in the grade colour with white names, so they are unchanged. The
+      colours are the same as before: white, green, blue, purple, orange.
+      Mail already in a save keeps its old wording.
+

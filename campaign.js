@@ -51,8 +51,11 @@ class CampaignController {
   defaultState(){
     return {money:12000,xp:0,drone:'AX-1',ownedFrames:['AX-1'],reputation:{trade:0,security:0,jackals:0,helix:0,quickbite:0},completed:0,failed:0,skills:[],inventory:this.emptyInventory(),weaponLoadout:null,loadoutCharges:[0,0,0,0],autoRestock:true,loadout:[null,null,null,null],internalLoadout:[null,null,null,null],frameLoadouts:{},boardGeneration:0,contractBoard:null,mail:[],mailSeq:0,mailFlags:{introShown:false},discounts:{},trainingInsuranceBenefit:false};
   }
-  tierInfo(tier){return ({1:{name:'White',roman:'I'},2:{name:'Green',roman:'II'},3:{name:'Blue',roman:'III'},4:{name:'Purple',roman:'IV'},5:{name:'Orange',roman:'V'}})[clamp(Number(tier)||1,1,5)]}
-  tierClass(tier){return `tier${this.tierInfo(tier).name}`}
+  // v2240: quality grades have names. Colour only marks them (outlines, icons, slots), it is
+  // never the name: Surplus white, Licensed green, Military blue, Experimental purple,
+  // Partition orange. key is the internal colour used by the style classes.
+  tierInfo(tier){return ({1:{name:'Surplus',key:'White',roman:'I'},2:{name:'Licensed',key:'Green',roman:'II'},3:{name:'Military',key:'Blue',roman:'III'},4:{name:'Experimental',key:'Purple',roman:'IV'},5:{name:'Partition',key:'Orange',roman:'V'}})[clamp(Number(tier)||1,1,5)]}
+  tierClass(tier){return `tier${this.tierInfo(tier).key}`}
   xpThresholds(){return [0,600,1500,2800,4500,6500,9000,12000,15500,19500,24000,29000,34500,40500,47000,54000,61500,69500,78000,87000]}
   xpForLevel(level){const a=this.xpThresholds(),n=clamp(Math.round(Number(level)||1),1,a.length);return a[n-1]}
   normalMarketTier(level=this.levelForXP()){
@@ -72,7 +75,7 @@ class CampaignController {
     if(product.faction){
       const rep=this.factions[product.faction]?.rep||0,need=product.repReq||25,lvl=Number(product.minLevel)||1;
       if(rep<need)return {ok:false,reason:`${product.factionName||this.factions[product.faction]?.name||'Faction'} rep ${need} required`};
-      // Faction frames still respect operator level, so standing alone cannot open an Orange frame at level 3.
+      // Faction frames still respect operator level, so standing alone cannot open a Partition frame at level 3.
       return this.levelForXP()>=lvl?{ok:true,reason:`Faction access · rep ${rep}`}:{ok:false,reason:`Operator level ${lvl} required`}
     }
     const access=this.marketAccessTier();
@@ -2697,9 +2700,9 @@ class CampaignController {
   renderShop(){
     shopGridEl.innerHTML='';
     const toolbar=document.createElement('div');toolbar.className='marketToolbar';
-    const tierButtons=[['accessible','Accessible'],['1','White'],['2','Green'],['3','Blue'],['4','Purple'],['5','Orange'],['all','All']];
+    const tierButtons=[['accessible','Accessible'],...[1,2,3,4,5].map(t=>[String(t),this.tierInfo(t).name]),['all','All']];
     const kindButtons=[['all','All gear'],['frame','Frames'],['weapon','Weapons'],['consumable','Consumables'],['internal','Internals']];
-    toolbar.innerHTML=`<div class="marketAccessSummary">MARKET ACCESS <b>${this.tierInfo(this.marketAccessTier()).name.toUpperCase()}</b> · NORMAL LEVEL BAND ${this.tierInfo(this.normalMarketTier()).name.toUpperCase()}${this.favourTierBoost()?` · FAVOUR +${this.favourTierBoost()} TIER${this.favourTierBoost()===1?'':'S'}`:''}</div><div class="marketFilterRow tierFilters">${tierButtons.map(([v,l])=>`<button type="button" data-market-tier="${v}" class="${this.marketTierView===v?'active':''}">${l}</button>`).join('')}</div><div class="marketFilterRow kindFilters">${kindButtons.map(([v,l])=>`<button type="button" data-market-kind="${v}" class="${this.marketKindView===v?'active':''}">${l}</button>`).join('')}</div>`;
+    toolbar.innerHTML=`<div class="marketAccessSummary">MARKET ACCESS <b>${this.tierInfo(this.marketAccessTier()).name.toUpperCase()}</b> · NORMAL LEVEL BAND ${this.tierInfo(this.normalMarketTier()).name.toUpperCase()}${this.favourTierBoost()?` · FAVOUR +${this.favourTierBoost()} TIER${this.favourTierBoost()===1?'':'S'}`:''}</div><div class="marketFilterRow tierFilters">${tierButtons.map(([v,l])=>`<button type="button" data-market-tier="${v}" class="${/^[1-5]$/.test(v)?this.tierClass(Number(v))+' ':''}${this.marketTierView===v?'active':''}">${l}</button>`).join('')}</div><div class="marketFilterRow kindFilters">${kindButtons.map(([v,l])=>`<button type="button" data-market-kind="${v}" class="${this.marketKindView===v?'active':''}">${l}</button>`).join('')}</div>`;
     toolbar.querySelectorAll('[data-market-tier]').forEach(btn=>btn.addEventListener('click',()=>{this.marketTierView=btn.dataset.marketTier;this.selectedMarketProductId=null;this.renderShop()}));
     toolbar.querySelectorAll('[data-market-kind]').forEach(btn=>btn.addEventListener('click',()=>{this.marketKindView=btn.dataset.marketKind;this.selectedMarketProductId=null;this.renderShop()}));
     shopGridEl.appendChild(toolbar);
@@ -2721,14 +2724,14 @@ class CampaignController {
       const access=this.productAccess(p),isFrame=p.productType==='frame',tier=this.tierInfo(p.tier);
       const price=this.marketPrice(p),discounted=price<p.price;
       const row=document.createElement('button');row.type='button';row.className=`catalogRow marketRow ${this.tierClass(p.tier)}${access.ok?'':' locked'}${p.id===this.selectedMarketProductId?' selected':''}`;
-      row.innerHTML=`<span class="catalogRowTitle">${p.name}</span><span class="catalogRowSub">${isFrame?'Frame':({consumable:'Consumable',weapon:'Weapon',internal:'Internal'}[p.slot])} · Tier ${tier.roman} · ${tier.name}</span><span class="catalogRowBlurb">${p.note}</span><span class="catalogRowFacts"><b>CR ${price.toLocaleString()}${p.slot==='consumable'?' / charge':''}${discounted?' · DISCOUNT':''}</b>${!isFrame&&(this.state.inventory[p.id]||0)?`<b>IN STORES ×${this.state.inventory[p.id]}</b>`:''}<b class="${access.ok?'':'bad'}">${access.ok?'AVAILABLE':'LOCKED'}</b></span>`;
+      row.innerHTML=`<span class="catalogRowTitle">${p.name}</span><span class="catalogRowSub">${isFrame?'Frame':({consumable:'Consumable',weapon:'Weapon',internal:'Internal'}[p.slot])} · ${tier.name} (${tier.roman})</span><span class="catalogRowBlurb">${p.note}</span><span class="catalogRowFacts"><b>CR ${price.toLocaleString()}${p.slot==='consumable'?' / charge':''}${discounted?' · DISCOUNT':''}</b>${!isFrame&&(this.state.inventory[p.id]||0)?`<b>IN STORES ×${this.state.inventory[p.id]}</b>`:''}<b class="${access.ok?'':'bad'}">${access.ok?'AVAILABLE':'LOCKED'}</b></span>`;
       row.addEventListener('click',()=>{this.selectedMarketProductId=p.id;this.renderShop()});list.appendChild(row)
     }
 
     const p=products.find(x=>x.id===this.selectedMarketProductId);
     if(p){
       const access=this.productAccess(p),isFrame=p.productType==='frame',owned=isFrame?this.state.ownedFrames.includes(p.id):(this.state.inventory[p.id]||0),active=isFrame&&this.state.drone===p.id;
-      const tier=this.tierInfo(p.tier),icon=isFrame?this.frameIcon(p):this.itemIcon(p.id),meta=isFrame?`Frame · Tier ${tier.roman} · ${tier.name}`:p.kind;
+      const tier=this.tierInfo(p.tier),icon=isFrame?this.frameIcon(p):this.itemIcon(p.id),meta=isFrame?`Frame · ${tier.name} (${tier.roman})`:p.kind;
       const specs=isFrame?`<div class="frameSpecs"><span>${p.shields} shields</span><span>${p.consumables} consumable</span><span>${p.internals} internal</span></div><div class="frameBonus">${p.bonusText}</div>`:'';
       const faction=p.faction?`<div class="factionAccess">${p.factionName} · REP ${p.repReq}</div>`:'';
       const compare=!isFrame&&p.slot==='weapon'?this.weaponCompareHtml(p):'';
@@ -2936,7 +2939,7 @@ class CampaignController {
       <div class="sandboxRow"><label>Level <input type="range" min="1" max="20" step="1" value="${clamp(lvl,1,20)}" data-sandbox-level><output data-sandbox-level-value>${lvl}</output></label><button type="button" data-sandbox-level-apply>Set level</button></div>
       <div class="sandboxRow"><label>XP <input type="number" min="0" step="100" value="${Math.round(this.state.xp)}" data-sandbox-xp></label><button type="button" data-sandbox-xp-apply>Apply XP</button></div>
       <div class="sandboxRow"><label>Credits <input type="number" min="0" step="1000" value="${Math.round(this.state.money)}" data-sandbox-money></label><button type="button" data-sandbox-money-apply>Apply credits</button></div>
-      <div class="sandboxPresets"><span>JUMP TO TEST BAND</span>${[[1,'White',12000],[3,'Green',40000],[6,'Blue',140000],[10,'Purple',480000],[15,'Orange',1600000]].map(([l,n,c])=>`<button type="button" data-sandbox-preset="${l}" data-cash="${c}">${n}</button>`).join('')}</div>
+      <div class="sandboxPresets"><span>JUMP TO TEST BAND</span>${[[1,'Surplus',12000],[3,'Licensed',40000],[6,'Military',140000],[10,'Experimental',480000],[15,'Partition',1600000]].map(([l,n,c])=>`<button type="button" data-sandbox-preset="${l}" data-cash="${c}">${n}</button>`).join('')}</div>
       <div class="sandboxRepGrid">${reps.map(f=>`<label><span>${f.name}</span><input type="range" min="-100" max="100" step="5" value="${f.rep}" data-sandbox-rep="${f.id}"><output>${f.rep>0?'+':''}${f.rep}</output></label>`).join('')}</div>
       <div class="sandboxNote">TEMPORARY TEST CONTROLS · normal market band ${this.tierInfo(normal).name}; favour/skills currently lift access by ${this.favourTierBoost()} tier${this.favourTierBoost()===1?'':'s'}.</div>`;
     const levelSlider=host.querySelector('[data-sandbox-level]'),levelOut=host.querySelector('[data-sandbox-level-value]');

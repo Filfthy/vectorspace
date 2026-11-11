@@ -1017,3 +1017,15 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .codexEntry b{color:var(--w);font-weight:400}
 .codexEntry p{margin:3px 0 0}
 .codexEntry.locked b,.codexEntry.locked p{color:var(--x)}
+
+/* v2240: quality colour marks the product, not its name. Market names are plain; the row has
+   a bar in the grade colour, the icon and its frame take the colour, and each grade filter
+   button is outlined in its colour. Drone bay slots already outline in the grade colour. */
+.marketRow.tierWhite .catalogRowTitle,.marketRow.tierGreen .catalogRowTitle,.marketRow.tierBlue .catalogRowTitle,.marketRow.tierPurple .catalogRowTitle,.marketRow.tierOrange .catalogRowTitle,
+.marketDetail.tierWhite h3,.marketDetail.tierGreen h3,.marketDetail.tierBlue h3,.marketDetail.tierPurple h3,.marketDetail.tierOrange h3{color:var(--w)!important}
+.marketRow[class*="tier"]{box-shadow:inset 4px 0 0 var(--tc)!important;padding-left:16px!important}
+.marketDetail[class*="tier"] .itemIconFrame{border-color:var(--tc)!important}
+.marketDetail[class*="tier"] .shopItemIcon{color:var(--tc)!important}
+.tierFilters button[class*="tier"]{border-color:var(--tc)!important}
+.tierFilters button[class*="tier"].active{background:var(--tc)!important;color:#000!important}
+
