@@ -52,7 +52,8 @@ class MissionController {
   // v2210: a ringed planet is a gas giant, so never one the drone lands on. Its moons may be.
   // Any mission that descends to the planet itself (not only to a moon) gets no rings.
   {const cm=typeof campaign!=='undefined'?campaign.currentMission:null,mods=cm?.modules||[],moonOnly=String(cm?.planetaryRequirements?.landingBody||'').toLowerCase()==='moon'||mods.some(x=>String(x?.planetaryRequirements?.landingBody||'').toLowerCase()==='moon');
-   if(mods.some(x=>x?.type==='planet_descent')&&!moonOnly)planetRings=null}}}
+   // The simulator's final run lands from its own stage, not a planet_descent (v2220).
+   if(mods.some(x=>x?.type==='planet_descent'||x?.type==='tutorial_final_run')&&!moonOnly)planetRings=null}}}
  const req=this.planetaryRequirements(),landingBody=String(req.landingBody||'planet').toLowerCase();
  planetLandingBody=landingBody==='moon'?'moon':(landingBody==='either'?(Math.random()<.5?'moon':'planet'):'planet');planetLandingMoonIndex=-1;
  const requiredLandingColour=this.moonColourToken(req.landingColour);planetLandingColour=planetLandingBody==='planet'?(requiredLandingColour||C.g):C.g;

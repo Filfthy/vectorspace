@@ -2841,3 +2841,17 @@ v2210 Hills that hide what is behind them, and no landing on gas giants
       parent. Over 60 test missions: 38 planet landings with no rings, 3
       of 10 moon landings and 2 of 12 space jobs ringed.
 
+v2220 No crater circles from orbit, and no ringed simulator planet
+      You do not like the circles on planets: the crater rims drawn on
+      planets and moons seen from space (on cratered planets, and on about
+      half the moons). They are no longer drawn, anywhere: in orbit, on
+      the approach and on moons in the sky from the ground. The ground of
+      a moon still has its own craters.
+      Your screenshot showed the simulator's final run descending to a
+      ringed planet. v2210 kept rings off planets you land on, but only
+      looked for the usual descent stage, and the simulator lands from its
+      own. It now counts too: 30 simulator runs, no rings.
+      Self-test: one run had the Factory Strike pilot leave 1 of 34 units
+      standing at 600 s, a pilot miss on a stage these changes do not
+      touch. The next full run passed.
+

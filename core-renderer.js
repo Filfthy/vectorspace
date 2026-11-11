@@ -259,12 +259,9 @@ class SceneRenderer {
  p=rz(p,tilt);
  return[center[0]+p[0],center[1]+p[1],center[2]+p[2]];
 }
-  // v850: crater rims as small circles on the sphere, hidden on the far side like the grid.
-  drawCraters(center,R,camPos,projectFn,craters,tilt,spin,col,alpha=.7,width=.72){
- for(const k of craters||[]){
-   drawSphereCurve(u=>{const t=u*Math.PI*2,lat=k.lat+k.r*Math.cos(t);return sphereGridPoint(center,R,lat,k.lon+k.r*Math.sin(t)/Math.max(.25,Math.cos(k.lat)),tilt,spin)},36,center,R,camPos,projectFn,col,alpha,width)
- }
-}
+  // v850 drew crater rims as small circles on planets and moons seen from orbit. v2220: the
+  // user does not want them, so nothing is drawn (the landing ground has its own craters).
+  drawCraters(){}
   drawCelestialSphere(center,R,camPos,projectFn,{col=C.g,tilt=0,spin=0,lats=null,lonCount=6,gridAlpha=.66,limbAlpha=.92,width=.82,craters=null}={}){
  const limb=sphereLimb(center,R,camPos,projectFn);
  // Invisible black body is geometry/occlusion, not a colour fill in the artwork.
