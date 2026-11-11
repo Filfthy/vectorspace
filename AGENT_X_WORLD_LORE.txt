@@ -294,6 +294,7 @@ Canon details introduced by board work on 10 Nov 2026, for consistency:
 - Some pirate and mercenary crews fly MINELAYERS: converted haulers with a rack of cheap proximity mines. The mines arm when anything comes close and go off a moment later, whoever it is. OSD treats mine-laying as area denial, a military matter, not ordinary piracy.
 - The Free Traders run slow bulk freighters across contested lanes and hire contract escorts for them. Raiders go for the freighter, not the escort, until the escort makes itself the bigger problem.
 - VOX has moved recovered Partition cores out of remnant zones by armoured freighter, and the remnants have tried to take them back.
+- A hauler that takes a hit may dump its cargo pods to stay alive. Spilled pods drift and tumble down the lane, and pirate scavengers come for them. The Free Traders pay contract drones to scoop the pods up first (v2080).
 - The Customs Authority strings scanner pickets across lanes it wants watched: a line of rings, each with lit scanner arms turning round a buoy at its hub. Cargo that crosses in the light, or goes round a ring, is read and reported, and interceptor drones follow. Smugglers fly the dark gaps between the arms. The Jackals pay well for it (v2040).
 - Moon craters are dated records of impacts. Helix pays for core samples from crater floors, and one band of material in the first cores came from a long way off. Where from is not decided (listed under section 7, Moon cores).
 

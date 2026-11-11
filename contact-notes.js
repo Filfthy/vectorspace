@@ -128,6 +128,7 @@
       station_defence:["Sweetie, somebody is bullying a station I like. Go and show them what a real drone looks like."],
       survey_run:["Babe, it is a survey. Fly low, look pretty, come home. That is practically a date."],
       crater_cores:["Sweetie, I am buying a moon. Well, a bit of one. Go and dig your lovely nose into its craters for me."],
+      cargo_spill:["Sweetie, those pods are full of my money and they are drifting off in every direction. Gather them up like a good drone.","Babe, fly through the pods, not round them. The scavengers are not shy and neither should you be."],
       convoy_escort:["Sweetie, that hauler is full of my money and she cannot shoot back. You can. Stay close to her.","Babe, the pirates always go for the fat slow one. Show them the fast dangerous one instead."],
       groundside_pickup:["Sweetie, there is a parcel on the ground with my name on it. Go and fetch it, and look good doing it."],
       crash_recovery:["Babe, one of my haulers came down hard. Bring back the recorders so I can find out whose fault it was. Not yours, obviously."],

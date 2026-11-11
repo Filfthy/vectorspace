@@ -2874,6 +2874,43 @@
     }
   };
 
+  // v2080 Cargo Spill, the Free Traders' own job (cargo-spill.js). A hauler's cargo is
+  // adrift across a lane: fly through the pods to scoop them while pirate scavengers try
+  // to take them. Pay and standing follow the share brought home.
+  const cargoSpill={
+    id:'cargo_spill',
+    version:1,
+    family:'cargo_spill',
+    musicMode:'calm',
+    minLevel:2,
+    maxLevel:null,
+    allowedFactions:['trade'],
+    factionWeights:{trade:1},
+    board:{enabled:true,category:'recovery',weight:.8,maxPerBoard:1},
+    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
+    reward:{basePay:1600,payPerRisk:820,payRiskSquare:105,randomPay:300,roundPay:50,baseXp:160,xpPerRisk:45,xpRiskSquare:5},
+    defaults:{},
+    sections:[
+      {type:'route_diversion',label:'Scoop the Cargo',params:{diversion:'spill',main:true,spaceCombat:false,fighterHp:12}}
+    ],
+    presentation:{
+      trade:{
+        contactId:'corvella_pallis',
+        titles:['Cargo Spill','Pick Up My Pods','Spilled Freight','Boxes Everywhere'],
+        descriptions:[
+          'Sweetie, one of my haulers took a hit and dumped her whole cargo across a lane. The pods are drifting. Fly straight through them to scoop them up, as many as you can, before the scavengers do. Every pod you bring home is money I do not have to cry about.',
+          'Babe, there are cargo pods tumbling across a lane with my name stencilled on every one, and pirates on the way with sticky fingers. Fly through the pods to collect them. Anyone who tries to help themselves, shoot.',
+          'A hauler lost her load, Sweetie. The crew is fine, the cargo is everywhere. The scavengers only want the pods, not you, until you give them a reason. Collect first, shoot second, or both at once if you are showing off.'
+        ],
+        completionSubjects:['The pods','My cargo, rescued'],
+        completionBodies:['Sweetie, the pods are in the depot and Accounts has stopped sobbing. CR {credits} is on its way to you. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Oh, babe, the pods'],bodies:['Your drone went down out there and the scavengers had my cargo to themselves after that. I am going to need a large drink and a small accountant.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['You left my pods'],bodies:['You flew off and left my cargo floating in a lane, Sweetie. Somebody is going to pick it up. It will not be me.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['The hauler crew again'],bodies:['Babe, the crew whose cargo you scooped up have named a pod after you. It is the one that was full of shoes. I think it is a compliment.']}
+      }
+    }
+  };
+
   // Generic discretionary reward correspondence lives beside the mission templates
   // because it is faction/contact presentation, even when the reward itself is not
   // tied to one particular mission family. Campaign owns the reward mechanics; these
@@ -3014,7 +3051,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crater_cores:craterCores,crash_recovery:crashRecovery,relay_repair:relayRepair,lattice_survey:latticeSurvey,convoy_escort:convoyEscort,customs_run:customsRun,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crater_cores:craterCores,crash_recovery:crashRecovery,relay_repair:relayRepair,lattice_survey:latticeSurvey,convoy_escort:convoyEscort,customs_run:customsRun,cargo_spill:cargoSpill,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();

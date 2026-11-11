@@ -94,6 +94,8 @@ const routeDiversion={
     customs:{nav:'CUSTOMS PICKET AHEAD · CROSS EACH RING IN A DARK GAP',hud:'CUSTOMS PICKET',window:1e9,
       clean:{say:'PICKET BEHIND · CARGO NEVER SCANNED',text:'Cargo through the picket unscanned',pay:.15,rep:2},
       flagged:{say:'INTERCEPTORS DOWN · CARGO THROUGH',text:'Scanned at the picket, interceptors fought off',pay:-.2,rep:-2}},
+    // v2080: the Free Traders' Cargo Spill (cargo-spill.js). The whole job, so main:true.
+    spill:{nav:'CARGO ADRIFT · FLY THROUGH THE PODS TO SCOOP THEM',hud:'CARGO SPILL',window:1e9},
     layerCrew:{nav:'MINELAYER CREW SEEDING THE LANE · BREAK THEM UP',hud:'MINELAYER CREW',window:1e9,
       cleared:{say:'LANE CLEARED · OSD WILL LOG IT',text:'Minelayer crew broken up, lane cleared',pay:.08,rep:2,repFaction:'security'}},
     migration:{nav:'XENO MIGRATION CROSSING · FLY CLOSE TO SCAN · DO NOT FIRE',hud:'XENO MIGRATION',window:30,need:3,
@@ -118,6 +120,7 @@ const routeDiversion={
     if(kind==='migration')return this.beginMigration(stage,def);
     if(kind==='lattice'||kind==='latticeSurvey')return this.beginLattice(stage,def);
     if(kind==='escort')return this.beginEscort(stage,def);
+    if(kind==='spill'){this.state='spill';AgentXCargoSpill.begin(stage,campaign.currentMission?.risk);callout(def.nav,2.8);return true}
     if(kind==='customs'){this.state='customs';AgentXCustomsRun.begin(stage,campaign.currentMission?.risk);callout(def.nav,2.8);if(audio?.hasVoice?.('customsPicketAhead'))audio.playVoice('customsPicketAhead',{once:false,priority:false});return true}
     if(kind==='layerCrew'){
       const k=campaign.contractToughnessScale(campaign.currentMission?.risk||1),n=3+Math.floor(Math.random()*2);
@@ -163,6 +166,7 @@ const routeDiversion={
     if(this.state==='lattice')return `${def.hud} · ${fighters.filter(f=>f.ghost&&!f.dead).length} CORES`;
     if(this.state==='latticeFight')return 'GHOST LATTICE · AWAKE';
     if(this.state==='customs'||this.state==='customsFight')return AgentXCustomsRun.hud(def);
+    if(this.state==='spill')return AgentXCargoSpill.hud(def);
     if(this.state==='escort'){const c=this.convoy;return `${def.hud} · WAVE ${Math.max(1,this.wave)}/${this.waves} · FREIGHTER ${c?Math.max(0,Math.ceil(c.hp*100)):0}%`}
     if(this.state==='skirmish'&&this.side)return `${def.hud} · ${this.side.short} ${this.allies.filter(a=>!a.dead).length}/${this.allies.length} · ${left}s`;
     return `${def.hud} · ${left}s`
@@ -181,6 +185,8 @@ const routeDiversion={
       this.updateMinefield(dt)
     }else if(this.state==='escort'){
       this.updateEscort(dt)
+    }else if(this.state==='spill'){
+      const r=AgentXCargoSpill.update(dt);if(r==='scavengers')this.startSpillScavengers();else if(r==='done')this.finishSpill()
     }else if(this.state==='customs'){
       const r=AgentXCustomsRun.update(dt);if(r==='clean')this.finishCustoms(true);else if(r==='flagged')this.startCustomsFight()
     }else if(this.state==='lattice'||this.state==='latticeFight'){
@@ -209,7 +215,7 @@ const routeDiversion={
     }
   },
   // A shot at a pursuer means X has joined in: that raider fights back.
-  onPlayerHitFighter(f){if(this.active&&(this.state==='pursuit'||this.state==='skirmish'||this.state==='migration'||this.state==='escort')&&f){f.provoked=true;this.joined=true;if(!(f.shotsLeft>0))f.shotsLeft=3}},
+  onPlayerHitFighter(f){if(this.active&&(this.state==='pursuit'||this.state==='skirmish'||this.state==='migration'||this.state==='escort'||this.state==='spill')&&f){f.provoked=true;this.joined=true;if(!(f.shotsLeft>0))f.shotsLeft=3}},
   // ---- Xeno migration (v1400) ----
   // Four to six drifters (huge, slow, harmless) cross the route ahead from one side, with a
   // few hornets in escort that hold their fire. Keeping within 45 of a drifter for two and a
@@ -472,6 +478,30 @@ const routeDiversion={
     const seen=new Set(),e=[];for(const f of faces)for(let i=0;i<f.length;i++){const a=f[i],b=f[(i+1)%f.length],key=a<b?a+':'+b:b+':'+a;if(!seen.has(key)){seen.add(key);e.push([a,b])}}
     return{v,faces,e}
   })(),
+  // ---- Cargo spill (v2080) ----
+  startSpillScavengers(){
+    const S=AgentXCargoSpill,stage=this.stage,k=campaign.contractToughnessScale(S.risk),n=S.scavengerCount();
+    stage.spaceCombat=true;
+    scenarioFlow.startFighterStage({...stage,target:n,fighterHp:Math.round(12*k),profile:'pirate',navMessage:null,silentStart:true},'pirate',{preservePhase:true});
+    scenarioFlow.encounterHudTag=this.KINDS.spill.hud;audio.music.setMode('violent');
+    callout(`${n} SCAVENGERS INBOUND · THEY ARE AFTER THE PODS`,2.2)
+  },
+  // Every scavenger down: the pods left are the drone's to collect. Reset the kill goal so
+  // the main loop does not report the same fight as cleared every frame.
+  onSpillScavengersCleared(){
+    fighters.length=0;bolts.length=0;this.stage.spaceCombat=false;scenarioFlow.encounterProfile='standard';resetSpaceDogfightDirector();
+    interceptorGoal=9999;interceptorsDestroyed=0;interceptorClearDelay=0;audio.music.setMode('calm');
+    AgentXCargoSpill.scavsDone=true;if(AgentXCargoSpill.free().length)callout('SCAVENGERS DOWN · COLLECT WHAT IS LEFT',1.8)
+  },
+  finishSpill(){
+    const S=AgentXCargoSpill,f=S.share(),got=S.got,total=S.total,stolen=S.stolen;
+    // Break-even at about a third of the pods, +25% for a near-clean sweep, at worst -15%.
+    const say=f>=.6?'CARGO RECOVERED · CORVELLA WILL BE THRILLED':(f>=.3?'SPILL CLEARED · SOME CARGO SAVED':'MOST OF THE CARGO IS GONE');
+    const o={id:'recovered',say,text:`Recovered ${got} of ${total} pods${stolen?`, ${stolen} stolen`:''}`,pay:Math.round(clamp((f-.35)*.5,-.15,.25)*100)/100,rep:f>=.6?2:(f<.3?-2:0),extra:{pods:got,podsTotal:total}};
+    S.last={got,total,stolen};S.reset();
+    callout(say,2.4);if(f>=.3)SoundFX.objectiveComplete?.();audio.music.setMode('calm');
+    this.record(o);fighters.length=0;bolts.length=0;this.end()
+  },
   // ---- Customs run (v2040) ----
   startCustomsFight(){
     const X=AgentXCustomsRun,stage=this.stage,k=campaign.contractToughnessScale(X.risk),n=X.cutterCount();
@@ -628,6 +658,7 @@ const routeDiversion={
     if(this.state==='latticeFight'){this.finishLattice(true);return}
     if(this.state==='escort'){this.onEscortWaveCleared();return}
     if(this.state==='customsFight'){this.finishCustoms(false);return}
+    if(this.state==='spill'){this.onSpillScavengersCleared();return}
     if(this.state==='pursuit')this.finishPursuit(true)
   },
   finishPursuit(helped,message=null){
@@ -644,7 +675,7 @@ const routeDiversion={
     const m=campaign.currentMission;if(!m||!o)return;
     const pay=o.pay?Math.round((m.pay*o.pay)/50)*50:0,xp=o.xp?Math.round(m.xp*o.xp):0;
     const repFaction=o.rep?(o.repFaction||m.faction||null):null;
-    (m.diversions||(m.diversions=[])).push({kind:this.kind,outcome:o.id,text:o.text,pay,xp,rep:o.rep||0,repFaction,...(this.stage?.main?{main:true,label:({escort:'Escort',customs:'Customs run'})[this.kind]||'Survey'}:{})});   // v1820: main = the job itself (Lattice Survey), not a side trip
+    (m.diversions||(m.diversions=[])).push({kind:this.kind,outcome:o.id,text:o.text,pay,xp,rep:o.rep||0,repFaction,...(this.stage?.main?{main:true,label:({escort:'Escort',customs:'Customs run',spill:'Cargo spill'})[this.kind]||'Survey'}:{}),...(o.extra||{})});   // v1820: main = the job itself (Lattice Survey), not a side trip
     if(o.alsoRep)m.diversions.push({kind:this.kind,outcome:o.id,side:true,text:o.alsoRep.text,pay:0,xp:0,rep:o.alsoRep.amount,repFaction:o.alsoRep.faction});
   },
   recordIgnored(){const m=campaign.currentMission;if(m)(m.diversions||(m.diversions=[])).push({kind:this.kind,outcome:'ignored',text:'Ignored',pay:0,xp:0,rep:0})},
@@ -667,6 +698,7 @@ const routeDiversion={
   },
   appendScene(scene){
     if(this.active&&this.state==='customs'){AgentXCustomsRun.appendScene(scene);return}
+    if(this.active&&this.state==='spill'){AgentXCargoSpill.appendScene(scene);return}
     if(this.active&&this.state==='escort'&&this.convoy&&!this.convoy.dead){const c=this.convoy,q=camPoint([c.x,c.y,c.z]);
       if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(c,this.FREIGHTER_MESH,c.hitT>0?C.w:(c.hp<.3?C.r:C.y),.95)});return}
     if(this.active&&this.state==='migration'){for(const d of this.herd){if(d.dead)continue;const q=camPoint([d.x,d.y,d.z]);
@@ -679,6 +711,7 @@ const routeDiversion={
   },
   drawMarker(){
     if(this.active&&this.state==='customs'){AgentXCustomsRun.drawMarker();return}
+    if(this.active&&this.state==='spill'){AgentXCargoSpill.drawMarker();return}
     if(this.active&&this.state==='escort'&&this.convoy&&!this.convoy.dead){
       // Always findable: a label when it is on screen, an edge arrow when it is not.
       const c=this.convoy,q=camPoint([c.x,c.y,c.z]),p=q[2]>.2?projectCam(q):null,col=c.hp<.3?C.r:C.y;
@@ -718,7 +751,7 @@ const routeDiversion={
     ctx.strokeStyle=c.hp<.3?C.r:C.c;ctx.strokeText(`CIVILIAN ${Math.max(0,Math.ceil(c.hp*100))}%`,p.x,p.y-Math.max(16,3.4*p.k*.6));ctx.restore()
   },
   reset(){
-    globalThis.AgentXCustomsRun?.reset();
+    globalThis.AgentXCustomsRun?.reset();globalThis.AgentXCargoSpill?.reset();
     this.civ=null;this.convoy=null;this.allies=[];this.tracers=[];this.side=null;this.mines=[];this.herd=[];this.anchors=[];
     // Abandon/fail mid-diversion: release the marker this diversion borrowed.
     if(this.active&&salvageRecovery.stage?.type==='embedded_recovery')salvageRecovery.reset();

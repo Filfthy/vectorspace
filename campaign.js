@@ -264,7 +264,8 @@ class CampaignController {
       {id:'impactRecord',name:'Impact Record',text:'Complete 3 Core Samples jobs.',v:bt.crater_cores||0,goal:3},
       {id:'lightTouch',name:'Light Touch',text:'Complete 3 Lattice Surveys without waking the lattice.',v:s.latticeQuiet||0,goal:3},
       {id:'shepherd',name:'Shepherd',text:'See 3 convoy freighters safely through.',v:s.convoysSafe||0,goal:3},
-      {id:'nothingToDeclare',name:'Nothing to Declare',text:'Finish 3 Customs Runs without being scanned.',v:s.customsClean||0,goal:3}
+      {id:'nothingToDeclare',name:'Nothing to Declare',text:'Finish 3 Customs Runs without being scanned.',v:s.customsClean||0,goal:3},
+      {id:'everyLastPod',name:'Every Last Pod',text:'Bring home at least 9 in 10 pods from a Cargo Spill.',v:s.spillTidy||0,goal:1}
     ]
   }
   checkAchievements(){
@@ -2519,7 +2520,7 @@ class CampaignController {
   }
   jobType(m){
     const map={fighters:'combat',combat_recovery:'recovery',asteroids:'asteroids',asteroid_delivery:'delivery',station_delivery:'delivery',penthouse_delivery:'delivery',
-      forest_cabin_delivery:'delivery',swamp_relay_delivery:'delivery',secure_terminal_intrusion:'infiltration',deep_core:'assault',dune_armour_clearance:'assault',ice_field_armour:'assault',bunker_raid:'assault',groundside_pickup:'delivery',crystal_consignment:'delivery',survey_run:'delivery',vent_survey:'delivery',crater_cores:'delivery',crash_recovery:'recovery',relay_repair:'delivery',lattice_survey:'infiltration',convoy_escort:'combat',customs_run:'infiltration',nest_clearance:'assault',factory_strike:'assault',wreck_recovery:'recovery',station_defence:'combat',taco_run:'delivery',specimen_recovery:'recovery'};
+      forest_cabin_delivery:'delivery',swamp_relay_delivery:'delivery',secure_terminal_intrusion:'infiltration',deep_core:'assault',dune_armour_clearance:'assault',ice_field_armour:'assault',bunker_raid:'assault',groundside_pickup:'delivery',crystal_consignment:'delivery',survey_run:'delivery',vent_survey:'delivery',crater_cores:'delivery',crash_recovery:'recovery',relay_repair:'delivery',lattice_survey:'infiltration',convoy_escort:'combat',customs_run:'infiltration',cargo_spill:'recovery',nest_clearance:'assault',factory_strike:'assault',wreck_recovery:'recovery',station_defence:'combat',taco_run:'delivery',specimen_recovery:'recovery'};
     return map[m?.templateId]||(m?.kind==='procedural'?'combat':'delivery')
   }
   jobTypeInfo(type){
@@ -2637,7 +2638,7 @@ class CampaignController {
       ['Elite contracts',n(st.contracts.elite)],['Agent missions',`${agent} / ${agentT}`],
       ['Credits earned',`CR ${n(st.creditsEarned)}`],['Bounties earned',`CR ${n(st.bountyEarned)}`],['Insurance paid',`CR ${n(st.insurancePaid)}`],['Drones lost',n(st.dronesLost)],['Projectiles shot down',n(st.shotDown)],
       ['Fighters destroyed',n(k.fighters)],['Ground armour destroyed',n(this.armourKills())],['Walker knees broken',n(k.knees)],['Generators destroyed',n(k.generators)],
-      ['Reactors destroyed',n(k.reactors)],['Aces destroyed',n(k.aces)],['Shield tenders destroyed',n(k.tenders)],['Ghost constructs destroyed',n((k.ghosts||0)+(k.jammers||0))],['Minelayers destroyed',n(k.minelayers)],['Mines shot',n(st.minesShot)],['Convoys seen through',n(st.convoysSafe)],['Clean customs runs',n(st.customsClean)],['Field ambushes survived',n(st.asteroidAmbushes)],['Quiet lattice surveys',n(st.latticeQuiet)],['Stranded crews located',n(st.landBeacons)],['Moons destroyed',n(k.moons)],['Route encounters survived',n(st.routeEncounters)],['Diversions answered',n(st.diversionsInvestigated)],
+      ['Reactors destroyed',n(k.reactors)],['Aces destroyed',n(k.aces)],['Shield tenders destroyed',n(k.tenders)],['Ghost constructs destroyed',n((k.ghosts||0)+(k.jammers||0))],['Minelayers destroyed',n(k.minelayers)],['Mines shot',n(st.minesShot)],['Convoys seen through',n(st.convoysSafe)],['Clean customs runs',n(st.customsClean)],['Cargo pods recovered',n(st.spillPods)],['Field ambushes survived',n(st.asteroidAmbushes)],['Quiet lattice surveys',n(st.latticeQuiet)],['Stranded crews located',n(st.landBeacons)],['Moons destroyed',n(k.moons)],['Route encounters survived',n(st.routeEncounters)],['Diversions answered',n(st.diversionsInvestigated)],
       ['Black contracts',`${n(st.blackDone)}${this.state.mailFlags?.blackThreat?` · threat ${this.state.mailFlags.blackThreat}`:''}`],
       ['Veteran bonus',this.veteranBonus()>0?`+${Math.round(this.veteranBonus()*100)}% pay`:'from level 21']];
     const got=this.state.achievements||{},ach=this.achievementDefs();
@@ -3079,6 +3080,7 @@ class CampaignController {
       // v1920: counted here, on success, so a drone lost later in the job does not count them.
       if(!m.blackContract&&diversions.some(d=>d.main&&d.outcome==='escorted'))st.convoysSafe=(st.convoysSafe||0)+1;
       if(diversions.some(d=>d.main&&d.kind==='customs'&&d.outcome==='clean'))st.customsClean=(st.customsClean||0)+1;
+      for(const d of diversions)if(d.main&&d.kind==='spill'){st.spillPods=(st.spillPods||0)+(d.pods||0);if(d.podsTotal&&d.pods>=d.podsTotal*.9)st.spillTidy=(st.spillTidy||0)+1}
       if(m.ambushSurvived){st.asteroidAmbushes=(st.asteroidAmbushes||0)+1;st.routeEncounters=(st.routeEncounters||0)+1}st.diversionsInvestigated=(st.diversionsInvestigated||0)+diversions.filter(d=>!d.side&&!d.main&&d.outcome!=='ignored'&&d.outcome!=='fired'&&d.outcome!=='abandoned').length;   /* v1430: ignored ones and firing on a migration are not investigations */st.landBeacons=(st.landBeacons||0)+diversions.filter(d=>d.kind==='landBeacon').length;st.latticesPassed=(st.latticesPassed||0)+(m.diversions||[]).filter(d=>d.kind==='lattice'&&d.outcome==='ignored').length;st.cachesClaimed=(st.cachesClaimed||0)+diversions.filter(d=>d.kind==='cache'&&!d.side&&d.outcome!=='tracker').length;if(m.routeEncounter)st.routeEncounters=(st.routeEncounters||0)+1;if(m.templateId){const bt=st.contracts.byTemplate||(st.contracts.byTemplate={});bt[m.templateId]=(bt[m.templateId]||0)+1}if(m.favourFaction)st.favoursDone=(st.favoursDone||0)+1;st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay+bountyCr;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
     let repGain=0;
     if(faction){

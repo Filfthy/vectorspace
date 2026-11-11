@@ -110,6 +110,24 @@
     inputX=inputY=0;st.secs=Math.round(st.frames/30);st.scans=globalThis.AgentXCustomsRun.lastScans;
     st.outcome=(m?.diversions||[]).find(d=>d.main)?.outcome||'';return st
   };
+  // v2080 Cargo Spill: steer for the nearest free pod ahead. With none ahead, fight.
+  const spillStep=(skill=1)=>{
+    const S=globalThis.AgentXCargoSpill;let best=null,bz=1e9;
+    // Only pods still within reach of a gentle turn, nearest and most central first.
+    for(const p of S.free()){const q=camPoint([p.x,p.y,p.z]),off=Math.hypot(q[0],q[1]);if(q[2]>4&&q[2]<300&&off<q[2]*.45+3){const score=q[2]+off*4;if(score<bz){bz=score;best=q}}}
+    if(!best){fightStep(.9);return}
+    const rate=.12*skill,tx=clamp(best[0]/5,-1,1),ty=clamp(-best[1]/5,-1,1);
+    inputX=clamp(inputX+clamp(tx-inputX,-rate,rate),-1,1);inputY=clamp(inputY+clamp(ty-inputY,-rate,rate),-1,1)
+  };
+  const flySpill=(skill=1,{still=false,maxSecs=240}={})=>{
+    const rd=routeDiversion;inputX=inputY=0;for(let i=0;i<900&&rd.state!=='spill';i++)update(1/30);
+    if(rd.state!=='spill')return{started:false};
+    const m=campaign.currentMission,st={started:true,frames:0};
+    for(;st.frames<maxSecs*30&&rd.active&&rd.state==='spill';st.frames++){
+      if(still&&globalThis.AgentXCargoSpill.free().length)inputX=inputY=0;else spillStep(skill);update(1/30)}
+    inputX=inputY=0;st.secs=Math.round(st.frames/30);const d=(m?.diversions||[]).find(x=>x.main);
+    st.outcome=d?.outcome||'';st.pods=d?.pods;st.total=d?.podsTotal;st.pay=d?.pay;st.last=globalThis.AgentXCargoSpill.last;return st
+  };
   // Fly a launched Lattice Survey to its end. Stops (woke:true) if the lattice wakes.
   const flyLattice=(skill=1,maxSecs=200)=>{
     const rd=routeDiversion;inputX=inputY=0;for(let i=0;i<900&&rd.state!=='lattice';i++)update(1/30);
@@ -284,7 +302,7 @@
   window.__flyAll=async(opts)=>{const out=[];for(const id of Object.keys(AgentXMissionData.templates)){out.push(flyJob(id,opts));console.log(out[out.length-1]);await pause()}return out};
   // From the console, after launching a job: __pilots.toStage('surface_destination_approach'),
   // __pilots.flyApproach(), __pilots.flyLattice(skill).
-  window.__pilots={toStage,flyApproach,flyLattice,flyGround,flyCustoms};
+  window.__pilots={toStage,flyApproach,flyLattice,flyGround,flyCustoms,flySpill};
   async function group(name,items,run){
     const details=[];let n=0;
     for(const it of items){
@@ -320,19 +338,28 @@
 
     await group('diversions',Object.keys(routeDiversion.KINDS),kind=>{const m=c.makeDevTemplatePreview('asteroid_delivery','security');m.routeEncounter=null;m.modules=m.modules.filter(x=>x.type!=='route_diversion'&&!x.routeEncounter);m.modules.splice(0,0,{type:'route_diversion',label:'Route Diversion',diversion:kind,difficulty:2,spaceCombat:false,fighterHp:12});m.stages=m.modules.map(x=>x.label);
       c.launchDevTemplateTest('asteroid_delivery','security',{mission:m});invulnerable=true;for(let i=0;i<600&&!routeDiversion.active;i++)update(1/30);if(!routeDiversion.active)return 'never started';
-      const secs=kind==='latticeSurvey'||kind==='escort'||kind==='customs'?240:90;
+      const secs=kind==='latticeSurvey'||kind==='escort'||kind==='customs'||kind==='spill'?240:90;
       for(let i=0;i<30*secs&&routeDiversion.active;i++){
         // A survey only ends when its shells are scanned, so the pilot flies it. If the
         // pilot wakes it, the other ending is exercised instead: the lattice is cleared.
         if(kind==='latticeSurvey'){if(routeDiversion.state==='lattice')latticeSteer(1);else if(routeDiversion.state==='latticeFight'){routeDiversion.finishLattice(true);break}}
-        if(kind==='escort'||kind==='layerCrew'||routeDiversion.state==='customsFight')fightStep(.9);   // v1910/v2020: these only end when the raiders die
+        if(kind==='escort'||kind==='layerCrew'||routeDiversion.state==='customsFight'||(routeDiversion.state==='spill'&&fighters.some(f=>!f.dead&&!f.dying)))fightStep(.9);   // v1910/v2020: these only end when the raiders die
         update(1/30);if(i%60===0)render(performance.now())}
       inputX=inputY=0;
       if(routeDiversion.active)return `still running after ${secs} s in state ${routeDiversion.state}`});
 
     // Flown for real: no stage is skipped once the pilot has the controls.
     const pilotNotes=[];
-    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','crater_cores','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge','convoy_escort','minelayer','customs_run'],id=>{
+    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','crater_cores','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge','convoy_escort','minelayer','customs_run','cargo_spill'],id=>{
+      // v2080: Cargo Spill flown twice, once going for the pods and once flying straight
+      // past them. Both must end, and going for the pods must bring more home.
+      if(id==='cargo_spill'){
+        const runs=[];
+        for(const still of[false,true]){reset();c.launchDevTemplateTest('cargo_spill','trade');invulnerable=true;const r=flySpill(1,{still});runs.push(r);
+          if(!r.started)return 'the pods never appeared';if(!r.outcome)return `the spill did not finish (${routeDiversion.state}, ${r.secs}s)`}
+        pilotNotes.push(`spill ${runs[0].secs}s ${runs[0].pods}/${runs[0].total}, straight ${runs[1].pods}/${runs[1].total}`);
+        if(!(runs[0].pods>runs[1].pods))return `going for the pods brought home ${runs[0].pods}, flying straight ${runs[1].pods}`;return
+      }
       // v2040: the Customs Run flown twice, once threading the gaps (should come out clean
       // most times) and once held straight through the hubs (always flagged, then a fight).
       if(id==='customs_run'){
@@ -354,7 +381,7 @@
       // v1950: a pirate fight with its minelayer forced: it must lay mines and the fight must end.
       if(id==='minelayer'){
         const ML=globalThis.AgentXMinelayers;if(!ML)return 'minelayers.js is not loaded';let laid=0,marked=false;const seen=new Set();
-        const u0=ML.update;ML.update=function(dt){const r=u0.call(this,dt);if(this.live().length)marked=true;for(const m of this.mines)if(!seen.has(m)){seen.add(m);laid++}return r};
+        const u0=ML.update;ML.update=function(dt){const r=u0.call(this,dt);if(this.live().length)marked=true;if(!laid)for(const f of this.live())f.hp=f.maxHp;   /* v2080: a lucky early kill no longer fails the check */for(const m of this.mines)if(!seen.has(m)){seen.add(m);laid++}return r};
         let line;try{line=flyJob('fighters',{weapon:'laser3',frame:'AX-3B',level:10,risk:5,stageCap:300,maxSecs:400,prepare:m=>{const f=m.modules.find(x=>x.type==='fighters');f.profile='pirate';f.target=10;ML.force=true}})}finally{ML.update=u0;ML.force=false}
         pilotNotes.push(`minelayer ${laid} mines`);if(!marked)return 'no minelayer appeared';if(!laid)return 'the minelayer laid no mines';if(!/finished/.test(line)||/STUCK/.test(line))return line;return
       }

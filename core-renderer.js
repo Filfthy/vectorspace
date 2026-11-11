@@ -771,7 +771,7 @@ class SceneRenderer {
    const holding=routeDiversion?.active&&routeDiversion.state==='migration'&&!routeDiversion.firedOnHerd;   // v1400: the migration escort holds fire
    const dormant=routeDiversion?.active&&routeDiversion.state==='lattice';   // v1530: a sleeping lattice is not attacking
    // v2040: no hostiles yet on a customs picket, or between convoy waves.
-   const quiet=!liveHostiles&&routeDiversion?.active&&(routeDiversion.state==='customs'||routeDiversion.state==='escort')?(routeDiversion.state==='customs'?'CUSTOMS SCANNERS ACTIVE':'BETWEEN WAVES'):'';
+   const quiet=!liveHostiles&&routeDiversion?.active?({customs:'CUSTOMS SCANNERS ACTIVE',escort:'BETWEEN WAVES',spill:'CARGO ADRIFT'})[routeDiversion.state]||'':'';
    if(holding||dormant||quiet)ctx.strokeStyle=C.c;
    ctx.strokeText(quiet||(dormant?'LATTICE DORMANT':holding?'XENO ESCORT HOLDING FIRE':(groupThin?'HOSTILE GROUP THINNING':'HOSTILE CONTACTS')),W-12,10);
  }else if(mode==='play'&&phase==='surface'&&tutorialFinalRun.isActive()&&surfaceBunkerActive){

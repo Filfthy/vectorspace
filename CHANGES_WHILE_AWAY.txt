@@ -2170,6 +2170,10 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
       ring in a dark gap between its turning arms. Clean pays a bonus.
       Scanned brings interceptors and less pay. New achievement
       Nothing to Declare, a Codex entry and a Record row.
+    - Cargo Spill: the Free Traders' own board job, from level 2. A
+      hauler's cargo is adrift: fly through the pods to scoop them while
+      pirate scavengers try to take them. Pay follows how much you bring
+      home. New achievement Every Last Pod and a Record row.
   Changed:
     - Contacts now often talk about the specific job on contract cards.
     - New letter from Nyxo after your first ambushed asteroid clearance.
@@ -2579,4 +2583,36 @@ v2070 Customs Run: a fairer sweep at high risk
       So low and mid risk reward simply flying for the gap, and risk 9
       asks you to read the arms ahead. A person is shakier than these
       pilots, so expect the odd scan at every risk.
+
+v2080 New job: Cargo Spill (the Free Traders' own)
+      With the Jackals' Customs Run in, the Free Traders were the last
+      network without a job of their own. A hauler took a hit and dumped
+      her cargo: 12 to 20 pods (by risk) drift down the lane in short
+      trails, each trail somewhere different across it. Fly through a pod
+      to scoop it. About five seconds in (or once you have two), two to
+      five pirate scavengers arrive. They go for the pods, not you, and a
+      pod one reaches is gone ("SCAVENGER TOOK A POD"), until you shoot
+      that scavenger, which then fights back. Once no pod is left free,
+      any scavenger still flying turns on you. The job ends when every pod
+      is scooped, stolen or drifted past and no scavenger is left.
+        Pay: break-even at about a third of the pods, up to +25% of the
+          fee for a near-clean sweep, at worst -15%.
+        Standing: +2 Free Traders at 60% or more, -2 below 30%, on top of
+          the job's own.
+      The nearest pod ahead carries a label with its range, or an edge
+      arrow when it is off screen. The top-right status reads CARGO
+      ADRIFT until scavengers arrive.
+      Tuning from pilot flights: first the pods sat in round clumps, and
+      even a good pilot could only take one or two of each four before
+      they were past (6 to 12 of 18). Laid out as trails along the lane,
+      a pilot going for the pods brings home 6 to 16 of 18 with no
+      scavengers, and 7 to 11 with them. Flying straight through brings
+      home 0 to 4. About 20 to 50 s.
+      Also: Guide row (Jobs), achievement Every Last Pod (9 in 10 from
+      one spill), Record row "Cargo pods recovered", two Corvella card
+      notes for the job, a lore line in 6.1.
+      Self-test: the pilot flies it going for the pods and flying
+      straight. Both must end, and going for the pods must bring more
+      home. The minelayer check no longer fails when the pilot kills the
+      minelayer before it lays its first mine (it did once tonight).
 
