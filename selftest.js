@@ -246,7 +246,7 @@
     window.drawHudMarkerLabel=function(text,x,y,...r){hud.mark={x,y,f:hudFrame};return d0.call(this,text,x,y,...r)};
     window.hudEdgeCue=function(q,...r){const v=e0.call(this,q,...r);hud.edge={x:v.x,y:v.y,f:hudFrame};return v}
   };
-  const flyJob=(id,{maxSecs=900,stageCap=240,skill=.9,weapon='laser5',frame='AX-5A',level=20,prepare=null,launch=null,risk=null,mortal=false}={})=>{
+  const flyJob=(id,{maxSecs=1200,stageCap=420,skill=.9,weapon='laser5',frame='AX-5A',level=20,prepare=null,launch=null,risk=null,mortal=false}={})=>{
     const c=campaign,T=AgentXMissionData.templates;hookHud();reset();
     c.state.xp=c.xpForLevel(level);if(!c.state.ownedFrames.includes(frame))c.state.ownedFrames.push(frame);c.state.drone=frame;c.state.inventory[weapon]=1;c.state.weaponLoadout=weapon;
     // prepare(mission) may edit a preview before it launches (say, to splice a diversion in).

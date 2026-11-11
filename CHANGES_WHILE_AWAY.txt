@@ -2652,3 +2652,22 @@ v2110 Operator bulletin for the two network jobs
       campaign file for a moment (the self-test failed to boot). Reworded,
       and every script file now passes a syntax check.
 
+v2120 Full regression sweep after tonight's work
+      With so much new in the route code tonight, the pilot flew every
+      board job (30) and every Black Contract (10) again, laser 3 and an
+      AX-3B frame at level 12, risk 5 to 12. Result: no game fault.
+        36 of 40 finished inside the pilot's time limit per stage,
+          including Customs Run (clean), Cargo Spill, Convoy Escort and
+          Last Convoy.
+        4 ran past it: Factory Strike, Black Contracts 7, 8 and 9. Given
+          more time, Factory Strike, 7 and 8 finished (264 to 303 s for
+          their long stage; the limit was 240 to 300). Black Contract 9
+          once sat at the deep-core bunker door: the test drone cannot be
+          damaged, so when it misses the door it rams it for ever. A real
+          drone takes damage at the door and can still shoot it. Flown six
+          more times, the door was shot open in 1 to 3 s every time, even
+          with the bunker 49 units off-centre.
+      Tool change: __flyJob now allows 420 s a stage and 1200 s a job by
+      default (was 240 and 900), so slow-but-fine high-risk jobs stop
+      reading as stuck in sweeps.
+
