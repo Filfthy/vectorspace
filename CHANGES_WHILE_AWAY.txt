@@ -2912,3 +2912,11 @@ v2250 Better gear: a shelf, orders and contact offers
       New self-test: shelf contents, no outright sale off the shelf,
       order timing, one order at a time, rotation, and buying an offer.
 
+v2260 A prepared assignment says where to launch it
+      You opened Mara's Courier recovery mail after preparing it and saw
+      only a dead ASSIGNMENT PREPARED button, with no way to launch.
+      Missions launch from the Drone bay (LAUNCH MISSION at the bottom),
+      but the mail never said so. A prepared story assignment or VOX
+      contract now reads PREPARED · LAUNCH FROM DRONE BAY, and clicking
+      it opens the Drone bay.
+

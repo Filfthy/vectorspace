@@ -2451,8 +2451,8 @@ class CampaignController {
       const mailActions=Array.isArray(m.actions)&&m.actions.length?m.actions:(m.action?[m.action]:[]);
       for(const action of mailActions){
         if(action?.type==='vox'){
-          const done=!!m.contractDone,busy=!!(this.currentMission||this.pendingMission);
-          const b=document.createElement('button');b.type='button';b.className='mailPrimaryAction';b.textContent=done?'CONTRACT COMPLETE':(busy?'FINISH CURRENT CONTRACT FIRST':(action.label||'OPEN VOX CONTRACT'));b.disabled=done||busy;b.addEventListener('click',()=>this.prepareVoxContract(m.id));actions.appendChild(b);continue
+          const done=!!m.contractDone,prepared=!this.currentMission&&this.pendingMission?.voxMailId===m.id,busy=!prepared&&!!(this.currentMission||this.pendingMission);
+          const b=document.createElement('button');b.type='button';b.className='mailPrimaryAction';b.textContent=done?'CONTRACT COMPLETE':(prepared?'PREPARED · LAUNCH FROM DRONE BAY':(busy?'FINISH CURRENT CONTRACT FIRST':(action.label||'OPEN VOX CONTRACT')));b.disabled=done||busy;b.addEventListener('click',()=>prepared?this.setPanel('workshop'):this.prepareVoxContract(m.id));actions.appendChild(b);continue
         }
         if(action?.type==='panel'){
           const b=document.createElement('button');b.type='button';b.className=`mailPrimaryAction${welcomeSimulator?' mailSecondaryAction':''}`;b.textContent=action.label||'OPEN';b.addEventListener('click',()=>this.setPanel(action.panel||'missions'));actions.appendChild(b)
@@ -2467,10 +2467,10 @@ class CampaignController {
           }
         }else if(action?.type==='storyBriefing'){
           const contract=this.storyContract(action.contractId),done=contract&&this.state.mailFlags[`${contract.storyFlag}Done`],active=this.currentMission?.storyContractId===action.contractId,prepared=this.pendingMission?.storyContractId===action.contractId;
-          const b=document.createElement('button');b.type='button';b.className='mailPrimaryAction';b.textContent=done?'ASSIGNMENT COMPLETE':(active?'ASSIGNMENT IN FLIGHT':(prepared?'ASSIGNMENT PREPARED':(this.currentMission||this.pendingMission?'FINISH CURRENT CONTRACT FIRST':(action.label||'OPEN BRIEFING'))));b.disabled=!!done||!!active||!!prepared||!!this.currentMission||!!this.pendingMission;b.addEventListener('click',()=>this.openStoryBriefing(action.contractId));actions.appendChild(b)
+          const b=document.createElement('button');b.type='button';b.className='mailPrimaryAction';b.textContent=done?'ASSIGNMENT COMPLETE':(active?'ASSIGNMENT IN FLIGHT':(prepared?'ASSIGNMENT PREPARED':(this.currentMission||this.pendingMission?'FINISH CURRENT CONTRACT FIRST':(action.label||'OPEN BRIEFING'))));b.disabled=!!done||!!active||!prepared&&(!!this.currentMission||!!this.pendingMission);b.addEventListener('click',()=>prepared?this.setPanel('workshop'):this.openStoryBriefing(action.contractId));if(prepared){b.textContent='PREPARED · LAUNCH FROM DRONE BAY';b.classList.add('mailGoBay')}actions.appendChild(b)
         }else if(action?.type==='story'){
           const contract=this.storyContract(action.contractId),done=contract&&this.state.mailFlags[`${contract.storyFlag}Done`],active=this.currentMission?.storyContractId===action.contractId,prepared=this.pendingMission?.storyContractId===action.contractId;
-          const b=document.createElement('button');b.type='button';b.className='mailPrimaryAction';b.textContent=done?'ASSIGNMENT COMPLETE':(active?'ASSIGNMENT IN FLIGHT':(prepared?'ASSIGNMENT PREPARED':(this.currentMission||this.pendingMission?'FINISH CURRENT CONTRACT FIRST':(action.label||'OPEN PRIVATE CONTRACT'))));b.disabled=!!done||!!active||!!prepared||!!this.currentMission||!!this.pendingMission;b.addEventListener('click',()=>this.prepareStoryContract(action.contractId));actions.appendChild(b)
+          const b=document.createElement('button');b.type='button';b.className='mailPrimaryAction';b.textContent=done?'ASSIGNMENT COMPLETE':(active?'ASSIGNMENT IN FLIGHT':(prepared?'ASSIGNMENT PREPARED':(this.currentMission||this.pendingMission?'FINISH CURRENT CONTRACT FIRST':(action.label||'OPEN PRIVATE CONTRACT'))));b.disabled=!!done||!!active||!prepared&&(!!this.currentMission||!!this.pendingMission);b.addEventListener('click',()=>prepared?this.setPanel('workshop'):this.prepareStoryContract(action.contractId));if(prepared){b.textContent='PREPARED · LAUNCH FROM DRONE BAY';b.classList.add('mailGoBay')}actions.appendChild(b)
         }
       }
     }
