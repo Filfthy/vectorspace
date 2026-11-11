@@ -2387,3 +2387,26 @@ v1980 Seventh independent review (v1920 to v1960), three fixes
       before their letter, old saves load, and no new text breaks the
       punctuation rules.
 
+v1990 Regression sweep, voice lines for the new content, lore notes
+      Regression: the pilot flew all 28 board jobs and all 10 Black
+      Contracts again after tonight's changes. Everything plays through
+      except the three deep core missions, which stuck at the bunker
+      door. That was my pilot, not the game: on that approach the drone
+      is on autopilot and the mouse moves a free gunsight, and the pilot
+      was steering instead. Fixed, and both deep core missions now finish
+      (surface and reactor in about 53 s). No game change was needed.
+      Voice lines: six new requests in VOICE_REQUESTS.txt, already wired
+      in, so dropping the mp3 into voices/ makes each one play:
+        Minelayer. Kill it first.          minelayerkillitfirst.mp3
+        Stay with the freighter.           staywiththefreighter.mp3
+        Convoy clear. Good work.           convoycleargoodwork.mp3
+        Freighter lost.                    freighterlost.mp3
+        Hostiles in the field.             hostilesinthefield.mp3
+        Dive low over each crater.         divelowovereachcrater.mp3
+      Until then, the on-screen text carries those moments as before.
+      Lore: AGENT_X_WORLD_LORE.txt has a short new section 6.1 recording
+      tonight's details (pirates in rock fields, minelayers, escorted
+      freighters, the VOX convoy, moon cores), and where the foreign band
+      in the moon cores came from is listed as an open question rather
+      than decided.
+

@@ -39,7 +39,14 @@ globalThis.AgentXVoiceRequests={
   // v1100: shield tenders.
   shieldTenderContact:'Shield tender detected. Take it out first.',
   // v1470: ghost constructs.
-  ghostConstructsDetected:'Ghost constructs. Fire when they form.'
+  ghostConstructsDetected:'Ghost constructs. Fire when they form.',
+  // v1990: tonight's new enemies and jobs.
+  minelayerDetected:'Minelayer. Kill it first.',
+  convoyEscortStart:'Stay with the freighter.',
+  convoySafe:'Convoy clear. Good work.',
+  freighterLost:'Freighter lost.',
+  hostilesInTheField:'Hostiles in the field.',
+  coreSamplesDiveLow:'Dive low over each crater.'
 };
 // Expected filename: the spoken text in lower case with spaces and punctuation removed.
 globalThis.AgentXVoiceRequestFile=text=>String(text).toLowerCase().replace(/[^a-z0-9]/g,'')+'.mp3';

@@ -385,7 +385,7 @@ const routeDiversion={
     this.convoy={x:w[0],y:w[1],z:w[2],s:5.2,rot:[-.05,side*.18,0],hp:1,hitT:0,dead:false};
     this.wave=0;this.waves=risk>=8?4:(risk>=5?3:2);this.waveGap=2.2;this.escortRisk=risk;this.escortDone=false;this.lastEscortHp=null;
     this.state='escort';stage.spaceCombat=false;
-    audio.music.setMode('calm');callout(def.nav,2.8);return true
+    audio.music.setMode('calm');callout(def.nav,2.8);if(audio?.hasVoice?.('convoyEscortStart'))audio.playVoice('convoyEscortStart',{once:false,priority:true});return true
   },
   startEscortWave(){
     const stage=this.stage,risk=this.escortRisk,k=campaign.contractToughnessScale(risk);
@@ -429,7 +429,7 @@ const routeDiversion={
   finishEscort(safe){
     if(this.escortDone)return;this.escortDone=true;this.lastEscortHp=this.convoy?Math.max(0,this.convoy.hp):0;
     const def=this.KINDS.escort,o=safe?def.safe:def.lost,m=campaign.currentMission;
-    callout(o.say,2.4);if(safe)SoundFX.objectiveComplete?.();
+    callout(o.say,2.4);if(safe)SoundFX.objectiveComplete?.();if(safe){if(audio?.hasVoice?.('convoySafe'))audio.playVoice('convoySafe',{once:false,priority:true});}else{if(audio?.hasVoice?.('freighterLost'))audio.playVoice('freighterLost',{once:false,priority:true});}
     this.record({id:safe?'escorted':'lost',...o,repFaction:m?.faction||'trade'});
     fighters.length=0;bolts.length=0;this.convoy=null;this.end()
   },

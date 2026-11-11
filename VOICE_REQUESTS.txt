@@ -185,3 +185,63 @@ Spoken text:
 
 Expected filename:
     ghostconstructsfirewhentheyform.mp3
+
+
+MINELAYER
+---------
+
+Spoken text:
+    Minelayer. Kill it first.
+
+Expected filename:
+    minelayerkillitfirst.mp3
+
+
+CONVOY ESCORT, START
+--------------------
+
+Spoken text:
+    Stay with the freighter.
+
+Expected filename:
+    staywiththefreighter.mp3
+
+
+CONVOY ESCORT, FREIGHTER SAFE
+-----------------------------
+
+Spoken text:
+    Convoy clear. Good work.
+
+Expected filename:
+    convoycleargoodwork.mp3
+
+
+CONVOY ESCORT, FREIGHTER LOST
+-----------------------------
+
+Spoken text:
+    Freighter lost.
+
+Expected filename:
+    freighterlost.mp3
+
+
+ASTEROID CLEARANCE AMBUSH
+-------------------------
+
+Spoken text:
+    Hostiles in the field.
+
+Expected filename:
+    hostilesinthefield.mp3
+
+
+CORE SAMPLES, INTRO
+-------------------
+
+Spoken text:
+    Dive low over each crater.
+
+Expected filename:
+    divelowovereachcrater.mp3

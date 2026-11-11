@@ -72,6 +72,7 @@
       phase='space';mode='play';
       audio.music.setMode('violent');
       callout(SAY[this.profile]||SAY.pirate,2.4);
+      if(!voice&&audio?.hasVoice?.('hostilesInTheField'))audio.playVoice('hostilesInTheField',{once:false,priority:true});
       return true
     },
     // The attackers are all down: back to the rocks.

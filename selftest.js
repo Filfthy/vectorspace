@@ -136,7 +136,7 @@
     // trench and reactor hall the wall guns and the live reactor.
     if(!pool.length&&!nest&&typeof groundTargets!=='undefined'&&(groundTargets.length||mode==='trenchEntry')&&!(typeof groundAssault!=='undefined'&&groundAssault.active)){
       if(mode==='trenchEntry')pool=bunkerDoorOpen?[]:[{x:entryBunkerX,y:-2.2,z:entryBunkerZ(),s:1.5,near:.2}];   // blast the door (the drone is held 3 units from it, so it counts at point blank)
-      else if(phase==='surface')pool=groundTargets.filter(g=>g.doorPylon&&!g.dead&&!g.capDead&&!g.capDying).map(g=>({x:g.x,y:towerCapY(g),z:g.worldZ-travel,s:g.s||1}));
+      else if(phase==='surface'&&!(typeof surfaceBunkerActive!=='undefined'&&surfaceBunkerActive))pool=groundTargets.filter(g=>g.doorPylon&&!g.dead&&!g.capDead&&!g.capDying).map(g=>({x:g.x,y:towerCapY(g),z:g.worldZ-travel,s:g.s||1}));
       else if(phase==='trench'||phase==='reactor'||phase==='escape')pool=groundTargets.filter(g=>!g.dead&&!g.dying&&(g.type==='reactor'?g.active:g.type==='wallgun')).map(g=>({x:g.x,y:g.y+(g.yOff||0),z:g.worldZ-travel,s:g.s||1})).filter(o=>o.z>2&&o.z<120)
     }
     for(const x of pool){const q=camPoint([x.x,x.y,x.z]),d=Math.hypot(q[0],q[1],q[2]);if(d<ad){ad=d;any={x,q}}if(q[2]>(x.near||2)&&d<bd){bd=d;best={x,q}}}
@@ -144,6 +144,14 @@
     else if(any){const q=any.q;tx=clamp(q[0]/(Math.abs(q[2])+8)*2+(q[2]<0?Math.sign(q[0]||1):0),-1,1);ty=clamp(-q[1]/(Math.abs(q[2])+8)*2,-1,1)}
     else if(mark){tx=clamp((mark.x-W*.5)/(W*.5)*1.4,-1,1);ty=clamp((mark.y-viewH*.48)/(viewH*.46)*1.4,-1,1)}
     const rate=2.6*skill*dt;inputX=clamp(inputX+clamp(tx-inputX,-rate,rate),-1,1);inputY=clamp(inputY+clamp(ty-inputY,-rate,rate),-1,1);
+    // v1990: under autopilot with a free gunsight (the bunker door approach, carrier chase)
+    // the mouse moves aimX/aimY, not the steering: move the sight instead. 'On target'
+    // also respects the game's largest hit radius (120 px for the door).
+    if(best&&typeof freeAutopilotWeaponAim==='function'&&freeAutopilotWeaponAim()){
+      const pp=projectCam(best.q);
+      if(pp){const wx=clamp((pp.x-W*.5)/(W*.155),-1,1),wy=clamp((pp.y-viewH*.48)/(viewH*.155),-1,1);aimX=clamp(aimX+clamp(wx-aimX,-rate,rate),-1,1);aimY=clamp(aimY+clamp(wy-aimY,-rate,rate),-1,1);
+        const a=aimScreen();on=Math.hypot(a.x-pp.x,a.y-pp.y)<Math.min(110,Math.max(14*W/1280,best.x.s*pp.k*.8))}
+    }
     if(on&&!fireHeld){fireHeld=true;beginLaserBurst()}if(fireHeld&&(++trigT>10||!on)){fireHeld=false;endLaserTrigger();trigT=0}
     return !!any
   };

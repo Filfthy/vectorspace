@@ -33,7 +33,7 @@ const AgentXMinelayers={
   },
   update(dt){
     const p=this.pending;
-    if(p){p.wait-=dt;if(p.wait<=0||(typeof callout==='function'&&callout(p.text,2.4,false)))this.pending=null}
+    if(p){p.wait-=dt;if(p.wait<=0||(typeof callout==='function'&&callout(p.text,2.4,false))){if(p.wait>0)if(audio?.hasVoice?.('minelayerDetected'))audio.playVoice('minelayerDetected',{once:false,priority:true});this.pending=null}}
     if(typeof mode==='undefined'||mode!=='play'||phase!=='space'){return}
     const layers=this.live(),fightOn=fighters.some(f=>!f.dead&&!f.dying);
     for(const f of layers){

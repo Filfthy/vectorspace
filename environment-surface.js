@@ -471,7 +471,9 @@ class SurfaceDestinationApproachController {
   surveyNext(){return this.surveyLeft().sort((a,b)=>Math.hypot(a.x-shipX,a.worldZ-travel)-Math.hypot(b.x-shipX,b.worldZ-travel))[0]||null}
   updateSurvey(dt){
     if(!this.survey?.length)return;
-    const intro=this.surveyIntro;if(intro){intro.wait-=dt;if(intro.wait<=0||(typeof callout==='function'&&callout(intro.text,2.6)))this.surveyIntro=null}
+    const intro=this.surveyIntro;if(intro){intro.wait-=dt;if(intro.wait<=0||(typeof callout==='function'&&callout(intro.text,2.6))){
+      if(intro.wait>0&&this.surveyMode==='core'&&audio?.hasVoice?.('coreSamplesDiveLow'))audio.playVoice('coreSamplesDiveLow',{once:false,priority:true});
+      this.surveyIntro=null}}
     this.surveyNagT=Math.max(0,this.surveyNagT-dt);
     for(const p of this.survey){
       if(p.done)continue;const pd=Math.hypot(p.x-shipX,p.worldZ-travel);
