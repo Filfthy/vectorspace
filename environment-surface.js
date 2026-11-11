@@ -684,7 +684,7 @@ class SurfaceDestinationApproachController {
     {const lines=(planetLandingBody==='moon'&&Math.random()<.5)?SURFACE_WORLD_CHATTER.moon:SURFACE_WORLD_CHATTER[this.worldKind||'temperate'],m=typeof campaign!=='undefined'?campaign.currentMission:null;
       this.chatter=(lines&&m&&!m.training&&!m.devGroundTest&&this.scenery!=='rocks'&&this.scenery!=='swamp'&&!this.survey?.length&&Math.random()<.7)?{text:lines[Math.floor(Math.random()*lines.length)],wait:7,delay:4.5}:null}
     if(this.survey?.length)this.surveyIntro={text:SURVEY_TEXT[this.surveyMode||'survey'].intro(this.survey.length,this.destination==='forest'?'FOREST':'CITY'),wait:6};
-    else if(this.destination==='swamp')say('PROCEED TO SWAMP',.85);
+    else if(this.destination==='swamp'){say('PROCEED TO SWAMP',.85);if(audio.hasVoice?.('proceedToSwamp'))audio.playVoice('proceedToSwamp',{once:false,priority:true})}
     else if(this.destination==='osd')say('PROCEED TO OSD FACILITY',.85);
     else audio.playVoice(this.destination==='forest'?'proceedToForest':'proceedToCity',{once:false,priority:true});
     this.chooseWeather()

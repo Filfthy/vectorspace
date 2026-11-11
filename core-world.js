@@ -17,7 +17,10 @@ class World {
   syncWorldZ(o){if(!Number.isFinite(o.worldZ))o.worldZ=travel+(Number.isFinite(o.z)?o.z:0);o.z=o.worldZ-travel;return o.z}
   forwardSpeed(){
  const bunkerRaidSpeed=bunkerRaid?.interiorForwardSpeed?.();if(Number.isFinite(bunkerRaidSpeed))return bunkerRaidSpeed;
- if(mode==='surfaceExit'){return lerp(FLIGHT_SPEED,148,surfaceExitZoomProgress())}
+ // v2270: after the Node 42 scan the drone sits 15 units short of the monolith. Climbing
+ // out at flight speed carried it straight through the monolith, so there it lifts
+ // straight up instead, and the stars streak past as usual.
+ if(mode==='surfaceExit'){if(forest?.active&&forest.isMonolithDestination?.())return 0;return lerp(FLIGHT_SPEED,148,surfaceExitZoomProgress())}
  if(stationDelivery?.active&&phase==='stationInterior')return stationDelivery.forwardSpeed();
  if(jackalDelivery?.active&&phase==='jackalCity')return jackalDelivery.forwardSpeed();
  if(forest?.active&&phase==='forest')return forest.forwardSpeed();

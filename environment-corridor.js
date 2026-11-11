@@ -645,7 +645,7 @@ class CorridorEnvironmentController {
     }
     const mouthTarget=this.hasGladeDestination()?((this.isRelayDestination()||this.isMonolithDestination())?7.2:8.3):null;
     for(let u=-34;u<=10;u+=6.0){
-      const wz=this.startWorld+u,p=this.pathAtWorld(wz),t=ease(clamp((u+34)/44,0,1)),mouthHalf=lerp(13.0,mouthTarget??(p.half+.30),t);
+      const wz=this.startWorld+u,p=this.pathAtWorld(wz),t=ease(clamp((u+34)/44,0,1)),mouthHalf=this.isSwampVariant()?p.half+.30:lerp(13.0,mouthTarget??(p.half+.30),t);   /* v2270: no wide funnel in the swamp, you arrive in the thick of it */
       for(const side of [-1,1]){
         addReed(reedIds[(this.rand()*reedIds.length)|0],wz+(this.rand()-.5)*1.6,p.x+side*(mouthHalf+this.rand()*.34),1.55+this.rand()*1.00,this.rand()*Math.PI*2,'inner');
         if(this.rand()<.54)addReed(reedIds[(this.rand()*reedIds.length)|0],wz+(this.rand()-.5)*2.0,p.x+side*(mouthHalf+2.4+this.rand()*2.4),1.82+this.rand()*1.20,this.rand()*Math.PI*2,'mid');
@@ -818,7 +818,8 @@ class CorridorEnvironmentController {
     else if(this.isMonolithDestination())this.setupMonolithDestination();
     const p=this.pathAtWorld(travel);shipX=p.x;shipY=p.centerY;
     this.buildCourse();
-    say(this.stage?.presentation?.start||(this.isSwampVariant()?(this.isMonolithDestination()?'FOLLOW SWAMP COORDINATES':(this.relayAction()==='console'?'SWAMP RELAY CALIBRATION':'SWAMP RELAY DELIVERY')):(this.terminalDestination==='cabin_delivery'?'FOREST DELIVERY':(this.terminalDestination==='wreckage_recovery'?'INVESTIGATE WRECKAGE':'FOREST CORRIDOR'))),.9)
+    say(this.stage?.presentation?.start||(this.isSwampVariant()?(this.isMonolithDestination()?'FOLLOW SWAMP COORDINATES':(this.relayAction()==='console'?'SWAMP RELAY CALIBRATION':'SWAMP RELAY DELIVERY')):(this.terminalDestination==='cabin_delivery'?'FOREST DELIVERY':(this.terminalDestination==='wreckage_recovery'?'INVESTIGATE WRECKAGE':'FOREST CORRIDOR'))),.9);
+    if(this.isMonolithDestination())if(audio.hasVoice?.('followSwampCoordinates'))audio.playVoice('followSwampCoordinates',{once:false,priority:true})
   }
   stopForJump(){
     if(!this.active)return;
@@ -878,7 +879,7 @@ class CorridorEnvironmentController {
     if(this.isMonolithDestination()){
       const remain=(this.monolithStandOff?.[2]??Infinity)-travel;
       if(this.terminalState==='run'&&this.gladeBlend(travel+18)>.16)this.terminalState='glade';
-      if(this.terminalState==='glade'&&remain<30){this.terminalState='approach';laserBurstRemaining=0;endLaserTrigger();inputX=inputY=aimX=aimY=0;say('MONOLITH AHEAD',.75)}
+      if(this.terminalState==='glade'&&remain<30){this.terminalState='approach';laserBurstRemaining=0;endLaserTrigger();inputX=inputY=aimX=aimY=0;say('MONOLITH AHEAD',.75);if(audio.hasVoice?.('monolithAhead'))audio.playVoice('monolithAhead',{once:false,priority:true})}
       if(this.terminalState==='approach'&&remain<=.24){
         travel=this.monolithStandOff[2];shipX=this.monolithStandOff[0];shipY=this.monolithStandOff[1];
         this.terminalState='settle';this.finishT=0;inputX=inputY=aimX=aimY=0
@@ -896,7 +897,7 @@ class CorridorEnvironmentController {
           const stable=fullyVisible&&errX<=8&&errY<=8&&Math.abs(viewRoll)<.055;
           const fallbackReady=fullyVisible&&errX<=18&&errY<=18&&this.finishT>1.85;
           if(stable||fallbackReady){
-            this.terminalState='scan';this.monolithScanT=0;wreckScannerAudio.start();say(this.stage?.presentation?.scanStart||'SCANNING MONOLITH',.70)
+            this.terminalState='scan';this.monolithScanT=0;wreckScannerAudio.start();say(this.stage?.presentation?.scanStart||'SCANNING MONOLITH',.70);if(audio.hasVoice?.('scanningMonolith'))audio.playVoice('scanningMonolith',{once:false,priority:true})
           }
         }
         return
@@ -904,7 +905,7 @@ class CorridorEnvironmentController {
       if(this.terminalState==='scan'){
         this.monolithScanT+=dt;
         if(this.monolithScanT>=this.monolithScanSeconds){
-          this.monolithScanT=this.monolithScanSeconds;wreckScannerAudio.stop();SoundFX.objectiveComplete();this.terminalState='scanHold';this.finishT=0;say(this.stage?.presentation?.scanComplete||'SCAN COMPLETE · RETURN DATA TO VOX',1.15)
+          this.monolithScanT=this.monolithScanSeconds;wreckScannerAudio.stop();SoundFX.objectiveComplete();this.terminalState='scanHold';this.finishT=0;if(audio.hasVoice?.('monolithScanComplete'))audio.playVoice('monolithScanComplete',{once:false,priority:true});say(this.stage?.presentation?.scanComplete||'SCAN COMPLETE · RETURN DATA TO VOX',1.15)
         }
         return
       }

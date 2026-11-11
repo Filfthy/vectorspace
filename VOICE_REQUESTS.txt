@@ -285,3 +285,53 @@ Spoken text:
 
 Expected filename:
     scavengersinbound.mp3
+
+
+SWAMP, ARRIVING ON THE PLAIN
+----------------------------
+
+Spoken text:
+    Proceed to the swamp.
+
+Expected filename:
+    proceedtotheswamp.mp3
+
+
+LOOSE END, ENTERING THE SWAMP
+-----------------------------
+
+Spoken text:
+    Follow the swamp coordinates.
+
+Expected filename:
+    followtheswampcoordinates.mp3
+
+
+LOOSE END, MONOLITH IN SIGHT
+----------------------------
+
+Spoken text:
+    Monolith ahead.
+
+Expected filename:
+    monolithahead.mp3
+
+
+LOOSE END, SCAN STARTS
+----------------------
+
+Spoken text:
+    Scanning the monolith.
+
+Expected filename:
+    scanningthemonolith.mp3
+
+
+LOOSE END, SCAN DONE
+--------------------
+
+Spoken text:
+    Scan complete. Return the data to VOX.
+
+Expected filename:
+    scancompletereturnthedatatovox.mp3

@@ -2920,3 +2920,22 @@ v2260 A prepared assignment says where to launch it
       contract now reads PREPARED · LAUNCH FROM DRONE BAY, and clicking
       it opens the Drone bay.
 
+v2270 Swamp: no wide entrance, no flying through the monolith, voice lines
+      You flew Loose End (the Node 42 swamp run) and noticed three things.
+        - The swamp opened with a wide funnel of reeds (13 units either
+          side, narrowing to the 5.5 unit track), so you arrived in a
+          clearing rather than in the thick of it. The reed walls now
+          start at the track width. This is the same for the swamp
+          relay jobs.
+        - After the scan, the climb out moved forward at flight speed
+          while still below the monolith's top, so the camera passed
+          through it. In the swamp the drone now lifts straight up from
+          the scan position.
+        - Few voice lines: nothing went missing. The swamp part never
+          had recordings, only on-screen text. Five new lines are in
+          VOICE_REQUESTS.txt and play as soon as the mp3s are in
+          voices/: "Proceed to the swamp.", "Follow the swamp
+          coordinates.", "Monolith ahead.", "Scanning the monolith." and
+          "Scan complete. Return the data to VOX."
+      Checked on frames of the swamp entry and of the climb out.
+

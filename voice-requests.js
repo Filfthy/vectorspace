@@ -52,7 +52,13 @@ globalThis.AgentXVoiceRequests={
   customsScanned:'We have been scanned.',
   // v2100: the Cargo Spill.
   cargoAdrift:'Cargo adrift. Scoop it up.',
-  scavengersInbound:'Scavengers inbound.'
+  scavengersInbound:'Scavengers inbound.',
+  // v2270: the swamp (Loose End's Node 42 run and the swamp relay jobs) never had speech.
+  proceedToSwamp:'Proceed to the swamp.',
+  followSwampCoordinates:'Follow the swamp coordinates.',
+  monolithAhead:'Monolith ahead.',
+  scanningMonolith:'Scanning the monolith.',
+  monolithScanComplete:'Scan complete. Return the data to VOX.'
 };
 // Expected filename: the spoken text in lower case with spaces and punctuation removed.
 globalThis.AgentXVoiceRequestFile=text=>String(text).toLowerCase().replace(/[^a-z0-9]/g,'')+'.mp3';
