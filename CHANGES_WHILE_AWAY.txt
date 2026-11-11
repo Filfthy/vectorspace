@@ -2177,7 +2177,10 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
   Changed:
     - Contacts now often talk about the specific job on contract cards.
     - New letter from Nyxo after your first ambushed asteroid clearance.
-    - Two new VOX Wire headlines.
+    - Four new VOX Wire headlines.
+    - Every network now has one job only it offers. The Guide says which.
+    - Convoy Escort: the freighter is a little sturdier (it was too easy
+      to lose for anyone who does not aim perfectly).
     - New letters: Corvella after your first convoy seen through, Navira
       after your first core samples, Kudo after your first minelayer,
       Cassian after your first Customs Run that is never scanned,
@@ -2193,9 +2196,16 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
     - Losing the freighter on Last Convoy no longer counts as a finished
       Black Contract. The same one comes back.
     - The minelayer crew diversion always has its minelayer now.
+    - Every board job and Black Contract was flown again by the pilot
+      after tonight's work: no faults found (v2120).
   Waiting for you:
     - Secure Terminal Intrusion pays about 1.6x the other jobs per
       minute. Say if you want its fee trimmed.
+    - Customs Run and Cargo Spill are new and only pilot-tested. Their
+      difficulty and pay are first guesses: tell me how they feel.
+    - Ten new voice lines are requested in VOICE_REQUESTS.txt (convoy,
+      minelayer, field ambush, core samples, Customs Run, Cargo Spill).
+      All silent until recorded.
   Everything else below is detail. Each version is a git tag.
 
 
