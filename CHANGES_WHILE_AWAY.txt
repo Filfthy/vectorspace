@@ -2183,6 +2183,11 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
       in the simulator, on moons and on volcanic worlds too.
     - Ringed planets are gas giants: you never land on one (their moons,
       yes).
+    - Gear grades are named Surplus, Licensed, Military, Experimental and
+      Partition. Colour marks the item, never its name.
+    - Military grade and up is not all in stock: a shelf that changes
+      every two contracts, orders that arrive after two contracts, and
+      contact offers in the mail.
     - Convoy Escort: the freighter is a little sturdier (it was too easy
       to lose for anyone who does not aim perfectly).
     - New letters: Corvella after your first convoy seen through, Navira
@@ -2878,4 +2883,32 @@ v2240 Gear quality has names, colour only marks it
       in the grade colour with white names, so they are unchanged. The
       colours are the same as before: white, green, blue, purple, orange.
       Mail already in a save keeps its old wording.
+
+v2250 Better gear: a shelf, orders and contact offers
+      You wanted better gear not simply to be in stock as you level, but
+      not an endless grind either. Surplus and Licensed gear and every
+      consumable are still always in stock. From Military grade up,
+      frames, weapons and internals work like this:
+        - The shelf: the market holds five pieces from Military up to
+          your best open grade, always at least one of the best grade.
+          It changes after every two completed contracts (and at once
+          when a new grade opens). The access line says when.
+        - Orders: anything open to you that is not on the shelf shows
+          ORDER. Pay up front and it arrives after two more completed
+          contracts, with a note from the VOX Market Desk. One order at
+          a time, cancel any time for a full refund.
+        - Offers: after a job for a network (not QuickBite), a contact
+          sometimes mails a piece that is not on the shelf, 10 to 25%
+          under market depending on standing, with a BUY button. It
+          stays open for three completed contracts. At most two open at
+          once, and never two jobs in a row. Trusted standing (60) lets a
+          contact bring in a grade above what the market opens to you.
+          The market row says OFFERED IN MAIL and links to it.
+      Strong standing still opens a grade early, as before, but through
+      the shelf and orders instead of the whole grade at once. Faction
+      frames are unchanged (standing and level). Existing saves at
+      Military or above get one Market Desk note explaining this. The
+      Guide and the level 14 notice say so too.
+      New self-test: shelf contents, no outright sale off the shelf,
+      order timing, one order at a time, rotation, and buying an offer.
 

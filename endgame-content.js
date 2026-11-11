@@ -114,7 +114,7 @@
   }
   // One short notice when a level opens something new.
   const LEVEL_UNLOCKS=[
-    {level:14,subject:'Operator level 14: Partition grade',body:['Partition grade gear and Partition frames are now available in the market.','Faction Partition frames still need Trusted standing with their network.']},
+    {level:14,subject:'Operator level 14: Partition grade',body:['Partition grade gear and Partition frames can now come onto the market shelf, be ordered, or be offered by your contacts.','Faction Partition frames still need Trusted standing with their network.']},
     {level:15,subject:'Operator level 15: Elite contracts',body:['Elite contracts (risk 10) can now appear on the contract board. They field more hostiles and pay a large risk premium.','Once the factory file is closed, VOX Black Contracts are also open to you.']},
     {level:18,subject:'Operator level 18: Elite risk 11',body:['Elite contracts up to risk 11 can now appear on the board.']},
     {level:20,subject:'Operator level 20: Veteran rank',body:['You are now a Veteran operator. Every level above 20 adds 2% to board contract pay, up to 30%.']},

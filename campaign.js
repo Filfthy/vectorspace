@@ -79,7 +79,86 @@ class CampaignController {
       return this.levelForXP()>=lvl?{ok:true,reason:`Faction access · rep ${rep}`}:{ok:false,reason:`Operator level ${lvl} required`}
     }
     const access=this.marketAccessTier();
-    return product.tier<=access?{ok:true,reason:product.tier>this.normalMarketTier()?'Early access through favour':'Standard access'}:{ok:false,reason:`Normally opens around level ${product.tier===2?2:(product.tier===3?5:(product.tier===4?9:14))} · favour can open it earlier`}
+    if(product.tier>access)return {ok:false,reason:`Normally opens around level ${product.tier===2?2:(product.tier===3?5:(product.tier===4?9:14))} · favour can open it earlier`};
+    if(this.isShelfHardware(product)){
+      if(this.marketShelf().includes(product.id))return {ok:true,shelf:true,reason:'On the shelf this rotation'};
+      const n=this.orderWait();
+      if(this.state.marketOrder?.id===product.id)return {ok:false,order:true,onOrder:true,reason:`On order · arrives after ${n} more completed contract${n===1?'':'s'}`};
+      return {ok:false,order:true,reason:'Not on the shelf · order it and it arrives after two completed contracts'};
+    }
+    return {ok:true,reason:product.tier>this.normalMarketTier()?'Early access through favour':'In stock'}
+  }
+  // v2250 (Dave: better gear should not simply be in stock, but it must not be an endless
+  // grind either). Military grade and up (frames, weapons, internals) is not all in stock:
+  // the market keeps a shelf of a few pieces that changes after every two completed
+  // contracts. Anything else open to you can be ordered and arrives after two completed
+  // contracts. Contacts also offer pieces after missions, cheaper and with no wait.
+  // Surplus, Licensed and every consumable stay in stock.
+  isShelfHardware(p){if(!p||p.unique||p.faction||p.free)return false;if(this.frames[p.id])return (p.tier||1)>=3;return (p.slot==='weapon'||p.slot==='internal')&&(p.tier||1)>=3}
+  shelfPool(top){return this.marketProducts().filter(p=>this.isShelfHardware(p)&&p.tier<=top&&!(this.frames[p.id]&&this.state.ownedFrames.includes(p.id)))}
+  marketShelf(){
+    const access=this.marketAccessTier(),done=this.state.completed||0;let s=this.state.marketShelf;
+    if(access<3)return [];
+    if(!s||!Array.isArray(s.ids)||done>=s.nextAt||s.access!==access){
+      // Five pieces, always at least one of the best grade open to you.
+      const pool=this.shelfPool(access),pick=[],take=list=>{if(!list.length)return;const p=list[(Math.random()*list.length)|0];if(!pick.includes(p.id))pick.push(p.id)};
+      take(pool.filter(p=>p.tier===access));
+      for(let k=0;k<60&&pick.length<Math.min(5,pool.length);k++)take(pool);
+      s=this.state.marketShelf={ids:pick,nextAt:done+2,access};
+    }
+    return s.ids
+  }
+  shelfChangesIn(){this.marketShelf();const s=this.state.marketShelf;return s?Math.max(1,s.nextAt-(this.state.completed||0)):0}
+  orderWait(){const o=this.state.marketOrder;return o?Math.max(0,o.due-(this.state.completed||0)):0}
+  placeOrder(id){
+    const isFrame=!!this.frames[id],p=this.frames[id]||this.items[id],a=this.productAccess(p);
+    if(!p||!a.order||a.onOrder||this.state.marketOrder||this.equipmentLocked())return false;
+    if(isFrame&&this.state.ownedFrames.includes(id))return false;
+    const price=isFrame?p.price:this.marketPrice(p);if(this.state.money<price)return false;
+    this.state.money-=price;if(!isFrame)this.consumeMarketDiscount(id);
+    this.state.marketOrder={id,price,due:(this.state.completed||0)+2};
+    this.save();this.renderHeader();this.renderShop();this.renderProgressionSandbox();return true
+  }
+  cancelOrder(){
+    const o=this.state.marketOrder;if(!o)return false;
+    this.state.money+=o.price;this.state.marketOrder=null;this.save();this.renderHeader();this.renderShop();this.renderProgressionSandbox();return true
+  }
+  grantHardware(id){
+    if(this.frames[id]){if(!this.state.ownedFrames.includes(id))this.state.ownedFrames.push(id);if(!this.state.frameLoadouts[id])this.state.frameLoadouts[id]=this.blankFrameProfile()}
+    else if(this.items[id])this.addStock(id,1)
+  }
+  // Called after every completed contract: an order that is due arrives with a note.
+  tickMarket(){
+    const o=this.state.marketOrder;if(!o||(this.state.completed||0)<o.due)return false;
+    const isFrame=!!this.frames[o.id],p=this.frames[o.id]||this.items[o.id];this.state.marketOrder=null;if(!p)return false;
+    this.grantHardware(o.id);
+    this.enqueueMail({id:`order_${o.id}_${this.state.completed}`,from:'VOX Market Desk',subject:`Your order has arrived: ${p.name}`,category:'system',priority:'normal',
+      body:[isFrame?`The ${p.name} frame is in your hangar. Select it in the Drone bay.`:`One ${p.name} is in your workshop stores. Fit it in the Drone bay.`,'Thank you for ordering through VOX.']});
+    return true
+  }
+  openOfferFor(id){const done=this.state.completed||0;return this.state.mail.find(x=>x.reward?.type==='offer'&&x.reward.itemId===id&&!x.claimed&&done<x.reward.expiresAt)||null}
+  maybeQueueGearOffer(m){
+    const f=this.factions[m?.faction];if(!f||m.private||f.id==='quickbite')return false;
+    const flags=this.state.mailFlags,done=this.state.completed||0,rep=Number(f.rep)||0;
+    if(Number.isFinite(flags.offerNextAt)&&done<flags.offerNextAt)return false;
+    const open=this.state.mail.filter(x=>x.reward?.type==='offer'&&!x.claimed&&done<x.reward.expiresAt).length;if(open>=2)return false;
+    // Trusted standing (60) lets a contact bring in one grade above what the market opens to you.
+    const access=this.marketAccessTier(),top=Math.min(5,access+(rep>=60?1:0));if(top<3)return false;
+    if(!m.forceOffer&&Math.random()>=Math.min(.6,.25+rep/250))return false;
+    const shelf=this.marketShelf(),o=this.state.marketOrder;
+    const pool=this.shelfPool(top).filter(p=>p.tier>=Math.max(3,top-1)&&!shelf.includes(p.id)&&o?.id!==p.id&&!this.openOfferFor(p.id));
+    if(!pool.length)return false;
+    const p=pool[(Math.random()*pool.length)|0],isFrame=!!this.frames[p.id],pct=Math.min(.25,.10+rep/600),price=Math.round(p.price*(1-pct)/10)*10;
+    const contact=this.contactForMission(m),grade=this.tierInfo(p.tier).name,id=`offer_${done}_${p.id}`,v=this.hashText(id)%3,an=/^[AEIOU]/i.test(p.name)?'an':'a';
+    flags.offerNextAt=done+2;
+    const from=contact?`${contact.name} · ${contact.role}, ${f.name}`:`${f.name} · Supply Desk`;
+    const body=[
+      [`I can get you ${an} ${p.name}. ${grade} grade, straight off a ${f.name} manifest.`,`${an==='an'?'An':'A'} ${p.name} has come free on our side. ${grade} grade, and nobody is asking where it went.`,`We have ${an} ${p.name} that nobody has claimed. ${grade} grade. I thought of you.`][v],
+      `CR ${price.toLocaleString()} to you, ${Math.round(pct*100)}% under the market price. It goes straight to your ${isFrame?'hangar':'workshop stores'}.`];
+    if(p.tier>access)body.push('That grade is not open to you on the market yet. Call it a favour for good work.');
+    body.push('The offer stands for your next three completed contracts.');
+    this.enqueueMail({id,from,subject:[`Offer: ${p.name}`,`Something for your drone: ${p.name}`,`Off the manifest: ${p.name}`][v],category:'gift',priority:'normal',reward:{type:'offer',itemId:p.id,price,expiresAt:done+3},body});
+    return true
   }
   activeFrame(){return this.frames[this.state.drone]||this.frames['AX-1']}
   fittedInternalItems(){return (this.fittedInternalIds()||[]).map(id=>this.items[id]).filter(Boolean)}
@@ -1913,6 +1992,14 @@ class CampaignController {
   evaluateLateGame(){
     const E=globalThis.AgentXEndgame;if(!E)return;
     const flags=this.state.mailFlags,lvl=this.levelForXP();
+    if(!flags.shelfIntro&&this.marketAccessTier()>=3){
+      flags.shelfIntro=true;
+      this.enqueueMail({id:'market_shelf_intro',from:'VOX Market Desk',subject:'How the market stocks Military grade and up',category:'system',priority:'normal',
+        body:['Military, Experimental and Partition hardware is not all kept in stock. The market holds a shelf of five pieces, and the shelf changes after every two completed contracts.',
+          'Anything open to you that is not on the shelf can be ordered. You pay up front and it arrives after two more completed contracts. One order at a time, and you can cancel for a full refund.',
+          'Your contacts may also offer you pieces after you work for them, cheaper than the market and with no wait.',
+          'Consumables of every open grade stay in stock.'],actions:[{type:'panel',panel:'shop',label:'OPEN MARKET'}]})
+    }
     for(const u of E.LEVEL_UNLOCKS){
       if(lvl<u.level||flags[`levelUnlock${u.level}`])continue;
       flags[`levelUnlock${u.level}`]=true;
@@ -2268,6 +2355,14 @@ class CampaignController {
     const m=this.state.mail.find(x=>x.id===mailId),r=m?.reward;if(!m||!r||m.claimed)return false;
     if(r.type==='credits')this.state.money+=Math.max(0,Math.round(Number(r.amount)||0));
     else if(r.type==='item'&&this.items[r.itemId])this.state.inventory[r.itemId]=(this.state.inventory[r.itemId]||0)+Math.max(1,Math.round(Number(r.count)||1));
+    else if(r.type==='offer'){
+      const isFrame=!!this.frames[r.itemId];if(!isFrame&&!this.items[r.itemId])return false;
+      if((this.state.completed||0)>=r.expiresAt||this.state.money<r.price||isFrame&&this.state.ownedFrames.includes(r.itemId))return false;
+      this.state.money-=r.price;
+      // A frame you had on order is refunded, since the offer delivers it now.
+      if(this.state.marketOrder?.id===r.itemId&&isFrame){this.state.money+=this.state.marketOrder.price;this.state.marketOrder=null}
+      this.grantHardware(r.itemId)
+    }
     else if(r.type==='discount'&&this.items[r.itemId]){
       const old=this.state.discounts[r.itemId]||{percent:0,uses:0};
       this.state.discounts[r.itemId]={percent:Math.max(Number(old.percent)||0,Number(r.percent)||.10),uses:(Number(old.uses)||0)+Math.max(1,Math.round(Number(r.uses)||1))}
@@ -2342,7 +2437,16 @@ class CampaignController {
         if(r.type==='credits')label=`CLAIM CR ${Number(r.amount||0).toLocaleString()}`;
         else if(r.type==='item')label=`CLAIM ${this.items[r.itemId]?.name||'ITEM'}`;
         else if(r.type==='discount')label=`CLAIM ${Math.round((r.percent||.10)*100)}% DISCOUNT`;
-        const b=document.createElement('button');b.type='button';b.className='mailPrimaryAction';b.textContent=m.claimed?'CLAIMED':label;b.disabled=!!m.claimed;b.addEventListener('click',()=>this.claimMailReward(m.id));actions.appendChild(b)
+        let blocked=false,done=m.claimed?'CLAIMED':'';
+        if(r.type==='offer'){
+          const pr=this.frames[r.itemId]||this.items[r.itemId],price=Number(r.price)||0,left=r.expiresAt-(this.state.completed||0);
+          if(m.claimed)done='BOUGHT';else if(left<=0){blocked=true;label='OFFER EXPIRED'}
+          else if(this.frames[r.itemId]&&this.state.ownedFrames.includes(r.itemId)){blocked=true;label='FRAME ALREADY OWNED'}
+          else if(this.state.money<price){blocked=true;label=`NEED CR ${(price-this.state.money).toLocaleString()} MORE`}
+          else label=`BUY ${pr?.name||'ITEM'} · CR ${price.toLocaleString()}`;
+          if(!m.claimed&&left>0){const note=document.createElement('div');note.className='mailBody mailOfferNote';note.textContent=`Offer open for ${left} more completed contract${left===1?'':'s'}.`;actions.appendChild(note)}
+        }
+        const b=document.createElement('button');b.type='button';b.className='mailPrimaryAction';b.textContent=done||label;b.disabled=!!m.claimed||blocked;b.addEventListener('click',()=>this.claimMailReward(m.id));actions.appendChild(b)
       }
       const mailActions=Array.isArray(m.actions)&&m.actions.length?m.actions:(m.action?[m.action]:[]);
       for(const action of mailActions){
@@ -2702,14 +2806,15 @@ class CampaignController {
     const toolbar=document.createElement('div');toolbar.className='marketToolbar';
     const tierButtons=[['accessible','Accessible'],...[1,2,3,4,5].map(t=>[String(t),this.tierInfo(t).name]),['all','All']];
     const kindButtons=[['all','All gear'],['frame','Frames'],['weapon','Weapons'],['consumable','Consumables'],['internal','Internals']];
-    toolbar.innerHTML=`<div class="marketAccessSummary">MARKET ACCESS <b>${this.tierInfo(this.marketAccessTier()).name.toUpperCase()}</b> · NORMAL LEVEL BAND ${this.tierInfo(this.normalMarketTier()).name.toUpperCase()}${this.favourTierBoost()?` · FAVOUR +${this.favourTierBoost()} TIER${this.favourTierBoost()===1?'':'S'}`:''}</div><div class="marketFilterRow tierFilters">${tierButtons.map(([v,l])=>`<button type="button" data-market-tier="${v}" class="${/^[1-5]$/.test(v)?this.tierClass(Number(v))+' ':''}${this.marketTierView===v?'active':''}">${l}</button>`).join('')}</div><div class="marketFilterRow kindFilters">${kindButtons.map(([v,l])=>`<button type="button" data-market-kind="${v}" class="${this.marketKindView===v?'active':''}">${l}</button>`).join('')}</div>`;
+    const shelfIn=this.marketAccessTier()>=3?this.shelfChangesIn():0,ord=this.state.marketOrder,ordP=ord?(this.frames[ord.id]||this.items[ord.id]):null,ordN=this.orderWait();
+    toolbar.innerHTML=`<div class="marketAccessSummary">MARKET ACCESS <b>${this.tierInfo(this.marketAccessTier()).name.toUpperCase()}</b> · NORMAL LEVEL BAND ${this.tierInfo(this.normalMarketTier()).name.toUpperCase()}${this.favourTierBoost()?` · FAVOUR +${this.favourTierBoost()} TIER${this.favourTierBoost()===1?'':'S'}`:''}${shelfIn?` · SHELF CHANGES IN ${shelfIn} CONTRACT${shelfIn===1?'':'S'}`:''}${ordP?` · ON ORDER <b>${ordP.name.toUpperCase()}</b> ARRIVES IN ${ordN}`:''}</div><div class="marketFilterRow tierFilters">${tierButtons.map(([v,l])=>`<button type="button" data-market-tier="${v}" class="${/^[1-5]$/.test(v)?this.tierClass(Number(v))+' ':''}${this.marketTierView===v?'active':''}">${l}</button>`).join('')}</div><div class="marketFilterRow kindFilters">${kindButtons.map(([v,l])=>`<button type="button" data-market-kind="${v}" class="${this.marketKindView===v?'active':''}">${l}</button>`).join('')}</div>`;
     toolbar.querySelectorAll('[data-market-tier]').forEach(btn=>btn.addEventListener('click',()=>{this.marketTierView=btn.dataset.marketTier;this.selectedMarketProductId=null;this.renderShop()}));
     toolbar.querySelectorAll('[data-market-kind]').forEach(btn=>btn.addEventListener('click',()=>{this.marketKindView=btn.dataset.marketKind;this.selectedMarketProductId=null;this.renderShop()}));
     shopGridEl.appendChild(toolbar);
 
     const products=this.marketProducts().filter(p=>{
       if(this.marketKindView!=='all'&&p.productType!==this.marketKindView)return false;
-      if(this.marketTierView==='accessible')return this.productAccess(p).ok;
+      if(this.marketTierView==='accessible'){const a=this.productAccess(p);return a.ok||a.order}
       if(this.marketTierView!=='all'&&Number(this.marketTierView)!==p.tier)return false;
       return true
     });
@@ -2723,8 +2828,9 @@ class CampaignController {
     for(const p of products){
       const access=this.productAccess(p),isFrame=p.productType==='frame',tier=this.tierInfo(p.tier);
       const price=this.marketPrice(p),discounted=price<p.price;
-      const row=document.createElement('button');row.type='button';row.className=`catalogRow marketRow ${this.tierClass(p.tier)}${access.ok?'':' locked'}${p.id===this.selectedMarketProductId?' selected':''}`;
-      row.innerHTML=`<span class="catalogRowTitle">${p.name}</span><span class="catalogRowSub">${isFrame?'Frame':({consumable:'Consumable',weapon:'Weapon',internal:'Internal'}[p.slot])} · ${tier.name} (${tier.roman})</span><span class="catalogRowBlurb">${p.note}</span><span class="catalogRowFacts"><b>CR ${price.toLocaleString()}${p.slot==='consumable'?' / charge':''}${discounted?' · DISCOUNT':''}</b>${!isFrame&&(this.state.inventory[p.id]||0)?`<b>IN STORES ×${this.state.inventory[p.id]}</b>`:''}<b class="${access.ok?'':'bad'}">${access.ok?'AVAILABLE':'LOCKED'}</b></span>`;
+      const offered=!access.ok&&access.order&&this.openOfferFor(p.id),tag=access.ok?(access.shelf?'ON THE SHELF':'IN STOCK'):(access.onOrder?'ON ORDER':(offered?'OFFERED IN MAIL':(access.order?'ORDER':'LOCKED'))),tagClass=access.ok?'':(access.order?'order':'bad');
+      const row=document.createElement('button');row.type='button';row.className=`catalogRow marketRow ${this.tierClass(p.tier)}${access.ok||access.order?'':' locked'}${p.id===this.selectedMarketProductId?' selected':''}`;
+      row.innerHTML=`<span class="catalogRowTitle">${p.name}</span><span class="catalogRowSub">${isFrame?'Frame':({consumable:'Consumable',weapon:'Weapon',internal:'Internal'}[p.slot])} · ${tier.name} (${tier.roman})</span><span class="catalogRowBlurb">${p.note}</span><span class="catalogRowFacts"><b>CR ${price.toLocaleString()}${p.slot==='consumable'?' / charge':''}${discounted?' · DISCOUNT':''}</b>${!isFrame&&(this.state.inventory[p.id]||0)?`<b>IN STORES ×${this.state.inventory[p.id]}</b>`:''}<b class="${tagClass}">${tag}</b></span>`;
       row.addEventListener('click',()=>{this.selectedMarketProductId=p.id;this.renderShop()});list.appendChild(row)
     }
 
@@ -2736,8 +2842,8 @@ class CampaignController {
       const faction=p.faction?`<div class="factionAccess">${p.factionName} · REP ${p.repReq}</div>`:'';
       const compare=!isFrame&&p.slot==='weapon'?this.weaponCompareHtml(p):'';
       const price=this.marketPrice(p),discounted=price<p.price;
-      detail.className=`catalogDetail marketDetail ${this.tierClass(p.tier)}${access.ok?'':' locked'}`;
-      detail.innerHTML=`<div class="catalogDetailKicker">MARKET ITEM</div><div class="shopItemHead"><div class="itemIconFrame"><div class="shopItemIcon">${icon}</div></div><div><h3>${p.name}</h3><div class="missionFaction">${meta}</div></div></div>${faction}<div class="shopAccess ${access.ok?'':'bad'}">${access.reason}</div><div class="shopPrice">CR ${price.toLocaleString()}${discounted?` <span class="mailDiscount">MAIL DISCOUNT · WAS CR ${p.price.toLocaleString()}</span>`:''}</div><div class="shopOwned">${isFrame?(active?'ACTIVE FRAME':(owned?'OWNED · SELECT IN DRONE BAY':'NOT OWNED')):`Workshop stock X${owned}`}</div><button class="marketBuyPrimary" type="button" ${(!access.ok||active||owned&&isFrame||this.state.money<price)?'disabled':''}>${isFrame?'Buy frame':'Buy one'}</button>${access.ok&&!active&&!(owned&&isFrame)&&this.state.money<price?`<div class="shopShort">Not enough credits · CR ${(price-this.state.money).toLocaleString()} more needed</div>`:''}<div class="catalogDetailDesc">${p.note}</div>${specs}${compare}`;
+      detail.className=`catalogDetail marketDetail ${this.tierClass(p.tier)}${access.ok||access.order?'':' locked'}`;
+      detail.innerHTML=`<div class="catalogDetailKicker">MARKET ITEM</div><div class="shopItemHead"><div class="itemIconFrame"><div class="shopItemIcon">${icon}</div></div><div><h3>${p.name}</h3><div class="missionFaction">${meta}</div></div></div>${faction}<div class="shopAccess ${access.ok?'':(access.order?'order':'bad')}">${access.reason}</div><div class="shopPrice">CR ${price.toLocaleString()}${discounted?` <span class="mailDiscount">MAIL DISCOUNT · WAS CR ${p.price.toLocaleString()}</span>`:''}</div><div class="shopOwned">${isFrame?(active?'ACTIVE FRAME':(owned?'OWNED · SELECT IN DRONE BAY':'NOT OWNED')):`Workshop stock X${owned}`}</div><button class="marketBuyPrimary" type="button" ${(!access.ok||active||owned&&isFrame||this.state.money<price)?'disabled':''}>${isFrame?'Buy frame':'Buy one'}</button>${access.ok&&!active&&!(owned&&isFrame)&&this.state.money<price?`<div class="shopShort">Not enough credits · CR ${(price-this.state.money).toLocaleString()} more needed</div>`:''}<div class="catalogDetailDesc">${p.note}</div>${specs}${compare}`;
       const buyBtn=detail.querySelector('.marketBuyPrimary');
       if(!isFrame&&p.slot==='consumable'){
         const pack=this.packSize(p)||Number(p.pack)||1,unit=Number(p.price)||0;
@@ -2746,6 +2852,19 @@ class CampaignController {
         five.textContent=`BUY 5 PACKS · CR ${(price+unit*(pack*5-1)).toLocaleString()}`;buyBtn.after(five);
         buyBtn.addEventListener('click',()=>this.buyItem(p.id,pack));five.addEventListener('click',()=>this.buyItem(p.id,pack*5));
         const own=detail.querySelector('.shopOwned');if(own)own.textContent=`In stores ×${this.state.inventory[p.id]||0} charges · pack of ${this.packSize(p)} per slot`;
+      }else if(access.order&&!(isFrame&&owned)){
+        // Not on the shelf: order it, or see the contact offer for it.
+        const n=this.orderWait(),other=this.state.marketOrder&&!access.onOrder?(this.frames[this.state.marketOrder.id]||this.items[this.state.marketOrder.id]):null;
+        buyBtn.disabled=!!access.onOrder||!!other||this.state.money<price||this.equipmentLocked();
+        buyBtn.textContent=access.onOrder?`ON ORDER · ARRIVES IN ${n} CONTRACT${n===1?'':'S'}`:`ORDER · CR ${price.toLocaleString()} · ARRIVES IN 2 CONTRACTS`;
+        buyBtn.addEventListener('click',()=>this.placeOrder(p.id));if(access.onOrder)buyBtn.classList.add('onOrder');
+        const after=[];
+        if(access.onOrder){const c=document.createElement('button');c.type='button';c.className='marketBuySecondary';c.textContent='CANCEL ORDER · FULL REFUND';c.addEventListener('click',()=>this.cancelOrder());after.push(c)}
+        else if(other){const d=document.createElement('div');d.className='shopShort';d.textContent=`One order at a time · ${other.name} is on order`;after.push(d)}
+        else if(this.state.money<price){const d=document.createElement('div');d.className='shopShort';d.textContent=`Not enough credits · CR ${(price-this.state.money).toLocaleString()} more needed`;after.push(d)}
+        const offer=this.openOfferFor(p.id);
+        if(offer){const b=document.createElement('button');b.type='button';b.className='marketBuySecondary';b.textContent=`OFFERED IN MAIL · CR ${Number(offer.reward.price).toLocaleString()} · OPEN MAIL`;b.addEventListener('click',()=>{this.selectedMailId=offer.id;this.markMailRead(offer.id);this.setPanel('mail')});after.push(b)}
+        buyBtn.after(...after);
       }else buyBtn.addEventListener('click',()=>isFrame?this.buyFrame(p.id):this.buyItem(p.id));
     }
     layout.append(this.wrapCatalogScroller(list,'catalogScrollHost marketScrollHost'),detail);shopGridEl.appendChild(layout)
@@ -3111,8 +3230,9 @@ class CampaignController {
       if(templateCivilian?.incidents>0)this.queueTemplateCivilianIncidentMail(m,templateCivilian,actualPay);
       else if(jackalSettlement?.incidents>0)this.queueJackalCivilianIncidentMail(m,jackalSettlement,actualPay);
       else this.queueContractMail(m,repGain);
-      if(!settlement||settlement.allowGift)this.maybeQueueFactionGift(m)
+      if(!settlement||settlement.allowGift){this.maybeQueueFactionGift(m);this.maybeQueueGearOffer(m)}
     }
+    this.tickMarket();
     if(m.private)this.handleStoryCompletion(m);
     this.maybeQueueVoxFollowUp(m);
     this.maybeQueueFavour(m);

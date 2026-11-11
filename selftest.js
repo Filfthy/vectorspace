@@ -507,7 +507,7 @@
     // Real campaign flows on the throwaway save: nothing here is a DEV test.
     const finishReal=m=>{c.launchMission(m.id);if(c.currentMission!==m)return 'did not launch';invulnerable=true;fly();for(let f=0;f<3000&&!c.isOpen();f++)update(1/30);return c.isOpen()?null:`never reached the debrief (${mode}/${phase})`};
     const closeHub=()=>{try{c.closeMissionDebrief?.('missions')}catch(_){}paused=false;document.body.classList.remove('paused')};
-    await group('campaign',['finish a real job','level up on the debrief','abandon a job','lose the drone','buy and fit gear','spend a skill point','save and reload','every mail reads','every hub panel draws','request new contracts','a woken lattice survey pays less'],what=>{
+    await group('campaign',['finish a real job','level up on the debrief','abandon a job','lose the drone','buy and fit gear','market shelf and orders','spend a skill point','save and reload','every mail reads','every hub panel draws','request new contracts','a woken lattice survey pays less'],what=>{
       // (reset() above cleared any mission; these use the real board.)
       if(c.isOpen())closeHub();
       if(what==='finish a real job'||what==='level up on the debrief'){
@@ -543,6 +543,30 @@
         const m0=c.state.money,have0=c.state.inventory[item.id]||0;if(!c.buyItem(item.id,1))return `could not buy ${item.name}`;
         if(c.state.money>=m0)return 'buying cost nothing';if((c.state.inventory[item.id]||0)<=have0)return 'nothing arrived in stores';
         if(!c.equipItem(item.id,0))return `could not fit ${item.name}`
+      }
+      // v2250: Military grade and up comes from the shelf, an order, or a contact offer.
+      if(what==='market shelf and orders'){
+        c.state.xp=Math.max(c.state.xp,c.xpForLevel(9));c.state.marketShelf=null;c.state.marketOrder=null;c.state.money=3000000;
+        const P=id=>c.frames[id]||c.items[id],top=c.marketAccessTier(),shelf=c.marketShelf();
+        if(shelf.length!==5)return `the shelf holds ${shelf.length} pieces`;if(!shelf.some(id=>P(id).tier===top))return 'nothing of the best open grade on the shelf';
+        if(!shelf.every(id=>c.productAccess(P(id)).ok))return 'a shelf piece cannot be bought';
+        const cons=Object.values(c.items).find(i=>i.slot==='consumable'&&i.tier===3);if(!c.productAccess(cons).ok)return 'a Military consumable is not in stock';
+        const off=Object.values(c.items).find(i=>c.isShelfHardware(i)&&i.tier<=top&&!shelf.includes(i.id));if(!off)return 'no hardware left off the shelf';
+        if(c.buyItem(off.id))return 'hardware off the shelf was sold outright';if(!c.productAccess(off).order)return 'hardware off the shelf cannot be ordered';
+        const have0=c.state.inventory[off.id]||0,m0=c.state.money;if(!c.placeOrder(off.id))return 'the order was refused';if(c.state.money>=m0)return 'the order cost nothing';
+        const other=Object.values(c.items).find(i=>c.isShelfHardware(i)&&i.tier<=top&&!shelf.includes(i.id)&&i.id!==off.id);if(other&&c.placeOrder(other.id))return 'a second order was taken';
+        c.state.completed+=1;c.tickMarket();if((c.state.inventory[off.id]||0)!==have0)return 'the order arrived a contract early';
+        c.state.completed+=1;c.tickMarket();if((c.state.inventory[off.id]||0)!==have0+1)return 'the order did not arrive after two contracts';if(c.state.marketOrder)return 'the order stayed open';
+        if(!c.state.mail.some(x=>/^order_/.test(x.id)))return 'no arrival mail';
+        c.marketShelf();if(c.state.marketShelf.nextAt!==c.state.completed+2)return 'the shelf did not change after two contracts';
+        if(!c.missions?.length)c.generateContractBoard();const job=c.missions.find(x=>!x.private&&c.factions[x.faction]&&x.faction!=='quickbite');if(!job)return 'no network job to earn an offer';
+        c.state.mailFlags.offerNextAt=0;c.state.mail=c.state.mail.filter(x=>x.reward?.type!=='offer');
+        if(!c.maybeQueueGearOffer({...job,forceOffer:true}))return 'no contact offer was made';
+        const mail=c.state.mail.find(x=>x.reward?.type==='offer');if(!mail)return 'the offer mail is missing';const it=mail.reward.itemId,isF=!!c.frames[it];
+        if(!(mail.reward.price<P(it).price))return 'the offer is not under market price';const r=c.resolveMail(mail);if(/;|\u2014|\u2013/.test(r.body.join(' ')))return 'offer text has a semicolon or dash';
+        const n0=isF?0:(c.state.inventory[it]||0),m1=c.state.money;if(!c.claimMailReward(mail.id))return 'buying the offer was refused';
+        if(c.state.money!==m1-mail.reward.price)return 'the offer charged the wrong amount';if(isF?!c.state.ownedFrames.includes(it):(c.state.inventory[it]||0)!==n0+1)return 'the offered piece did not arrive';
+        c.setPanel&&c.render()
       }
       if(what==='spend a skill point'){
         c.state.xp=Math.max(c.state.xp,c.xpForLevel(5));const card=c.skillCards.find(k=>c.skillCanBuy(k.id));if(!card)return 'no skill can be bought at level 5';

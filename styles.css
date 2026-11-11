@@ -1029,3 +1029,8 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .tierFilters button[class*="tier"]{border-color:var(--tc)!important}
 .tierFilters button[class*="tier"].active{background:var(--tc)!important;color:#000!important}
 
+/* v2250: shelf and orders. ORDER tags and reasons read in yellow, not as locked grey. */
+.catalogRowFacts .order,.shopAccess.order{color:var(--y)}
+.mailOfferNote{margin:0 0 8px}
+.marketDetail .marketBuyPrimary.onOrder:disabled{border-color:var(--y)!important;color:var(--y)!important;background:transparent!important}
+
