@@ -2671,3 +2671,10 @@ v2120 Full regression sweep after tonight's work
       default (was 240 and 900), so slow-but-fine high-risk jobs stop
       reading as stuck in sweeps.
 
+v2130 Guide: each network's own job
+      The Guide's Contracts overview now says that each network has one
+      kind of work only it offers: Helix specimen recoveries, QuickBite
+      taco runs, OSD bunker raids, Red Jackal customs runs and Free
+      Traders cargo spills. Checked that no Guide text still quotes an old
+      count of jobs.
+
