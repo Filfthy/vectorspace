@@ -38,9 +38,20 @@ def block(src, start):
 ENTRY = re.compile(r"(\w+):'((?:[^'\\]|\\.)*)'")
 
 
+# How Sonia should say words she gets wrong. The game's written text keeps its spelling;
+# only the wording sent to the voice changes. "xeno" is said "zeeno".
+SAY_AS = [(r'\bxeno', 'zeeno'), (r'\bXeno', 'Zeeno')]
+
+
+def say_as(text):
+    for pat, rep in SAY_AS:
+        text = re.sub(pat, rep, text)
+    return text
+
+
 def spoken(text):
     """Default wording for the voice: dashes become full stops, and it ends with one."""
-    t = re.sub(r'\s*[—–]\s*', '. ', text).strip()
+    t = say_as(re.sub(r'\s*[—–]\s*', '. ', text).strip())
     t = re.sub(r'\.\s+(\w)', lambda m: '. ' + m.group(1).upper(), t)
     if not re.search(r'[.!?]$', t):
         t += '.'
@@ -91,7 +102,7 @@ def all_lines():
         s = store.get(ln['file'], {})
         gp, rp = os.path.join(GAME, ln['file']), os.path.join(RAW, ln['file'])
         out.append({**ln,
-                    'say': s.get('say') or spoken(ln['text']),
+                    'say': say_as(s.get('say') or spoken(ln['text'])),
                     'rate': s.get('rate', 0), 'pitch': s.get('pitch', 0),
                     'ok': bool(s.get('ok')), 'note': s.get('note', ''),
                     'rendered': s.get('rendered', ''),
