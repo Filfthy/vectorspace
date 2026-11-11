@@ -91,6 +91,19 @@ function updateExteriorTargetAutopilot(controller,target,stop,shiftFn,dt,options
   const arrivalAngle=Number.isFinite(options.arrivalAngle)?options.arrivalAngle:.025;
   const arrivalRoll=Number.isFinite(options.arrivalRoll)?options.arrivalRoll:.025;
   const angle=steerExteriorAutopilot(controller,target,dt,maxRate),toStop=v3sub(stop,[shipX,shipY,0]),dist=v3len(toStop);
+  if(options.smooth){
+    // v2170: keep flying while turning. The drone carries a velocity that eases toward
+    // "head for the stop point", slower the further it still has to turn, so it curves
+    // in and settles instead of halting, swinging round, creeping, halting again.
+    const align=clamp(1-(angle-moveAngle)/.9,.2,1);
+    const want=dist>.2?(dist>farDistance?farSpeed:Math.max(minSpeed,Math.min(maxSpeed,dist*speedScale)))*align:0;
+    const desired=dist>.001?v3scale(toStop,want/dist):[0,0,0],vel=controller.autoVel||[0,0,0];
+    if(dist<2)controller.autoVel=desired;
+    else{const dv=v3sub(desired,vel),m=v3len(dv),a=(Number(options.accel)||26)*dt;controller.autoVel=m>a?v3add(vel,v3scale(dv,a/m)):desired}
+    let step=v3scale(controller.autoVel,dt);const sl=v3len(step);if(sl>dist)step=v3scale(step,dist/sl);
+    if(sl>0)shiftFn(step);
+    return{angle,dist,arrived:dist<arrivalDistance&&angle<arrivalAngle&&Math.abs(viewRoll)<arrivalRoll}
+  }
   if(angle<moveAngle&&dist>.20){
     const speed=dist>farDistance?farSpeed:Math.max(minSpeed,Math.min(maxSpeed,dist*speedScale)),step=Math.min(dist,speed*dt);
     shiftFn(v3scale(toStop,step/Math.max(.001,dist)))

@@ -204,11 +204,14 @@ class FreeTradersDepotController{
   alignTo(point,dt,maxRate=1.25){return steerExteriorAutopilot(this,point,dt,maxRate)}
   beginTerminalApproach(){
     if(!this.active)return false;this.state='terminalApproach';this.stateT=0;this.turnRate=0;inputX=inputY=aimX=aimY=0;spaceYawVel=spacePitchVel=0;
+    // v2170: hand over at the speed the drone was already flying, so the autopilot does
+    // not open with a dead stop.
+    ensureSpaceOrientation();this.autoVel=v3scale(spaceForward,OPEN_SPACE_CRUISE);
     laserBurstRemaining=0;endLaserTrigger();say('AUTOPILOT · EXTERIOR TERMINAL',.68);return true
   }
   updateTerminalApproach(dt){
     const stop=this.terminalStopPoint(),terminal=this.terminalPoint();if(!stop||!terminal)return;
-    const auto=updateExteriorTargetAutopilot(this,terminal,stop,d=>this.shiftDepot(d),dt);
+    const auto=updateExteriorTargetAutopilot(this,terminal,stop,d=>this.shiftDepot(d),dt,{smooth:true,maxSpeed:15,minSpeed:4.5,speedScale:1.9});
     if(auto.arrived)this.beginTransfer()
   }
   beginTransfer(){
@@ -221,7 +224,9 @@ class FreeTradersDepotController{
     for(let i=this.dataPackets.length-1;i>=0;i--){const p=this.dataPackets[i];p.u+=p.speed*dt;if(p.u>=1)this.dataPackets.splice(i,1)}
     if(this.transferT>=seconds)this.dataDraining=true;
     if(!this.dataDraining){this.dataSpawnT-=dt;while(this.dataSpawnT<=0&&this.dataPackets.length<18){this.dataPackets.push(...stationHack.makeDataPacketGroup(false));this.dataSpawnT+=.14+Math.random()*.34}}
-    if(!this.dataDraining||this.dataPackets.length)return;
+    // v2170: done at most .6 s after the upload time, not after every packet still in
+    // flight has landed (that left the drone sitting there for a second or two more).
+    if(!this.dataDraining||(this.dataPackets.length&&this.transferT<seconds+.6))return;this.dataPackets.length=0;
     audio?.hackChirp?.stop?.();SoundFX.relayCalibrated?.();audio.playVoice(this.stage?.completeVoice||'dataTransferComplete',{once:false,priority:true});
     this.state='terminalHold';this.holdT=0;this.stateT=0
   }
@@ -250,7 +255,9 @@ class FreeTradersDepotController{
     }
     if(this.state==='terminalApproach'){this.updateTerminalApproach(dt);return}
     if(this.state==='terminalTransfer'){this.updateTransfer(dt);return}
-    if(this.state==='terminalHold'){this.holdT+=dt;if(this.holdT>.68&&!audio.voicePlaying&&!audio.voiceQueue?.length)this.beginTurn();return}
+    // v2170: turn away after a beat while the confirmation is still being spoken, rather
+    // than holding still until the line has finished.
+    if(this.state==='terminalHold'){this.holdT+=dt;if(this.holdT>.6)this.beginTurn();return}
     if(this.state==='terminalTurn'){this.updateTurn(dt);return}
     if(this.state==='terminalClear'){this.updateClear(dt);return}
   }

@@ -2727,3 +2727,27 @@ v2160 Final review of v2100 to v2150, self-test tidying
           contains it. It now matches the field names themselves only.
           The save itself was fine.
 
+v2170 Free Traders depot: a smoother run to the terminal
+      You said the autopilot to the data terminal at the truck stop stood
+      still for ages, twisted, then stood still again. Measured with the
+      pilot, arriving straight on and from either side:
+        before: the autopilot opened with a dead stop from cruise, turned
+          on the spot, then crept the last stretch at 3 to 11 units a
+          second (8 to 10 s). The upload held the drone still for 5.1 s,
+          then it waited for "Data transfer complete" to finish (about
+          2 s more with speech on) before turning round.
+        after: the drone keeps flying while it turns, carries its speed in
+          and eases down, and settles faster at the end (6 to 7.6 s). The
+          upload ends at most 0.6 s after its set time instead of waiting
+          for every data packet still in flight (3.7 s). The turn starts
+          0.6 s after the upload, with the confirmation still being spoken
+          over it.
+      Time standing still at the terminal: about 7 s down to about 4.
+      The speech is unchanged: "Heading to Free Traders depot" as you
+      leave the wreck and "Data transfer complete" at the terminal. Both
+      were checked to be requested and present on a full Wreck Recovery
+      run, and all 96 voice files the game expects exist.
+      This is the depot only (an opt-in smooth mode in the shared exterior
+      autopilot). The taco beacon station uses the same autopilot and is
+      unchanged.
+
