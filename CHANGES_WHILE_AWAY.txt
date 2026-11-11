@@ -2702,3 +2702,13 @@ v2140 Convoy Escort: a sturdier freighter for less precise pilots
       Convoy Black Contract scales from the same numbers (its armour
       factor is unchanged), so it is a little easier too.
 
+v2150 Self-test: the two network jobs flown as real contracts
+      Until now Customs Run and Cargo Spill were only flown as DEV runs,
+      which skip pay and stats. The self-test now also flies each as a
+      real board contract every run, through to the debrief: a clean
+      Customs Run must pay the fee plus its 15% bonus and count toward
+      Nothing to Declare, and a Cargo Spill must count exactly the pods
+      brought home toward the Record and Every Last Pod. Both pass (for
+      example a clean run paid CR 8,550 on a 7,450 fee, and 7 pods were
+      counted for 7 scooped).
+

@@ -350,7 +350,21 @@
 
     // Flown for real: no stage is skipped once the pilot has the controls.
     const pilotNotes=[];
-    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','crater_cores','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge','convoy_escort','minelayer','customs_run','cargo_spill'],id=>{
+    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','crater_cores','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge','convoy_escort','minelayer','customs_run','cargo_spill','network jobs paid'],id=>{
+      // v2150: Customs Run and Cargo Spill flown as real board contracts (not DEV runs), so
+      // the pay, the bonus and the stats behind their achievements are all exercised.
+      if(id==='network jobs paid'){
+        const real=(tid,fac,fly)=>{reset();c.state.xp=Math.max(c.state.xp,c.xpForLevel(8));const m=c.makeTemplateContract(c.missionTemplate(tid),0,{faction:fac});if(!m)return{err:`no ${tid} contract`};
+          c.missions.push(m);c.launchMission(m.id);if(c.currentMission!==m)return{err:`${tid} did not launch`};invulnerable=true;
+          const st=c.stats(),b={money:c.state.money,clean:st.customsClean||0,pods:st.spillPods||0};const r=fly();
+          for(let f=0;f<4000&&!c.isOpen();f++)update(1/30);const ok=c.isOpen(),s2=c.stats();try{c.closeMissionDebrief?.('missions')}catch(_){}paused=false;document.body.classList.remove('paused');
+          return{m,r,ok,paid:c.state.money-b.money,clean:(s2.customsClean||0)-b.clean,pods:(s2.spillPods||0)-b.pods}};
+        const a=real('customs_run','jackals',()=>flyCustoms(1));if(a.err)return a.err;if(!a.ok)return 'a real Customs Run did not reach the debrief';
+        if(a.r.outcome==='clean'&&(a.clean!==1||a.paid<a.m.pay*1.1))return `a clean real Customs Run paid ${a.paid} of a ${a.m.pay} fee and counted ${a.clean} clean`;
+        const b=real('cargo_spill','trade',()=>flySpill(1));if(b.err)return b.err;if(!b.ok)return 'a real Cargo Spill did not reach the debrief';
+        if(b.pods!==b.r.pods||!(b.paid>0))return `a real Cargo Spill brought ${b.r.pods} pods, counted ${b.pods}, paid ${b.paid}`;
+        pilotNotes.push(`real customs ${a.r.outcome} CR ${a.paid}, real spill ${b.r.pods} pods CR ${b.paid}`);return
+      }
       // v2080: Cargo Spill flown twice, once going for the pods and once flying straight
       // past them. Both must end, and going for the pods must bring more home.
       if(id==='cargo_spill'){
