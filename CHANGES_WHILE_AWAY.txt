@@ -2751,3 +2751,30 @@ v2170 Free Traders depot: a smoother run to the terminal
       autopilot). The taco beacon station uses the same autopilot and is
       unchanged.
 
+v2180 Relay 10 data terminal: no more stop-start, and the search speech back
+      Your screenshot (Kudo's "station under attack") showed which data
+      terminal you meant: the outside terminal on Relay 10 at the end of
+      Emergency Defence, not the Free Traders depot that v2170 changed
+      (that change stays, the depot had the same habit).
+      The Relay 10 autopilot follows a planned route round the station. On
+      every leg it stood still until it faced the next point, then moved,
+      then stood still again at the next corner, and the final run in
+      crawled at 10 units a second. Three flights each, before and after:
+        before: approach 19.5 to 54 s with 2 to 4 stops (longest 3.6 s),
+          upload 4.8 s, then a wait for "Data transfer complete" to end.
+        after: approach 23 to 38 s with no stops, upload 3.8 s, the turn
+          starts 0.6 s after the upload with the line still being spoken.
+      The route itself is the same safe path round the station. The drone
+      now keeps moving along it while turning (slower on sharp corners),
+      long legs run at up to cruise speed, and the final leg runs at up to
+      22 and eases in.
+      Speech: the wreckage search in Emergency Defence only ever showed
+      text. It now uses the recorded lines Mara's Courier Recovery uses:
+      "Search the wreckage for recoverable navigation data", "Scan
+      complete. No recoverable navigation data" and "Scan complete.
+      Navigation data recovered". Checked on a full flight: each plays,
+      followed by "Data transfer complete" at the terminal.
+      Self-test: the Customs Run check that flies through each ring's hub
+      now steers for the hub. Flying dead straight could slip through a
+      gap by luck (rings sit a little off the line), which failed it once.
+

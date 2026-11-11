@@ -348,6 +348,8 @@ const salvageRecovery={
     // autopilot route planner then owns the safe path to the exposed terminal face.
     if(stageRange<capture||centreRange<hostCapture){
       this.state='terminalApproach';this.terminalT=0;mode='recoveryPickup';inputX=inputY=aimX=aimY=0;spaceYawVel=spacePitchVel=0;
+      // v2180: the autopilot picks up at a good fraction of cruise rather than a dead stop.
+      this.terminalSpeed=OPEN_SPACE_CRUISE*.7;
       this.buildTerminalApproachRoute();say('AUTOPILOT · DATA TERMINAL',.62)
     }
   },
@@ -360,8 +362,12 @@ const salvageRecovery={
         // Start levelling with the terminal during the outer route so the bank is
         // visibly removed over the whole approach instead of at the parking point.
         stationDelivery.alignExternalTerminalRoll(dt,.62);
-        if(angle>.16)return;
-        const speed=dist>55?28:lerp(11,22,clamp(dist/55,0,1)),step=Math.min(dist,speed*dt),delta=dist>.0001?v3scale(toTarget,step/dist):[0,0,0];
+        // v2180: keep moving along the same safe leg while turning to face it, slower the
+        // further it still has to turn, instead of stopping dead at every corner. The path
+        // is unchanged (straight legs between the planned points), only the pauses go.
+        const align=clamp(1-(angle-.16)/.9,.25,1),want=(dist>55?Math.min(OPEN_SPACE_CRUISE,28+(dist-55)*.12):lerp(11,22,clamp(dist/55,0,1)))*align;   // long legs up to cruise
+        this.terminalSpeed=moveToward(this.terminalSpeed??want,want,dt*(want>(this.terminalSpeed??0)?18:30));
+        const speed=this.terminalSpeed,step=Math.min(dist,speed*dt),delta=dist>.0001?v3scale(toTarget,step/dist):[0,0,0];
         this.shiftStationRecoveryField(delta);
         if(dist<=1.15||step>=dist-.02){this.terminalRouteLeg++;if(this.terminalRouteLeg>=this.terminalRoute.length)this.terminalApproachPhase='final'}
         return
@@ -373,7 +379,11 @@ const salvageRecovery={
     // The final leg begins only after the safe outer staging point has been reached.
     // It is therefore a straight radial move down the terminal wall normal, never a
     // diagonal shortcut through the station body.
-    if(angle<=.16&&dist>.22){const step=Math.min(dist,Math.max(2.8,Math.min(10,dist*1.35))*dt),delta=v3scale(toStop,step/Math.max(.001,dist));this.shiftStationRecoveryField(delta)}
+    // v2180: the final radial leg runs at up to 22 (was 10, which crawled a long way) and
+    // keeps moving while it squares up, then eases in.
+    if(dist>.22){const align=clamp(1-(angle-.16)/.9,.25,1),want=Math.max(4,Math.min(22,dist*1.6))*align;
+      this.terminalSpeed=moveToward(this.terminalSpeed??want,want,dt*(want>(this.terminalSpeed??0)?18:30));
+      const step=Math.min(dist,this.terminalSpeed*dt),delta=v3scale(toStop,step/Math.max(.001,dist));this.shiftStationRecoveryField(delta)}
     if(dist<.48&&angle<.025&&rollError<.025){
       this.state='terminalTransfer';this.terminalTransferT=0;this.terminalDataPackets.length=0;this.terminalDataSpawnT=.08;this.terminalDataDraining=false;
       // Use the canonical secure-terminal stream: identical packet generator,
@@ -391,7 +401,8 @@ const salvageRecovery={
       this.terminalDataSpawnT-=dt;
       while(this.terminalDataSpawnT<=0&&this.terminalDataPackets.length<18){this.terminalDataPackets.push(...stationHack.makeDataPacketGroup(false));this.terminalDataSpawnT+=.14+Math.random()*.34}
     }
-    if(!this.terminalDataDraining||this.terminalDataPackets.length)return;
+    // v2180: done at most .6 s after the upload time, not after every packet in flight.
+    if(!this.terminalDataDraining||(this.terminalDataPackets.length&&this.terminalTransferT<seconds+.6))return;this.terminalDataPackets.length=0;
     audio?.hackChirp?.stop?.();SoundFX.relayCalibrated?.();audio.playVoice('dataTransferComplete',{once:false,priority:true});
     this.state='terminalHold';this.terminalT=0
   },
@@ -590,7 +601,8 @@ const salvageRecovery={
     else if(this.state==='terminalApproach')this.updateTerminalApproach(dt);
     else if(this.state==='terminalTransfer')this.updateTerminalTransfer(dt);
     else if(this.state==='terminalHold'){
-      this.terminalT+=dt;if(this.terminalT>.72&&!audio.voicePlaying&&!audio.voiceQueue.length)this.beginTerminalTurn()
+      // v2180: turn away after a beat, with the confirmation still being spoken.
+      this.terminalT+=dt;if(this.terminalT>.6)this.beginTerminalTurn()
     }else if(this.state==='terminalTurn')this.updateTerminalTurn(dt);
     else if(this.state==='terminalClear')this.updateTerminalClear(dt)
   },

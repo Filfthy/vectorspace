@@ -392,6 +392,8 @@ const relay10={
         encounterChance:1,target:6,fighterHp:13,difficulty:3,profile:'rogue',startMessage:'Defend the station',
         wreckageSearch:true,useCombatWrecks:true,stationAnchor:true,wreckageCount:6,inspectSeconds:1.70,markerGrowRange:110,captureRadius:26,
         searchPromptText:'Search the drone wreckage for anything useful',missText:'No useful data recovered',foundText:'Partial routing record recovered',
+        // v2180: the recorded wreckage-search lines, as Mara's courier recovery uses them.
+        searchPromptVoice:'searchWreckageForNavigationData',missVoice:'noRecoverableNavigationData',foundVoice:'navigationDataRecovered',
         foundHud:'Routing record recovered',foundHold:1.15,wreckageSearchFlow:{firstResultAlwaysMiss:true},
         wreckagePresentation:{searchingText:'SEARCHING WRECKAGE',searchingHold:.58,markerLabel:'WRECKAGE',contactsPrefix:'WRECKAGE CONTACTS'},
         externalDataTerminal:true,terminalCaptureRadius:30,terminalStandOff:13,transferSeconds:3.2

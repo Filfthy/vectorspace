@@ -105,7 +105,9 @@
     if(rd.state!=='customs')return{started:false};
     const m=campaign.currentMission,st={started:true,frames:0};
     for(;st.frames<maxSecs*30&&rd.active&&(rd.state==='customs'||rd.state==='customsFight');st.frames++){
-      if(rd.state==='customs'){if(spin||(turnFirst&&st.frames<45)){inputX=1;inputY=0}else if(still)inputX=inputY=0;else customsSteer(skill)}else fightStep(.9);
+      // v2180: 'still' now steers for each ring's hub, which always scans (flying dead straight
+      // could slip through a gap by luck, as the rings sit a little off the line).
+      if(rd.state==='customs'){if(spin||(turnFirst&&st.frames<45)){inputX=1;inputY=0}else if(still){const X=globalThis.AgentXCustomsRun,r=X.rings.find(o=>!o.done);if(r){const q=camPoint([r.x,r.y,r.z]);inputX=clamp(q[0]/4,-1,1);inputY=clamp(-q[1]/4,-1,1)}else inputX=inputY=0}else customsSteer(skill)}else fightStep(.9);
       update(1/30)}
     inputX=inputY=0;st.secs=Math.round(st.frames/30);st.scans=globalThis.AgentXCustomsRun.lastScans;
     st.outcome=(m?.diversions||[]).find(d=>d.main)?.outcome||'';return st
