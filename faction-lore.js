@@ -220,7 +220,12 @@
     {id:'firstCores',faction:'helix',when:c=>(c.stats.contracts?.byTemplate?.crater_cores||0)>0,letter:L('Your core samples',[
       'The cores you took are in the lab. I have been reading them like a book that someone dropped down a well.',
       'The top layers are what I expected. Three metres down there is a band of material that does not belong to that moon, or to anything near it. Something hit it, a very long time ago, from a long way off.',
-      'I will want more cores. From more moons. You can probably guess why I find that exciting. If you cannot, I will explain at length.'])}
+      'I will want more cores. From more moons. You can probably guess why I find that exciting. If you cannot, I will explain at length.'])},
+    // v2060: after the first Customs Run that is never scanned.
+    {id:'firstCustoms',faction:'jackals',when:c=>(c.stats.customsClean||0)>0,letter:L('A quiet word about rings',[
+      'X. The consignment arrived, and the Customs Authority has since filed a report stating that nothing whatever passed its picket that day. I have had the report framed.',
+      'There is an art to standing where the light is not. Most people never learn it, because most people want to be seen. You, I think, would rather be paid.',
+      'I shall send more of this work your way. Do not mention it to Kudo. He has strong feelings about lighthouses.'])}
   ];
   globalThis.AgentXFactionLore={LETTERS,due,MARA,STANDING,FAVOURS,REACTIONS};
 })();

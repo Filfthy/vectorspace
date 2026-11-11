@@ -2175,7 +2175,8 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
     - New letter from Nyxo after your first ambushed asteroid clearance.
     - Two new VOX Wire headlines.
     - New letters: Corvella after your first convoy seen through, Navira
-      after your first core samples, Kudo after your first minelayer.
+      after your first core samples, Kudo after your first minelayer,
+      Cassian after your first Customs Run that is never scanned.
     - Contact files (Networks page) now also record what each contact
       told you in their first-meeting letters: 13 new facts.
     - A one-off Operator bulletin on existing saves lists tonight's new
@@ -2548,4 +2549,17 @@ v2050 Customs Run: rings that face you after a turn
       as outside. A pilot that turns hard for the first second and a half
       and then threads must be scanned at no more than the rings placed
       during the turn (it loses two and threads the rest).
+
+v2060 Customs Run: Cassian's letter, a headline, voice lines
+      Cassian writes after your first Customs Run that is never scanned
+      ("A quiet word about rings"): Customs has filed a report saying
+      nothing passed its picket that day, and he has had it framed. His
+      contact file gains the matching fact. A new VOX Wire headline once
+      you have run a picket clean: Customs says its pickets work perfectly,
+      while seizures on picketed lanes keep falling. Two new voice line
+      requests in VOICE_REQUESTS.txt, silent until recorded: "Customs
+      picket. Fly the dark gaps." at the start, and "We have been
+      scanned." the first time a ring reads you. Neither cuts off a line
+      already playing. Checked: the letter is sent once the clean run is
+      counted, with the right sender, and the headline becomes eligible.
 

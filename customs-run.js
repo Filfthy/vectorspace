@@ -62,7 +62,7 @@ const AgentXCustomsRun={
         r.done=true;this.passed++;const hit=lost?'outside':this.armHit(r);
         if(hit){r.scanned=true;this.scans++;
           callout(hit==='outside'?'SCANNED · STAY INSIDE THE RING':'SCANNED · CUSTOMS ALERTED',1.6,false);
-          SoundFX.terminalRed?.()}
+          SoundFX.terminalRed?.();if(this.scans===1&&audio?.hasVoice?.('customsScanned'))audio.playVoice('customsScanned',{once:false,priority:false})}
         else{callout(this.passed<this.total?`RING ${this.passed} CLEAR · ${this.total-this.passed} TO GO`:'LAST RING CLEAR',1.3,false);SoundFX.relayCalibrated?.()}
         if(this.passed<this.total)this.place(this.SPACING)
       }

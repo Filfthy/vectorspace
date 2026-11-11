@@ -118,7 +118,7 @@ const routeDiversion={
     if(kind==='migration')return this.beginMigration(stage,def);
     if(kind==='lattice'||kind==='latticeSurvey')return this.beginLattice(stage,def);
     if(kind==='escort')return this.beginEscort(stage,def);
-    if(kind==='customs'){this.state='customs';AgentXCustomsRun.begin(stage,campaign.currentMission?.risk);callout(def.nav,2.8);return true}
+    if(kind==='customs'){this.state='customs';AgentXCustomsRun.begin(stage,campaign.currentMission?.risk);callout(def.nav,2.8);if(audio?.hasVoice?.('customsPicketAhead'))audio.playVoice('customsPicketAhead',{once:false,priority:false});return true}
     if(kind==='layerCrew'){
       const k=campaign.contractToughnessScale(campaign.currentMission?.risk||1),n=3+Math.floor(Math.random()*2);
       stage.spaceCombat=true;this.state='fight';this.pendingOutcome={id:'cleared',...def.cleared};

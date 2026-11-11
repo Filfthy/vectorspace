@@ -68,6 +68,7 @@
     H('hijack_warning','OSD warns that stolen military drones are turning up in criminal hands. Pilots report they "hesitate, then fire".',c=>!!c.state?.seenProfiles?.hijacked),
     // v1910-20: the night's new jobs and surprises.
     H('hauler_crews','Hauler crews on a pirate lane report fewer losses this month. One captain credits "a contractor drone that would not leave us alone".',c=>(c.stats.convoysSafe||0)>0),
+    H('picket_figures','The Customs Authority says its new scanner pickets are working perfectly. Seizures on picketed lanes are down for a third month running.',c=>(c.stats.customsClean||0)>0),
     H('belt_ambush','Belt clearance contractors are told to expect company. Pirates have taken to hiding in the very rock fields they are paid to clear.',c=>(c.stats.asteroidAmbushes||0)>0)
   ];
   globalThis.AgentXVoxWire={HEADLINES};

@@ -245,3 +245,23 @@ Spoken text:
 
 Expected filename:
     divelowovereachcrater.mp3
+
+
+CUSTOMS RUN, START
+------------------
+
+Spoken text:
+    Customs picket. Fly the dark gaps.
+
+Expected filename:
+    customspicketflythedarkgaps.mp3
+
+
+CUSTOMS RUN, SCANNED
+--------------------
+
+Spoken text:
+    We have been scanned.
+
+Expected filename:
+    wehavebeenscanned.mp3

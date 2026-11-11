@@ -238,7 +238,8 @@
       F('lore4','Suspects he enjoys working with you. Keeps a door open for quiet favours.'),
       // v1960: facts from the first-meeting letters (faction-lore.js REACTIONS)
       F('react_storm','Admires weather. It ruins everyone equally and never apologises.'),
-      F('react_hijacked','Finds stolen loyalty vulgar. Loyalty, he says, is cultivated, preferably over dinner.')]},
+      F('react_hijacked','Finds stolen loyalty vulgar. Loyalty, he says, is cultivated, preferably over dinner.'),
+      F('react_firstCustoms','Had the Customs report on your first clean crossing framed. It says nothing passed the picket.')]},
     helix:{who:'Navira Derris',facts:[
       F('met','Helix Industrial Group research contact. Strange results make her more interested, not less.'),
       F('lore1','Grew up on a mining moon. At fourteen she asked to keep a xeno tissue sample. She has been asking, more formally, ever since.'),
