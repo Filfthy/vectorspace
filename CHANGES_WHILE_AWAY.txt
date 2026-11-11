@@ -2185,7 +2185,8 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
     - Contact files (Networks page) now also record what each contact
       told you in their first-meeting letters: 13 new facts.
     - A one-off Operator bulletin on existing saves lists tonight's new
-      jobs and enemies.
+      jobs and enemies. Saves that already had it get a short second
+      one about Customs Run and Cargo Spill.
   Fixed:
     - The drone could freeze for good after a city pickup (an old bug,
       about 1 run in 6 on pickup jobs).
@@ -2640,4 +2641,14 @@ v2100 Cargo Spill: Corvella's letter, Codex, headline, voice lines
       line requests, silent until recorded: "Cargo adrift. Scoop it up."
       and "Scavengers inbound." Checked: the letter is sent with the right
       sender, the Codex entry opens and the headline becomes eligible.
+
+v2110 Operator bulletin for the two network jobs
+      Saves that already had tonight's first bulletin (v2030) get one more,
+      "Operator bulletin: two network jobs", about Customs Run and Cargo
+      Spill. A save that had neither gets a single bulletin with both jobs
+      folded in, not two. Fresh saves get none. Checked all three cases,
+      and that the second bulletin is sent only once.
+      Caught before release: an apostrophe in the new text broke the
+      campaign file for a moment (the self-test failed to boot). Reworded,
+      and every script file now passes a syntax check.
 

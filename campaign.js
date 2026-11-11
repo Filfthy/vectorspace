@@ -1727,7 +1727,7 @@ class CampaignController {
     this.evaluateFactionChains();
     this.evaluateLateGame();
     this.evaluateBulletin();
-    this.evaluateBulletin1580();this.evaluateBulletin2030();
+    this.evaluateBulletin1580();this.evaluateBulletin2030();this.evaluateBulletin2100();
     this.evaluateThreatAdvisories();
     this.evaluateStandingLetters();
     this.evaluateContactReactions();
@@ -1866,7 +1866,8 @@ class CampaignController {
   // v2030: one notice to an existing save about the night run's content (10 to 11 Nov).
   evaluateBulletin2030(){
     const flags=this.state.mailFlags;if(flags.bulletinV2030)return;
-    flags.bulletinV2030=true;if(!(Number(this.state.completed)>0))return;
+    // v2100: one bulletin, not two, for a save that had neither: the newest jobs ride along.
+    flags.bulletinV2030=true;flags.bulletinV2100=true;if(!(Number(this.state.completed)>0))return;
     this.enqueueMail({id:'bulletin_v2030',from:'VOX Operator Records',subject:'Operator bulletin: escorts, moons and mines',category:'system',priority:'normal',
       body:['More new on the routes. In short:',
         'Convoy escorts. Free Traders, QuickBite and OSD hire escorts for slow freighters crossing pirate lanes. Raiders go for the freighter until you give them a reason not to.',
@@ -1874,7 +1875,20 @@ class CampaignController {
         'Minelayers. Some pirate and mercenary crews seed proximity mines. Kill the layer first. Sometimes you meet a crew in the middle of seeding a lane.',
         'Asteroid clearance is no longer always quiet. Whoever is hiding in the field may come out once you start shooting.',
         'Black Contracts. A tenth set piece, the Last Convoy.',
+        'Customs runs. The Red Jackal Combine now has a job of its own: carry cargo through a Customs scanner picket, crossing each ring in a dark gap between its turning arms. Get scanned and the interceptors follow.',
+        'Cargo spills. So do the Free Traders: scoop up the cargo pods a hauler dumped by flying through them, before pirate scavengers take them.',
         'Your contacts now talk about the job in hand more often, and their files on the Networks page record more of what they have told you.',
+        'The operator guide (the ? tab) has the detail.'],
+      actions:[{type:'panel',panel:'guide',label:'OPEN OPERATOR GUIDE'}]})
+  }
+  // v2100: for saves that already had the v2030 bulletin, the two network jobs added since.
+  evaluateBulletin2100(){
+    const flags=this.state.mailFlags;if(flags.bulletinV2100)return;
+    flags.bulletinV2100=true;if(!(Number(this.state.completed)>0))return;
+    this.enqueueMail({id:'bulletin_v2100',from:'VOX Operator Records',subject:'Operator bulletin: two network jobs',category:'system',priority:'normal',
+      body:['Two networks have new work of their own on the board.',
+        'Customs runs. The Red Jackal Combine now has a job of its own: carry cargo through a Customs scanner picket, crossing each ring in a dark gap between its turning arms. Get scanned and the interceptors follow.',
+        'Cargo spills. So do the Free Traders: scoop up the cargo pods a hauler dumped by flying through them, before pirate scavengers take them.',
         'The operator guide (the ? tab) has the detail.'],
       actions:[{type:'panel',panel:'guide',label:'OPEN OPERATOR GUIDE'}]})
   }
