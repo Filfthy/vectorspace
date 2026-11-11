@@ -2163,6 +2163,8 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
       level 5. An orange raider that seeds proximity mines. Kill it first.
     - Last Convoy: a tenth Black Contract (from threat 10). Escort an
       armoured VOX freighter through four waves of remnant drones.
+    - Minelayer crew: a new route diversion from level 5. Pirates caught
+      seeding a lane. Break them up for a little pay and OSD standing.
   Changed:
     - Contacts now often talk about the specific job on contract cards.
     - New letter from Nyxo after your first ambushed asteroid clearance.
@@ -2447,4 +2449,15 @@ v2010 Operator record rows for tonight's content
       Mines shot, Convoys seen through, Field ambushes survived and Quiet
       lattice surveys. They start at 0 on an existing save (the ones that
       only count tonight's content were not tracked before).
+
+v2020 New route diversion: minelayer crew
+      From level 5, a pirate crew can be found seeding a lane with mines:
+      "MINELAYER CREW SEEDING THE LANE · BREAK THEM UP". Three or four
+      pirates, one of them always a minelayer, so it is a fight from the
+      moment you meet it. Clear them and OSD logs it: a small fee (8% of
+      the job's pay), +2 OSD standing, and the debrief reads "Diversion ·
+      Minelayer crew broken up, lane cleared". Same weight as the dormant
+      lattice among the ten diversion kinds. In the Guide under
+      Diversions. Flown three times with a drone that can be lost: about
+      15 s of extra fighting, 2 or 3 mines laid, 3 to 4 shield spent.
 

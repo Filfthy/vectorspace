@@ -88,6 +88,10 @@ const routeDiversion={
     escort:{nav:'CONVOY ESCORT · KEEP THE FREIGHTER ALIVE',hud:'CONVOY ESCORT',window:1e9,
       safe:{say:'CONVOY THROUGH · FREIGHTER SAFE',text:'Freighter escorted through',rep:3},
       lost:{say:'FREIGHTER DESTROYED · CONVOY LOST',text:'Freighter lost, convoy failed',pay:-.5,xp:-.4,rep:-3}},
+    // v2020: a pirate crew caught seeding the lane with a minelayer (minelayers.js). Always a
+    // fight once met. Clearing it is OSD's business, so OSD gives the standing.
+    layerCrew:{nav:'MINELAYER CREW SEEDING THE LANE · BREAK THEM UP',hud:'MINELAYER CREW',window:1e9,
+      cleared:{say:'LANE CLEARED · OSD WILL LOG IT',text:'Minelayer crew broken up, lane cleared',pay:.08,rep:2,repFaction:'security'}},
     migration:{nav:'XENO MIGRATION CROSSING · FLY CLOSE TO SCAN · DO NOT FIRE',hud:'XENO MIGRATION',window:30,need:3,
       surveyed:{say:'MIGRATION SURVEYED · HELIX WILL WANT THIS',pay:.08,rep:3,repFaction:'helix',xp:.15,text:'Xeno migration surveyed'},
       fired:{text:'Fired on a xeno migration',rep:-4,repFaction:'helix'}},
@@ -110,6 +114,13 @@ const routeDiversion={
     if(kind==='migration')return this.beginMigration(stage,def);
     if(kind==='lattice'||kind==='latticeSurvey')return this.beginLattice(stage,def);
     if(kind==='escort')return this.beginEscort(stage,def);
+    if(kind==='layerCrew'){
+      const k=campaign.contractToughnessScale(campaign.currentMission?.risk||1),n=3+Math.floor(Math.random()*2);
+      stage.spaceCombat=true;this.state='fight';this.pendingOutcome={id:'cleared',...def.cleared};
+      if(globalThis.AgentXMinelayers)AgentXMinelayers.force=true;
+      scenarioFlow.startFighterStage({...stage,target:n,fighterHp:Math.round(12*k),profile:'pirate',navMessage:null},'pirate',{preservePhase:true});
+      scenarioFlow.encounterHudTag=def.hud;callout(def.nav,2.4);return true
+    }
     if(kind==='civilian'){
       // Raiders chasing someone else. They hold fire on X unless X joins in, so the
       // event can genuinely be flown past. Destroying them all in time saves the civilian.

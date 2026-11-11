@@ -303,7 +303,7 @@
         // A survey only ends when its shells are scanned, so the pilot flies it. If the
         // pilot wakes it, the other ending is exercised instead: the lattice is cleared.
         if(kind==='latticeSurvey'){if(routeDiversion.state==='lattice')latticeSteer(1);else if(routeDiversion.state==='latticeFight'){routeDiversion.finishLattice(true);break}}
-        if(kind==='escort')fightStep(.9);   // v1910: the waves only end when the raiders die
+        if(kind==='escort'||kind==='layerCrew')fightStep(.9);   // v1910/v2020: these only end when the raiders die
         update(1/30);if(i%60===0)render(performance.now())}
       inputX=inputY=0;
       if(routeDiversion.active)return `still running after ${secs} s in state ${routeDiversion.state}`});
