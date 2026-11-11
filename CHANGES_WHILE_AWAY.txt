@@ -2999,3 +2999,8 @@ v2290 Test pass: market fixes and the Secure Terminal prompt
       at the bunker door (the test pilot aimed at something else); 11
       more runs were clean, so it is a pilot quirk, not a game fault.
 
+v2300 The comet is gone
+      You did not like the distant comet that hung in the sky on about
+      one job in four. It is removed. The passing convoy lights the nav
+      computer mentions are unchanged.
+

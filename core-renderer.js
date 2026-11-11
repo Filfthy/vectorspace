@@ -889,7 +889,7 @@ class SceneRenderer {
  }
  const enclosed=(phase==='trench'||phase==='reactor'||phase==='escape'||phase==='courierTunnel'||phase==='courierReturn'||phase==='bunkerTunnel'||phase==='bunkerReturn'||phase==='stationInterior'||phase==='securityCheckpoint'||phase==='xenoCore'||mode==='courierDelivery'||mode==='courierTurn'||mode==='bunkerCircuitryPickup'||mode==='bunkerTurn'||mode==='reactorApproach'||mode==='reactorExit'||mode==='exitDoor');
  if(!enclosed)drawStars();
- if(!enclosed)globalThis.AgentXSpaceAmbience?.draw();   // v1690: an occasional distant comet
+ if(!enclosed)globalThis.AgentXSpaceAmbience?.draw();   // v1700: passing convoy lights (the comet went in v2300)
  if(phase==='asteroids'||phase==='courierMine'||asteroidWreckRun?.fieldVisible?.()||tacoBeaconDelivery?.piratesActive?.()||globalThis.AgentXAsteroidAmbush?.fightActive?.())asteroidField.drawBackdrop();
  // Draw dust before any planetary body.  The old ordering put the grey motion
  // points on top of the Helix/world planet after its black occlusion disc, making
