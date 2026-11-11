@@ -2458,6 +2458,7 @@ v2020 New route diversion: minelayer crew
       the job's pay), +2 OSD standing, and the debrief reads "Diversion ·
       Minelayer crew broken up, lane cleared". Same weight as the dormant
       lattice among the ten diversion kinds. In the Guide under
-      Diversions. Flown three times with a drone that can be lost: about
-      15 s of extra fighting, 2 or 3 mines laid, 3 to 4 shield spent.
+      Diversions. Flown three times with a drone that can be lost: 15 to
+      25 s of extra fighting (82 to 93 s against about 65 to 70 s for the
+      same job without it), 2 or 3 mines laid, 3 to 4 shield spent.
 
