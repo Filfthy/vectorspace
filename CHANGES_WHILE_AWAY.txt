@@ -2678,3 +2678,17 @@ v2130 Guide: each network's own job
       Traders cargo spills. Checked that no Guide text still quotes an old
       count of jobs.
 
+v2140 Convoy Escort: a sturdier freighter for less precise pilots
+      Convoy Escort was tuned against the self-test pilot, which aims
+      perfectly. Flown again with its aim weakened (skill 0.9, 0.5 and
+      0.3), risk 6 to 8:
+        before   0.9: 78% and 16% left   0.5: 58% and 3%   0.3: lost, lost
+        after    0.9: 84%                0.5: 69% and 11%  0.3: 60%, lost
+      The raiders now wear the freighter down about 15% more slowly
+      (0.0047 per raider a second, was 0.0055) and the crew patches 15%
+      between waves (was 10%). Precise flying still keeps it healthy, a
+      weaker pilot can save it at moderate risk, and high risk still asks
+      for real effort. Duration and pay per minute are unchanged. The Last
+      Convoy Black Contract scales from the same numbers (its armour
+      factor is unchanged), so it is a little easier too.
+

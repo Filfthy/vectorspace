@@ -434,7 +434,7 @@ const routeDiversion={
     audio.music.setMode('calm');
     if(this.wave>=this.waves){this.finishEscort(true);return}
     // The crew patches what it can between waves.
-    const c=this.convoy;if(c)c.hp=Math.min(1,c.hp+.1);
+    const c=this.convoy;if(c)c.hp=Math.min(1,c.hp+.15);   // v2140: .15 (was .1)
     this.waveGap=7;callout(`WAVE CLEARED · FREIGHTER ${Math.ceil((c?.hp||0)*100)}% · MORE COMING`,2)
   },
   updateEscort(dt){
@@ -451,7 +451,8 @@ const routeDiversion={
       if(f.provoked)continue;f.shotsLeft=0;onIt++;
       const g=Math.min(1,dt*.7);f.x+=(c.x-12+Math.random()*24-f.x)*g;f.y+=(c.y-6+Math.random()*12-f.y)*g;f.z+=(c.z-20-f.z)*g}
     // v1970: an armoured freighter (stage.freighterArmour, a damage factor) takes less.
-    if(onIt){c.hp-=dt*.0055*onIt*(Number(this.stage?.freighterArmour)||1);if(Math.random()<dt*onIt*1.2){c.hitT=.12;const p=proj([c.x,c.y,c.z]);if(p)spark(p.x,p.y,C.y,5)}}
+    // v2140: .0047 (was .0055). Pilots with weaker aim lost the freighter at risk 6 to 8.
+    if(onIt){c.hp-=dt*.0047*onIt*(Number(this.stage?.freighterArmour)||1);if(Math.random()<dt*onIt*1.2){c.hitT=.12;const p=proj([c.x,c.y,c.z]);if(p)spark(p.x,p.y,C.y,5)}}
     if(c.hp<=0){c.dead=true;const p=proj([c.x,c.y,c.z]);if(p&&typeof explodeMesh==='function')explodeMesh(c,this.FREIGHTER_MESH,p,C.y);this.finishEscort(false)}
   },
   finishEscort(safe){
