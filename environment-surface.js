@@ -207,7 +207,7 @@ class SurfaceDestinationApproachController {
     this.speed=22.0;this.navPulse=0;this.seed=0x504c4149;this.trees=[];this.survey=[];this.surveyIntro=null;this.beacon=null;this.chatter=null;this.skyline=[];this.forestBands=[];this.forestFront=[];this.treeHitCD=0;
     this.visibleTrees=[];this.visibleForestFront=[];
     this.baseCache=new WeakMap();this.finishing=false;this.finishT=0;this.entryRadius=36;
-    this.lastHandoff=null;this.manualComplete=false
+    this.lastHandoff=null;this.manualComplete=false;this.hills=null
   }
   rand(){this.seed=(Math.imul(this.seed,1664525)+1013904223)>>>0;return this.seed/4294967296}
   // Shared surface-object mechanism. Environments and missions submit discrete
@@ -254,6 +254,90 @@ class SurfaceDestinationApproachController {
     else if(this.destination==='swamp')this.buildSwampBoundary();
     else if(this.destination==='bunker'||this.destination==='osd'){this.skyline.length=0;this.forestBands.length=0;this.forestFront.length=0}
     else this.buildSkyline()
+  }
+  // v2190 ROLLING PLAINS (as in the promo video). The ground rises and falls along the line
+  // from the landing to the destination (crests and dips every hundred or so) and swells into
+  // hills either side within about 40 of that line, flat beyond (matching the flat horizon
+  // band). It stays level at the landing, at the destination, along the city road and around
+  // every objective (survey markers, relay masts, crash sites, core sites, the beacon), so
+  // nothing that is judged or drawn against the ground there changes. Not on swamps, moons,
+  // volcanic worlds or the OSD compound, which have their own ground features.
+  setupHills(ax,az){
+    this.hills=null;
+    const moon=typeof planetLandingBody!=='undefined'&&planetLandingBody==='moon';
+    if(this.terrain!=='plains'||this.destination==='swamp'||this.destination==='osd'||this.scenery==='swamp'||this.worldKind==='volcanic'||moon)return;
+    const bx=this.targetX,bz=this.targetWorldZ,dx=bx-ax,dz=bz-az,len=Math.hypot(dx,dz)||1;
+    const obj=[];for(const p of this.survey||[])obj.push([p.x+(p.off||0),p.worldZ]);if(this.beacon)obj.push([this.beacon.x,this.beacon.worldZ]);
+    this.hills={ax,az,bx,bz,dx,dz,len,len2:len*len,obj,road:this.road||null,endFlat:this.destination==='bunker'?55:40,
+      minX:Math.min(ax,bx)-56,maxX:Math.max(ax,bx)+56,minZ:Math.min(az,bz)-56,maxZ:Math.max(az,bz)+56,memo:new Map()};
+    // Scenery stands on the slopes (once, however often this runs).
+    for(const t of this.trees){t.baseY??=t.y;t.hy=this.hillAt(t.x,t.worldZ);t.y=t.baseY+Math.max(0,t.hy-.25)}
+    for(const t of this.forestFront||[]){t.baseY??=t.y;t.y=t.baseY+Math.max(0,this.hillAt(t.x,t.worldZ)-.25)}
+  }
+  hillAt(x,wz){
+    const h=this.hills;if(!h||x<h.minX||x>h.maxX||wz<h.minZ||wz>h.maxZ)return 0;
+    const u=clamp(((x-h.ax)*h.dx+(wz-h.az)*h.dz)/h.len2,0,1),lx=h.ax+h.dx*u,lz=h.az+h.dz*u,dl=Math.hypot(x-lx,wz-lz);
+    const far=1-ease(clamp((dl-34)/18,0,1));if(far<=0)return 0;
+    const along=u*h.len,de=Math.hypot(x-h.bx,wz-h.bz);
+    let g=ease(clamp(along/50,0,1))*ease(clamp((de-h.endFlat)/50,0,1));if(g<=0)return 0;
+    for(const o of h.obj){const d=Math.hypot(x-o[0],wz-o[1]);if(d<40){g*=ease(clamp((d-14)/26,0,1));if(g<=0)return 0}}
+    const r=h.road;if(r&&wz>r.z0-30&&wz<r.z1+30){const ax=Math.abs(x-r.x);if(ax<30){g*=ease(clamp((ax-6)/24,0,1));if(g<=0)return 0}}
+    const n=.5*Math.sin(x*.034+wz*.011+.4)+.32*Math.sin(wz*.029-x*.019+1.3)+.2*Math.sin(x*.071+wz*.053+.7)+.18*Math.sin(x*.013-wz*.021+2.1);
+    const route=2.6*(.5+.5*Math.sin(along*.052+x*.012-1.2))*(.75+.25*Math.sin(along*.13+.4));
+    const side=ease(clamp((dl-5)/16,0,1));
+    return(route*(1-side)+(route*.5+3.6*clamp(.45+.55*n,0,1.3))*side)*far*g
+  }
+  // A ground point with the hill under it, or null if it is behind the camera or so far
+  // outside the view that it would project to a huge screen position.
+  // Grid points repeat every frame and the ground does not change, so their heights are kept.
+  hillGrid(x,wz){const h=this.hills;if(!h)return 0;const k=x*65536+wz;let v=h.memo.get(k);if(v===undefined){v=this.hillAt(x,wz);h.memo.set(k,v)}return v}
+  hillPoint(x,wz){const q=camPoint([x,this.groundY+this.hillGrid(x,wz),wz-travel]);return q[2]>.5&&Math.abs(q[0])<q[2]*3?projectCam(q):null}
+  hillLinePath(pts){let pen=false;for(const[x,wz]of pts){const p=this.hillPoint(x,wz);if(!p){pen=false;continue}if(pen)ctx.lineTo(p.x,p.y);else{ctx.moveTo(p.x,p.y);pen=true}}}
+  // The whole grid, following the ground. Lines nowhere near the hills keep the cheap flat path.
+  drawHillGround(){
+    const h=this.hills;surfaceMask(this.groundY,560);
+    const spacing=8,far=250,x0=Math.floor((shipX-far)/spacing)*spacing,x1=shipX+far,wz0=Math.floor((travel-far)/spacing)*spacing,wz1=travel+far;
+    const nx=Math.floor((x1-x0)/spacing),nz=Math.floor((wz1-wz0)/spacing),xLast=x0+nx*spacing,wzLast=wz0+nz*spacing;
+    const world=landingWorldColour();
+    ctx.save();ctx.strokeStyle=world;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.globalAlpha=.55;ctx.beginPath();
+    const g4=v=>Math.floor(v/4)*4,hz0=Math.max(wz0,g4(h.minZ)),hz1=Math.min(wzLast,g4(h.maxZ)+4),hx0=Math.max(x0,g4(h.minX)),hx1=Math.min(xLast,g4(h.maxX)+4);
+    const flatZ=(x,a,b)=>{if(b>a)drawFlatSampledGridLine([x,this.groundY,a-travel],[x,this.groundY,b-travel],Math.max(1,Math.round((b-a)/spacing)))};
+    const flatX=(wz,a,b)=>{if(b>a)drawFlatSampledGridLine([a,this.groundY,wz-travel],[b,this.groundY,wz-travel],Math.max(1,Math.round((b-a)/spacing)))};
+    for(let ix=0;ix<=nx;ix++){const x=x0+ix*spacing;
+      if(x<h.minX||x>h.maxX||hz1<=hz0){flatZ(x,wz0,wzLast);continue}
+      flatZ(x,wz0,hz0);const pts=[];for(let wz=hz0;wz<=hz1+.001;wz+=4)pts.push([x,wz]);this.hillLinePath(pts);flatZ(x,hz1,wzLast)}
+    for(let iz=0;iz<=nz;iz++){const wz=wz0+iz*spacing;
+      if(wz<h.minZ||wz>h.maxZ||hx1<=hx0){flatX(wz,x0,xLast);continue}
+      flatX(wz,x0,hx0);const pts=[];for(let x=hx0;x<=hx1+.001;x+=4)pts.push([x,wz]);this.hillLinePath(pts);flatX(wz,hx1,xLast)}
+    ctx.stroke();ctx.restore();
+    drawSharedSurfaceHorizon(this.groundY,405,1,world,world)
+  }
+  // The hills are solid: each strip of raised ground is a black-filled band with its grid
+  // stroked on top, sorted with the trees by depth, so a hill hides whatever is behind it.
+  appendHillStrips(scene,{minDepth=-Infinity,maxDepth=Infinity}={}){
+    const h=this.hills;if(!h)return;const strip=4,grid=8,far=250,col=landingWorldColour();
+    for(let wz=Math.floor((travel-6)/strip)*strip;wz<travel+far;wz+=strip){
+      if(wz+strip<h.minZ||wz>h.maxZ)continue;
+      const xs=[];for(let x=Math.floor(h.minX/grid)*grid;x<=h.maxX;x+=grid)xs.push(x);
+      const a=xs.map(x=>this.hillGrid(x,wz)),b=xs.map(x=>this.hillGrid(x,wz+strip));
+      let i=0;
+      while(i<xs.length-1){
+        if(Math.max(a[i],a[i+1],b[i],b[i+1])<=.05){i++;continue}
+        let j=i+1;while(j<xs.length-1&&Math.max(a[j],a[j+1],b[j],b[j+1])>.05)j++;
+        const run=xs.slice(i,j+1),mx=run[run.length>>1],d=camPoint([mx,this.groundY+this.hillAt(mx,wz+strip/2),wz+strip/2-travel])[2];
+        if(d>.5&&d>minDepth&&d<=maxDepth){const w0=wz,w1=wz+strip;
+          scene.push({z:d,draw:()=>{
+            const back=run.map(x=>this.hillPoint(x,w1)),front=run.map(x=>this.hillPoint(x,w0));
+            if(back.some(p=>!p)||front.some(p=>!p))return;
+            ctx.save();ctx.fillStyle='#000';ctx.beginPath();ctx.moveTo(back[0].x,back[0].y);for(const p of back)ctx.lineTo(p.x,p.y);for(let k=front.length-1;k>=0;k--)ctx.lineTo(front[k].x,front[k].y);ctx.closePath();ctx.fill();
+            ctx.strokeStyle=col;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.globalAlpha=.55;ctx.beginPath();
+            for(let k=0;k<run.length;k++){ctx.moveTo(front[k].x,front[k].y);ctx.lineTo(back[k].x,back[k].y)}
+            if(Math.abs(w0/grid-Math.round(w0/grid))<1e-6){ctx.moveTo(front[0].x,front[0].y);for(const p of front)ctx.lineTo(p.x,p.y)}
+            if(Math.abs(w1/grid-Math.round(w1/grid))<1e-6){ctx.moveTo(back[0].x,back[0].y);for(const p of back)ctx.lineTo(p.x,p.y)}
+            ctx.stroke();ctx.restore()}})}
+        i=j
+      }
+    }
   }
   meshBaseY(mesh){
     if(this.baseCache.has(mesh))return this.baseCache.get(mesh);
@@ -585,7 +669,7 @@ class SurfaceDestinationApproachController {
     const side=this.rand()<.5?-1:1;
     shipX=side*(17+this.rand()*13);shipY=-1.42;
     viewYaw=side*(.28+this.rand()*.28);viewPitch=.015;viewRoll=0;
-    audio.music.setMode('calm');
+    audio.music.setMode('calm');this.setupHills(shipX,0);
     // The survey instruction waits (up to six seconds) for any spoken line to clear.
     {const lines=(planetLandingBody==='moon'&&Math.random()<.5)?SURFACE_WORLD_CHATTER.moon:SURFACE_WORLD_CHATTER[this.worldKind||'temperate'],m=typeof campaign!=='undefined'?campaign.currentMission:null;
       this.chatter=(lines&&m&&!m.training&&!m.devGroundTest&&this.scenery!=='rocks'&&this.scenery!=='swamp'&&!this.survey?.length&&Math.random()<.7)?{text:lines[Math.floor(Math.random()*lines.length)],wait:7,delay:4.5}:null}
@@ -601,6 +685,8 @@ class SurfaceDestinationApproachController {
   bearing(){return Math.atan2(this.targetX-shipX,this.targetWorldZ-travel)}
   updateSteering(dt,magX,magY){
     if(!this.active||phase!=='destinationApproach')return;
+    // v2190: steer as if the land were flat, then put the hill under the drone back.
+    shipY-=this.hillAt(shipX,travel);
     if(this.finishing){
       // Final city-limit convergence is gentle autopilot, not a teleport. It makes
       // the modular hand-off into the +Z city street continuous after an arbitrary
@@ -618,7 +704,7 @@ class SurfaceDestinationApproachController {
     surfaceVX=vx;shipX+=vx*dt;travel+=vz*dt;surfaceDistance+=runSpeed*dt;
     const finishY=(this.destination==='forest'||this.destination==='swamp')?-1.88:-1.22;
     const targetY=this.finishing?finishY:(-1.48-magY*1.12),targetVY=clamp((targetY-shipY)*2.35,-2.8,2.8);
-    surfaceVY=moveToward(surfaceVY,targetVY,dt*4.6);shipY+=surfaceVY*dt
+    surfaceVY=moveToward(surfaceVY,targetVY,dt*4.6);shipY+=surfaceVY*dt;shipY+=this.hillAt(shipX,travel)
   }
   update(dt){
     if(!this.active||phase!=='destinationApproach')return;
@@ -629,9 +715,9 @@ class SurfaceDestinationApproachController {
         // v1520: cones and basalt collide over their real footprint (a cone only where its
         // flank is higher than the drone), other scenery keeps the old narrow trunk test.
         if(t.feature==='cone'||t.feature==='basalt'){const mx=t.mx||1,R=(t.feature==='cone'?1.5:.8)*t.s*mx,d=Math.hypot(dx,dz);if(d>=R)continue;
-          const h=t.feature==='cone'?1.5*t.s*(t.my||1)*(1-d/R):2.2*t.s*(t.my||1);if(shipY>=this.groundY+h)continue;
+          const h=t.feature==='cone'?1.5*t.s*(t.my||1)*(1-d/R):2.2*t.s*(t.my||1);if(shipY>=this.groundY+(t.hy||0)+h)continue;
           t.hit=true;this.treeHitCD=.82;damage('ROCK');if(mode==='dead')return;break}
-        const radius=.34+.34*t.s,top=this.groundY+4.8*t.s;
+        const radius=.34+.34*t.s,top=this.groundY+(t.hy||0)+4.8*t.s;
         if(Math.abs(dz)<1.15&&Math.abs(dx)<radius&&shipY<top){t.hit=true;this.treeHitCD=.82;damage(t.kind==='rock'?'ROCK':'TREE');if(mode==='dead')return;break}
       }
     }
@@ -655,6 +741,7 @@ class SurfaceDestinationApproachController {
     }
   }
   drawGround(){
+    if(this.hills)return this.drawHillGround();
     surfaceMask(this.groundY,560);
     const spacing=8,far=250,x0=Math.floor((shipX-far)/spacing)*spacing,x1=shipX+far;
     const wz0=Math.floor((travel-far)/spacing)*spacing,wz1=travel+far;
@@ -675,6 +762,7 @@ class SurfaceDestinationApproachController {
   }
   appendScenery(scene,{minDepth=-Infinity,maxDepth=Infinity}={}){
     if(!Array.isArray(scene))return scene;
+    this.appendHillStrips(scene,{minDepth,maxDepth});
     // v1550: ground traffic on the city road.
     for(const v of this.traffic||[]){const z=v.worldZ-travel,q=camPoint([v.x,v.y,z]);
       if(q[2]>.3&&q[2]<220&&q[2]>minDepth&&q[2]<=maxDepth)scene.push({z:q[2],draw:()=>jackalDelivery.drawCivilianCarFast(v,z)})}
@@ -1026,6 +1114,7 @@ const tutorialFinalRun={
     // Reuse the established plains/tree/nav renderer, but point it at the bunker.
     surfaceDestination.prepare({terrain:'plains',destination:'bunker',routeLength:318,treeClumps:11,entryRadius:36});
     surfaceDestination.targetX=entryBunkerX;surfaceDestination.targetWorldZ=entryBunkerWorldZ;surfaceDestination.destination='bunker';surfaceDestination.navPulse=0;
+    surfaceDestination.setupHills(shipX,0);   // v2190: rolling plains in the simulator too
     this.setObjective('tutorialFollowNav');hud();return true
   },
   updateSurface(dt){

@@ -81,6 +81,7 @@ const gameSdBegin=surfaceDestination.begin.bind(surfaceDestination);
 surfaceDestination.begin=function(stage){
   const r=gameSdBegin(stage);this.promoHills=null;
   if(D.snow&&this.destination==='forest'){
+    this.hills=null;   // the game's own rolling plains (v2190) give way to the promo's here
     const H=this.promoHills=plainsHills(this);
     for(const t of this.trees){t.baseY??=t.y;t.y=t.baseY+Math.max(0,H(t.x,t.worldZ)-.25)}   // on the slopes (once, however often begin runs)
     this.entryRadius=5   // carry on to the tree line before the forest takes over

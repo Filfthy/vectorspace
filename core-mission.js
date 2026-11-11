@@ -273,7 +273,7 @@ class MissionController {
  // than repeatedly lerping toward the doorway, so there is no elastic/rubber-band
  // correction and no late sideways snap.
  entryAutoStartTravel=travel;
- entryAutoStartX=shipX;entryAutoStartY=shipY;
+ entryAutoStartX=shipX;entryAutoStartY=shipY-(tutorialFinalRun?.isActive?.()&&surfaceDestination?.hills?surfaceDestination.hillAt(shipX,travel):0);   // v2190: height above the rolling plains
  entryAutoStartVX=surfaceVX;entryAutoStartVY=surfaceVY;
  entryAutoDistance=Math.max(1,entryBunkerWorldZ-travel);
  entryAutoVX=entryAutoStartVX;entryAutoVY=entryAutoStartVY;

@@ -116,10 +116,14 @@ class FlightController {
    shipX+=vx*dt;
    travel+=vz*dt;
    surfaceDistance+=SURFACE_SPEED*dt;
+   // v2190: the simulator's plains roll. Fly as if flat, then put the hill under the drone back.
+   const hillSD=tutorialFinalRun?.isActive?.()&&surfaceDestination?.hills?surfaceDestination:null;
+   if(hillSD)shipY-=hillSD.hillAt(shipX-vx*dt,travel-vz*dt);
    const targetY=-1.55-magY*1.30;
    const targetVY=clamp((targetY-shipY)*2.35,-3.0,3.0);
    surfaceVY=moveToward(surfaceVY,targetVY,dt*4.8);
    shipY+=surfaceVY*dt;
+   if(hillSD)shipY+=hillSD.hillAt(shipX,travel);
    return
  }
 

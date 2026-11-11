@@ -258,6 +258,8 @@ class Game {
 
    shipX=hermite(entryAutoStartX,entryBunkerX,m0x,0,u);
    shipY=hermite(entryAutoStartY,-2.15,m0y,0,u);
+   // v2190: on rolling plains the run-in follows the ground; it is level by the door.
+   if(tutorialFinalRun?.isActive?.()&&surfaceDestination?.hills)shipY+=surfaceDestination.hillAt(shipX,travel);
 
    const dxdu=hermiteD(entryAutoStartX,entryBunkerX,m0x,0,u);
    const dydu=hermiteD(entryAutoStartY,-2.15,m0y,0,u);

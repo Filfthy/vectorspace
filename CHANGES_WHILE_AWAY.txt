@@ -2179,6 +2179,8 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
     - New letter from Nyxo after your first ambushed asteroid clearance.
     - Four new VOX Wire headlines.
     - Every network now has one job only it offers. The Guide says which.
+    - The plains roll (as in the promo video) instead of being flat,
+      in the simulator too.
     - Convoy Escort: the freighter is a little sturdier (it was too easy
       to lose for anyone who does not aim perfectly).
     - New letters: Corvella after your first convoy seen through, Navira
@@ -2777,4 +2779,31 @@ v2180 Relay 10 data terminal: no more stop-start, and the search speech back
       Self-test: the Customs Run check that flies through each ring's hub
       now steers for the hub. Flying dead straight could slip through a
       gap by luck (rings sit a little off the line), which failed it once.
+
+v2190 Rolling plains, as in the promo video
+      You said the tutorial still flew over ultra flat plains and that the
+      plains should roll like the promo. The plains in the game were flat
+      everywhere (only the forest floor rolled). Now, as in the promo:
+        - The ground rises and falls along the line from the landing to
+          the destination (a crest or dip every hundred or so) and swells
+          into hills either side within about 40 of that line, flat beyond
+          to meet the flat horizon band.
+        - The hills are solid: a hill hides the trees, mountains and
+          anything else behind it. Trees, reeds and rocks stand on the
+          slopes, and tree and rock collisions use the real ground height.
+        - The drone rides the ground at its usual height.
+      Kept level, so nothing judged against the ground changes: the
+      landing, the destination, the city road, and around every objective
+      (survey markers, relay masts, crash sites, core sites, the stranded
+      crew beacon). Not on swamps, moons, volcanic worlds or the OSD
+      compound, which have their own ground (wetland, craters, cinder
+      cones and fissures).
+      The simulator: its final run rolls too, level near the bunker, and
+      the automatic run-in to the door follows the ground. Flown three
+      times to the tunnel: the drone never came closer than 1.3 to the
+      ground, flying or on the run-in.
+      Cost about 2 ms a frame on a hilly landing (6.3 to 6.9 ms against
+      4.6 flat), after keeping each grid point's height instead of working
+      it out every frame (a first version cost 5 ms).
+      The promo itself is unchanged: its snowy run keeps its own hills.
 
