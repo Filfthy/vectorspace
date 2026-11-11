@@ -137,6 +137,7 @@
       swamp_relay_delivery:["Babe, the swamp is horrid and the relay crew is lovely. Do it for them. And for me."]
     },
     jackals:{
+      customs_run:["Customs believes in its rings. Let us not disturb its faith. Fly through the dark.","A lighthouse only sees what stands in its beam. Do not stand in it."],
       wreck_recovery:["The previous owners of that cargo have stopped needing it. It seems wasteful to leave it lying about."],
       secure_terminal_intrusion:["There is a terminal that knows rather too much. I should like it to share."],
       penthouse_delivery:["The recipient has excellent taste and a very discreet doorman. Do be quick."],

@@ -89,6 +89,26 @@
     inputX=clamp(inputX+clamp(tx-inputX,-rate,rate)+(Math.random()-.5)*.03/skill,-1,1);
     inputY=clamp(inputY+clamp(ty-inputY,-rate,rate)+(Math.random()-.5)*.03/skill,-1,1)
   };
+  // v2040 Customs Run: aim for the middle of the gap that will be in front of the drone
+  // when it reaches the next ring (the arms keep turning on the way in).
+  const customsSteer=(skill=1)=>{
+    const X=globalThis.AgentXCustomsRun,r=X?.rings.find(o=>!o.done);let tx=0,ty=0;
+    if(r&&r.z<240){const t=Math.max(0,r.z)/Math.max(1,OPEN_SPACE_CRUISE*(spaceMoveZ||1)),step=6.283/X.arms,g=r.a+r.dir*X.speed*t+step/2;
+      const q=camPoint([r.x+Math.cos(g)*X.RADIUS*.6,r.y+Math.sin(g)*X.RADIUS*.6,r.z]);tx=clamp(q[0]/6,-1,1);ty=clamp(-q[1]/6,-1,1)}
+    const rate=.12*skill;inputX=clamp(inputX+clamp(tx-inputX,-rate,rate),-1,1);inputY=clamp(inputY+clamp(ty-inputY,-rate,rate),-1,1)
+  };
+  // Fly a launched Customs Run to its end: the picket (steered, or held straight when
+  // still:true, which flies through the hub and is always flagged), then any interceptors.
+  const flyCustoms=(skill=1,{still=false,spin=false,maxSecs=240}={})=>{
+    const rd=routeDiversion;inputX=inputY=0;for(let i=0;i<900&&rd.state!=='customs';i++)update(1/30);
+    if(rd.state!=='customs')return{started:false};
+    const m=campaign.currentMission,st={started:true,frames:0};
+    for(;st.frames<maxSecs*30&&rd.active&&(rd.state==='customs'||rd.state==='customsFight');st.frames++){
+      if(rd.state==='customs'){if(spin){inputX=1;inputY=0}else if(still)inputX=inputY=0;else customsSteer(skill)}else fightStep(.9);
+      update(1/30)}
+    inputX=inputY=0;st.secs=Math.round(st.frames/30);st.scans=globalThis.AgentXCustomsRun.lastScans;
+    st.outcome=(m?.diversions||[]).find(d=>d.main)?.outcome||'';return st
+  };
   // Fly a launched Lattice Survey to its end. Stops (woke:true) if the lattice wakes.
   const flyLattice=(skill=1,maxSecs=200)=>{
     const rd=routeDiversion;inputX=inputY=0;for(let i=0;i<900&&rd.state!=='lattice';i++)update(1/30);
@@ -233,6 +253,7 @@
         const S=surfaceDestination,left=S.surveyLeft().sort((a,b)=>a.worldZ-b.worldZ),t=left[0]?{x:left[0].x,z:left[0].worldZ}:{x:S.targetX,z:S.targetWorldZ};
         inputX=clamp(wrapAngle(Math.atan2(t.x-shipX,t.z-travel)-viewYaw)*2.2,-1,1);inputY=left[0]?.kind==='core'&&Math.hypot(t.x-shipX,t.z-travel)<45?1:0   // v1930: dive for core samples
       }else if(phase==='surface'&&groundAssault?.active&&groundAssault.units?.length)groundStep(skill);
+      else if(routeDiversion.active&&routeDiversion.state==='customs')customsSteer(1);   // v2040
       else{
         // The asteroid-base marker is drawn without a label while it is on screen, so the
         // HUD hooks never see it there: take its point from the courier directly.
@@ -262,7 +283,7 @@
   window.__flyAll=async(opts)=>{const out=[];for(const id of Object.keys(AgentXMissionData.templates)){out.push(flyJob(id,opts));console.log(out[out.length-1]);await pause()}return out};
   // From the console, after launching a job: __pilots.toStage('surface_destination_approach'),
   // __pilots.flyApproach(), __pilots.flyLattice(skill).
-  window.__pilots={toStage,flyApproach,flyLattice,flyGround};
+  window.__pilots={toStage,flyApproach,flyLattice,flyGround,flyCustoms};
   async function group(name,items,run){
     const details=[];let n=0;
     for(const it of items){
@@ -298,19 +319,29 @@
 
     await group('diversions',Object.keys(routeDiversion.KINDS),kind=>{const m=c.makeDevTemplatePreview('asteroid_delivery','security');m.routeEncounter=null;m.modules=m.modules.filter(x=>x.type!=='route_diversion'&&!x.routeEncounter);m.modules.splice(0,0,{type:'route_diversion',label:'Route Diversion',diversion:kind,difficulty:2,spaceCombat:false,fighterHp:12});m.stages=m.modules.map(x=>x.label);
       c.launchDevTemplateTest('asteroid_delivery','security',{mission:m});invulnerable=true;for(let i=0;i<600&&!routeDiversion.active;i++)update(1/30);if(!routeDiversion.active)return 'never started';
-      const secs=kind==='latticeSurvey'||kind==='escort'?240:90;
+      const secs=kind==='latticeSurvey'||kind==='escort'||kind==='customs'?240:90;
       for(let i=0;i<30*secs&&routeDiversion.active;i++){
         // A survey only ends when its shells are scanned, so the pilot flies it. If the
         // pilot wakes it, the other ending is exercised instead: the lattice is cleared.
         if(kind==='latticeSurvey'){if(routeDiversion.state==='lattice')latticeSteer(1);else if(routeDiversion.state==='latticeFight'){routeDiversion.finishLattice(true);break}}
-        if(kind==='escort'||kind==='layerCrew')fightStep(.9);   // v1910/v2020: these only end when the raiders die
+        if(kind==='escort'||kind==='layerCrew'||routeDiversion.state==='customsFight')fightStep(.9);   // v1910/v2020: these only end when the raiders die
         update(1/30);if(i%60===0)render(performance.now())}
       inputX=inputY=0;
       if(routeDiversion.active)return `still running after ${secs} s in state ${routeDiversion.state}`});
 
     // Flown for real: no stage is skipped once the pilot has the controls.
     const pilotNotes=[];
-    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','crater_cores','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge','convoy_escort','minelayer'],id=>{
+    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','crater_cores','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge','convoy_escort','minelayer','customs_run'],id=>{
+      // v2040: the Customs Run flown twice, once threading the gaps (should come out clean
+      // most times) and once held straight through the hubs (always flagged, then a fight).
+      if(id==='customs_run'){
+        const runs=[];
+        // A third run turns hard away from the picket the whole time: the job must still end.
+        for(const how of['steer','still','spin']){reset();c.launchDevTemplateTest('customs_run','jackals');invulnerable=true;const r=flyCustoms(1,{still:how==='still',spin:how==='spin'});runs.push(r);
+          if(!r.started)return 'the picket never appeared';if(!r.outcome)return `${how}: the run did not finish (${routeDiversion.state}, ${r.secs}s)`;
+          if(how!=='steer'&&r.outcome!=='flagged')return `${how}: never scanned`}
+        pilotNotes.push(`customs ${runs[0].secs}s ${runs[0].outcome} ${runs[0].scans} scans, flagged ${runs[1].secs}s, turned away ${runs[2].secs}s`);return
+      }
       // v1950: a pirate fight with its minelayer forced: it must lay mines and the fight must end.
       if(id==='minelayer'){
         const ML=globalThis.AgentXMinelayers;if(!ML)return 'minelayers.js is not loaded';let laid=0,marked=false;const seen=new Set();

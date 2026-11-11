@@ -90,6 +90,10 @@ const routeDiversion={
       lost:{say:'FREIGHTER DESTROYED · CONVOY LOST',text:'Freighter lost, convoy failed',pay:-.5,xp:-.4,rep:-3}},
     // v2020: a pirate crew caught seeding the lane with a minelayer (minelayers.js). Always a
     // fight once met. Clearing it is OSD's business, so OSD gives the standing.
+    // v2040: the Jackals Customs Run (customs-run.js). The whole job, so main:true.
+    customs:{nav:'CUSTOMS PICKET AHEAD · CROSS EACH RING IN A DARK GAP',hud:'CUSTOMS PICKET',window:1e9,
+      clean:{say:'PICKET BEHIND · CARGO NEVER SCANNED',text:'Cargo through the picket unscanned',pay:.15,rep:2},
+      flagged:{say:'INTERCEPTORS DOWN · CARGO THROUGH',text:'Scanned at the picket, interceptors fought off',pay:-.2,rep:-2}},
     layerCrew:{nav:'MINELAYER CREW SEEDING THE LANE · BREAK THEM UP',hud:'MINELAYER CREW',window:1e9,
       cleared:{say:'LANE CLEARED · OSD WILL LOG IT',text:'Minelayer crew broken up, lane cleared',pay:.08,rep:2,repFaction:'security'}},
     migration:{nav:'XENO MIGRATION CROSSING · FLY CLOSE TO SCAN · DO NOT FIRE',hud:'XENO MIGRATION',window:30,need:3,
@@ -114,6 +118,7 @@ const routeDiversion={
     if(kind==='migration')return this.beginMigration(stage,def);
     if(kind==='lattice'||kind==='latticeSurvey')return this.beginLattice(stage,def);
     if(kind==='escort')return this.beginEscort(stage,def);
+    if(kind==='customs'){this.state='customs';AgentXCustomsRun.begin(stage,campaign.currentMission?.risk);callout(def.nav,2.8);return true}
     if(kind==='layerCrew'){
       const k=campaign.contractToughnessScale(campaign.currentMission?.risk||1),n=3+Math.floor(Math.random()*2);
       stage.spaceCombat=true;this.state='fight';this.pendingOutcome={id:'cleared',...def.cleared};
@@ -157,6 +162,7 @@ const routeDiversion={
     if(this.state==='lattice'&&this.surveyJob)return this.surveyDone?`${def.hud} · DATA SECURED`:`${def.hud} · ${def.shells[this.pass]||''} · ${Math.min(this.passScanned,def.need)}/${def.need}`;
     if(this.state==='lattice')return `${def.hud} · ${fighters.filter(f=>f.ghost&&!f.dead).length} CORES`;
     if(this.state==='latticeFight')return 'GHOST LATTICE · AWAKE';
+    if(this.state==='customs'||this.state==='customsFight')return AgentXCustomsRun.hud(def);
     if(this.state==='escort'){const c=this.convoy;return `${def.hud} · WAVE ${Math.max(1,this.wave)}/${this.waves} · FREIGHTER ${c?Math.max(0,Math.ceil(c.hp*100)):0}%`}
     if(this.state==='skirmish'&&this.side)return `${def.hud} · ${this.side.short} ${this.allies.filter(a=>!a.dead).length}/${this.allies.length} · ${left}s`;
     return `${def.hud} · ${left}s`
@@ -175,6 +181,8 @@ const routeDiversion={
       this.updateMinefield(dt)
     }else if(this.state==='escort'){
       this.updateEscort(dt)
+    }else if(this.state==='customs'){
+      const r=AgentXCustomsRun.update(dt);if(r==='clean')this.finishCustoms(true);else if(r==='flagged')this.startCustomsFight()
     }else if(this.state==='lattice'||this.state==='latticeFight'){
       this.updateLattice(dt)
     }else if(this.state==='migration'){
@@ -464,6 +472,20 @@ const routeDiversion={
     const seen=new Set(),e=[];for(const f of faces)for(let i=0;i<f.length;i++){const a=f[i],b=f[(i+1)%f.length],key=a<b?a+':'+b:b+':'+a;if(!seen.has(key)){seen.add(key);e.push([a,b])}}
     return{v,faces,e}
   })(),
+  // ---- Customs run (v2040) ----
+  startCustomsFight(){
+    const X=AgentXCustomsRun,stage=this.stage,k=campaign.contractToughnessScale(X.risk),n=X.cutterCount();
+    X.state='fight';this.state='customsFight';stage.spaceCombat=true;
+    scenarioFlow.startFighterStage({...stage,target:n,fighterHp:Math.round(12*k),profile:'customs',navMessage:null,silentStart:true},'customs',{preservePhase:true});
+    scenarioFlow.encounterHudTag='CUSTOMS INTERCEPT';audio.music.setMode('violent');
+    callout(`FLAGGED AT ${X.scans} RING${X.scans>1?'S':''} · ${n} INTERCEPTORS INBOUND`,2.2)
+  },
+  finishCustoms(clean){
+    const def=this.KINDS.customs,o=clean?def.clean:def.flagged;AgentXCustomsRun.lastResult=clean?'clean':'flagged';AgentXCustomsRun.lastScans=AgentXCustomsRun.scans;AgentXCustomsRun.reset();
+    callout(o.say,2.4);SoundFX.objectiveComplete?.();audio.music.setMode('calm');
+    this.record({id:clean?'clean':'flagged',...o});
+    fighters.length=0;bolts.length=0;this.end()
+  },
   // ---- Old minefield (v1370) ----
   // A slab of old contact mines ahead, drifting and tumbling, with a few right across the
   // flight path. A mine within 12 arms (blinking white) and blows 0.45 s later; inside 10 the
@@ -605,6 +627,7 @@ const routeDiversion={
     if(this.state==='migration'){this.onMigrationEscortCleared();return}
     if(this.state==='latticeFight'){this.finishLattice(true);return}
     if(this.state==='escort'){this.onEscortWaveCleared();return}
+    if(this.state==='customsFight'){this.finishCustoms(false);return}
     if(this.state==='pursuit')this.finishPursuit(true)
   },
   finishPursuit(helped,message=null){
@@ -621,7 +644,7 @@ const routeDiversion={
     const m=campaign.currentMission;if(!m||!o)return;
     const pay=o.pay?Math.round((m.pay*o.pay)/50)*50:0,xp=o.xp?Math.round(m.xp*o.xp):0;
     const repFaction=o.rep?(o.repFaction||m.faction||null):null;
-    (m.diversions||(m.diversions=[])).push({kind:this.kind,outcome:o.id,text:o.text,pay,xp,rep:o.rep||0,repFaction,...(this.stage?.main?{main:true,label:this.kind==='escort'?'Escort':'Survey'}:{})});   // v1820: main = the job itself (Lattice Survey), not a side trip
+    (m.diversions||(m.diversions=[])).push({kind:this.kind,outcome:o.id,text:o.text,pay,xp,rep:o.rep||0,repFaction,...(this.stage?.main?{main:true,label:({escort:'Escort',customs:'Customs run'})[this.kind]||'Survey'}:{})});   // v1820: main = the job itself (Lattice Survey), not a side trip
     if(o.alsoRep)m.diversions.push({kind:this.kind,outcome:o.id,side:true,text:o.alsoRep.text,pay:0,xp:0,rep:o.alsoRep.amount,repFaction:o.alsoRep.faction});
   },
   recordIgnored(){const m=campaign.currentMission;if(m)(m.diversions||(m.diversions=[])).push({kind:this.kind,outcome:'ignored',text:'Ignored',pay:0,xp:0,rep:0})},
@@ -643,6 +666,7 @@ const routeDiversion={
        [20,0],[20,3],[21,1],[21,2],[20,21]]
   },
   appendScene(scene){
+    if(this.active&&this.state==='customs'){AgentXCustomsRun.appendScene(scene);return}
     if(this.active&&this.state==='escort'&&this.convoy&&!this.convoy.dead){const c=this.convoy,q=camPoint([c.x,c.y,c.z]);
       if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(c,this.FREIGHTER_MESH,c.hitT>0?C.w:(c.hp<.3?C.r:C.y),.95)});return}
     if(this.active&&this.state==='migration'){for(const d of this.herd){if(d.dead)continue;const q=camPoint([d.x,d.y,d.z]);
@@ -654,6 +678,7 @@ const routeDiversion={
     const q=camPoint([c.x,c.y,c.z]);if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(c,this.CIV_MESH,c.hitT>0?C.w:(c.hp<.3?C.r:C.c))})
   },
   drawMarker(){
+    if(this.active&&this.state==='customs'){AgentXCustomsRun.drawMarker();return}
     if(this.active&&this.state==='escort'&&this.convoy&&!this.convoy.dead){
       // Always findable: a label when it is on screen, an edge arrow when it is not.
       const c=this.convoy,q=camPoint([c.x,c.y,c.z]),p=q[2]>.2?projectCam(q):null,col=c.hp<.3?C.r:C.y;
@@ -693,6 +718,7 @@ const routeDiversion={
     ctx.strokeStyle=c.hp<.3?C.r:C.c;ctx.strokeText(`CIVILIAN ${Math.max(0,Math.ceil(c.hp*100))}%`,p.x,p.y-Math.max(16,3.4*p.k*.6));ctx.restore()
   },
   reset(){
+    globalThis.AgentXCustomsRun?.reset();
     this.civ=null;this.convoy=null;this.allies=[];this.tracers=[];this.side=null;this.mines=[];this.herd=[];this.anchors=[];
     // Abandon/fail mid-diversion: release the marker this diversion borrowed.
     if(this.active&&salvageRecovery.stage?.type==='embedded_recovery')salvageRecovery.reset();

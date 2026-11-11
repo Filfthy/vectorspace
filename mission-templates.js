@@ -2837,6 +2837,43 @@
     }
   };
 
+  // v2040 Customs Run, the Jackals' own job (customs-run.js). Unmanifested cargo through a
+  // Customs Authority scanner picket: cross each ring in a dark gap between the sweeping
+  // arms. Clean pays a bonus. Flagged brings interceptors and costs pay and standing.
+  const customsRun={
+    id:'customs_run',
+    version:1,
+    family:'customs_run',
+    musicMode:'calm',
+    minLevel:3,
+    maxLevel:null,
+    allowedFactions:['jackals'],
+    factionWeights:{jackals:1},
+    board:{enabled:true,category:'intrusion',weight:.8,maxPerBoard:1},
+    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
+    reward:{basePay:1800,payPerRisk:900,payRiskSquare:110,randomPay:300,roundPay:50,baseXp:160,xpPerRisk:45,xpRiskSquare:5},
+    defaults:{},
+    sections:[
+      {type:'route_diversion',label:'Run the Picket',params:{diversion:'customs',main:true,spaceCombat:false,fighterHp:12}}
+    ],
+    presentation:{
+      jackals:{
+        contactId:'cassian_erivan_snade',
+        titles:['A Quiet Crossing','Unmanifested','The Picket','Nothing to Declare'],
+        descriptions:[
+          'X. Customs has strung a scanner picket across a lane I am fond of. Each ring sweeps its beams round like a lighthouse. Cross every ring in the dark between the beams and my cargo was never there. Cross in the light and their interceptors will want a word.',
+          'A small consignment, a large picket. Customs scanner rings, one after another, beams turning. Pass through the gaps and nobody reads a thing. If you are read, please do not stop to discuss it.',
+          'The Customs Authority believes a ring of scanners makes a lane honest. Fly through the dark parts of each ring and we shall keep that belief intact for them.'
+        ],
+        completionSubjects:['Nothing to declare','The consignment'],
+        completionBodies:['The consignment arrived and the paperwork is pristine, chiefly because there is none. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'cassian_erivan_snade',subjects:['A loud end to a quiet errand'],bodies:['Your drone was lost on the lane, and with it my consignment. Customs will be very pleased with themselves. I find that the hardest part.']},
+        abandonMail:{contactId:'cassian_erivan_snade',subjects:['The picket remains uncrossed'],bodies:['You turned back before the picket. The cargo is still sitting in a hold, being looked at by people who should not look at it.']},
+        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:4,chance:.22,subjects:['On the subject of light'],bodies:['My compliments on the crossing. I have always said that the most valuable skill in commerce is knowing exactly where the light does not fall.']}
+      }
+    }
+  };
+
   // Generic discretionary reward correspondence lives beside the mission templates
   // because it is faction/contact presentation, even when the reward itself is not
   // tied to one particular mission family. Campaign owns the reward mechanics; these
@@ -2977,7 +3014,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crater_cores:craterCores,crash_recovery:crashRecovery,relay_repair:relayRepair,lattice_survey:latticeSurvey,convoy_escort:convoyEscort,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crater_cores:craterCores,crash_recovery:crashRecovery,relay_repair:relayRepair,lattice_survey:latticeSurvey,convoy_escort:convoyEscort,customs_run:customsRun,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();

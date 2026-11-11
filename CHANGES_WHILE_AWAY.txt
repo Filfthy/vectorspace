@@ -2165,6 +2165,11 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
       armoured VOX freighter through four waves of remnant drones.
     - Minelayer crew: a new route diversion from level 5. Pirates caught
       seeding a lane. Break them up for a little pay and OSD standing.
+    - Customs Run: the Jackals' own board job, from level 3. Fly
+      Cassian's cargo through a Customs scanner picket, crossing each
+      ring in a dark gap between its turning arms. Clean pays a bonus.
+      Scanned brings interceptors and less pay. New achievement
+      Nothing to Declare, a Codex entry and a Record row.
   Changed:
     - Contacts now often talk about the specific job on contract cards.
     - New letter from Nyxo after your first ambushed asteroid clearance.
@@ -2488,4 +2493,38 @@ v2030 Review fixes, and a bulletin about tonight's content
       New: saves with played contracts get one Operator bulletin, "Operator
       bulletin: escorts, moons and mines", naming tonight's new jobs, the
       minelayer and where to find them. Fresh saves do not get it.
+
+v2040 New job: Customs Run (the Jackals' own)
+      Every network but the Jackals had a board job of its own, so Cassian
+      now has one. Unmanifested cargo through a Customs Authority scanner
+      picket. The picket is a line of rings, three to seven by risk, set one
+      at a time across your heading. Each ring has two to four lit scanner
+      arms turning round a buoy at its hub. Cross each ring inside it and
+      in a dark gap between the arms. The HUD shows the ring's distance and,
+      in the last stretch, IN A GAP or IN THE BEAM.
+        Clean: "PICKET BEHIND · CARGO NEVER SCANNED", +15% of the fee and
+          +2 Jackals standing on top of the job's own.
+        Scanned (on an arm, or going round a ring): Customs interceptors
+          come for you after the last ring, more for each ring that read
+          you. Clear them and the job finishes at 20% less pay and 2 less
+          Jackals standing.
+      Turning away from the picket cannot leave the job waiting: a ring
+      you go round or leave far behind counts as scanned. When the next
+      ring is off screen an edge arrow points to it. The top-right status
+      reads CUSTOMS SCANNERS ACTIVE while there is nothing to fight, and
+      the convoy escort now reads BETWEEN WAVES instead of HOSTILE
+      CONTACTS when no raider is up.
+      Jackals only, from level 3, about one Jackals job in five (it was on
+      28 of 120 boards at level 8). Pay from pilot flights, threading the
+      gaps: risk 5 about 33 s for CR 10,700 with the bonus, risk 6 about
+      39 s for CR 14,650, so about 20,000 to 23,000 a minute, inside the
+      non-fight range. Being scanned costs the bonus, a fifth of the fee
+      and a fight.
+      Also: Guide row (Jobs), Codex "Customs pickets", achievement Nothing
+      to Declare (3 clean runs), Record row "Clean customs runs", two
+      Cassian card notes for the job, and a lore line in 6.1.
+      Self-test: the pilot flies it three ways every run, threading the
+      gaps (clean, 0 scans), held straight through the hubs (always
+      flagged, then the fight), and turned hard away the whole time (must
+      still finish). All three end. The job pilot (__flyJob) steers it too.
 
