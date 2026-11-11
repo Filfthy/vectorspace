@@ -60,7 +60,9 @@ const AgentXCargoSpill={
     if(!this.free().length){
       // Nothing left to take: whoever is still here comes for the drone.
       for(const f of scavs)if(!f.provoked){f.provoked=true;if(!(f.shotsLeft>0))f.shotsLeft=3}
-      if(this.scavsIn&&!scavs.length)return 'done'
+      // v2090: done only once the scavenger fight is really over (its kill goal met), not
+      // when none happens to be on screen while more are still arriving or in reserve.
+      if(this.scavsIn&&this.scavsDone)return 'done'
     }
     return null
   },

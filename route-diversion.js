@@ -495,9 +495,10 @@ const routeDiversion={
   },
   finishSpill(){
     const S=AgentXCargoSpill,f=S.share(),got=S.got,total=S.total,stolen=S.stolen;
-    // Break-even at about a third of the pods, +25% for a near-clean sweep, at worst -15%.
+    // Break-even at about a third of the pods, +25% for a near-clean sweep. v2090: an empty
+    // haul costs up to 28% of the fee and 4 standing (was 15% and 2).
     const say=f>=.6?'CARGO RECOVERED · CORVELLA WILL BE THRILLED':(f>=.3?'SPILL CLEARED · SOME CARGO SAVED':'MOST OF THE CARGO IS GONE');
-    const o={id:'recovered',say,text:`Recovered ${got} of ${total} pods${stolen?`, ${stolen} stolen`:''}`,pay:Math.round(clamp((f-.35)*.5,-.15,.25)*100)/100,rep:f>=.6?2:(f<.3?-2:0),extra:{pods:got,podsTotal:total}};
+    const o={id:'recovered',say,text:`Recovered ${got} of ${total} pods${stolen?`, ${stolen} stolen`:''}`,pay:Math.round(clamp((f-.35)*.8,-.3,.25)*100)/100,rep:f>=.6?2:(f<.3?-4:0),extra:{pods:got,podsTotal:total}};
     S.last={got,total,stolen};S.reset();
     callout(say,2.4);if(f>=.3)SoundFX.objectiveComplete?.();audio.music.setMode('calm');
     this.record(o);fighters.length=0;bolts.length=0;this.end()

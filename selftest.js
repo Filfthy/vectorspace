@@ -119,14 +119,14 @@
     const rate=.12*skill,tx=clamp(best[0]/5,-1,1),ty=clamp(-best[1]/5,-1,1);
     inputX=clamp(inputX+clamp(tx-inputX,-rate,rate),-1,1);inputY=clamp(inputY+clamp(ty-inputY,-rate,rate),-1,1)
   };
-  const flySpill=(skill=1,{still=false,maxSecs=240}={})=>{
+  const flySpill=(skill=1,{still=false,spin=false,maxSecs=240}={})=>{
     const rd=routeDiversion;inputX=inputY=0;for(let i=0;i<900&&rd.state!=='spill';i++)update(1/30);
     if(rd.state!=='spill')return{started:false};
     const m=campaign.currentMission,st={started:true,frames:0};
     for(;st.frames<maxSecs*30&&rd.active&&rd.state==='spill';st.frames++){
-      if(still&&globalThis.AgentXCargoSpill.free().length)inputX=inputY=0;else spillStep(skill);update(1/30)}
+      if(spin&&globalThis.AgentXCargoSpill.free().length){inputX=1;inputY=0}else if(still&&globalThis.AgentXCargoSpill.free().length)inputX=inputY=0;else spillStep(skill);update(1/30)}
     inputX=inputY=0;st.secs=Math.round(st.frames/30);const d=(m?.diversions||[]).find(x=>x.main);
-    st.outcome=d?.outcome||'';st.pods=d?.pods;st.total=d?.podsTotal;st.pay=d?.pay;st.last=globalThis.AgentXCargoSpill.last;return st
+    st.outcome=d?.outcome||'';st.kills=interceptorsDestroyed;st.pods=d?.pods;st.total=d?.podsTotal;st.pay=d?.pay;st.last=globalThis.AgentXCargoSpill.last;return st
   };
   // Fly a launched Lattice Survey to its end. Stops (woke:true) if the lattice wakes.
   const flyLattice=(skill=1,maxSecs=200)=>{
@@ -357,7 +357,13 @@
         const runs=[];
         for(const still of[false,true]){reset();c.launchDevTemplateTest('cargo_spill','trade');invulnerable=true;const r=flySpill(1,{still});runs.push(r);
           if(!r.started)return 'the pods never appeared';if(!r.outcome)return `the spill did not finish (${routeDiversion.state}, ${r.secs}s)`}
-        pilotNotes.push(`spill ${runs[0].secs}s ${runs[0].pods}/${runs[0].total}, straight ${runs[1].pods}/${runs[1].total}`);
+        // v2090: turning away from every pod must not end the job before the scavengers are down.
+        {reset();c.launchDevTemplateTest('cargo_spill','trade');invulnerable=true;const S=globalThis.AgentXCargoSpill;let fought=false;const u0=S.update;
+          S.update=function(dt){const r=u0.call(this,dt);if(r==='done'&&!this.scavsDone)fought='early';if(this.scavsDone&&fought!=='early')fought=true;return r};
+          let r;try{r=flySpill(1,{spin:true})}finally{S.update=u0}
+          if(!r.outcome)return `turned away: the spill did not finish (${routeDiversion.state}, ${r.secs}s)`;
+          if(fought!==true)return `turned away: the job ended after ${r.secs}s without the scavenger fight`;runs.push(r)}
+        pilotNotes.push(`spill ${runs[0].secs}s ${runs[0].pods}/${runs[0].total}, straight ${runs[1].pods}/${runs[1].total}, turned away ${runs[2].secs}s`);
         if(!(runs[0].pods>runs[1].pods))return `going for the pods brought home ${runs[0].pods}, flying straight ${runs[1].pods}`;return
       }
       // v2040: the Customs Run flown twice, once threading the gaps (should come out clean

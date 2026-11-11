@@ -2596,9 +2596,9 @@ v2080 New job: Cargo Spill (the Free Traders' own)
       any scavenger still flying turns on you. The job ends when every pod
       is scooped, stolen or drifted past and no scavenger is left.
         Pay: break-even at about a third of the pods, up to +25% of the
-          fee for a near-clean sweep, at worst -15%.
-        Standing: +2 Free Traders at 60% or more, -2 below 30%, on top of
-          the job's own.
+          fee for a near-clean sweep, at worst -28% (v2090, was -15%).
+        Standing: +2 Free Traders at 60% or more, -4 below 30% (v2090,
+          was -2), on top of the job's own.
       The nearest pod ahead carries a label with its range, or an edge
       arrow when it is off screen. The top-right status reads CARGO
       ADRIFT until scavengers arrive.
@@ -2615,4 +2615,17 @@ v2080 New job: Cargo Spill (the Free Traders' own)
       straight. Both must end, and going for the pods must bring more
       home. The minelayer check no longer fails when the pilot kills the
       minelayer before it lays its first mine (it did once tonight).
+
+v2090 Cargo Spill: no quick exit
+      An independent review of v2080 found one real fault. The job ended
+      as soon as no pod was left and no scavenger was on screen, but
+      scavengers take a moment to arrive and some can wait in reserve.
+      Turning away from every pod at the start let the job finish after
+      about 5 s with nothing scooped, at 85% of the fee. Now it ends only
+      once the scavenger fight is really over: with no pods left they all
+      come for you, and you have to shoot them down. An empty haul also
+      costs more: up to 28% of the fee (was 15%) and 4 Free Traders
+      standing (was 2).
+      Self-test: a third run turns away from every pod at the start. It
+      must still end, and only after the scavengers are down (65 s).
 
