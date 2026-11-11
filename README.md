@@ -4,6 +4,14 @@ A vector-graphics drone combat and contract game. You are Agent X, a remote dron
 
 Plain JavaScript and Canvas 2D with a WebGL glow pass. No build step and no dependencies.
 
+## For playtesters
+
+1. On GitHub press **Code**, then **Download ZIP**, and unzip it anywhere.
+2. Double-click **index.html** to play normally, or **Play with cheats.html** to play with the **DEV** tab. The DEV tab has an invulnerability and one-shot cheat, level, credit and standing controls, a mission launcher and a self-test.
+3. The game asks for full screen before it starts. Use Chrome or Edge.
+
+If double-clicking does not work in your browser, run the local server below and open http://localhost:8798 (or http://localhost:8798/Play%20with%20cheats.html).
+
 ## Running it
 
 Serve the folder from a local web server and open it there. That is how the game is tested.
