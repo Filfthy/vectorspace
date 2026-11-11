@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voice Line Checker</title>
+<style>
+:root{
+  --bg:#05080a;--panel:#0b1114;--line:#1d2a30;--text:#e8f1f2;--dim:#8ea3a8;
+  --cyan:#3fe0e8;--green:#5ef08a;--yellow:#ffd84d;--red:#ff6b6b;--violet:#b48cff;
+  --fs:17px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:var(--fs)/1.45 system-ui,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:5;background:rgba(5,8,10,.96);border-bottom:1px solid var(--line);padding:14px 20px 12px}
+h1{margin:0 0 2px;font-size:1.35em;font-weight:600;letter-spacing:.02em;color:var(--cyan)}
+.sub{color:var(--dim);font-size:.85em}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.bar button,.bar input{font:inherit;font-size:.9em}
+.tab{background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer}
+.tab.on{color:#000;background:var(--cyan);border-color:var(--cyan)}
+.tab b{font-weight:600;margin-left:6px;opacity:.75}
+#q{flex:1 1 220px;min-width:180px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:7px 10px}
+.size{margin-left:auto;display:flex;gap:6px}
+.size button{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;width:40px;padding:6px 0;cursor:pointer}
+main{padding:14px 20px 60px;max-width:1280px;margin:0 auto}
+.tips{color:var(--dim);font-size:.85em;margin:0 0 14px;border-left:3px solid var(--violet);padding:4px 0 4px 12px}
+.tips b{color:var(--text);font-weight:600}
+.row{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 16px}
+.row.ok{border-color:#1f5a35}
+.row.playing{border-color:var(--cyan)}
+.head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px}
+.game{font-size:1.08em;font-weight:600}
+.file{color:var(--dim);font:.8em/1.3 ui-monospace,Consolas,monospace}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:.72em;letter-spacing:.04em;text-transform:uppercase;border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--dim)}
+.chip.g{color:var(--green);border-color:#1f5a35}
+.chip.y{color:var(--yellow);border-color:#5a4c14}
+.chip.c{color:var(--cyan);border-color:#16545a}
+.left{display:flex;flex-direction:column;gap:10px;min-width:0}
+.edit{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.say{flex:1 1 320px;min-width:200px;background:#000;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font:inherit}
+.say:focus{outline:none;border-color:var(--cyan)}
+.say.changed{border-color:var(--yellow)}
+label.k{display:flex;align-items:center;gap:6px;color:var(--dim);font-size:.85em}
+label.k input[type=range]{width:110px;accent-color:var(--cyan)}
+label.k output{min-width:46px;color:var(--text);font-variant-numeric:tabular-nums}
+.acts{display:flex;flex-direction:column;gap:6px;justify-content:center;min-width:170px}
+.acts button{font:inherit;font-size:.9em;border-radius:6px;padding:7px 10px;cursor:pointer;border:1px solid var(--line);background:#000;color:var(--text);text-align:left}
+.acts button:disabled{opacity:.35;cursor:default}
+.acts .p-game{border-color:#1f5a35;color:var(--green)}
+.acts .p-raw{border-color:#16545a;color:var(--cyan)}
+.acts .render{border-color:#5a4c14;color:var(--yellow)}
+.acts .okb.on{background:var(--green);color:#000;border-color:var(--green)}
+.status{font-size:.8em;color:var(--dim);min-height:1.2em}
+.status.err{color:var(--red)}
+.empty{color:var(--dim);padding:30px 0;text-align:center}
+@media (max-width:720px){
+  .row{grid-template-columns:1fr}
+  .acts{flex-direction:row;flex-wrap:wrap;min-width:0}
+  .size{margin-left:0}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Voice Line Checker</h1>
+  <div class="sub" id="sub">Loading lines…</div>
+  <div class="bar">
+    <div id="tabs" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    <input id="q" type="search" placeholder="Search wording or file name">
+    <div class="size"><button id="am" title="Smaller text">A−</button><button id="ap" title="Larger text">A+</button></div>
+  </div>
+</header>
+<main>
+  <p class="tips"><b>Intonation tips.</b> A full stop gives a falling, final tone. A comma gives a short pause with the voice held up. Two sentences ("Warning. Shields are low.") sound more urgent than one. A question mark lifts the end. Spell out awkward words the way they sound ("Vox" or "V O X"). Speed and pitch are small nudges: try ±5 to ±15 first. <b>Render</b> writes to <i>voices unprocessed</i> only, never to <i>voices</i>. Ctrl+Enter in a wording box renders that line.</p>
+  <div id="list"></div>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+let lines=[],view='todo',query='',player=new Audio(),playingRow=null;
+const groupOf=l=>/^\d/.test(l.file)?'numbered':(l.source==='requested'?'requested':'game');
+const views=[
+  ['todo','Not OK yet',l=>!l.ok],
+  ['numbered','Numbered 1 to 11',l=>groupOf(l)==='numbered'],
+  ['requested','Requested lines',l=>l.source==='requested'],
+  ['raw','Has a raw take',l=>l.raw],
+  ['ok','OK',l=>l.ok],
+  ['all','All',()=>true]
+];
+try{const s=localStorage.getItem('vc_size');if(s)document.documentElement.style.setProperty('--fs',s+'px')}catch(e){}
+function size(d){const cur=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fs'))||17,n=Math.max(13,Math.min(26,cur+d));document.documentElement.style.setProperty('--fs',n+'px');try{localStorage.setItem('vc_size',n)}catch(e){}}
+$('#am').onclick=()=>size(-1);$('#ap').onclick=()=>size(1);
+try{view=localStorage.getItem('vc_view')||view}catch(e){}
+$('#q').oninput=e=>{query=e.target.value.trim().toLowerCase();draw()};
+
+async function load(){
+  const r=await fetch('/api/lines');const d=await r.json();lines=d.lines;
+  $('#sub').textContent=`${lines.length} lines · voice ${d.voice} · renders go to "voices unprocessed"`;
+  draw()
+}
+function drawTabs(){
+  $('#tabs').innerHTML=views.map(([id,label,f])=>`<button class="tab${view===id?' on':''}" data-v="${id}">${label}<b>${lines.filter(f).length}</b></button>`).join('');
+  document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{view=b.dataset.v;try{localStorage.setItem('vc_view',view)}catch(e){}draw()})
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function draw(){
+  drawTabs();
+  const f=views.find(v=>v[0]===view)?.[2]||(()=>true);
+  const list=lines.filter(f).filter(l=>!query||(l.text+' '+l.say+' '+l.file).toLowerCase().includes(query));
+  const host=$('#list');
+  if(!list.length){host.innerHTML='<div class="empty">No lines in this view.</div>';return}
+  host.innerHTML=list.map(l=>{
+    const chips=[l.inGame?'<span class="chip g">in game</span>':'<span class="chip y">not in game yet</span>',l.raw?'<span class="chip c">raw take</span>':'',l.rendered?`<span class="chip">rendered ${esc(l.rendered)}</span>`:''].join('');
+    return `<div class="row${l.ok?' ok':''}" data-f="${esc(l.file)}"><div class="left">
+      <div class="head"><span class="game">${esc(l.text)}</span><span class="file">${esc(l.file)}</span><span class="chips">${chips}</span></div>
+      <div class="edit">
+        <input class="say" value="${esc(l.say)}" spellcheck="true" aria-label="Wording sent to the voice">
+        <label class="k">Speed <input type="range" class="rate" min="-30" max="30" step="1" value="${l.rate}"><output>${l.rate>0?'+':''}${l.rate}%</output></label>
+        <label class="k">Pitch <input type="range" class="pitch" min="-20" max="20" step="1" value="${l.pitch}"><output>${l.pitch>0?'+':''}${l.pitch} Hz</output></label>
+      </div>
+      <div class="status"></div></div>
+      <div class="acts">
+        <button class="p-game" ${l.inGame?'':'disabled'}>▶ In game now</button>
+        <button class="p-raw" ${l.raw?'':'disabled'}>▶ Raw take</button>
+        <button class="render">⟳ Render with Sonia</button>
+        <button class="okb${l.ok?' on':''}">${l.ok?'✓ OK':'Mark OK'}</button>
+      </div>
+    </div>`}).join('');
+  host.querySelectorAll('.row').forEach(wire)
+}
+function lineOf(row){return lines.find(l=>l.file===row.dataset.f)}
+function play(row,url){
+  player.pause();document.querySelectorAll('.row.playing').forEach(r=>r.classList.remove('playing'));
+  player=new Audio(url);playingRow=row;row.classList.add('playing');
+  player.onended=()=>row.classList.remove('playing');player.play().catch(e=>setStatus(row,'Could not play: '+e.message,true))
+}
+function setStatus(row,t,err){const s=row.querySelector('.status');s.textContent=t;s.classList.toggle('err',!!err)}
+function wire(row){
+  const l=lineOf(row),say=row.querySelector('.say'),rate=row.querySelector('.rate'),pitch=row.querySelector('.pitch');
+  const mark=()=>say.classList.toggle('changed',say.value.trim()!==l.say||+rate.value!==l.rate||+pitch.value!==l.pitch);
+  say.oninput=mark;
+  rate.oninput=()=>{rate.nextElementSibling.textContent=`${rate.value>0?'+':''}${rate.value}%`;mark()};
+  pitch.oninput=()=>{pitch.nextElementSibling.textContent=`${pitch.value>0?'+':''}${pitch.value} Hz`;mark()};
+  row.querySelector('.p-game').onclick=()=>play(row,`/voices/${encodeURIComponent(l.file)}?t=${l.gameTime}`);
+  row.querySelector('.p-raw').onclick=()=>play(row,`/voices%20unprocessed/${encodeURIComponent(l.file)}?t=${l.rawTime}`);
+  const doRender=async()=>{
+    const b=row.querySelector('.render');if(b.disabled)return;b.disabled=true;b.textContent='Rendering…';setStatus(row,'');
+    try{
+      const r=await fetch('/api/render',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file:l.file,say:say.value.trim(),rate:+rate.value,pitch:+pitch.value})});
+      const d=await r.json();if(!d.ok)throw new Error(d.error||'render failed');
+      Object.assign(l,{say:say.value.trim(),rate:+rate.value,pitch:+pitch.value,raw:true,rawTime:d.rawTime,ok:false,rendered:'just now'});
+      say.classList.remove('changed');row.classList.remove('ok');
+      const p=row.querySelector('.p-raw');p.disabled=false;const o=row.querySelector('.okb');o.classList.remove('on');o.textContent='Mark OK';
+      setStatus(row,'Rendered. Playing the new raw take.');play(row,`/voices%20unprocessed/${encodeURIComponent(l.file)}?t=${d.rawTime}`);drawTabs()
+    }catch(e){setStatus(row,e.message,true)}
+    b.disabled=false;b.textContent='⟳ Render with Sonia'
+  };
+  row.querySelector('.render').onclick=doRender;
+  row.querySelector('.okb').onclick=async e=>{
+    l.ok=!l.ok;e.target.classList.toggle('on',l.ok);e.target.textContent=l.ok?'✓ OK':'Mark OK';row.classList.toggle('ok',l.ok);
+    await fetch('/api/mark',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file:l.file,ok:l.ok})});drawTabs()
+  };
+  row.addEventListener('keydown',e=>{
+    if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();doRender()}
+  })
+}
+load().catch(e=>{$('#sub').textContent='Could not load lines: '+e.message})
+</script>
+</body>
+</html>

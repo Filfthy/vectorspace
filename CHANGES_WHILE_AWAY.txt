@@ -2939,3 +2939,16 @@ v2270 Swamp: no wide entrance, no flying through the monolith, voice lines
           "Scan complete. Return the data to VOX."
       Checked on frames of the swamp entry and of the climb out.
 
+(tools) Voice line checker, no game change
+      tools/voice-checker.py serves a page at http://127.0.0.1:8810 (or
+      start "voice-checker" from the app). It lists all 135 voice lines,
+      plays the file the game uses and the raw Sonia take, and lets you
+      change the wording, speed and pitch and render again with
+      en-GB-SoniaNeural (the TTSFree voice) through edge-tts. Renders
+      only go to "voices unprocessed", never to voices/. Wording and OK
+      ticks are kept in "voices unprocessed/voice-lines.json".
+      Lines 1 to 10 (Checkpoint reached to Warning, shields are low) were
+      a different voice. They are re-rendered in Sonia in "voices
+      unprocessed", with the old takes in "voices unprocessed/old voice".
+      Line 11 already matched Sonia.
+
