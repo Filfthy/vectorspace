@@ -669,15 +669,15 @@ class HackChirpSoundManager {
 class MusicManager {
   static tracks={
     calm:[
-      {id:'mozart',title:'Mozart — Piano Concerto No. 21: II. Andante',src:'./music/calm/mozart.ogg'},
-      {id:'pachelbel',title:'Pachelbel — Canon',src:'./music/calm/pachelbel.ogg'},
-      {id:'satie',title:'Satie — Gymnopédie No. 1',src:'./music/calm/satie.ogg'}
+      {id:'mozart',title:'Mozart · Piano Concerto No. 21: II. Andante',src:'./music/calm/mozart.ogg'},
+      {id:'pachelbel',title:'Pachelbel · Canon',src:'./music/calm/pachelbel.ogg'},
+      {id:'satie',title:'Satie · Gymnopédie No. 1',src:'./music/calm/satie.ogg'}
     ],
     violent:[
-      {id:'mars',title:'Holst — Mars, the Bringer of War',src:'./music/violent/mars.ogg'},
-      {id:'baldmountain',title:'Mussorgsky — Night on Bald Mountain',src:'./music/violent/baldmountain.ogg'},
-      {id:'diesirae',title:'Verdi — Dies irae',src:'./music/violent/diesirae.ogg'},
-      {id:'valkyries',title:'Wagner — Ride of the Valkyries',src:'./music/violent/valkyries.ogg'}
+      {id:'mars',title:'Holst · Mars, the Bringer of War',src:'./music/violent/mars.ogg'},
+      {id:'baldmountain',title:'Mussorgsky · Night on Bald Mountain',src:'./music/violent/baldmountain.ogg'},
+      {id:'diesirae',title:'Verdi · Dies irae',src:'./music/violent/diesirae.ogg'},
+      {id:'valkyries',title:'Wagner · Ride of the Valkyries',src:'./music/violent/valkyries.ogg'}
     ]
   };
   static allTracks(){return [...this.tracks.calm,...this.tracks.violent]}
@@ -989,6 +989,8 @@ class AudioManager {
       proceedToWreck:'./voices/proceedtothewreck.mp3',
       proceedToStation:'./voices/proceedtostation.mp3',
       verifyOrder:'./voices/verifyorder.mp3',
+      goToSecureTerminalNav:'./voices/gotosecureterminalnav.mp3',
+      terminalHacked:'./voices/terminalhacked.mp3',
       collectFood:'./voices/collectfood.mp3',
       headingToAsteroidMine:'./voices/headingtoasteroidmine.mp3',
       destroyThePirates:'./voices/destroythepirates.mp3',
@@ -1091,6 +1093,8 @@ class AudioManager {
       proceedToWreck:'Proceed to the wreck.',
       proceedToStation:'Proceed to station.',
       verifyOrder:'Verify order.',
+      goToSecureTerminalNav:'Proceed to the secure terminal.',
+      terminalHacked:'Terminal hacked. Security alert.',
       collectFood:'Collect food.',
       headingToAsteroidMine:'Heading to asteroid mine.',
       destroyThePirates:'Destroy the pirates.',
@@ -1115,10 +1119,10 @@ class AudioManager {
       proceedToOsdCompound:'Proceed to the OSD compound.',
       breachBunker:'Breach bunker entrance',
       destroyReactorAhead:'Destroy the reactor ahead',
-      missionComplete:'Mission complete — returning to base',
-      missionFailed:'Contact lost — mission failed',
-      shieldsLow:'Warning — shields are low',
-      shieldsDepleted:'Warning — shields depleted',
+      missionComplete:'Mission complete. Returning to base.',
+      missionFailed:'Contact lost. Mission failed.',
+      shieldsLow:'Warning. Shields are low.',
+      shieldsDepleted:'Warning. Shields depleted.',
       deliveryComplete:'Delivery complete',
       recoveryComplete:'Recovery complete.',
       deliveryApproachClear:'Delivery approach clear. Proceed to the landing pad.',
@@ -1136,8 +1140,8 @@ class AudioManager {
       xenoDestroyRegulator:'Destroy the swarm regulator.',
       xenoSwarmFrenzy:'Swarm cohesion lost. Proceed immediately to the observation point.',
       xenoHiveDestroyed:'Hive destruction confirmed. Recorded evidence shows xenoforms destroying their own nest.',
-      proceedToCity:'Proceed to the city — follow City Nav.',
-      proceedToForest:'Proceed to the forest — follow Forest Nav.',
+      proceedToCity:'Proceed to the city. Follow City Nav.',
+      proceedToForest:'Proceed to the forest. Follow Forest Nav.',
       avoidCivilianVehicles:'Avoid civilian vehicles',
       doNotAttackCivilians:'Do not attack civilians',
       mailNormal:'You have mail',

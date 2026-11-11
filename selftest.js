@@ -566,6 +566,19 @@
         if(!(mail.reward.price<P(it).price))return 'the offer is not under market price';const r=c.resolveMail(mail);if(/;|\u2014|\u2013/.test(r.body.join(' ')))return 'offer text has a semicolon or dash';
         const n0=isF?0:(c.state.inventory[it]||0),m1=c.state.money;if(!c.claimMailReward(mail.id))return 'buying the offer was refused';
         if(c.state.money!==m1-mail.reward.price)return 'the offer charged the wrong amount';if(isF?!c.state.ownedFrames.includes(it):(c.state.inventory[it]||0)!==n0+1)return 'the offered piece did not arrive';
+        // v2290 review fixes.
+        const fr=Object.values(c.frames).find(f=>c.isShelfHardware(f)&&f.tier<=c.marketAccessTier()&&!c.state.ownedFrames.includes(f.id));
+        if(fr){c.state.marketOrder=null;c.state.marketShelf={ids:[],nextAt:c.state.completed+2,access:c.marketAccessTier()};
+          if(!c.placeOrder(fr.id))return 'could not order a frame';c.state.marketShelf.ids=[fr.id];
+          if(!c.productAccess(fr).onOrder)return 'a frame on order shows as on the shelf';if(c.buyFrame(fr.id))return 'a frame on order was sold again from the shelf';
+          const m2=c.state.money;c.cancelOrder();if(c.state.money<=m2)return 'cancelling the frame order refunded nothing'}
+        const own=c.frames[c.state.ownedFrames.find(id=>c.frames[id]&&c.isShelfHardware(c.frames[id]))];if(own&&!c.productAccess(own).owned)return 'an owned frame does not read OWNED';
+        const di=Object.values(c.items).find(i=>c.isShelfHardware(i)&&i.tier<=c.marketAccessTier());c.state.marketShelf={ids:[],nextAt:c.state.completed+2,access:c.marketAccessTier()};c.state.marketOrder=null;
+        c.state.discounts[di.id]={percent:.25,uses:1};if(!c.placeOrder(di.id))return 'could not order with a discount';if(c.state.discounts[di.id])return 'the discount was not used by the order';
+        c.cancelOrder();if(!(c.state.discounts[di.id]?.uses>0))return 'cancelling the order lost the mail discount';delete c.state.discounts[di.id];
+        const before=c.state.marketShelf;c.state.marketShelf={...before,access:Math.min(5,c.marketAccessTier()+1)};const ids=JSON.stringify(c.state.marketShelf.ids);c.marketShelf();if(JSON.stringify(c.state.marketShelf.ids)!==ids)return 'a drop in access rerolled the shelf';
+        c.state.mailFlags.offerNextAt=0;c.state.mail=c.state.mail.filter(x=>x.reward?.type!=='offer');c.maybeQueueGearOffer({...job,forceOffer:true});const of=c.state.mail.find(x=>x.reward?.type==='offer');
+        if(of){c.enqueueMail({id:'st_unread_other',from:'Test',subject:'Other',category:'network',priority:'high',body:['x']});c.showHub('shop');c.setPanel('mail',{mailId:of.id});if(c.selectedMailId!==of.id)return 'OPEN MAIL did not land on the offer';c.state.mail=c.state.mail.filter(x=>x.id!=='st_unread_other')}
         c.setPanel&&c.render()
       }
       if(what==='spend a skill point'){

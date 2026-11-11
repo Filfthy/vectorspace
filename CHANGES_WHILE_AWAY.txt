@@ -2962,3 +2962,36 @@ v2280 Voice lines: all in Sonia, normalised, and the requested ones play
       the xeno lines say "zeeno", OSD is said "O S Dee", and you
       reworded some for pronunciation in the voice checker.
 
+v2290 Test pass: market fixes and the Secure Terminal prompt
+      An independent review of today's market change and a full flight
+      sweep (every board job, every story and agent mission, Black
+      Contracts 1 to 10) with every voice call logged.
+      Market fixes from the review:
+        - A frame on order could come onto the shelf and be bought
+          again, and the order money was lost. An order now always shows
+          as ON ORDER, the shelf never carries it, and a frame already
+          owned when its order arrives is refunded with a note.
+        - OPEN MAIL on an offered item opened whichever mail was unread
+          first. It now opens the offer.
+        - Owned Military frames read ORDER in the list. They read OWNED.
+        - Cancelling an order lost the mail discount it used. It comes
+          back now.
+        - An order could not be cancelled after standing dropped. It
+          always can.
+        - The shelf rerolled whenever standing crossed 25 or 60. It now
+          only restocks early when a new grade opens.
+      Secure Terminal Intrusion: the approach called a voice line that
+      was never wired up, and showed no text, so you got no prompt at
+      all. It now shows PROCEED TO SECURE TERMINAL and says "Proceed to
+      the secure terminal." The hack line "Terminal hacked. Security
+      alert." is wired up too. Both are new Sonia takes (your originals
+      are in voices unprocessed/old voice), unticked in the checker.
+      Subtitles: lines 8 to 11 and the city and forest prompts used
+      dashes ("Mission complete — returning to base"). They now read as
+      spoken, "Mission complete. Returning to base." The Settings music
+      list uses " · " instead of dashes too.
+      Sweep result: all 72 flights finished, 78 different voice lines
+      heard, no other missing line. Jackals agent mission 3 stalled once
+      at the bunker door (the test pilot aimed at something else); 11
+      more runs were clean, so it is a pilot quirk, not a game fault.
+

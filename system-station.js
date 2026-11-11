@@ -506,7 +506,7 @@ class StationDeliveryController {
     shipX=shipY=0;inputX=inputY=aimX=aimY=0;viewYaw=viewPitch=viewRoll=0;spaceYawVel=spacePitchVel=0;
     resetPlanetBearing();resetSpaceDogfightDirector();resetSpaceMotion();audio.music.setMode('calm');
     if(this.stationStyle==='crossroads'){
-      if(!stage?.combatBeforeApproach)audio.playVoice('goToSecureTerminalNav',{once:false,priority:true})
+      if(!stage?.combatBeforeApproach){say('PROCEED TO SECURE TERMINAL',.85);audio.playVoice('goToSecureTerminalNav',{once:false,priority:true})}
     }else say('PROCEED TO STATION',.85)
   }
   beginClearedApproach(stage=this.stage){
