@@ -2952,3 +2952,13 @@ v2270 Swamp: no wide entrance, no flying through the monolith, voice lines
       unprocessed", with the old takes in "voices unprocessed/old voice".
       Line 11 already matched Sonia.
 
+v2280 Voice lines: all in Sonia, normalised, and the requested ones play
+      normalize.bat ran over "voices unprocessed" into voices/ (141
+      files, peak normalised). 46 lines are new to voices/, so every one
+      of the 40 requested lines now plays in game (route encounters,
+      enforcers, diversions, aces, tenders, convoy, customs, cargo spill,
+      the swamp). 19 existing lines were replaced: lines 1 to 10 and the
+      mail and skill notices were a different voice and are now Sonia,
+      the xeno lines say "zeeno", OSD is said "O S Dee", and you
+      reworded some for pronunciation in the voice checker.
+
