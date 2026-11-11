@@ -2410,3 +2410,15 @@ v1990 Regression sweep, voice lines for the new content, lore notes
       in the moon cores came from is listed as an open question rather
       than decided.
 
+      Frame-time check of tonight's new scenes (no change needed), 1280x720,
+      in the test pane, milliseconds a frame (60 fps allows 16.7):
+        plain dogfight           4.5
+        convoy escort mid-wave   5.9   (freighter plus raiders)
+        minelayer, 7 mines       4.0
+        asteroid field ambush    4.8   (plain clearance 5.1)
+        core samples, moon       8.6   (a planet survey run is 3.1)
+      Core Samples is the slowest, but not because of anything added
+      tonight: removing its four core craters changes nothing, and the
+      moon's 26 craters account for about 2 ms. Moon plains have always
+      cost more than planet plains. Still about half the frame budget.
+
