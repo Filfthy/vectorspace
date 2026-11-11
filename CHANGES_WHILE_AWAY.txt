@@ -2180,7 +2180,7 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
     - Four new VOX Wire headlines.
     - Every network now has one job only it offers. The Guide says which.
     - The plains roll (as in the promo video) instead of being flat,
-      in the simulator too.
+      in the simulator, on moons and on volcanic worlds too.
     - Convoy Escort: the freighter is a little sturdier (it was too easy
       to lose for anyone who does not aim perfectly).
     - New letters: Corvella after your first convoy seen through, Navira
@@ -2806,4 +2806,21 @@ v2190 Rolling plains, as in the promo video
       4.6 flat), after keeping each grid point's height instead of working
       it out every frame (a first version cost 5 ms).
       The promo itself is unchanged: its snowy run keeps its own hills.
+
+v2200 Moons and volcanic worlds roll too
+      On your say-so ("Roll them too"), the rolling plains from v2190 now
+      cover moons and volcanic worlds as well. Only swamps and the OSD
+      compound stay flat.
+        - Moons: the ground stays level around every crater (sized to
+          the crater, then rolling again about 14 units past its rim), so
+          no crater sits tilted into a hillside. Core Samples sites are
+          level as before.
+        - Volcanic worlds: cinder cones and basalt stand on the slopes,
+          and the glowing fissures follow the ground and are drawn among
+          the hills, so a hill in front hides a fissure behind it.
+      Checked: frames on a moon and a volcanic world, the Core Samples and
+      Vent Survey pilot flights pass, and the cost once a landing is under
+      way is about 1.5 ms on a moon (8.4 against 6.9 ms flat) and none
+      measurable on a volcanic world. The first frames after landing work
+      the heights out once.
 

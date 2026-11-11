@@ -260,14 +260,16 @@ class SurfaceDestinationApproachController {
   // hills either side within about 40 of that line, flat beyond (matching the flat horizon
   // band). It stays level at the landing, at the destination, along the city road and around
   // every objective (survey markers, relay masts, crash sites, core sites, the beacon), so
-  // nothing that is judged or drawn against the ground there changes. Not on swamps, moons,
-  // volcanic worlds or the OSD compound, which have their own ground features.
+  // nothing that is judged or drawn against the ground there changes. Not on swamps or the
+  // OSD compound. v2200: moons and volcanic worlds roll too, level around every crater, and
+  // volcanic fissures follow the slopes.
   setupHills(ax,az){
     this.hills=null;
-    const moon=typeof planetLandingBody!=='undefined'&&planetLandingBody==='moon';
-    if(this.terrain!=='plains'||this.destination==='swamp'||this.destination==='osd'||this.scenery==='swamp'||this.worldKind==='volcanic'||moon)return;
+    if(this.terrain!=='plains'||this.destination==='swamp'||this.destination==='osd'||this.scenery==='swamp')return;
     const bx=this.targetX,bz=this.targetWorldZ,dx=bx-ax,dz=bz-az,len=Math.hypot(dx,dz)||1;
-    const obj=[];for(const p of this.survey||[])obj.push([p.x+(p.off||0),p.worldZ]);if(this.beacon)obj.push([this.beacon.x,this.beacon.worldZ]);
+    // Each entry: level within r0, full hills from r1.
+    const obj=[];for(const p of this.survey||[])obj.push([p.x+(p.off||0),p.worldZ,14,40]);if(this.beacon)obj.push([this.beacon.x,this.beacon.worldZ,14,40]);
+    for(const t of this.trees)if(t.feature==='crater'){const r0=1.5*t.s*Math.max(t.mx||1,t.mz||1)+2;obj.push([t.x,t.worldZ,r0,r0+14])}
     this.hills={ax,az,bx,bz,dx,dz,len,len2:len*len,obj,road:this.road||null,endFlat:this.destination==='bunker'?55:40,
       minX:Math.min(ax,bx)-56,maxX:Math.max(ax,bx)+56,minZ:Math.min(az,bz)-56,maxZ:Math.max(az,bz)+56,memo:new Map()};
     // Scenery stands on the slopes (once, however often this runs).
@@ -280,7 +282,7 @@ class SurfaceDestinationApproachController {
     const far=1-ease(clamp((dl-34)/18,0,1));if(far<=0)return 0;
     const along=u*h.len,de=Math.hypot(x-h.bx,wz-h.bz);
     let g=ease(clamp(along/50,0,1))*ease(clamp((de-h.endFlat)/50,0,1));if(g<=0)return 0;
-    for(const o of h.obj){const d=Math.hypot(x-o[0],wz-o[1]);if(d<40){g*=ease(clamp((d-14)/26,0,1));if(g<=0)return 0}}
+    for(const o of h.obj){const dx=x-o[0];if(dx>o[3]||dx<-o[3])continue;const d=Math.hypot(dx,wz-o[1]);if(d<o[3]){g*=ease(clamp((d-o[2])/(o[3]-o[2]),0,1));if(g<=0)return 0}}
     const r=h.road;if(r&&wz>r.z0-30&&wz<r.z1+30){const ax=Math.abs(x-r.x);if(ax<30){g*=ease(clamp((ax-6)/24,0,1));if(g<=0)return 0}}
     const n=.5*Math.sin(x*.034+wz*.011+.4)+.32*Math.sin(wz*.029-x*.019+1.3)+.2*Math.sin(x*.071+wz*.053+.7)+.18*Math.sin(x*.013-wz*.021+2.1);
     const route=2.6*(.5+.5*Math.sin(along*.052+x*.012-1.2))*(.75+.25*Math.sin(along*.13+.4));
@@ -763,6 +765,10 @@ class SurfaceDestinationApproachController {
   appendScenery(scene,{minDepth=-Infinity,maxDepth=Infinity}={}){
     if(!Array.isArray(scene))return scene;
     this.appendHillStrips(scene,{minDepth,maxDepth});
+    // v2200: on rolling ground each fissure lies on the slope and is sorted in with the hills
+    // (just ahead of the strip it lies on), so a hill in front hides it.
+    if(this.hills)for(const f of this.fissures||[]){const mid=f.pts[f.pts.length>>1],d=camPoint([mid[0],this.groundY+this.hillAt(mid[0],mid[1]),mid[1]-travel])[2];
+      if(d>.4&&d<300&&d>minDepth&&d<=maxDepth)scene.push({z:d-3,draw:()=>this.drawFissures([f])})}
     // v1550: ground traffic on the city road.
     for(const v of this.traffic||[]){const z=v.worldZ-travel,q=camPoint([v.x,v.y,z]);
       if(q[2]>.3&&q[2]<220&&q[2]>minDepth&&q[2]<=maxDepth)scene.push({z:q[2],draw:()=>jackalDelivery.drawCivilianCarFast(v,z)})}
@@ -918,19 +924,21 @@ class SurfaceDestinationApproachController {
       this.fissures.push({pts,w:.7+this.rand()*.8,ph:this.rand()*6})
     }
   }
-  drawFissures(){
-    if(!this.fissures?.length)return;
+  drawFissures(list=this.fissures){
+    if(!list?.length)return;
     const y=this.groundY+.04,t=this.navPulse||0,embers={};
     ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.lineJoin='round';
-    for(const f of this.fissures){
-      const mid=f.pts[f.pts.length>>1],mq=camPoint([mid[0],y,mid[1]-travel]),dq=mq[2];if(dq<-40||dq>300)continue;
+    for(const f of list){
+      // v2200: each crack point carries the ground height under it (worked out once).
+      if(this.hills&&!f.hy)f.hy=f.pts.map(p=>this.hillAt(p[0],p[1]));const fh=i=>f.hy?f.hy[i]:0;
+      const mid=f.pts[f.pts.length>>1],mq=camPoint([mid[0],y+fh(f.pts.length>>1),mid[1]-travel]),dq=mq[2];if(dq<-40||dq>300)continue;
       if(Math.abs(mq[0])>Math.max(0,dq)*1.6+60)continue;   // well off to the side: not on screen
       const glow=.62+.3*Math.sin(t*1.6+f.ph),al=clamp(1.15-Math.max(0,dq)/300,.2,1);
       for(const[side,col,k]of[[0,C.r,1],[1,C.o,.45],[-1,C.o,.45]]){
         ctx.beginPath();let pen=false;
         for(let i=0;i<f.pts.length;i++){
           const p=f.pts[i],n=f.pts[Math.min(i+1,f.pts.length-1)],o=f.pts[Math.max(i-1,0)],dx=n[0]-o[0],dz=n[1]-o[1],l=Math.hypot(dx,dz)||1;
-          const w=side*f.w*(i===0||i===f.pts.length-1?.2:1),q=camPoint([p[0]-dz/l*w,y,p[1]-travel+dx/l*w]);
+          const w=side*f.w*(i===0||i===f.pts.length-1?.2:1),q=camPoint([p[0]-dz/l*w,y+fh(i),p[1]-travel+dx/l*w]);
           if(q[2]<=.4){pen=false;continue}const s=projectCam(q);if(!s){pen=false;continue}
           if(pen)ctx.lineTo(s.x,s.y);else{ctx.moveTo(s.x,s.y);pen=true}
         }
@@ -938,7 +946,7 @@ class SurfaceDestinationApproachController {
       }
       // Embers: short bright streaks thrown up from points along the crack.
       if(dq<260)for(let i=1;i<f.pts.length-1;i++){
-        const u=((t*.8+f.ph+i*.37)%1),p=f.pts[i],h=u*u*3.8,q0=camPoint([p[0]+u*(i&1?.6:-.6),y+h,p[1]-travel]),q1=camPoint([p[0]+u*(i&1?.6:-.6),y+h+.8*(1-u*.5),p[1]-travel]);
+        const u=((t*.8+f.ph+i*.37)%1),p=f.pts[i],h=u*u*3.8+fh(i),q0=camPoint([p[0]+u*(i&1?.6:-.6),y+h,p[1]-travel]),q1=camPoint([p[0]+u*(i&1?.6:-.6),y+h+.8*(1-u*.5),p[1]-travel]);
         if(q0[2]<=4||q1[2]<=4)continue;const a=projectCam(q0),b=projectCam(q1);if(!a||!b||Math.hypot(a.x-b.x,a.y-b.y)>40)continue;   // close up a streak would smear across the view
         const key=((i&2)?C.r:C.o)+'|'+Math.min(4,Math.round(al*(1-u)*.9*4));(embers[key]||(embers[key]=[])).push(a.x,a.y,b.x,b.y)
       }
@@ -993,7 +1001,7 @@ class SurfaceDestinationApproachController {
     ctx.restore()
   }
   draw(){
-    this.drawGround();this.drawRoad();this.drawFissures();const scene=[];this.appendEnvironmentObjects(scene);
+    this.drawGround();this.drawRoad();if(!this.hills)this.drawFissures();const scene=[];this.appendEnvironmentObjects(scene);
     if(this.destination==='osd'&&bunkerRaid?.active)bunkerRaid.appendOsdSurfaceObjects(scene);
     this.drawObjectScene(scene);this.drawFlocks();this.drawWeather();this.drawNavigation()
   }
