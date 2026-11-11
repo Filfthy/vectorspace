@@ -265,3 +265,23 @@ Spoken text:
 
 Expected filename:
     wehavebeenscanned.mp3
+
+
+CARGO SPILL, START
+------------------
+
+Spoken text:
+    Cargo adrift. Scoop it up.
+
+Expected filename:
+    cargoadriftscoopitup.mp3
+
+
+CARGO SPILL, SCAVENGERS
+-----------------------
+
+Spoken text:
+    Scavengers inbound.
+
+Expected filename:
+    scavengersinbound.mp3

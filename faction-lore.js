@@ -225,7 +225,12 @@
     {id:'firstCustoms',faction:'jackals',when:c=>(c.stats.customsClean||0)>0,letter:L('A quiet word about rings',[
       'X. The consignment arrived, and the Customs Authority has since filed a report stating that nothing whatever passed its picket that day. I have had the report framed.',
       'There is an art to standing where the light is not. Most people never learn it, because most people want to be seen. You, I think, would rather be paid.',
-      'I shall send more of this work your way. Do not mention it to Kudo. He has strong feelings about lighthouses.'])}
+      'I shall send more of this work your way. Do not mention it to Kudo. He has strong feelings about lighthouses.'])},
+    // v2100: after the first Cargo Spill job.
+    {id:'firstSpill',faction:'trade',when:c=>(c.stats.contracts?.byTemplate?.cargo_spill||0)>0,letter:L('About those pods',[
+      'Sweetie, the depot crew have been opening the pods you scooped up and calling out what is inside like it is a birthday.',
+      'Shoes. Engine seals. A crate of very small ornamental fish, all alive, all furious. Somebody is going to be very happy to get their fish back.',
+      'Haulers dump their cargo to stay alive, babe, and the scavengers know it. Every pod you beat them to is a pod I do not have to write off. Keep doing that.'])}
   ];
   globalThis.AgentXFactionLore={LETTERS,due,MARA,STANDING,FAVOURS,REACTIONS};
 })();

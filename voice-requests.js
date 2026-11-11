@@ -49,7 +49,10 @@ globalThis.AgentXVoiceRequests={
   coreSamplesDiveLow:'Dive low over each crater.',
   // v2060: the Customs Run.
   customsPicketAhead:'Customs picket. Fly the dark gaps.',
-  customsScanned:'We have been scanned.'
+  customsScanned:'We have been scanned.',
+  // v2100: the Cargo Spill.
+  cargoAdrift:'Cargo adrift. Scoop it up.',
+  scavengersInbound:'Scavengers inbound.'
 };
 // Expected filename: the spoken text in lower case with spaces and punctuation removed.
 globalThis.AgentXVoiceRequestFile=text=>String(text).toLowerCase().replace(/[^a-z0-9]/g,'')+'.mp3';

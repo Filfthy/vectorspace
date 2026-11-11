@@ -2180,7 +2180,8 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
     - Two new VOX Wire headlines.
     - New letters: Corvella after your first convoy seen through, Navira
       after your first core samples, Kudo after your first minelayer,
-      Cassian after your first Customs Run that is never scanned.
+      Cassian after your first Customs Run that is never scanned,
+      Corvella after your first Cargo Spill.
     - Contact files (Networks page) now also record what each contact
       told you in their first-meeting letters: 13 new facts.
     - A one-off Operator bulletin on existing saves lists tonight's new
@@ -2628,4 +2629,15 @@ v2090 Cargo Spill: no quick exit
       standing (was 2).
       Self-test: a third run turns away from every pod at the start. It
       must still end, and only after the scavengers are down (65 s).
+
+v2100 Cargo Spill: Corvella's letter, Codex, headline, voice lines
+      Corvella writes after your first Cargo Spill ("About those pods"):
+      the depot crew open the scooped pods like birthday presents, and one
+      held a crate of very small, very angry ornamental fish. Her contact
+      file gains the matching fact. Codex entry "Cargo spills" opens with
+      the first job. A VOX Wire headline once you have scooped 10 pods in
+      all (scavenger crews complain of "a drone that hoovers"). Two voice
+      line requests, silent until recorded: "Cargo adrift. Scoop it up."
+      and "Scavengers inbound." Checked: the letter is sent with the right
+      sender, the Codex entry opens and the headline becomes eligible.
 

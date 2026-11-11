@@ -120,7 +120,7 @@ const routeDiversion={
     if(kind==='migration')return this.beginMigration(stage,def);
     if(kind==='lattice'||kind==='latticeSurvey')return this.beginLattice(stage,def);
     if(kind==='escort')return this.beginEscort(stage,def);
-    if(kind==='spill'){this.state='spill';AgentXCargoSpill.begin(stage,campaign.currentMission?.risk);callout(def.nav,2.8);return true}
+    if(kind==='spill'){this.state='spill';AgentXCargoSpill.begin(stage,campaign.currentMission?.risk);callout(def.nav,2.8);if(audio?.hasVoice?.('cargoAdrift'))audio.playVoice('cargoAdrift',{once:false,priority:false});return true}
     if(kind==='customs'){this.state='customs';AgentXCustomsRun.begin(stage,campaign.currentMission?.risk);callout(def.nav,2.8);if(audio?.hasVoice?.('customsPicketAhead'))audio.playVoice('customsPicketAhead',{once:false,priority:false});return true}
     if(kind==='layerCrew'){
       const k=campaign.contractToughnessScale(campaign.currentMission?.risk||1),n=3+Math.floor(Math.random()*2);
@@ -484,7 +484,7 @@ const routeDiversion={
     stage.spaceCombat=true;
     scenarioFlow.startFighterStage({...stage,target:n,fighterHp:Math.round(12*k),profile:'pirate',navMessage:null,silentStart:true},'pirate',{preservePhase:true});
     scenarioFlow.encounterHudTag=this.KINDS.spill.hud;audio.music.setMode('violent');
-    callout(`${n} SCAVENGERS INBOUND · THEY ARE AFTER THE PODS`,2.2)
+    callout(`${n} SCAVENGERS INBOUND · THEY ARE AFTER THE PODS`,2.2);if(audio?.hasVoice?.('scavengersInbound'))audio.playVoice('scavengersInbound',{once:false,priority:false});
   },
   // Every scavenger down: the pods left are the drone's to collect. Reset the kill goal so
   // the main loop does not report the same fight as cleared every frame.

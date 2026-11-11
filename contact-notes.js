@@ -229,7 +229,8 @@
       // v1960: facts from the first-meeting letters (faction-lore.js REACTIONS)
       F('react_minefield','Loses a hauler to the old war minefields every season. Wants you to come home.'),
       F('react_ace','Has been robbed by the named pirate aces for years. Likes it that they are scared of you now.'),
-      F('react_firstConvoy','Her hauler captains come into the office to talk about you. Calls escort work the best money she spends.')]},
+      F('react_firstConvoy','Her hauler captains come into the office to talk about you. Calls escort work the best money she spends.'),
+      F('react_firstSpill','Has the depot crew open scooped cargo pods like birthday presents. One held a crate of very angry fish.')]},
     jackals:{who:'Cassian Erivan-Snade',facts:[
       F('met','Red Jackal Combine contact. Elegant, indirect, never says steal when he can say change of ownership.'),
       F('lore1','Collects quiet things. Paintings, mostly. Occasionally people.'),
