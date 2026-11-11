@@ -2528,3 +2528,24 @@ v2040 New job: Customs Run (the Jackals' own)
       flagged, then the fight), and turned hard away the whole time (must
       still finish). All three end. The job pilot (__flyJob) steers it too.
 
+v2050 Customs Run: rings that face you after a turn
+      An independent review of v2040 found one real fault. The rings were
+      always laid out, drawn and judged as if the drone pointed straight
+      down the lane it started on. After a hard turn a new ring was drawn
+      edge-on or slanted, its arms were judged somewhere other than where
+      they were drawn, and turning away from a ring could count as a clean
+      crossing about four times in five.
+      Now each ring keeps the heading it was placed on: it is drawn face-on
+      to that heading, the arms and gaps are judged in its own plane, and a
+      crossing is the drone passing through that plane. A ring that drops
+      behind the view uncrossed, or is left far off course, counts as gone
+      round and is scanned, as the Guide says. The range on the ring label
+      is now the real distance (it showed a coordinate that could go
+      negative after a turn), and close in the label also says OUTSIDE THE
+      RING when you are. Two leftovers that did nothing were removed.
+      Self-test: a ring placed after a hard turn must judge a point on an
+      arm as scanned, a point in a gap as clean and a point beyond the rim
+      as outside. A pilot that turns hard for the first second and a half
+      and then threads must be scanned at no more than the rings placed
+      during the turn (it loses two and threads the rest).
+

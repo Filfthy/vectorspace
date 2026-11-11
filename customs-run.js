@@ -14,44 +14,53 @@
 // drawMarker / reset, for the route_diversion stage with diversion:'customs'.
 const AgentXCustomsRun={
   RADIUS:30,SPACING:270,ARM_HALF:.3,HUB:3,
-  rings:[],passed:0,total:0,scans:0,state:'idle',flash:0,lastResult:null,
+  rings:[],passed:0,total:0,scans:0,state:'idle',lastResult:null,lastScans:0,
   begin(stage,risk){
     risk=Math.max(1,Number(risk)||1);
     this.risk=risk;this.total=Math.max(3,Math.min(7,3+Math.round(risk*.45)));
     this.arms=risk<4?2:(risk<7?3:4);this.speed=.75+.07*risk;
-    this.rings=[];this.passed=0;this.scans=0;this.flash=0;this.state='picket';this.lastResult=null;
+    this.rings=[];this.passed=0;this.scans=0;this.state='picket';this.lastResult=null;this.lastScans=0;
     this.place(this.SPACING+60);
     // A Codex flag, the same way the old minefield opens its entry.
     if(campaign.state&&campaign.statsLive?.())(campaign.state.mailFlags||(campaign.state.mailFlags={})).metCustomsPicket=true;
     return true
   },
   // A ring straight across the current heading, a little off centre so no two are alike.
-  place(z){
-    const n=this.rings.length,w=cameraPointToWorld([(Math.random()-.5)*10,(Math.random()-.5)*8,z]);
-    this.rings.push({x:w[0],y:w[1],z:w[2],a:Math.random()*6.283,dir:n%2?-1:1,done:false,scanned:false,flash:0,rot:[0,0,0],s:1.6})
+  // v2050: each ring keeps the frame it was placed in (f forward through it, rt and up
+  // across it), so it is drawn, judged and crossed in its own plane whichever way the
+  // drone has turned since.
+  place(dist){
+    const n=this.rings.length,c=cameraPointToWorld([(Math.random()-.5)*10,(Math.random()-.5)*8,dist]);
+    const f=cameraVectorToWorld([0,0,1]),rt=cameraVectorToWorld([1,0,0]),up=cameraVectorToWorld([0,1,0]);
+    this.rings.push({x:c[0],y:c[1],z:c[2],f,rt,up,a:Math.random()*6.283,dir:n%2?-1:1,done:false,scanned:false,qz:null,along:null})
   },
+  // A point on the ring's own plane: rad out from the hub at angle a.
+  point(r,rad,a){const c=Math.cos(a)*rad,s=Math.sin(a)*rad;return[r.x+r.rt[0]*c+r.up[0]*s,r.y+r.rt[1]*c+r.up[1]*s,r.z+r.rt[2]*c+r.up[2]*s]},
+  // Where the drone is relative to the ring: how far through its plane (along, below
+  // zero while still in front), and across it (u, w).
+  rel(r){const v=[shipX-r.x,shipY-r.y,-r.z],d=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];return{along:d(v,r.f),u:d(v,r.rt),w:d(v,r.up),dist:Math.hypot(v[0],v[1],v[2])}},
   armHit(r){
-    const dx=shipX-r.x,dy=shipY-r.y,d=Math.hypot(dx,dy);
+    const{u,w}=this.rel(r),d=Math.hypot(u,w);
     if(d>this.RADIUS)return 'outside';
     if(d<this.HUB)return 'arm';
-    const th=Math.atan2(dy,dx),step=6.283/this.arms;
+    const th=Math.atan2(w,u),step=6.283/this.arms;
     for(let i=0;i<this.arms;i++){let a=(th-(r.a+i*step))%6.283;if(a<0)a+=6.283;if(a>3.1416)a=6.283-a;if(a<this.ARM_HALF)return 'arm'}
     return ''
   },
   update(dt){
     if(this.state!=='picket')return null;
-    const k=OPEN_SPACE_CRUISE*dt;this.flash=Math.max(0,this.flash-dt);
+    const k=OPEN_SPACE_CRUISE*dt;
     for(const r of this.rings){
-      r.x-=spaceMoveX*k;r.y-=spaceMoveY*k;r.z-=spaceMoveZ*k;
-      r.a+=r.dir*this.speed*dt;r.flash=Math.max(0,r.flash-dt);
-      // Crossed when it passes the camera plane, whichever way the drone is pointing, so
-      // turning away cannot leave the job waiting for good: going round counts as outside,
-      // and so does a ring left far off course.
-      const qz=camPoint([r.x,r.y,r.z])[2],before=r.qz??qz;r.qz=qz;
-      const lost=!r.done&&(qz>this.SPACING*3||Math.hypot(r.x-shipX,r.y-shipY,r.z)>this.SPACING*3.2);
-      if(!r.done&&((before>0&&qz<=0)||lost)){
+      r.x-=spaceMoveX*k;r.y-=spaceMoveY*k;r.z-=spaceMoveZ*k;r.a+=r.dir*this.speed*dt;
+      const o=this.rel(r),before=r.along??o.along;r.along=o.along;r.qz=camPoint([r.x,r.y,r.z])[2];
+      if(r.done)continue;
+      // Crossed when the drone passes through the ring's plane. Turning away cannot leave
+      // the job waiting for good: a ring that falls behind the view uncrossed, or is left
+      // far off course, counts as gone round, which the buoy reads like any other.
+      const crossed=before<0&&o.along>=0,lost=!crossed&&(r.qz<-40||o.dist>this.SPACING*3.2);
+      if(crossed||lost){
         r.done=true;this.passed++;const hit=lost?'outside':this.armHit(r);
-        if(hit){r.scanned=true;r.flash=1.2;this.flash=.6;this.scans++;
+        if(hit){r.scanned=true;this.scans++;
           callout(hit==='outside'?'SCANNED · STAY INSIDE THE RING':'SCANNED · CUSTOMS ALERTED',1.6,false);
           SoundFX.terminalRed?.()}
         else{callout(this.passed<this.total?`RING ${this.passed} CLEAR · ${this.total-this.passed} TO GO`:'LAST RING CLEAR',1.3,false);SoundFX.relayCalibrated?.()}
@@ -73,8 +82,7 @@ const AgentXCustomsRun={
     for(const r of this.rings){const q=camPoint([r.x,r.y,r.z]);if(q[2]>.18)scene.push({z:q[2],draw:()=>this.drawRing(r)})}
   },
   drawRing(r){
-    const R=this.RADIUS,pt=(rad,a)=>proj([r.x+Math.cos(a)*rad,r.y+Math.sin(a)*rad,r.z]);
-    const hot=r.flash>0&&Math.sin(r.flash*30)>0,col=hot?C.r:C.u,fade=r.done?.35:1;
+    const R=this.RADIUS,pt=(rad,a)=>proj(this.point(r,rad,a)),col=C.u,fade=r.done?.35:1;
     // The ring itself, then the hub.
     let prev=pt(R,0);for(let i=1;i<=40;i++){const p=pt(R,i/40*6.283);if(prev&&p)line(prev.x,prev.y,p.x,p.y,col,1,.75*fade);prev=p}
     prev=pt(this.HUB,0);for(let i=1;i<=10;i++){const p=pt(this.HUB,i/10*6.283);if(prev&&p)line(prev.x,prev.y,p.x,p.y,col,1,fade);prev=p}
@@ -94,11 +102,13 @@ const AgentXCustomsRun={
     if(!p||p.x<0||p.x>W||p.y<0||p.y>viewH){const e=hudEdgeCue(q,0),tx=-e.dy,ty=e.dx;
       line(e.x,e.y,e.x-e.dx*10+tx*7,e.y-e.dy*10+ty*7,C.u,1.25,.9);line(e.x,e.y,e.x-e.dx*10-tx*7,e.y-e.dy*10-ty*7,C.u,1.25,.9);
       const t='SCANNER RING',hw=ctx.measureText(t).width/2+4;ctx.strokeText(t,clamp(e.x-e.dx*26,hw,W-hw),clamp(e.y-e.dy*26,24,viewH-8));ctx.restore();return}
-    const top=proj([r.x,r.y+this.RADIUS,r.z]);
-    ctx.strokeText(`SCANNER RING · ${Math.round(r.z)}`,p.x,(top?top.y:p.y)-8);
-    if(q[2]<120){ctx.strokeStyle=this.armHit(r)?C.o:C.g;ctx.strokeText(this.armHit(r)?'IN THE BEAM':'IN A GAP',p.x,(top?top.y:p.y)+6)}
+    // Label above the ring as drawn on screen, with the range to its hub.
+    let top=p.y;for(let i=0;i<8;i++){const e=proj(this.point(r,this.RADIUS,i/8*6.283));if(e&&e.y<top)top=e.y}
+    const o=this.rel(r),hit=q[2]<120?this.armHit(r):null;
+    ctx.strokeText(`SCANNER RING · ${Math.round(o.dist)}`,p.x,top-8);
+    if(hit!==null){ctx.strokeStyle=hit?C.o:C.g;ctx.strokeText(hit==='outside'?'OUTSIDE THE RING':(hit?'IN THE BEAM':'IN A GAP'),p.x,top+6)}
     ctx.restore()
   },
-  reset(){this.rings=[];this.state='idle';this.passed=0;this.scans=0;this.flash=0}
+  reset(){this.rings=[];this.state='idle';this.passed=0;this.scans=0}
 };
 globalThis.AgentXCustomsRun=AgentXCustomsRun;

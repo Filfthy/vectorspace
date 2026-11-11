@@ -93,18 +93,19 @@
   // when it reaches the next ring (the arms keep turning on the way in).
   const customsSteer=(skill=1)=>{
     const X=globalThis.AgentXCustomsRun,r=X?.rings.find(o=>!o.done);let tx=0,ty=0;
-    if(r&&r.z<240){const t=Math.max(0,r.z)/Math.max(1,OPEN_SPACE_CRUISE*(spaceMoveZ||1)),step=6.283/X.arms,g=r.a+r.dir*X.speed*t+step/2;
-      const q=camPoint([r.x+Math.cos(g)*X.RADIUS*.6,r.y+Math.sin(g)*X.RADIUS*.6,r.z]);tx=clamp(q[0]/6,-1,1);ty=clamp(-q[1]/6,-1,1)}
+    const o=r&&X.rel(r);
+    if(o&&-o.along<240){const t=Math.max(0,-o.along)/Math.max(1,OPEN_SPACE_CRUISE),step=6.283/X.arms,g=r.a+r.dir*X.speed*t+step/2;
+      const q=camPoint(X.point(r,X.RADIUS*.6,g));tx=clamp(q[0]/6,-1,1);ty=clamp(-q[1]/6,-1,1)}
     const rate=.12*skill;inputX=clamp(inputX+clamp(tx-inputX,-rate,rate),-1,1);inputY=clamp(inputY+clamp(ty-inputY,-rate,rate),-1,1)
   };
   // Fly a launched Customs Run to its end: the picket (steered, or held straight when
   // still:true, which flies through the hub and is always flagged), then any interceptors.
-  const flyCustoms=(skill=1,{still=false,spin=false,maxSecs=240}={})=>{
+  const flyCustoms=(skill=1,{still=false,spin=false,turnFirst=false,maxSecs=240}={})=>{
     const rd=routeDiversion;inputX=inputY=0;for(let i=0;i<900&&rd.state!=='customs';i++)update(1/30);
     if(rd.state!=='customs')return{started:false};
     const m=campaign.currentMission,st={started:true,frames:0};
     for(;st.frames<maxSecs*30&&rd.active&&(rd.state==='customs'||rd.state==='customsFight');st.frames++){
-      if(rd.state==='customs'){if(spin){inputX=1;inputY=0}else if(still)inputX=inputY=0;else customsSteer(skill)}else fightStep(.9);
+      if(rd.state==='customs'){if(spin||(turnFirst&&st.frames<45)){inputX=1;inputY=0}else if(still)inputX=inputY=0;else customsSteer(skill)}else fightStep(.9);
       update(1/30)}
     inputX=inputY=0;st.secs=Math.round(st.frames/30);st.scans=globalThis.AgentXCustomsRun.lastScans;
     st.outcome=(m?.diversions||[]).find(d=>d.main)?.outcome||'';return st
@@ -337,10 +338,18 @@
       if(id==='customs_run'){
         const runs=[];
         // A third run turns hard away from the picket the whole time: the job must still end.
-        for(const how of['steer','still','spin']){reset();c.launchDevTemplateTest('customs_run','jackals');invulnerable=true;const r=flyCustoms(1,{still:how==='still',spin:how==='spin'});runs.push(r);
+        // v2050: a ring placed after a hard turn must judge arms and gaps where it draws them.
+        {reset();c.launchDevTemplateTest('customs_run','jackals');invulnerable=true;for(let i=0;i<900&&routeDiversion.state!=='customs';i++)update(1/30);
+          inputX=1;for(let i=0;i<40;i++)update(1/30);inputX=0;const X=globalThis.AgentXCustomsRun;X.rings.length=0;X.place(200);const r=X.rings[0],step=6.283/X.arms;
+          const at=a=>{const P=X.point(r,15,a);r.x+=shipX-P[0];r.y+=shipY-P[1];r.z+=0-P[2];return X.armHit(r)};
+          const onArm=at(r.a),inGap=at(r.a+step/2),out=(()=>{const P=X.point(r,40,r.a+step/2);r.x+=shipX-P[0];r.y+=shipY-P[1];r.z+=0-P[2];return X.armHit(r)})();
+          if(onArm!=='arm'||inGap!==''||out!=='outside')return `turned ring judged wrongly: arm '${onArm}', gap '${inGap}', outside '${out}' (forward ${r.f.map(v=>v.toFixed(2))})`}
+        for(const how of['steer','still','spin','turnFirst']){reset();c.launchDevTemplateTest('customs_run','jackals');invulnerable=true;const r=flyCustoms(1,{still:how==='still',spin:how==='spin',turnFirst:how==='turnFirst'});runs.push(r);
           if(!r.started)return 'the picket never appeared';if(!r.outcome)return `${how}: the run did not finish (${routeDiversion.state}, ${r.secs}s)`;
-          if(how!=='steer'&&r.outcome!=='flagged')return `${how}: never scanned`}
-        pilotNotes.push(`customs ${runs[0].secs}s ${runs[0].outcome} ${runs[0].scans} scans, flagged ${runs[1].secs}s, turned away ${runs[2].secs}s`);return
+          if((how==='still'||how==='spin')&&r.outcome!=='flagged')return `${how}: never scanned`;
+          // Turning for the first 1.5 s loses the rings placed during the turn, at most two. The rest must be threaded.
+          if(how==='turnFirst'&&r.scans>3)return `scanned at ${r.scans} rings after turning first, the pilot could not thread turned rings`}
+        pilotNotes.push(`customs ${runs[0].secs}s ${runs[0].outcome} ${runs[0].scans} scans, flagged ${runs[1].secs}s, turned away ${runs[2].secs}s, turn then thread ${runs[3].outcome} ${runs[3].scans}`);return
       }
       // v1950: a pirate fight with its minelayer forced: it must lay mines and the fight must end.
       if(id==='minelayer'){
