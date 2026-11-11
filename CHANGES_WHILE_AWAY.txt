@@ -2712,3 +2712,18 @@ v2150 Self-test: the two network jobs flown as real contracts
       example a clean run paid CR 8,550 on a 7,450 fee, and 7 pods were
       counted for 7 scooped).
 
+v2160 Final review of v2100 to v2150, self-test tidying
+      A last independent review found nothing serious. It noted that the
+      v2140 freighter change also eases the Last Convoy Black Contract.
+      That is intended: Last Convoy already needed easing once tonight.
+      Self-test only:
+        - The real-contract check now also requires a scanned Customs Run
+          to pay less than its fee, and removes its contract from the
+          test board if a launch ever fails.
+        - The save check "runtime state leaked into the save" failed once.
+          It looked for any text containing _convoy, which is meant to
+          catch a hidden runtime field of that name. Text built from the
+          convoy_escort job name (most likely a mail or contract id) also
+          contains it. It now matches the field names themselves only.
+          The save itself was fine.
+

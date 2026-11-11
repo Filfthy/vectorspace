@@ -355,12 +355,13 @@
       // the pay, the bonus and the stats behind their achievements are all exercised.
       if(id==='network jobs paid'){
         const real=(tid,fac,fly)=>{reset();c.state.xp=Math.max(c.state.xp,c.xpForLevel(8));const m=c.makeTemplateContract(c.missionTemplate(tid),0,{faction:fac});if(!m)return{err:`no ${tid} contract`};
-          c.missions.push(m);c.launchMission(m.id);if(c.currentMission!==m)return{err:`${tid} did not launch`};invulnerable=true;
+          c.missions.push(m);c.launchMission(m.id);if(c.currentMission!==m){c.missions=c.missions.filter(x=>x!==m);return{err:`${tid} did not launch`}}invulnerable=true;
           const st=c.stats(),b={money:c.state.money,clean:st.customsClean||0,pods:st.spillPods||0};const r=fly();
           for(let f=0;f<4000&&!c.isOpen();f++)update(1/30);const ok=c.isOpen(),s2=c.stats();try{c.closeMissionDebrief?.('missions')}catch(_){}paused=false;document.body.classList.remove('paused');
           return{m,r,ok,paid:c.state.money-b.money,clean:(s2.customsClean||0)-b.clean,pods:(s2.spillPods||0)-b.pods}};
         const a=real('customs_run','jackals',()=>flyCustoms(1));if(a.err)return a.err;if(!a.ok)return 'a real Customs Run did not reach the debrief';
         if(a.r.outcome==='clean'&&(a.clean!==1||a.paid<a.m.pay*1.1))return `a clean real Customs Run paid ${a.paid} of a ${a.m.pay} fee and counted ${a.clean} clean`;
+        if(a.r.outcome==='flagged'&&a.paid>=a.m.pay)return `a scanned real Customs Run paid ${a.paid}, not less than its ${a.m.pay} fee`;
         const b=real('cargo_spill','trade',()=>flySpill(1));if(b.err)return b.err;if(!b.ok)return 'a real Cargo Spill did not reach the debrief';
         if(b.pods!==b.r.pods||!(b.paid>0))return `a real Cargo Spill brought ${b.r.pods} pods, counted ${b.pods}, paid ${b.paid}`;
         pilotNotes.push(`real customs ${a.r.outcome} CR ${a.paid}, real spill ${b.r.pods} pods CR ${b.paid}`);return
@@ -548,7 +549,7 @@
       if(what==='save and reload'){
         c.save();const raw=localStorage.getItem(c.storageKey);if(!raw)return 'nothing was saved';if(raw.length>900000)return `the save is ${Math.round(raw.length/1024)} KB`;
         const loaded=c.load();for(const k of['xp','money','completed','failed'])if(loaded[k]!==c.state[k])return `${k} changed across a save and load`;
-        if(loaded.skills.length!==c.state.skills.length)return 'skills changed across a save and load';if(/_comet|_convoy|"g":\{"state"/.test(raw))return 'runtime state leaked into the save'
+        if(loaded.skills.length!==c.state.skills.length)return 'skills changed across a save and load';if(/"_comet":|"_convoy":|"g":\{"state"/.test(raw))return 'runtime state leaked into the save'   /* v2160: keys only, so a mail id such as ..._convoy_escort no longer trips it */
       }
       if(what==='every mail reads')for(const msg of c.state.mail){const r=c.resolveMail(msg);if(!r?.subject||!String(r.subject).trim())return `mail ${msg.id} has no subject`;if(!Array.isArray(r.body)||!r.body.join('').trim())return `mail ${msg.id} has no text`}
       if(what==='every hub panel draws'){c.showHub('missions');for(const pnl of['missions','factions','mail','shop','workshop','perks','guide','options']){c.setPanel(pnl);c.render()}closeHub()}
