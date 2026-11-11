@@ -2855,3 +2855,11 @@ v2220 No crater circles from orbit, and no ringed simulator planet
       standing at 600 s, a pilot miss on a stage these changes do not
       touch. The next full run passed.
 
+v2230 Asteroid delivery bay: furniture in its own colours
+      You pointed out that all the furniture in the asteroid mine's
+      delivery bay was green, the same as the walls, so it did not read.
+      The table and its legs are now white and the storage crates
+      alternate yellow and orange. The DELIVERIES sign and your cargo stay
+      cyan. The same bay is used by the taco run's asteroid delivery.
+      Checked on a frame of the bay during a delivery.
+

@@ -649,9 +649,11 @@ class CourierController {
     // Table sits below the sign. Keep it deliberately plain so the room can be
     // furnished properly later without changing the delivery choreography.
     const tableTopY=-room.h+1.18,tableW=2.55,tableD=1.10,tableH=.92;
-    this.drawWireBox(this.tableLocal,0,tableTopY,tableW,.14,tableD,C.g,.90,progress);
+    // v2230: furniture in its own colours, not the wall green it vanished into: a white
+    // table, and storage crates in alternating yellow and orange.
+    this.drawWireBox(this.tableLocal,0,tableTopY,tableW,.14,tableD,C.w,.90,progress);
     const floorY=-room.h+.05,legY=(tableTopY+floorY)*.5,legH=Math.max(.18,tableTopY-floorY);
-    for(const x of [-tableW*.42,tableW*.42])for(const dz of [-tableD*.35,tableD*.35])this.drawWireBox(this.tableLocal+dz,x,legY,.10,legH,.10,C.gd,.74,progress);
+    for(const x of [-tableW*.42,tableW*.42])for(const dz of [-tableD*.35,tableD*.35])this.drawWireBox(this.tableLocal+dz,x,legY,.10,legH,.10,C.w,.74,progress);
     // Storage begins only beyond the player's stopping point, leaving the approach
     // and stopping area uncluttered.
     const crates=[
@@ -663,7 +665,8 @@ class CourierController {
       [111.5,3.32,-room.h+.63,1.18,1.08,.96],[113.0,2.55,-room.h+.46,.70,.72,.68],
       [115.0,-3.15,-room.h+.48,.82,.78,.76]
     ];
-    for(const [local,x,y,sx,sy,sz] of [...crates].sort((a,b)=>b[0]-a[0]))this.drawWireBox(local,x,y,sx,sy,sz,C.gd,.72,progress);
+    crates.forEach((c,i)=>c.push(i%2?C.o:C.y));
+    for(const [local,x,y,sx,sy,sz,col] of [...crates].sort((a,b)=>b[0]-a[0]))this.drawWireBox(local,x,y,sx,sy,sz,col,.72,progress);
     if(showCargo)this.drawDeliveryCargo(progress)
   }
   cargoState(){
