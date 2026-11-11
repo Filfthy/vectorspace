@@ -2442,3 +2442,9 @@ v2000 More job talk from the contacts
       the picture) and the moon's craters (about 2 ms). Half the frame
       budget, so left alone.
 
+v2010 Operator record rows for tonight's content
+      The Record on the Operator page now also lists Minelayers destroyed,
+      Mines shot, Convoys seen through, Field ambushes survived and Quiet
+      lattice surveys. They start at 0 on an existing save (the ones that
+      only count tonight's content were not tracked before).
+

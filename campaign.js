@@ -2619,7 +2619,7 @@ class CampaignController {
       ['Elite contracts',n(st.contracts.elite)],['Agent missions',`${agent} / ${agentT}`],
       ['Credits earned',`CR ${n(st.creditsEarned)}`],['Bounties earned',`CR ${n(st.bountyEarned)}`],['Insurance paid',`CR ${n(st.insurancePaid)}`],['Drones lost',n(st.dronesLost)],['Projectiles shot down',n(st.shotDown)],
       ['Fighters destroyed',n(k.fighters)],['Ground armour destroyed',n(this.armourKills())],['Walker knees broken',n(k.knees)],['Generators destroyed',n(k.generators)],
-      ['Reactors destroyed',n(k.reactors)],['Aces destroyed',n(k.aces)],['Shield tenders destroyed',n(k.tenders)],['Ghost constructs destroyed',n((k.ghosts||0)+(k.jammers||0))],['Stranded crews located',n(st.landBeacons)],['Moons destroyed',n(k.moons)],['Route encounters survived',n(st.routeEncounters)],['Diversions answered',n(st.diversionsInvestigated)],
+      ['Reactors destroyed',n(k.reactors)],['Aces destroyed',n(k.aces)],['Shield tenders destroyed',n(k.tenders)],['Ghost constructs destroyed',n((k.ghosts||0)+(k.jammers||0))],['Minelayers destroyed',n(k.minelayers)],['Mines shot',n(st.minesShot)],['Convoys seen through',n(st.convoysSafe)],['Field ambushes survived',n(st.asteroidAmbushes)],['Quiet lattice surveys',n(st.latticeQuiet)],['Stranded crews located',n(st.landBeacons)],['Moons destroyed',n(k.moons)],['Route encounters survived',n(st.routeEncounters)],['Diversions answered',n(st.diversionsInvestigated)],
       ['Black contracts',`${n(st.blackDone)}${this.state.mailFlags?.blackThreat?` · threat ${this.state.mailFlags.blackThreat}`:''}`],
       ['Veteran bonus',this.veteranBonus()>0?`+${Math.round(this.veteranBonus()*100)}% pay`:'from level 21']];
     const got=this.state.achievements||{},ach=this.achievementDefs();
