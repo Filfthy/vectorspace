@@ -2181,6 +2181,8 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
     - Every network now has one job only it offers. The Guide says which.
     - The plains roll (as in the promo video) instead of being flat,
       in the simulator, on moons and on volcanic worlds too.
+    - Ringed planets are gas giants: you never land on one (their moons,
+      yes).
     - Convoy Escort: the freighter is a little sturdier (it was too easy
       to lose for anyone who does not aim perfectly).
     - New letters: Corvella after your first convoy seen through, Navira
@@ -2823,4 +2825,19 @@ v2200 Moons and volcanic worlds roll too
       way is about 1.5 ms on a moon (8.4 against 6.9 ms flat) and none
       measurable on a volcanic world. The first frames after landing work
       the heights out once.
+
+v2210 Hills that hide what is behind them, and no landing on gas giants
+      You saw trees through the land. The solid hill strips dropped a
+      whole row whenever any point of it fell far off to the side, which
+      is most rows near the camera: 22 of 115 in a typical view, the very
+      ones that should hide things. Now the hills are drawn in pieces at
+      most three cells wide, each sorted by its own depth against the
+      trees, and a piece with a point off screen still draws the rest of
+      itself. Checked on frames: hill crests now hide the ground, trees and
+      cones behind them. Cost about 1.5 to 2 ms a frame against flat.
+      You also landed on a ringed planet. A ringed planet is now a gas
+      giant: any mission that descends to the planet itself gets no rings.
+      Missions that land on a moon, or never land, can still show a ringed
+      parent. Over 60 test missions: 38 planet landings with no rings, 3
+      of 10 moon landings and 2 of 12 space jobs ringed.
 

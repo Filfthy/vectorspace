@@ -48,7 +48,11 @@ class MissionController {
  // bearing reset, so a ringed banded world does not change when an ambush starts.
  {const mid=(typeof campaign!=='undefined'&&campaign.currentMission?.id)||'';if(planetLookFor!==mid){planetLookFor=mid;
   const r=Math.random();planetStyle=r<.55?'grid':(r<.8?'banded':'cratered');planetCraters=planetStyle==='cratered'?makeCraters(7):[];
-  planetRings=Math.random()<.28?{inc:(Math.random()<.5?-1:1)*(.30+Math.random()*.22),bands:Math.random()<.5?[1.42,1.60]:[1.40,1.58,1.84]}:null}}
+  planetRings=Math.random()<.28?{inc:(Math.random()<.5?-1:1)*(.30+Math.random()*.22),bands:Math.random()<.5?[1.42,1.60]:[1.40,1.58,1.84]}:null;
+  // v2210: a ringed planet is a gas giant, so never one the drone lands on. Its moons may be.
+  // Any mission that descends to the planet itself (not only to a moon) gets no rings.
+  {const cm=typeof campaign!=='undefined'?campaign.currentMission:null,mods=cm?.modules||[],moonOnly=String(cm?.planetaryRequirements?.landingBody||'').toLowerCase()==='moon'||mods.some(x=>String(x?.planetaryRequirements?.landingBody||'').toLowerCase()==='moon');
+   if(mods.some(x=>x?.type==='planet_descent')&&!moonOnly)planetRings=null}}}
  const req=this.planetaryRequirements(),landingBody=String(req.landingBody||'planet').toLowerCase();
  planetLandingBody=landingBody==='moon'?'moon':(landingBody==='either'?(Math.random()<.5?'moon':'planet'):'planet');planetLandingMoonIndex=-1;
  const requiredLandingColour=this.moonColourToken(req.landingColour);planetLandingColour=planetLandingBody==='planet'?(requiredLandingColour||C.g):C.g;

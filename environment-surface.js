@@ -293,7 +293,7 @@ class SurfaceDestinationApproachController {
   // outside the view that it would project to a huge screen position.
   // Grid points repeat every frame and the ground does not change, so their heights are kept.
   hillGrid(x,wz){const h=this.hills;if(!h)return 0;const k=x*65536+wz;let v=h.memo.get(k);if(v===undefined){v=this.hillAt(x,wz);h.memo.set(k,v)}return v}
-  hillPoint(x,wz){const q=camPoint([x,this.groundY+this.hillGrid(x,wz),wz-travel]);return q[2]>.5&&Math.abs(q[0])<q[2]*3?projectCam(q):null}
+  hillPoint(x,wz){const q=camPoint([x,this.groundY+this.hillGrid(x,wz),wz-travel]);return q[2]>.5&&Math.abs(q[0])<q[2]*8?projectCam(q):null}
   hillLinePath(pts){let pen=false;for(const[x,wz]of pts){const p=this.hillPoint(x,wz);if(!p){pen=false;continue}if(pen)ctx.lineTo(p.x,p.y);else{ctx.moveTo(p.x,p.y);pen=true}}}
   // The whole grid, following the ground. Lines nowhere near the hills keep the cheap flat path.
   drawHillGround(){
@@ -317,26 +317,34 @@ class SurfaceDestinationApproachController {
   // The hills are solid: each strip of raised ground is a black-filled band with its grid
   // stroked on top, sorted with the trees by depth, so a hill hides whatever is behind it.
   appendHillStrips(scene,{minDepth=-Infinity,maxDepth=Infinity}={}){
-    const h=this.hills;if(!h)return;const strip=4,grid=8,far=250,col=landingWorldColour();
+    // v2210: pieces at most three cells wide, each sorted by its own depth, and a piece with
+    // a point off to the side or behind the camera still draws the rest of itself (before,
+    // the whole run was dropped, so near hills often hid nothing and trees showed through).
+    const h=this.hills;if(!h)return;const strip=4,grid=8,far=250,col=landingWorldColour(),CH=3;
+    const xs=[];for(let x=Math.floor(h.minX/grid)*grid;x<=h.maxX;x+=grid)xs.push(x);
     for(let wz=Math.floor((travel-6)/strip)*strip;wz<travel+far;wz+=strip){
       if(wz+strip<h.minZ||wz>h.maxZ)continue;
-      const xs=[];for(let x=Math.floor(h.minX/grid)*grid;x<=h.maxX;x+=grid)xs.push(x);
-      const a=xs.map(x=>this.hillGrid(x,wz)),b=xs.map(x=>this.hillGrid(x,wz+strip));
-      let i=0;
-      while(i<xs.length-1){
-        if(Math.max(a[i],a[i+1],b[i],b[i+1])<=.05){i++;continue}
-        let j=i+1;while(j<xs.length-1&&Math.max(a[j],a[j+1],b[j],b[j+1])>.05)j++;
-        const run=xs.slice(i,j+1),mx=run[run.length>>1],d=camPoint([mx,this.groundY+this.hillAt(mx,wz+strip/2),wz+strip/2-travel])[2];
+      const a=xs.map(x=>this.hillGrid(x,wz)),b=xs.map(x=>this.hillGrid(x,wz+strip)),raised=k=>Math.max(a[k],a[k+1],b[k],b[k+1])>.05;
+      for(let i=0;i<xs.length-1;){
+        if(!raised(i)){i++;continue}
+        let j=i;while(j<xs.length-1&&raised(j)&&j-i<CH)j++;
+        const run=xs.slice(i,j+1),mx=(run[0]+run[run.length-1])/2,d=camPoint([mx,this.groundY+this.hillAt(mx,wz+strip/2),wz+strip/2-travel])[2];
         if(d>.5&&d>minDepth&&d<=maxDepth){const w0=wz,w1=wz+strip;
           scene.push({z:d,draw:()=>{
             const back=run.map(x=>this.hillPoint(x,w1)),front=run.map(x=>this.hillPoint(x,w0));
-            if(back.some(p=>!p)||front.some(p=>!p))return;
-            ctx.save();ctx.fillStyle='#000';ctx.beginPath();ctx.moveTo(back[0].x,back[0].y);for(const p of back)ctx.lineTo(p.x,p.y);for(let k=front.length-1;k>=0;k--)ctx.lineTo(front[k].x,front[k].y);ctx.closePath();ctx.fill();
-            ctx.strokeStyle=col;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.globalAlpha=.55;ctx.beginPath();
-            for(let k=0;k<run.length;k++){ctx.moveTo(front[k].x,front[k].y);ctx.lineTo(back[k].x,back[k].y)}
-            if(Math.abs(w0/grid-Math.round(w0/grid))<1e-6){ctx.moveTo(front[0].x,front[0].y);for(const p of front)ctx.lineTo(p.x,p.y)}
-            if(Math.abs(w1/grid-Math.round(w1/grid))<1e-6){ctx.moveTo(back[0].x,back[0].y);for(const p of back)ctx.lineTo(p.x,p.y)}
-            ctx.stroke();ctx.restore()}})}
+            ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;
+            for(let s0=0;s0<run.length;){
+              if(!back[s0]||!front[s0]){s0++;continue}
+              let s1=s0;while(s1+1<run.length&&back[s1+1]&&front[s1+1])s1++;
+              if(s1>s0){
+                ctx.globalAlpha=1;ctx.fillStyle='#000';ctx.beginPath();ctx.moveTo(back[s0].x,back[s0].y);for(let k=s0;k<=s1;k++)ctx.lineTo(back[k].x,back[k].y);for(let k=s1;k>=s0;k--)ctx.lineTo(front[k].x,front[k].y);ctx.closePath();ctx.fill();
+                ctx.strokeStyle=col;ctx.globalAlpha=.55;ctx.beginPath();
+                for(let k=s0;k<=s1;k++){ctx.moveTo(front[k].x,front[k].y);ctx.lineTo(back[k].x,back[k].y)}
+                if(Math.abs(w0/grid-Math.round(w0/grid))<1e-6){ctx.moveTo(front[s0].x,front[s0].y);for(let k=s0;k<=s1;k++)ctx.lineTo(front[k].x,front[k].y)}
+                if(Math.abs(w1/grid-Math.round(w1/grid))<1e-6){ctx.moveTo(back[s0].x,back[s0].y);for(let k=s0;k<=s1;k++)ctx.lineTo(back[k].x,back[k].y)}
+                ctx.stroke()}
+              s0=s1+1}
+            ctx.restore()}})}
         i=j
       }
     }
