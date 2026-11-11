@@ -111,7 +111,13 @@
       lattice_survey:["I want the map, not the wreckage. Discipline over impulse, for once.","Do not fire. That is an order, and I expect it obeyed."],
       nest_clearance:["Infestations do not negotiate. Neither do we."],
       asteroids:["Rock clearance is not glamorous. Neither is losing a convoy to a rock. Do it properly."],
-      convoy_escort:["The freighter does not fight. You do. Keep it that way.","Raiders go for the hull. Make them come to you instead."]
+      convoy_escort:["The freighter does not fight. You do. Keep it that way.","Raiders go for the hull. Make them come to you instead."],
+      survey_run:["Survey work. Low, steady, complete. Every point. I do not accept partial maps."],
+      crash_recovery:["Recover the recorders. A crash is a question. The recorder is the answer."],
+      relay_repair:["Relays down means the lane is blind. Restore them. Blindness is a weakness."],
+      station_delivery:["Deliver the cargo. Do not deviate. Deviation is how cargo goes missing."],
+      asteroid_delivery:["The mine expects resupply on schedule. Schedules are kept, not attempted."],
+      secure_terminal_intrusion:["Get in, take the data, get out. Speed is security."]
     },
     trade:{
       wreck_recovery:["Sweetie, there is a lost freighter out there with my name on half its cargo. Bring me something shiny.","Babe, wrecks are spooky. Good thing you are the scariest thing in that field."],
@@ -122,7 +128,13 @@
       station_defence:["Sweetie, somebody is bullying a station I like. Go and show them what a real drone looks like."],
       survey_run:["Babe, it is a survey. Fly low, look pretty, come home. That is practically a date."],
       crater_cores:["Sweetie, I am buying a moon. Well, a bit of one. Go and dig your lovely nose into its craters for me."],
-      convoy_escort:["Sweetie, that hauler is full of my money and she cannot shoot back. You can. Stay close to her.","Babe, the pirates always go for the fat slow one. Show them the fast dangerous one instead."]
+      convoy_escort:["Sweetie, that hauler is full of my money and she cannot shoot back. You can. Stay close to her.","Babe, the pirates always go for the fat slow one. Show them the fast dangerous one instead."],
+      groundside_pickup:["Sweetie, there is a parcel on the ground with my name on it. Go and fetch it, and look good doing it."],
+      crash_recovery:["Babe, one of my haulers came down hard. Bring back the recorders so I can find out whose fault it was. Not yours, obviously."],
+      relay_repair:["Sweetie, the relays are down and my haulers are flying blind. Switch them back on for me, you clever thing."],
+      forest_cabin_delivery:["A delivery to a little cabin in the woods, babe. Very romantic. Very full of trees. Watch the trees."],
+      station_delivery:["Station run, sweetie. In, drop, out. Wave at the dock crew for me, they adore you."],
+      swamp_relay_delivery:["Babe, the swamp is horrid and the relay crew is lovely. Do it for them. And for me."]
     },
     jackals:{
       wreck_recovery:["The previous owners of that cargo have stopped needing it. It seems wasteful to leave it lying about."],
@@ -131,7 +143,13 @@
       crash_recovery:["Crashes are so untidy. Everyone forgets who owned the flight recorder."],
       groundside_pickup:["A small parcel, collected quietly. The less anyone remembers, the better we all sleep."],
       fighters:["Some gentlemen have mistaken our patience for permission. Do correct them."],
-      deep_core:["A reactor in the wrong hands is a tragedy. In nobody's hands it is merely a crater. I prefer craters."]
+      deep_core:["A reactor in the wrong hands is a tragedy. In nobody's hands it is merely a crater. I prefer craters."],
+      forest_cabin_delivery:["A gentleman in the woods has asked for something he cannot buy in town. Discretion is the whole of the fee."],
+      crystal_consignment:["Crystals are such honest things. One always knows what they are worth. The same cannot be said of their previous owners."],
+      swamp_relay_delivery:["Nobody looks for anything in a swamp. That is rather the point of a swamp."],
+      asteroid_delivery:["The miners asked for supplies. What the supplies are is a matter between them and their consciences."],
+      station_delivery:["A parcel for the station. The customs paperwork is immaculate. I wrote it myself."],
+      asteroids:["Some rocks are in the way of some people. I find I am on the side of the people."]
     },
     helix:{
       specimen_recovery:["The specimen matters more than the station. Please do not quote me to the station."],
@@ -141,7 +159,13 @@
       crater_cores:["A crater floor is a record. The rim is a rumour. Sample the floor.","The sampler reaches about two metres. Please arrive within two metres."],
       crystal_consignment:["The crystals keep growing after they are cut. Handle the cargo as though it were alive. It may be."],
       crash_recovery:["A crash site is a badly documented accident. Collect the recorders and I will document it properly."],
-      combat_recovery:["Something survived that fight which should not have. Find it before it stops being interesting."]
+      combat_recovery:["Something survived that fight which should not have. Find it before it stops being interesting."],
+      asteroid_delivery:["The mine crew has been inside that rock for months. Statistically, they are about to do something interesting. Deliver quickly."],
+      fighters:["Hostiles are interfering with a sampling lane. Remove the interference. Keep any debris that looks unusual."],
+      survey_run:["The orbital scans of that world disagree with each other, which means at least one of them is wrong. Fly the points and settle it."],
+      swamp_relay_delivery:["The swamp has a chemistry I would like to understand. Please do not add to it by crashing."],
+      station_delivery:["The cargo is inert. I checked twice. I will check a third time when it arrives."],
+      asteroids:["Clear the marked rocks. If one of them turns out to be hollow, I want to hear about it."]
     },
     quickbite:{
       taco_run:["Taco run, dude. If the beacon is lying again, shoot whoever lied.","Customers want tacos. Pirates want tacos. Only one of them is paying."],
@@ -151,7 +175,12 @@
       fighters:["So these guys keep shooting our couriers. I feel like that is their problem now. Go make it one."],
       relay_repair:["Relay is down, so nobody can order anything, so nobody is yelling at me. Fix it anyway, I guess."],
       penthouse_delivery:["Penthouse order. Rich guy tips in exposure. Deliver it anyway, dude."],
-      convoy_escort:["The freighter is basically a giant fridge with engines. Do not let anyone shoot the fridge.","If the freighter dies, I have to explain three hundred melted orders. Please do not make me do that."]
+      convoy_escort:["The freighter is basically a giant fridge with engines. Do not let anyone shoot the fridge.","If the freighter dies, I have to explain three hundred melted orders. Please do not make me do that."],
+      forest_cabin_delivery:["Cabin order in the woods, dude. The trees are not on our side. Nothing out there is on our side."],
+      groundside_pickup:["Pickup on the ground. Somebody left their order at the counter. A planet counter."],
+      station_defence:["Something is attacking a station we deliver to. If it stops existing, they keep ordering. That is the business model."],
+      swamp_relay_delivery:["Swamp run. Do not touch the plants. I do not know which plants. Just, generally, the plants."],
+      combat_recovery:["There was a fight, and now there is a thing floating in it that Corporate wants back. Get the thing."]
     }
   };
   const WARM=25,CLOSE=60;

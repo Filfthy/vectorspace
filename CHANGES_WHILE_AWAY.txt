@@ -2422,3 +2422,23 @@ v1990 Regression sweep, voice lines for the new content, lore notes
       moon's 26 craters account for about 2 ms. Moon plains have always
       cost more than planet plains. Still about half the frame budget.
 
+v2000 More job talk from the contacts
+      29 more card notes for the jobs each contact offers most often and
+      had nothing specific to say about: 70 job types covered across the
+      five contacts now, 83 lines. A few:
+        Kudo, Relay Repair: "Relays down means the lane is blind. Restore
+          them. Blindness is a weakness."
+        Corvella, Crash Recovery: "Bring back the recorders so I can find
+          out whose fault it was. Not yours, obviously."
+        Cassian, Station Delivery: "The customs paperwork is immaculate. I
+          wrote it myself."
+        Navira, Station Delivery: "The cargo is inert. I checked twice. I
+          will check a third time when it arrives."
+        Nyxo, Groundside Pickup: "Somebody left their order at the counter.
+          A planet counter."
+      Also looked at, no change: moon plains cost about twice a planet's
+      frame time. Most of it is the parent planet drawn at full detail in
+      the sky (1.8 ms, it spins, so it cannot be cached without changing
+      the picture) and the moon's craters (about 2 ms). Half the frame
+      budget, so left alone.
+
