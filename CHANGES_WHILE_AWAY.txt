@@ -2200,6 +2200,10 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
       jobs and enemies. Saves that already had it get a short second
       one about Customs Run and Cargo Spill.
   Fixed:
+    - Voice lines are all Sonia now and all 40 requested lines play.
+      The Secure Terminal approach finally has its prompt.
+    - Market: an ordered frame could be sold twice, OPEN MAIL went
+      to the wrong mail and cancelling lost a discount (all v2290).
     - The drone could freeze for good after a city pickup (an old bug,
       about 1 run in 6 on pickup jobs).
     - Losing the freighter on Last Convoy no longer counts as a finished
