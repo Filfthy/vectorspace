@@ -119,6 +119,9 @@ const routeDiversion={
       stage.spaceCombat=true;this.state='fight';this.pendingOutcome={id:'cleared',...def.cleared};
       if(globalThis.AgentXMinelayers)AgentXMinelayers.force=true;
       scenarioFlow.startFighterStage({...stage,target:n,fighterHp:Math.round(12*k),profile:'pirate',navMessage:null},'pirate',{preservePhase:true});
+      // v2030: no ace or tender in this crew, so the third ship is always the minelayer.
+      if(globalThis.AgentXAces)AgentXAces.armed=false;
+      if(globalThis.AgentXTenders)AgentXTenders.armed=false;
       scenarioFlow.encounterHudTag=def.hud;callout(def.nav,2.4);return true
     }
     if(kind==='civilian'){
@@ -441,7 +444,8 @@ const routeDiversion={
     if(this.escortDone)return;this.escortDone=true;this.lastEscortHp=this.convoy?Math.max(0,this.convoy.hp):0;
     const def=this.KINDS.escort,o=safe?def.safe:def.lost,m=campaign.currentMission;
     callout(o.say,2.4);if(safe)SoundFX.objectiveComplete?.();if(safe){if(audio?.hasVoice?.('convoySafe'))audio.playVoice('convoySafe',{once:false,priority:true});}else{if(audio?.hasVoice?.('freighterLost'))audio.playVoice('freighterLost',{once:false,priority:true});}
-    this.record({id:safe?'escorted':'lost',...o,repFaction:m?.faction||'trade'});
+    // v2030: a Black Contract has no faction, so it moves no network's standing.
+    this.record({id:safe?'escorted':'lost',...o,repFaction:m?.blackContract?null:(m?.faction||'trade')});
     fighters.length=0;bolts.length=0;this.convoy=null;this.end()
   },
   // A long-haul freighter: spine, six cargo pods, bridge and engine block, all closed

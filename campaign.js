@@ -1725,7 +1725,7 @@ class CampaignController {
     this.evaluateFactionChains();
     this.evaluateLateGame();
     this.evaluateBulletin();
-    this.evaluateBulletin1580();
+    this.evaluateBulletin1580();this.evaluateBulletin2030();
     this.evaluateThreatAdvisories();
     this.evaluateStandingLetters();
     this.evaluateContactReactions();
@@ -1861,6 +1861,21 @@ class CampaignController {
   }
   // v1590: one short note for a save that was already under way when the ghost
   // constructs, volcanic worlds and the new land work arrived. New saves never see it.
+  // v2030: one notice to an existing save about the night run's content (10 to 11 Nov).
+  evaluateBulletin2030(){
+    const flags=this.state.mailFlags;if(flags.bulletinV2030)return;
+    flags.bulletinV2030=true;if(!(Number(this.state.completed)>0))return;
+    this.enqueueMail({id:'bulletin_v2030',from:'VOX Operator Records',subject:'Operator bulletin: escorts, moons and mines',category:'system',priority:'normal',
+      body:['More new on the routes. In short:',
+        'Convoy escorts. Free Traders, QuickBite and OSD hire escorts for slow freighters crossing pirate lanes. Raiders go for the freighter until you give them a reason not to.',
+        'Core samples. Moon work for Helix and the Free Traders: dive low across marked craters to take cores. The sampler only reaches from low down.',
+        'Minelayers. Some pirate and mercenary crews seed proximity mines. Kill the layer first. Sometimes you meet a crew in the middle of seeding a lane.',
+        'Asteroid clearance is no longer always quiet. Whoever is hiding in the field may come out once you start shooting.',
+        'Black Contracts. A tenth set piece, the Last Convoy.',
+        'Your contacts now talk about the job in hand more often, and their files on the Networks page record more of what they have told you.',
+        'The operator guide (the ? tab) has the detail.'],
+      actions:[{type:'panel',panel:'guide',label:'OPEN OPERATOR GUIDE'}]})
+  }
   evaluateBulletin1580(){
     const flags=this.state.mailFlags;if(flags.bulletinV1580)return;
     flags.bulletinV1580=true;if(!(Number(this.state.completed)>0))return;
@@ -2117,6 +2132,8 @@ class CampaignController {
     const flags=this.state.mailFlags;
     if(m?.voxMailId){const mail=this.state.mail.find(x=>x.id===m.voxMailId);if(mail)mail.contractDone=true}
     if(m?.blackContract){
+      // v2030: a convoy lost on the way is no Black Contract done. The same one comes back.
+      if((m.diversions||[]).some(d=>d.main&&d.outcome==='lost')){flags.blackOfferOpen=false;flags.blackNextAt=this.state.completed+2;return}
       // The next Black Contract arrives after two more jobs, one threat level higher.
       flags.blackThreat=Math.max(Number(flags.blackThreat)||0,Number(m.threat)||1);flags.blackOfferOpen=false;flags.blackNextAt=this.state.completed+2;
       this.stats().blackDone=(this.stats().blackDone||0)+1;this.checkAchievements();return
@@ -3059,7 +3076,7 @@ class CampaignController {
     this.state.money+=actualPay+hazardPay+diversionPay+bountyCr;this.state.xp+=m.xp+diversionXp+bountyXp;this.state.completed++;
     {const st=this.stats();st.bountyEarned=(st.bountyEarned||0)+bountyCr;if(!m.private&&m.risk>=10)st.contracts.elite=(st.contracts.elite||0)+1;if(diversions.some(d=>d.main&&d.outcome==='surveyed'))st.latticeQuiet=(st.latticeQuiet||0)+1;
       // v1920: counted here, on success, so a drone lost later in the job does not count them.
-      if(diversions.some(d=>d.main&&d.outcome==='escorted'))st.convoysSafe=(st.convoysSafe||0)+1;
+      if(!m.blackContract&&diversions.some(d=>d.main&&d.outcome==='escorted'))st.convoysSafe=(st.convoysSafe||0)+1;
       if(m.ambushSurvived){st.asteroidAmbushes=(st.asteroidAmbushes||0)+1;st.routeEncounters=(st.routeEncounters||0)+1}st.diversionsInvestigated=(st.diversionsInvestigated||0)+diversions.filter(d=>!d.side&&!d.main&&d.outcome!=='ignored'&&d.outcome!=='fired'&&d.outcome!=='abandoned').length;   /* v1430: ignored ones and firing on a migration are not investigations */st.landBeacons=(st.landBeacons||0)+diversions.filter(d=>d.kind==='landBeacon').length;st.latticesPassed=(st.latticesPassed||0)+(m.diversions||[]).filter(d=>d.kind==='lattice'&&d.outcome==='ignored').length;st.cachesClaimed=(st.cachesClaimed||0)+diversions.filter(d=>d.kind==='cache'&&!d.side&&d.outcome!=='tracker').length;if(m.routeEncounter)st.routeEncounters=(st.routeEncounters||0)+1;if(m.templateId){const bt=st.contracts.byTemplate||(st.contracts.byTemplate={});bt[m.templateId]=(bt[m.templateId]||0)+1}if(m.favourFaction)st.favoursDone=(st.favoursDone||0)+1;st.contracts.done++;if(m.faction)st.contracts.byFaction[m.faction]=(st.contracts.byFaction[m.faction]||0)+1;st.creditsEarned+=actualPay+hazardPay+diversionPay+bountyCr;if(!this.missionHits&&!droneLost)st.cleanRuns++;if(droneLost)st.dronesLost++}this.queueSkillPointReminder();
     let repGain=0;
     if(faction){

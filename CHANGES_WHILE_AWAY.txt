@@ -2173,9 +2173,14 @@ NIGHT RUN, 10 to 11 Nov (loop until 3 AM)
       after your first core samples, Kudo after your first minelayer.
     - Contact files (Networks page) now also record what each contact
       told you in their first-meeting letters: 13 new facts.
+    - A one-off Operator bulletin on existing saves lists tonight's new
+      jobs and enemies.
   Fixed:
     - The drone could freeze for good after a city pickup (an old bug,
       about 1 run in 6 on pickup jobs).
+    - Losing the freighter on Last Convoy no longer counts as a finished
+      Black Contract. The same one comes back.
+    - The minelayer crew diversion always has its minelayer now.
   Waiting for you:
     - Secure Terminal Intrusion pays about 1.6x the other jobs per
       minute. Say if you want its fee trimmed.
@@ -2461,4 +2466,26 @@ v2020 New route diversion: minelayer crew
       Diversions. Flown three times with a drone that can be lost: 15 to
       25 s of extra fighting (82 to 93 s against about 65 to 70 s for the
       same job without it), 2 or 3 mines laid, 3 to 4 shield spent.
+
+v2030 Review fixes, and a bulletin about tonight's content
+      A second pass over v1960 to v2020 found four things:
+        - Last Convoy: losing the freighter still counted as a finished
+          Black Contract, raised the threat level, and moved Free Traders
+          standing (a VOX job has no network). Now a lost convoy is not a
+          Black Contract done: no threat raise, no count, no standing, and
+          the same contract comes back after two more jobs. A freighter
+          seen through on a Black Contract no longer counts toward
+          Shepherd or Corvella's convoy letter (those are for her haulers).
+        - Minelayer crew: about 1 time in 9 a pirate ace took the third
+          slot and the crew had no minelayer. Aces and shield tenders no
+          longer join this crew, so the minelayer is always there.
+        - Field ambush voice line (when it is recorded) no longer cuts off
+          the line already playing.
+        - Adding the tenth Black Contract shifts the rotation for a save
+          already past threat 10: the contract offered at threat 11 and
+          up may differ from what it would have been. Nothing is lost, the
+          order is just different. Left as it is.
+      New: saves with played contracts get one Operator bulletin, "Operator
+      bulletin: escorts, moons and mines", naming tonight's new jobs, the
+      minelayer and where to find them. Fresh saves do not get it.
 
