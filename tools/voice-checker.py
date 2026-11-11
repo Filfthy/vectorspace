@@ -97,7 +97,9 @@ def all_lines():
                     'rendered': s.get('rendered', ''),
                     'inGame': os.path.exists(gp), 'gameTime': os.path.getmtime(gp) if os.path.exists(gp) else 0,
                     'raw': os.path.exists(rp), 'rawTime': os.path.getmtime(rp) if os.path.exists(rp) else 0})
-    return out
+    # The numbered originals first (1 to 11), then the rest in the order the game lists them.
+    num = lambda l: int(re.match(r'\d+', l['file']).group()) if re.match(r'\d', l['file']) else 10**6
+    return sorted(out, key=num)
 
 
 def render(fn, say, rate=0, pitch=0):
