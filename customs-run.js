@@ -18,7 +18,10 @@ const AgentXCustomsRun={
   begin(stage,risk){
     risk=Math.max(1,Number(risk)||1);
     this.risk=risk;this.total=Math.max(3,Math.min(7,3+Math.round(risk*.45)));
-    this.arms=risk<4?2:(risk<7?3:4);this.speed=.75+.07*risk;
+    this.arms=risk<4?2:(risk<7?3:4);
+    // v2070: a gentler sweep (was .75+.07 per risk, 1.38 rad/s at risk 9, faster than the
+    // drone can follow a gap). Now .81 at risk 9: still needs reading ahead, but fair.
+    this.speed=.45+.04*risk;
     this.rings=[];this.passed=0;this.scans=0;this.state='picket';this.lastResult=null;this.lastScans=0;
     this.place(this.SPACING+60);
     // A Codex flag, the same way the old minefield opens its entry.

@@ -2563,3 +2563,20 @@ v2060 Customs Run: Cassian's letter, a headline, voice lines
       already playing. Checked: the letter is sent once the clean run is
       counted, with the right sender, and the headline becomes eligible.
 
+v2070 Customs Run: a fairer sweep at high risk
+      The self-test pilot reads exactly where each gap will be when it
+      arrives, so it always ran clean. I flew the picket again with pilots
+      closer to a person: a little shaky, one leading the gap by half the
+      time to arrival, one aiming at the gap it can see now. At risk 9 the
+      arms turned at 1.38 radians a second, faster than the drone can
+      follow a gap, and even the half-lead pilot was scanned at 5 rings of
+      7. The sweep is now 0.45 + 0.04 per risk (0.57 at risk 3, 0.69 at
+      risk 6, 0.81 at risk 9). Arm counts are unchanged (2, 3, 4).
+      Three flights each, rings scanned:
+        risk 3, 2 arms: no lead 0 of 12, full lead 0 of 12
+        risk 6, 3 arms: no lead 0 of 18, full lead 0 of 18
+        risk 9, 4 arms: no lead 11 of 21, full lead 0 of 21
+      So low and mid risk reward simply flying for the gap, and risk 9
+      asks you to read the arms ahead. A person is shakier than these
+      pilots, so expect the odd scan at every risk.
+
