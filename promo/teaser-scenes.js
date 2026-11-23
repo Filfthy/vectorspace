@@ -37,19 +37,19 @@ const CAM={
 };
 const WORLDS=[
   {name:'england',col:C.g,amp:.55,seed:301,herd:{kind:'horse',n:7,v:11,tints:[C.o,C.w,C.y,C.o,C.o,C.w,C.y]},cam:CAM.chase,
-    land:{mesh:M.stonehenge,col:C.w,s:1.7,at:17.5,side:36,ahead:6,r:26},props:{mesh:M.oak,col:C.g,n:26,s:[.8,1.3]}},
+    land:{mesh:M.stonehenge,col:C.w,s:1.7,at:17.5,side:36,ahead:6,r:26,foot:[[0,0,15],[2,-28,4]]},props:{mesh:M.oak,col:C.g,n:26,s:[.8,1.3]}},
   {name:'australia',col:C.o,amp:.35,seed:302,crit:{type:'kangaroo',n:7,v:9.5,col:C.o,s:1.3},cam:CAM.front,mirror:true,
-    land:{mesh:M.uluru,col:C.r,s:1.4,at:16,side:100,ahead:-10,r:70,yaw:PI/2},props:{mesh:M.spinifex,col:C.y,n:40,s:[.8,1.4]}},
+    land:{mesh:M.uluru,col:C.r,s:1.4,at:16,side:100,ahead:-10,r:70,yaw:PI/2,foot:[[-30,0,17],[0,0,19],[30,0,17]]},props:{mesh:M.spinifex,col:C.y,n:40,s:[.8,1.4]}},
   {name:'egypt',col:C.y,amp:1.25,seed:303,herd:{kind:'camel',n:6,v:5.5,space:1.4},camK:1.25,lookK:.6,cam:CAM.slow,
-    land:{mesh:M.giza,col:C.w,s:1.15,at:17,side:80,ahead:20,r:80,yaw:.5},props:{mesh:M.palm,col:C.g,n:10,s:[1,1.4]}},
+    land:{mesh:M.giza,col:C.w,s:1.15,at:17,side:80,ahead:20,r:80,yaw:.5,foot:[[0,0,30],[-46,30,28],[-78,58,15],[-86,74,9],[30,-38,10]]},props:{mesh:M.palm,col:C.g,n:10,s:[1,1.4]}},
   {name:'india',col:C.u,amp:.3,seed:304,herd:{kind:'elephant',n:5,v:3.6,space:2},camK:1.3,cam:CAM.front,mirror:true,
-    land:{mesh:M.taj,col:C.w,s:1.2,at:16,side:70,ahead:4,r:40,yaw:-PI/2},props:{mesh:M.palm,col:C.g,n:22,s:[1,1.5]}},
+    land:{mesh:M.taj,col:C.w,s:1.2,at:16,side:70,ahead:4,r:40,yaw:-PI/2,foot:[[0,0,28],[0,-50,9],[0,-72,9]]},props:{mesh:M.palm,col:C.g,n:22,s:[1,1.5]}},
   {name:'kenya',col:C.o,amp:.35,seed:305,herd:{kind:'giraffe',n:4,v:6.5,space:1.5,mix:{kind:'zebra',n:6}},camK:1.3,lookK:.45,cam:CAM.chase,
     land:{mesh:M.kilimanjaro,col:C.u,s:1.4,at:16,side:330,ahead:120,r:0},props:{mesh:M.acacia,col:C.g,n:22,s:[1,1.5]}},
   {name:'peru',col:C.g,amp:.9,seed:306,herd:{kind:'llama',n:7,v:4.6,space:1.2},camK:1.45,lookK:.7,cam:CAM.slow,mirror:true,
-    land:{mesh:M.machuPicchu,col:C.g,s:1.3,at:16,side:95,ahead:30,r:60,yaw:PI},props:{mesh:M.iceBlock,col:C.w,n:0}},
+    land:{mesh:M.machuPicchu,col:C.g,s:1.3,at:16,side:95,ahead:30,r:60,yaw:PI,foot:[[0,-6,64],[2,34,34]]},props:{mesh:M.iceBlock,col:C.w,n:0}},
   {name:'usa',col:C.y,amp:.45,seed:307,herd:{kind:'bison',n:12,v:11,space:1.25},camK:1.15,lookK:.6,cam:CAM.chase,
-    land:{mesh:M.monumentValley,col:C.o,s:1.4,at:17,side:110,ahead:20,r:90,yaw:.2},props:{mesh:M.saguaro,col:C.g,n:24,s:[.9,1.4]}},
+    land:{mesh:M.monumentValley,col:C.o,s:1.4,at:17,side:110,ahead:20,r:90,yaw:.2,foot:[[-48,0,30],[10,12,30],[72,-10,42]]},props:{mesh:M.saguaro,col:C.g,n:24,s:[.9,1.4]}},
   {name:'antarctica',col:C.c,amp:.25,seed:308,crit:{type:'penguin',n:11,v:1.3,col:C.w,s:1.25},cam:CAM.close,aurora:true,
     land:{mesh:M.iceberg,col:C.w,s:3.2,at:9,side:85,ahead:70,r:0,many:[[60,90,2.4],[105,140,4],[150,50,3],[-80,190,3.4]]},props:{mesh:M.iceBlock,col:C.w,n:12,s:[.7,1.4]}},
 ];
@@ -70,6 +70,8 @@ function camKey(keys,u){
   return k1.slice(1).map((_,j)=>{const p0=k0[j+1],p1=k1[j+1],p2=k2[j+1],p3=k3[j+1];return .5*((2*p1)+(-p0+p2)*t+(2*p0-5*p1+4*p2-p3)*t2+(-p0+3*p1-3*p2+p3)*t3)})
 }
 function cameraAt(w,u){
+  if(w.studio){const S=w.studio,c=pathAt(w,u),{F,R}=frameOf(c.h),x=c.x+R[0]*S.side+F[0]*S.along,z=c.z+R[1]*S.side+F[1]*S.along,y=ground(x,z)+S.h,tx=c.x,tz=c.z,ty=ground(c.x,c.z)+(S.lookY||1.6);
+    return{x,y,z,yaw:Math.atan2(tx-x,tz-z),pitch:Math.atan2(y-ty,Math.hypot(tx-x,tz-z))}}
   let K=w.def.camK||1,[s0,a0,h0,lookF,lookL]=camKey(w.def.cam,u),side=s0*K*(w.def.mirror?-1:1),along=a0*K,hgt=h0*Math.sqrt(K);
   const c=pathAt(w,u),{F,R}=frameOf(c.h);
   const x=c.x+R[0]*side+F[0]*along,z=c.z+R[1]*side+F[1]*along;
@@ -101,12 +103,15 @@ function buildWorld(w,origin){
     if(L.many)w.extra=L.many.map(([sd,ah,sc])=>({x:c.x+R[0]*sd*s+F[0]*ah,z:c.z+R[1]*sd*s+F[1]*ah,s:sc,yaw:rand()*6.3}))}
   // The ground: this world's roll, levelled under the landmark.
   const amp=d.amp,base=Object.getPrototypeOf(G).rawDune;
-  G.flats=(G.flats||[]).filter(f=>!f.promo);if(w.land&&w.land.r)G.flats.push({x:w.land.x,z:w.land.z,r0:w.land.r,r1:w.land.r+35,promo:true});
+  G.flats=(G.flats||[]).filter(f=>!f.promo);
+  if(w.land){const L=w.land,ca=Math.cos(L.yaw),sa=Math.sin(L.yaw);
+    for(const[fx,fz,fr]of(L.foot||(L.r?[[0,0,L.r/L.s]]:[]))){const x=fx*L.s,z=fz*L.s;G.flats.push({x:L.x+x*ca+z*sa,z:L.z-x*sa+z*ca,r0:fr*L.s,r1:fr*L.s+30,promo:true})}
+    for(const e of w.extra||[])G.flats.push({x:e.x,z:e.z,r0:11*e.s,r1:11*e.s+22,promo:true})}
   G.rawDune=function(x,z){return base.call(this,x,z)*amp};G.hCache.clear();
   scatter(w,rand);
   const grp={name:'HERD',letter:'H',cx:1e7,cwz:1e7,navX:1e7,navWZ:1e7,radius:1,cleared:false,ids:[]};
   w.slots=[];
-  const sp=(d.herd||d.crit).space||1,slot=(i,n)=>{const row=Math.floor(i/3),col=i%3-1;return{r:(col*3.2+(rand()-.5)*1.4+(row%2)*1.2)*sp,f:(-row*5.5+(rand()-.5)*2)*sp}};
+  const sp=(d.herd||d.crit).space||1,slot=(i,n)=>{const row=Math.floor(i/3),col=i%3-1;return{r:(col*3.2+(rand()-.5)*1.4+(row%2)*1.2)*sp,f:(-row*5.5+(rand()-.5)*2)*sp,ph1:rand()*6.3,ph2:rand()*6.3}};
   if(d.herd){
     const list=[...Array(d.herd.n).fill(d.herd.kind),...(d.herd.mix?Array(d.herd.mix.n).fill(d.herd.mix.kind):[])];
     list.forEach((kind,i)=>{const sl=slot(i,list.length),c=pathAt(w,0),{F,R}=frameOf(c.h),x=c.x+R[0]*sl.r+F[0]*sl.f,z=c.z+R[1]*sl.r+F[1]*sl.f;
@@ -176,7 +181,9 @@ const gameThink=groundAssault.think.bind(groundAssault);
 groundAssault.think=function(un,dt){
   const w=teaserScene();if(!un.teaser||!w||!w.path)return gameThink(un,dt);
   const u=w.u(D.clock),c=pathAt(w,u+.5),{F,R}=frameOf(c.h),sl=un.teaser;
-  const tx=c.x+R[0]*sl.r+F[0]*sl.f,tz=c.z+R[1]*sl.r+F[1]*sl.f,want=Math.atan2(tx-un.x,tz-un.wz),dist=Math.hypot(tx-un.x,tz-un.wz);
+  // Each animal drifts slowly about its place, surging and easing at its own rhythm.
+  const sp=(w.def.herd?.space||1),dr=Math.sin(u*.42+(sl.ph1||0))*.8*sp,df=Math.sin(u*.29+(sl.ph2||0))*1.8*sp+Math.sin(u*1.1+(sl.ph1||0)*2)*.35*sp;
+  const tx=c.x+R[0]*(sl.r+dr)+F[0]*(sl.f+df),tz=c.z+R[1]*(sl.r+dr)+F[1]*(sl.f+df),want=Math.atan2(tx-un.x,tz-un.wz),dist=Math.hypot(tx-un.x,tz-un.wz);
   un.h=wrapAngle(un.h+clamp(wrapAngle(want-un.h),-1.8*dt,1.8*dt));un.aggro=false;un.fireCD=99;
   un.speed=moveToward(un.speed,clamp(w.path.v+(dist-w.path.v*.5)*.9,w.path.v*.4,w.path.v*1.5),dt*5)
 };
@@ -196,8 +203,8 @@ groundAssault.drawMarker=function(){if(teaserScene())return;return gameMarker()}
 // ---------- Kangaroos and penguins ----------
 function moveCrits(w,dt){
   if(!w.crits)return;const u=w.u(D.clock),d=w.def.crit;
-  for(const k of w.crits){const c=pathAt(w,u),{F,R}=frameOf(c.h);
-    k.x=c.x+R[0]*k.r+F[0]*(k.f+(k.slide?Math.min(9,u*.8):0));k.z=c.z+R[1]*k.r+F[1]*(k.f+(k.slide?Math.min(9,u*.8):0));k.h=c.h+(d.type==='penguin'?Math.sin(u*1.3+k.ph*6)*.12:0);
+  for(const k of w.crits){const c=pathAt(w,u),{F,R}=frameOf(c.h),dr=Math.sin(u*.4+(k.ph1||0))*.6,df=Math.sin(u*.27+(k.ph2||0))*1.2+(k.slide?Math.min(9,u*.8):0);
+    k.x=c.x+R[0]*(k.r+dr)+F[0]*(k.f+df);k.z=c.z+R[1]*(k.r+dr)+F[1]*(k.f+df);k.h=c.h+(d.type==='penguin'?Math.sin(u*1.3+k.ph*6)*.12:0);
     k.ph=(k.ph+dt*(d.type==='kangaroo'?1.7*k.rate:1.6*k.rate))%1}
 }
 function drawCrit(w,k){
@@ -212,14 +219,15 @@ function drawCrit(w,k){
 const gameTrees=groundAssault.appendTrees.bind(groundAssault);
 groundAssault.appendTrees=function(scene){
   gameTrees(scene);const w=teaserScene();if(!w||!w.built)return;
-  const put=(x,z,mesh,col,s,yaw,top,sight,alpha=1)=>{
+  const put=(x,z,mesh,col,s,yaw,top,sight,alpha=1,foot=0)=>{
     const dist=Math.hypot(x-shipX,z-travel);if(dist>sight)return;
-    const gy=ground(x,z),q=camPoint([x,gy+top*.4,z-travel]);if(q[2]<-top)return;
+    let gy=ground(x,z);if(foot)for(const[a,b]of[[foot,0],[-foot,0],[0,foot],[0,-foot]])gy=Math.min(gy,ground(x+a,z+b)-.2);
+    const q=camPoint([x,gy+top*.4,z-travel]);if(q[2]<-top)return;
     const haze=clamp((sight-dist)/(sight*.3),0,1)*alpha;
     scene.push({z:Math.max(.3,q[2]),draw:()=>drawMesh({x,y:gy-.15,z:z-travel,s,rot:[0,yaw,0],fadeZ:Math.max(0,q[2])*.7},mesh,col,haze)})};
   if(w.land)put(w.land.x,w.land.z,w.land.mesh,w.land.col,w.land.s,w.land.yaw,w.land.top,w.land.mesh===M.kilimanjaro?900:520,.95);
   for(const e of w.extra||[])put(e.x,e.z,w.land.mesh,w.land.col,e.s,e.yaw,12*e.s,420,.9);
-  const pr=w.def.props;for(const p of w.props||[])put(p.x,p.z,pr.mesh,pr.col,p.s,p.yaw,5*p.s,150,.9);
+  const pr=w.def.props;for(const p of w.props||[])put(p.x,p.z,pr.mesh,pr.col,p.s,p.yaw,5*p.s,150,.9,.6*p.s);
   for(const k of w.crits||[]){const q=camPoint([k.x,ground(k.x,k.z)+1,k.z-travel]);if(q[2]>.4&&q[2]<150)scene.push({z:q[2],draw:()=>drawCrit(w,k)})}
   if(w.def.aurora)scene.push({z:1e5,draw:()=>drawAurora(w)})
 };
@@ -264,7 +272,23 @@ D.drawTitles=t=>{
   if(a>0){D.vtext('Vector Space',W*.5,viewH*.16,Math.round(W/22),C.g,a);D.vtext('Agent X',W*.5,viewH*.16+W/22,Math.round(W/40),C.w,a*.9)}
 };
 
+// ---------- Studio: one animal alone on flat ground, filmed from a fixed side, for model work ----------
+// TeaserScenes.studio({kind:'horse'} or {crit:'kangaroo'}, v, side, along, h, col) then studioShot(u) steps to u
+// seconds and draws the frame.
+function studio(o){
+  const def={name:'studio',col:o.col||C.g,amp:0,seed:9,cam:CAM.chase,turn:0,
+    herd:o.kind?{kind:o.kind,n:o.n||1,v:o.v??10,space:o.space||1}:null,crit:o.crit?{type:o.crit,n:o.n||1,v:o.v??8,col:o.critCol||C.o,s:o.s||1.3}:null};
+  const w={name:'studio',def,t0:0,built:false,studio:{side:o.side??-9,along:o.along??0,h:o.h??1.8,lookY:o.lookY},u:t=>t-w.t0};
+  if(!scenes.includes(w))scenes.push(w);
+  D.takeControl();D.seed(9);D.clock=1000;
+  launch(m=>{m.planetaryRequirements={landingBody:'planet',landingColour:'green',moonCount:{min:0,max:0}};m.modules=m.modules.filter(x=>x.type==='dune_assault')});
+  planetRings=null;planetLandingColour=def.col;D.scene=w;w.t0=D.clock;
+  buildWorld(w,{x:shipX,z:travel+30,h:0});w.props=[];
+  TeaserScenes.cur=w;return w
+}
+function studioShot(u){const w=TeaserScenes.cur,dt=1/30;while(w.u(D.clock)<u-1e-6){D.gclock+=dt;D.clock+=dt;update(dt)}D.gclock+=dt;render(1e6+D.gclock*1000)}
+
 D.scenes.push(...scenes);
 D.T.videoEnd=PROMO_SONG.length;
-globalThis.TeaserScenes={scenes,byName,cameraAt,pathAt,WORLDS};
+globalThis.TeaserScenes={scenes,byName,cameraAt,pathAt,WORLDS,studio,studioShot};
 })();
