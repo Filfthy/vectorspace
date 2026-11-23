@@ -76,14 +76,13 @@ const fins=(m,from,to,n,h=.22)=>m.mark('mane',()=>{for(let i=0;i<n;i++){const u=
 const mech=(id,o)=>animal(id,{...o,minCycle:o.minCycle??GA_KINDS.hound.minCycle});
 
 // HORSE: an armoured chest, a raised beam neck with cooling fins for a mane, a long wedge
-// head with an eye on each side, and a cable tail.
+// head and a cable tail.
 {const Y=1.9;
   mech('horse',{Y,s:1.3,col:C.o,top:4,legs:houndLegs(1),reach:1.7,
     body(m){
       m.loft([bsec(.42,Y-.42,Y+.3,-1.3),bsec(.52,Y-.38,Y+.36,-.35),bsec(.48,Y-.3,Y+.34,.6),bsec(.44,Y-.24,Y+.3,1.1)]);
       m.beam([0,Y+.12,-1.12],[0,Y+1.35,-1.62],.34,.46,.78);
       m.loft([bsec(.21,Y+1.12,Y+1.5,-1.56),bsec(.15,Y+.86,Y+1.12,-2.36)]);
-      m.mark('eyes',()=>{for(const sx of[-1,1])eye(m,[sx*.2,Y+1.3,-1.8],[sx,0,0],.075)});
       for(const sx of[-1,1])m.beam([sx*.13,Y+1.46,-1.6],[sx*.18,Y+1.78,-1.52],.07,.12,.35);
       fins(m,[0,Y+.5,-1.2],[0,Y+1.42,-1.6],5,.24);
       m.mark('tail',()=>{m.beam([0,Y+.25,1.08],[0,Y-.05,1.45],.12,.12,.8);m.beam([0,Y-.05,1.45],[0,Y-.75,1.6],.1,.16,.4)});
@@ -209,7 +208,6 @@ function buildKangaroo(m,pose){
   const ch=at(1.15),hd=[0,ch[1]+.5,ch[2]-.12];
   m.beam([0,ch[1]+.1,ch[2]],[0,hd[1]-.1,hd[2]+.05],.2,.22,.85);
   m.loft([bsec(.16,hd[1]-.14,hd[1]+.16,hd[2]+.1),bsec(.09,hd[1]-.1,hd[1]+.04,hd[2]-.42)]);
-  m.mark('eyes',()=>{for(const sx of[-1,1])eye(m,[sx*.145,hd[1]+.07,hd[2]-.05],[sx,0,0],.05)});
   m.mark('ears',()=>{for(const sx of[-1,1])m.beam([sx*.1,hd[1]+.14,hd[2]+.05],[sx*.18,hd[1]+.62,hd[2]+.18],.06,.13,.3)});
   for(const sx of[-1,1]){const s0=at(.78),sh=[sx*.26,s0[1],s0[2]],el=[sx*.28,sh[1]-.32,sh[2]-.16],pw=[sx*.22,el[1]-.08,el[2]-.24];m.beam(sh,el,.08,.08,.9);m.beam(el,pw,.07,.07,.8)}
   for(const sx of[-1,1]){
@@ -242,7 +240,6 @@ function buildPenguin(m,pose){
   m.mark('head',()=>m.loft([oct(1.48,.24),oct(1.62,.27),oct(1.84,.23),oct(1.94,.12)],false,true));
   m.mark('beak',()=>m.loft([bsec(.07,1.66,1.78,-.2),bsec(.03,1.64,1.7,-.5)]));
   m.mark('eyes',()=>{for(const sx of[-1,1])eye(m,[sx*.185,1.79,-.135],[sx*.717,0,-.697],.045)});
-  m.mark('cheeks',()=>{for(const sx of[-1,1])m.box([sx*.25,1.62,.07],[.02,.14,.11])});
   m.mark('fins',()=>{for(const sx of[-1,1]){const out=.25+.2*Math.abs(Math.sin(w*2));m.loft([[[sx*.44,1.15,-.12],[sx*.44,1.15,.14]],[[sx*(.5+out*.25),.5,-.06],[sx*(.5+out*.25),.5,.1]]].map(r=>[...r,...r.slice().reverse().map(p=>[p[0]+sx*.05,p[1],p[2]])]),false,false)}});
   for(const[sx,st]of[[-1,stepL],[1,stepR]])m.beam([sx*.16,.36,0],[sx*.18,st+.12,-.06],.12,.12,.9);
   m.mark('feet',()=>{for(const[sx,st]of[[-1,stepL],[1,stepR]])m.loft([m.ringXZ(sx*.18,st,-.14,.2,.24,6),m.ringXZ(sx*.18,st+.08,-.12,.13,.16,6)])});
@@ -400,5 +397,13 @@ const spinifex=staticMesh(m=>{for(let i=0;i<11;i++){const a=i/11*2*PI;line(m,[[0
   m.box([0,.05,0],[.3,.1,.3])},null);
 const iceBlock=staticMesh(m=>{m.loft([[[-1.5,0,-1],[1.2,0,-1.3],[1.6,0,.9],[-1,0,1.2]],[[-1.2,1.4,-.8],[1,1.8,-1],[1.3,1.2,.7],[-.8,1.6,1]]],false,true)},null);
 
-globalThis.TeaserModels={quadLegs,kindColours,kangaroo,hopH,hopX,penguin,stonehenge,uluru,giza,taj,kilimanjaro,machuPicchu,monumentValley,iceberg,oak,palm,acacia,saguaro,spinifex,iceBlock};
+// A freighter crossing high over the planet: a long hull, a spine of cargo pods, the bridge
+// at the stern and three engine bells. Faces -z.
+const freighter=staticMesh(m=>{
+  m.loft([bsec(1.6,-1.6,1.4,-21),bsec(2.6,-2.2,2.2,-14),bsec(2.8,-2.4,2.4,12),bsec(2.2,-1.9,1.9,19)]);
+  m.mark('cargo',()=>{for(let i=0;i<6;i++)m.box([0,3.3,-11+i*4.2],[4.4,2,3.6])});
+  m.box([0,4.4,15],[3.2,3.4,3.4]);m.box([0,6.4,15.6],[2,.6,1.6]);
+  m.mark('engines',()=>{for(const[x,y]of[[-1.6,-.4],[1.6,-.4],[0,1.2]])m.barrel(x,y,19,22.5,1)});
+},{cargo:C.y,engines:C.c});
+globalThis.TeaserModels={freighter,quadLegs,kindColours,kangaroo,hopH,hopX,penguin,stonehenge,uluru,giza,taj,kilimanjaro,machuPicchu,monumentValley,iceberg,oak,palm,acacia,saguaro,spinifex,iceBlock};
 })();

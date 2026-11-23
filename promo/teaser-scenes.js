@@ -5,7 +5,7 @@
 // bison, and penguins under an aurora. The ground's colour and roll shift gradually from herd
 // to herd; a few landmarks stand far off the route (Stonehenge, Uluru, the pyramids...).
 // At the end the camera tilts up to the aurora over the penguins and holds there.
-//   0:00 titles over the ground   0:14 horses     0:35 kangaroos   0:56 camels
+//   0:00 the horses gallop past the camera   0:14 horses     0:35 kangaroos   0:56 camels
 //   1:18 elephants   1:39 giraffes and zebras   2:00 llamas   2:21 bison   2:43 penguins
 //   2:57 up to the aurora
 (()=>{
@@ -49,7 +49,9 @@ const HERDS=[
   {sec:'antarctica',crit:'penguin',n:11,v:1.3,walk:.8,space:.6,critCol:C.w,critS:1.25,ground:C.c,amp:.25,rock:C.w,K:.8,lookY:.9,aurora:true,
     bergs:[[140,25,1.4],[-160,70,1.8],[180,130,2],[-200,10,2.2],[150,-60,1.6],[-170,-110,1.8]]},
 ];
-HERDS.forEach((H,i)=>{H.i=i;H.K*=1.35;H.T=T[H.sec];H.Tn=i<HERDS.length-1?T[HERDS[i+1].sec]:Infinity;H.side=i%2?1:-1;H.walk=H.walk??Math.min(1.2,H.v*.25)});
+const SHOTS=['flank','wide','high','flank','wide','high','flank','flank'];
+HERDS.forEach((H,i)=>{H.i=i;H.K*=1.35;H.T=T[H.sec];H.Tn=i<HERDS.length-1?T[HERDS[i+1].sec]:Infinity;H.side=i%2?1:-1;H.shot=SHOTS[i];
+  H.walk=i===0?H.v:H.walk??Math.min(1.2,H.v*.25)});   // the horses are already galloping when the video opens
 
 // The herd's speed: a slow walk until its turn, up to full speed as the camera arrives,
 // on until the camera has left for the next herd, then easing to a stop.
@@ -85,9 +87,12 @@ function sAt(H,t){return H.fixedV!=null?H.anchor+H.fixedV*(t-H.t0):H.anchor+cumA
 // Keys per herd: [u (s from the herd's turn), side (out from the herd, on its camera side),
 // along (+ ahead of its centre), height, look ahead of the centre]. It comes up behind the herd,
 // runs along its flank, gets a little ahead and falls back level with it as it thunders past.
-const KEYS=[[0,9,-30,5,8],[5,11,-12,3.2,5],[10,12,2,2.6,3],[15,13,14,2.8,0],[19.5,16,6,3.6,4]];
-// The opening, under the titles: high and far back over the land, gliding down to the horses.
-const INTRO_KEYS=[[-15,2,-125,15,40],[-7.5,6,-70,8.5,20],...KEYS];
+// Three styles, so the shots vary from herd to herd: in close along the flank, a wide pan from
+// further out and higher up, and a high sweeping shot looking down on the herd.
+const SHOT_KEYS={
+  flank:[[0,9,-30,5,8],[5,11,-12,3.2,5],[10,12,2,2.6,3],[15,13,14,2.8,0],[19.5,16,6,3.6,4]],
+  wide:[[0,14,-42,8,10],[6,22,-22,7,6],[12,27,0,6.5,3],[17,25,16,7,0],[19.5,23,10,7.5,4]],
+  high:[[0,6,-38,12,14],[6,14,-16,9.5,6],[12,20,4,8,2],[17,19,18,7,-2],[19.5,21,12,7.5,3]]};
 function camKey(keys,u){
   const n=keys.length;if(u<=keys[0][0])return keys[0].slice(1);if(u>=keys[n-1][0])return keys[n-1].slice(1);
   let i=0;while(i<n-2&&u>keys[i+1][0])i++;
@@ -100,14 +105,23 @@ function camGround(x,z){let g=0;for(const[a,b]of[[0,0],[4,0],[-4,0],[0,4],[0,-4]
 function herdCam(H,t){
   const s=sAt(H,t),c=routeAt(s),{F,R}=frameOf(c.h),ty=ground(c.x,c.z)+(H.lookY||1.8);
   if(run.studio){const S=run.studio,x=c.x+R[0]*S.side+F[0]*S.along,z=c.z+R[1]*S.side+F[1]*S.along;return look(x,ground(x,z)+S.h,z,c.x,ground(c.x,c.z)+(S.lookY||1.6),c.z)}
-  const K=H.K,[sd,al,hh,lf]=camKey(H.i===0?INTRO_KEYS:KEYS,t-H.T),side=(sd*K+3)*H.side,along=al*K;
+  const K=H.K,[sd,al,hh,lf]=camKey(SHOT_KEYS[H.shot||'flank'],t-H.T),side=(sd*K+3)*H.side,along=al*K;
   const x=c.x+R[0]*side+F[0]*along,z=c.z+R[1]*side+F[1]*along;
   return look(x,camGround(x,z)+hh*Math.sqrt(K),z,c.x+F[0]*lf*K,ty,c.z+F[1]*lf*K)
 }
+// The opening: the camera waits low beside the route as the horses gallop up and thunder past
+// it, following them round, then speeds up and falls in behind them for the chase.
+const PASS=7;
+function introCam(t){
+  const H=run.herds[0],c=routeAt(sAt(H,PASS)),{R}=frameOf(c.h),l=15*H.side,x=c.x+R[0]*l,z=c.z+R[1]*l,h=routeAt(sAt(H,t)),{F}=frameOf(h.h);
+  return look(x,camGround(x,z)+1.7,z,h.x+F[0]*3,ground(h.x,h.z)+2.2,h.z+F[1]*3)}
+const blendCam=(a,c,b)=>({x:lerp(a.x,c.x,b),y:lerp(a.y,c.y,b),z:lerp(a.z,c.z,b),yaw:a.yaw+wrapAngle(c.yaw-a.yaw)*b,pitch:lerp(a.pitch,c.pitch,b)});
 // Between herds the camera lifts and flies on to the next one, turning to it as it goes.
 const FLY0=3.2,FLY1=1.3;
 function cameraAt(t){
-  const Hs=run.herds;let i=0;while(i<Hs.length-1&&t>=Hs[i+1].T+FLY1)i++;
+  const Hs=run.herds;
+  if(!run.studio&&t<Hs[0].T+1.5){const a=introCam(t),b=ease(t,PASS+2.5,Hs[0].T+1.5);return b>0?blendCam(a,herdCam(Hs[0],t),b):a}
+  let i=0;while(i<Hs.length-1&&t>=Hs[i+1].T+FLY1)i++;
   const a=herdCam(Hs[i],t);if(i>=Hs.length-1||t<=Hs[i+1].T-FLY0)return a;
   const b=ease(t,Hs[i+1].T-FLY0,Hs[i+1].T+FLY1),c=herdCam(Hs[i+1],t),arc=Math.sin(PI*b);
   const by=ease(t,Hs[i+1].T-FLY0,Hs[i+1].T-FLY0+(FLY0+FLY1)*.6);
@@ -161,7 +175,7 @@ function buildRun(origin,opt={}){
       G.flats.push({x:p.x,z:p.z,r0:11*sc,r1:11*sc+22,promo:true})}
   }
   terrainOn();
-  if(!opt.studio)scatterRocks(rand);
+  if(!opt.studio){scatterRocks(rand);buildSky()}else run.sky=null;
   run.built=true
 }
 // Rocks all along the route, both sides, coloured for each stretch; never in the herds' lane,
@@ -171,7 +185,7 @@ function scatterRocks(rand){
   const cams=new Map(),key=(x,z)=>Math.floor(x/12)+','+Math.floor(z/12);
   for(let t=0;t<LIFT+1;t+=.2){const c=cameraAt(t),k=key(c.x,c.z);(cams.get(k)||cams.set(k,[]).get(k)).push(c)}
   const nearCam=(x,z,r)=>{const i=Math.floor(x/12),j=Math.floor(z/12);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(const c of cams.get((i+a)+','+(j+b))||[])if(Math.hypot(c.x-x,c.z-z)<r)return true;return false};
-  const s0=Hs[0].anchor-190,s1=sAt(Hs[Hs.length-1],LIFT)+160;
+  const s0=Hs[0].anchor-260,s1=sAt(Hs[Hs.length-1],LIFT)+160;
   const rock=(s,l,sz)=>{
     const p=worldAt(s,l),mx=1.05+rand()*1.25,my=.45+rand()*.62,mz=.95+rand()*1.1,bury=.12+rand()*.18,r=sz*Math.max(mx,mz)*.85;
     if(nearCam(p.x,p.z,10+r))return;
@@ -305,21 +319,24 @@ groundAssault.appendTrees=function(scn){
     scn.push({z:Math.max(70,near),draw:()=>drawMesh({x:e.x,y:gy-.15,z:e.z-travel,s:e.s,rot:[0,e.yaw,0],fadeZ:Math.max(0,q[2])*.7},e.mesh,e.col,haze)})};
   for(const e of run.lands)put(e);for(const e of run.bergs)put(e);
   for(const H of run.herds)for(const q of H.crits||[]){const p=camPoint([q.x,ground(q.x,q.z)+1,q.z-travel]);if(p[2]>.4&&p[2]<150)scn.push({z:p[2],draw:()=>drawCrit(H,q)})}
-  const t=D.clock,last=run.herds[run.herds.length-1],au=last.aurora?ease(t,last.T-FLY0,last.T+FLY1+2):0;
-  const big=ease(t,LIFT,LIFT+7);
-  if(big>0)scn.push({z:2e5,draw:()=>drawStars(big*.9)});
-  if(au>0)scn.push({z:1e5,draw:()=>drawAurora(au,big)})
+  if(run.sky)appendSky(scn)
 };
+// The stars and the aurora are drawn before the horizon, so the mountains stand in front of them.
+const gameHorizon=window.drawSharedSurfaceHorizon;
+window.drawSharedSurfaceHorizon=function(...args){
+  if(active()&&!run.studio){const t=D.clock,last=run.herds[run.herds.length-1],au=last.aurora?ease(t,last.T-FLY0,last.T+FLY1+2):0,big=ease(t,LIFT,LIFT+7);
+    if(big>0)drawStars(big*.9);if(au>0)drawAurora(au,big)}
+  return gameHorizon.apply(this,args)};
 const gameUpdateGA=groundAssault.update?.bind(groundAssault);
 if(gameUpdateGA)groundAssault.update=function(dt){const r=gameUpdateGA(dt);if(active())moveCrits(dt);return r};
 
 // The aurora: green and cyan curtains hanging over the ice, rippling slowly.
 // At the end (big 0..1) the curtains grow taller and brighter, filling the sky the camera looks up to.
 function drawAurora(alpha,big=0){
-  const t=D.clock,n=Math.round(70+70*big),step=1.8/n;ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;
+  const t=D.clock,SPAN=3.6,n=Math.round(140+140*big),step=SPAN/n;ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;
   for(let band=0;band<3;band++)for(let i=0;i<n;i++){
     if(band===2&&big<=0)break;
-    const az=run.H0-.9+i*step+band*.12+Math.sin(i*step*3+t*.15+band)*.08*big,el0=.1+band*(.05+.12*big)+Math.sin(i*step*12+t*.4+band)*(.03+.04*big),el1=el0+(.12+.07*Math.sin(i*step*6.5-t*.6+band*2))*(1+1.8*big);
+    const az=run.H0-SPAN/2+i*step+band*.12+Math.sin(i*step*3+t*.15+band)*.08*big,el0=.1+band*(.05+.12*big)+Math.sin(i*step*12+t*.4+band)*(.03+.04*big),el1=el0+(.12+.07*Math.sin(i*step*6.5-t*.6+band*2))*(1+1.8*big);
     const dir=(el)=>[Math.sin(az)*Math.cos(el),Math.sin(el),Math.cos(az)*Math.cos(el)],R=3000;
     const a=dir(el0),b=dir(el1),pa=proj([shipX+a[0]*R,shipY+a[1]*R,a[2]*R]),pb=proj([shipX+b[0]*R,shipY+b[1]*R,b[2]*R]);
     if(!pa||!pb)continue;
@@ -341,10 +358,82 @@ function black(a){if(a<=0)return;ctx.save();ctx.globalAlpha=Math.min(1,a);ctx.fi
 // No guns: in the teaser the drone is only a camera.
 const gameDrawGun=window.drawGun;
 window.drawGun=function(g){if(teaserScene())return;return gameDrawGun(g)};
-D.drawTitles=t=>{
-  const a=D.window01(t,1.2,9.6,1.2);
-  if(a>0){D.vtext('Vector Space',W*.5,viewH*.16,Math.round(W/22),C.g,a);D.vtext('Agent X',W*.5,viewH*.16+W/22,Math.round(W/40),C.w,a*.9)}
-};
+D.drawTitles=()=>{};   // no title text: the video opens straight on the horses
+
+// ---------- The sky: birds for each place, a few ships passing, fireworks over the elephants ----------
+// Everything is placed from where the camera will be at the time (cameraAt is fixed in advance),
+// so each flock, ship and firework crosses the view without ever being framed on purpose.
+function seeded(seed){let s=seed%2147483647||1;return()=>(s=s*16807%2147483647)/2147483647}
+const BIRDS={
+  england:{n:12,span:.9,col:C.w,form:'loose',v:9},        // rooks
+  australia:{n:10,span:.8,col:C.w,form:'loose',v:10},      // cockatoos
+  egypt:{n:3,span:1.7,col:C.y,form:'circle',v:7},          // vultures, circling
+  kenya:{n:9,span:1.4,col:C.m,form:'vee',v:11},            // flamingos
+  peru:{n:1,span:3.2,col:C.w,form:'circle',v:8},           // a condor
+  usa:{n:9,span:.95,col:C.w,form:'loose',v:10},             // crows
+  antarctica:{n:2,span:2.4,col:C.w,form:'glide',v:9}};     // albatrosses
+const camFrame=t=>{const c=cameraAt(t);return{c,F:[Math.sin(c.yaw),Math.cos(c.yaw)],R:[Math.cos(c.yaw),-Math.sin(c.yaw)]}};
+// Height for something D ahead to sit in the upper part of the frame, whatever the camera's pitch.
+const skyY=(c,D,e)=>c.y+D*Math.tan(Math.max(.05,-c.pitch+e));
+function buildSky(){
+  const r=seeded(4242),sky=run.sky={flocks:[],ships:[],bursts:[]};
+  for(const H of run.herds){const B=BIRDS[H.sec];if(!B)continue;
+    const times=B.form==='circle'?[H.T+1]:B.form==='glide'?[H.T+3]:[H.T+2,H.T+11];
+    for(const ts of times){const sg=r()<.5?-1:1;
+      const f={B,ts,te:B.form==='circle'?Math.min(H.Tn,LIFT)+2:ts+16,members:[]};
+      if(B.form==='circle'){const{c,F,R}=camFrame(ts+6),D=70;f.cx=c.x+F[0]*D+R[0]*sg*12;f.cz=c.z+F[1]*D+R[1]*sg*12;f.cy=skyY(c,D,.16);f.rad=18+r()*8}
+      else{const tm=ts+7,{c,F,R}=camFrame(tm),D=45+r()*25,mid=[c.x+F[0]*D+R[0]*(r()-.5)*20,skyY(c,D,.1+r()*.08),c.z+F[1]*D+R[1]*(r()-.5)*20];
+        const d=[R[0]*sg+F[0]*.2,R[1]*sg+F[1]*.2],k=Math.hypot(...d);f.d=[d[0]/k,0,d[1]/k];f.p0=[mid[0]-f.d[0]*B.v*7,mid[1],mid[2]-f.d[2]*B.v*7]}
+      for(let k=0;k<B.n;k++){const row=Math.ceil(k/2),side=k%2?1:-1;
+        f.members.push(B.form==='vee'?{a:-row*2.6,l:side*row*2.2,u:0,ph:r()*6.3}:{a:(r()-.5)*9,l:(r()-.5)*16,u:(r()-.5)*5,ph:r()*6.3,ang:k/B.n*2*PI,dr:(r()-.5)*6})}
+      sky.flocks.push(f)}}
+  // Ships: a pair of fighters streaking low over the camera, over the camels and again over the
+  // bison, and a freighter crossing slowly above the llamas.
+  for(const ts of[T.egypt+6,T.usa+9]){const{c,F,R}=camFrame(ts+2.2),sg=r()<.5?-1:1;
+    for(const k of[0,1]){const lat=sg*(5+k*8),h=c.y+9+k*2.5;
+      sky.ships.push({mesh:fighterMesh,s:2.6,col:C.c,ts,te:ts+5,p0:[c.x-F[0]*(95+k*7)+R[0]*lat,h,c.z-F[1]*(95+k*7)+R[1]*lat],d:[F[0],0,F[1]],v:55,bank:sg*.45})}}
+  {const ts=T.peru+3,tm=ts+12,{c,F,R}=camFrame(tm),sg=r()<.5?-1:1,D=200,mid=[c.x+F[0]*D,skyY(c,D,.17),c.z+F[1]*D],d=[R[0]*sg,0,R[1]*sg],v=12;
+    sky.ships.push({mesh:M.freighter,s:1.6,col:C.w,ts,te:ts+26,p0:[mid[0]-d[0]*v*12,mid[1],mid[2]-d[2]*v*12],d,v,bank:0})}
+  // Fireworks over the elephants, launched every second or so from beyond the herd.
+  const H4=run.herds.find(h=>h.sec==='india');
+  for(let tl=H4.T+.5;tl<H4.Tn-2.5;tl+=.8+r()*.8){const{c,F,R}=camFrame(tl+1.5),D=85+r()*55,lx=(r()-.5)*D*.9,x=c.x+F[0]*D+R[0]*lx,z=c.z+F[1]*D+R[1]*lx,gy=ground(x,z);
+    const pal=[C.m,C.y,C.c,C.r,C.g,C.w],col=pal[Math.floor(r()*pal.length)],col2=r()<.4?pal[Math.floor(r()*pal.length)]:col;
+    const parts=Array.from({length:60},()=>{const u=r()*2-1,a=r()*2*PI,k=Math.sqrt(1-u*u);return{d:[Math.cos(a)*k,u,Math.sin(a)*k],v:26+r()*8}});
+    sky.bursts.push({tl,tb:tl+.9,x,z,gy,by:skyY(c,D,.16+r()*.1),col,col2,parts})}
+}
+function birdAt(f,m,t){
+  const B=f.B,u=t-f.ts;
+  if(B.form==='circle'){const w=B.v/f.rad,a=m.ang+u*w,r=f.rad+m.dr;return{p:[f.cx+Math.cos(a)*r,f.cy+m.u+Math.sin(a*2)*1.5,f.cz+Math.sin(a)*r],d:[-Math.sin(a),0,Math.cos(a)]}}
+  const d=f.d,lat=[d[2],0,-d[0]],c=[f.p0[0]+d[0]*B.v*u,f.p0[1],f.p0[2]+d[2]*B.v*u];
+  return{p:[c[0]+d[0]*m.a+lat[0]*m.l,c[1]+m.u+Math.sin(u*.7+m.ph)*.6,c[2]+d[2]*m.a+lat[2]*m.l],d}
+}
+// A bird: a five-point wing line, the tips flapping (slowly for the big birds, barely for a glider).
+function drawBird(f,m,t,alpha){
+  const B=f.B,{p,d}=birdAt(f,m,t),w=B.span,lat=[d[2],0,-d[0]];
+  const hz=B.form==='glide'?0:B.span>1.5?1.3:3.2,flap=B.form==='glide'?.15*Math.sin(t*.5+m.ph):Math.sin(t*hz*2*PI+m.ph);
+  const P=(s,k,up)=>proj([p[0]+lat[0]*s*w*k-d[0]*.15*w*k,p[1]+up,p[2]+lat[2]*s*w*k-d[2]*.15*w*k-travel]);
+  const pts=[P(-1,1,flap*.5*w),P(-1,.45,flap*.15*w+.08*w),P(0,0,0),P(1,.45,flap*.15*w+.08*w),P(1,1,flap*.5*w)];
+  for(let i=1;i<5;i++)if(pts[i-1]&&pts[i])line(pts[i-1].x,pts[i-1].y,pts[i].x,pts[i].y,B.col,.8,alpha)
+}
+function appendSky(scn){
+  const t=D.clock,sky=run.sky;
+  for(const f of sky.flocks){if(t<f.ts||t>f.te)continue;const a=Math.min(1,(t-f.ts)/1.5,(f.te-t)/1.5);
+    for(const m of f.members){const q=camPoint([...birdAt(f,m,t).p.slice(0,2),birdAt(f,m,t).p[2]-travel]);if(q[2]<1||q[2]>380)continue;
+      scn.push({z:q[2],draw:()=>drawBird(f,m,t,a*.9)})}}
+  for(const sh of sky.ships){if(t<sh.ts||t>sh.te)continue;const u=t-sh.ts,x=sh.p0[0]+sh.d[0]*sh.v*u,y=sh.p0[1],z=sh.p0[2]+sh.d[2]*sh.v*u;
+    const q=camPoint([x,y,z-travel]);if(q[2]<1||q[2]>700)continue;const a=Math.min(1,u/1,(sh.te-t)/1);
+    scn.push({z:q[2],draw:()=>drawMesh({x,y,z:z-travel,s:sh.s,rot:[0,Math.atan2(sh.d[0],sh.d[2])+PI,sh.bank]},sh.mesh,sh.col,a)})}
+  for(const b of sky.bursts){if(t<b.tl||t>b.tb+2.4)continue;const q=camPoint([b.x,b.by,b.z-travel]);if(q[2]<1)continue;
+    scn.push({z:q[2],draw:()=>drawBurst(b,t)})}
+}
+// A firework: the rocket's trail climbing, then a burst of sparks flying out, slowing, drooping and fading.
+function drawBurst(b,t){
+  if(t<b.tb){const k=(t-b.tl)/(b.tb-b.tl),y=lerp(b.gy,b.by,1-(1-k)*(1-k)),y0=lerp(b.gy,b.by,1-Math.pow(1-Math.max(0,k-.15),2));
+    const p=proj([b.x,y,b.z-travel]),p0=proj([b.x,y0,b.z-travel]);if(p&&p0)line(p0.x,p0.y,p.x,p.y,C.y,.8,.7);return}
+  const u=t-b.tb,life=2.4,fade=Math.pow(Math.max(0,1-u/life),1.2),at=(pt,s)=>{const g=(1-Math.exp(-2.2*s))/2.2;return[b.x+pt.d[0]*pt.v*g,b.by+pt.d[1]*pt.v*g-1.7*s*s,b.z+pt.d[2]*pt.v*g]};
+  b.parts.forEach((pt,i)=>{const p1=at(pt,u),p0=at(pt,Math.max(0,u-.14)),a=proj([p1[0],p1[1],p1[2]-travel]),c=proj([p0[0],p0[1],p0[2]-travel]);
+    if(a&&c)line(c.x,c.y,a.x,a.y,i%2?b.col2:b.col,.9,fade)});
+}
 
 // ---------- Studio: one herd alone on flat ground, filmed from a fixed side, for model work ----------
 // TeaserScenes.studio({kind:'horse'} or {crit:'kangaroo'}, v, n, side, along, h, lookY) then
