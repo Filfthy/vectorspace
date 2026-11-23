@@ -83,9 +83,8 @@ const mech=(id,o)=>animal(id,{...o,minCycle:o.minCycle??GA_KINDS.hound.minCycle}
       m.mark('visor',()=>m.box([0,Y+1.28,-1.86],[.4,.08,.34]));
       for(const sx of[-1,1])m.beam([sx*.13,Y+1.46,-1.6],[sx*.18,Y+1.78,-1.52],.07,.12,.35);
       fins(m,[0,Y+.5,-1.2],[0,Y+1.42,-1.6],5,.24);
-      pod(m,Y+.6,-.45,-1.55);
       m.mark('tail',()=>{m.beam([0,Y+.25,1.08],[0,Y-.05,1.45],.12,.12,.8);m.beam([0,Y-.05,1.45],[0,Y-.75,1.6],.1,.16,.4)});
-    },colours:{mane:C.y,tail:C.y,barrels:C.w,visor:C.c}});
+    },colours:{mane:C.y,tail:C.y,visor:C.c}});
 }
 // ZEBRA: the horse mech in white, plated with stripe panels, a crest of short fins.
 {const Y=1.85;
@@ -102,25 +101,27 @@ const mech=(id,o)=>animal(id,{...o,minCycle:o.minCycle??GA_KINDS.hound.minCycle}
       m.mark('tail',()=>{m.beam([0,Y+.22,1.04],[0,Y-.5,1.32],.08,.08,.7);m.box([0,Y-.6,1.34],[.14,.24,.14])});
     },colours:{stripes:C.w,mane:C.y,tail:C.y}});
 }
-// CAMEL: long legs, its hump a radar turret, an S-beam neck to a level head, cargo panniers.
+// CAMEL: long legs, a knife-edged armour ridge for a hump, an S-beam neck to a level head.
 // It paces: both legs on one side move together.
 {const k=1.22,Y=1.9*k;
   mech('camel',{Y,s:1.15,col:C.o,top:5,legs:houndLegs(k,{t:.17,zf:-.85,zb:.8}),reach:1.7*k,minCycle:.45,swayAmp:.07,
     gaits:[{v:0,offsets:[0,0,.5,.5],swing:.3,lift:.3,bobAmp:.05,bobK:2,pitchAmp:0},{v:4,offsets:[0,0,.5,.5],swing:.45,lift:.4,bobAmp:.08,bobK:2,pitchAmp:.02}],
     body(m){
       m.loft([bsec(.38,Y-.34,Y+.3,-1.2),bsec(.46,Y-.4,Y+.36,-.3),bsec(.44,Y-.34,Y+.34,.6),bsec(.36,Y-.24,Y+.3,1.1)]);
-      m.mark('turret',()=>{m.loft([bsec(.44,Y+.34,Y+.36,-.75),bsec(.44,Y+.34,Y+.36,.45)]);
-        m.loft([[[-.42,Y+.36,-.6],[.42,Y+.36,-.6],[.42,Y+.36,.3],[-.42,Y+.36,.3]],[[-.3,Y+.95,-.4],[.3,Y+.95,-.4],[.3,Y+.95,.1],[-.3,Y+.95,.1]],[[-.16,Y+1.12,-.25],[.16,Y+1.12,-.25],[.16,Y+1.12,-.05],[-.16,Y+1.12,-.05]]],false,true)});
-      m.mark('dish',()=>{m.beam([0,Y+1.12,-.15],[0,Y+1.45,-.15],.05,.05);line(m,m.ringXY(0,Y+1.62,-.1,.24,8),true);line(m,[[0,Y+1.45,-.15],[0,Y+1.62,-.36]])});
+      // The hump: a knife-edged armour ridge, steep at the front and raked long to the back,
+      // with plate seams down its flanks. Angular, not a dome.
+      m.mark('hump',()=>{const R=[[-.72,.42,.36,.42],[-.5,.4,.95,.1],[-.3,.36,1.22,.03],[.05,.38,1.0,.06],[.4,.42,.62,.14],[.62,.44,.36,.44]];
+        const ring=([z,w,h,t])=>[[-w,Y+.34,z],[w,Y+.34,z],[t,Y+h,z],[-t,Y+h,z]];
+        m.loft(R.map(ring));
+        for(const r of R.slice(1,-1))for(const sx of[-1,1])line(m,[[sx*r[1],Y+.34,r[0]],[sx*r[3],Y+r[2],r[0]]])});
       m.beam([0,Y-.02,-1.12],[0,Y-.3,-1.7],.3,.34,.85);m.beam([0,Y-.3,-1.7],[0,Y+.9,-2.15],.26,.3,.8);
       m.loft([bsec(.17,Y+.78,Y+1.1,-2.08),bsec(.12,Y+.68,Y+.9,-2.78)]);
       for(const sx of[-1,1])m.beam([sx*.12,Y+1.08,-2.1],[sx*.22,Y+1.22,-2.02],.06,.08,.3);
-      m.mark('panniers',()=>{for(const sx of[-1,1]){m.box([sx*.6,Y-.05,-.15],[.22,.55,.75]);for(let i=0;i<4;i++)line(m,[[sx*.71,Y-.33,-.45+i*.2],[sx*.72,Y-.55,-.45+i*.2]])}});
       m.beam([0,Y+.15,1.1],[0,Y-.55,1.32],.08,.08,.6);
-    },colours:{turret:C.y,dish:C.c,panniers:C.m}});
+    },colours:{}});
 }
 // ELEPHANT (India's festival mechs): a heavy armoured hull, a segmented hose trunk, twin
-// cannons for tusks, armour-plate ears and a howdah on its back.
+// tapered tusks and armour-plate ears.
 {const k=1.12,Y=1.9*k;
   mech('elephant',{Y,s:1.2,col:C.w,top:5,legs:houndLegs(k,{t:.3,wx:.7,zf:-1.0,zb:.95}),reach:1.3,minCycle:.85,radius:2,swayAmp:.04,
     gaits:[{v:0,offsets:[.25,0,.75,.5],swing:.24,lift:.2,bobAmp:.04,bobK:2,pitchAmp:0},{v:3,offsets:[.25,0,.75,.5],swing:.32,lift:.26,bobAmp:.07,bobK:2,pitchAmp:.012}],
@@ -129,13 +130,10 @@ const mech=(id,o)=>animal(id,{...o,minCycle:o.minCycle??GA_KINDS.hound.minCycle}
       m.loft([bsec(.62,Y,Y+1.05,-1.5),bsec(.52,Y-.2,Y+.85,-2.2)]);   // head
       m.mark('trunk',()=>{const P=[[0,Y+.2,-2.2],[0,Y-.35,-2.42],[0,Y-.9,-2.5],[0,Y-1.4,-2.45],[0,Y-1.78,-2.28],[0,Y-1.9,-2.0]];
         for(let i=0;i<P.length-1;i++){const w=.3-i*.04;m.beam(P[i],P[i+1],w,w,.9);m.box(P[i+1],[w*1.25,w*.6,w*1.25])}});
-      m.mark('tusks',()=>{for(const sx of[-1,1])m.barrel(sx*.32,Y-.05,-2.2,-3.15,.09)});
+      m.mark('tusks',()=>{for(const sx of[-1,1]){m.beam([sx*.32,Y-.05,-2.2],[sx*.36,Y-.4,-2.75],.1,.1,.75);m.beam([sx*.36,Y-.4,-2.75],[sx*.32,Y-.25,-3.1],.075,.075,.4)}});
       m.mark('ears',()=>{for(const sx of[-1,1]){const e=[[sx*.62,Y+.95,-1.7],[sx*1.3,Y+1.05,-1.45],[sx*1.42,Y+.2,-1.35],[sx*.62,Y,-1.6]];m.loft([e,e.map(p=>[p[0]+sx*.06,p[1],p[2]+.04])])}});
-      m.mark('howdah',()=>{m.box([0,Y+1.05,0],[1.3,.2,1.4]);for(const sx of[-1,1])for(const sz of[-1,1])m.beam([sx*.55,Y+1.15,sz*.58],[sx*.55,Y+1.85,sz*.58],.06,.06);
-        m.loft([[[-.75,Y+1.85,-.75],[.75,Y+1.85,-.75],[.75,Y+1.85,.75],[-.75,Y+1.85,.75]],[[-.1,Y+2.35,-.1],[.1,Y+2.35,-.1],[.1,Y+2.35,.1],[-.1,Y+2.35,.1]]],false,true)});
-      m.mark('blanket',()=>{for(const sx of[-1,1]){const b=bsec(.01,Y-.25,Y+.85,0).map(()=>0);const q=[[sx*.97,Y+.85,-.85],[sx*.97,Y+.85,.85],[sx*.99,Y-.25,.8],[sx*.99,Y-.25,-.8]];line(m,q,true);for(let i=0;i<7;i++)line(m,[[sx*.99,Y-.25,-.75+i*.25],[sx*1.0,Y-.45,-.75+i*.25]])}});
       m.beam([0,Y+.35,1.38],[0,Y-.6,1.55],.08,.08,.5);
-    },colours:{tusks:C.w,trunk:null,ears:C.y,howdah:C.y,blanket:C.m}});
+    },colours:{tusks:C.w,trunk:null,ears:null}});
 }
 // GIRAFFE: tall front legs and lower hips, its neck a lattice crane boom, antenna ossicones,
 // patch panels on the body and the boom.
@@ -154,8 +152,7 @@ const mech=(id,o)=>animal(id,{...o,minCycle:o.minCycle??GA_KINDS.hound.minCycle}
       m.mark('tail',()=>{m.beam([0,1.9*kb,.95],[0,1.9*kb-.9,1.12],.05,.05);m.box([0,1.9*kb-1.0,1.13],[.12,.24,.12])});
     },colours:{boom:C.o,spots:C.o,ossicones:C.o,tail:C.o}});
 }
-// LLAMA: a pack mech: a tall upright beam neck, banana-ear antennas with tassels, a frame
-// across its back carrying two panniers.
+// LLAMA: a light mech with a tall upright beam neck and banana-ear antennas.
 {const k=.84,Y=1.9*k;
   mech('llama',{Y,s:1.15,col:C.w,top:3.6,legs:houndLegs(k,{t:.17,zf:-.78,zb:.72}),reach:1.3,minCycle:.36,
     body(m){
@@ -163,12 +160,10 @@ const mech=(id,o)=>animal(id,{...o,minCycle:o.minCycle??GA_KINDS.hound.minCycle}
       m.beam([0,Y+.15,-.75],[0,Y+1.55,-.95],.26,.32,.85);
       m.loft([bsec(.16,Y+1.45,Y+1.74,-.88),bsec(.11,Y+1.42,Y+1.6,-1.36)]);
       for(const sx of[-1,1]){m.beam([sx*.1,Y+1.72,-.9],[sx*.16,Y+2.02,-.86],.06,.08,.5);m.beam([sx*.16,Y+2.02,-.86],[sx*.1,Y+2.16,-.94],.05,.05,.5)}
-      m.mark('tassels',()=>{for(const sx of[-1,1])m.box([sx*.16,Y+1.95,-.86],[.09,.12,.09])});
-      m.mark('pack',()=>{m.box([0,Y+.44,-.1],[.7,.1,.9]);for(const sx of[-1,1]){m.box([sx*.52,Y+.08,-.1],[.2,.5,.7]);for(const z of[-.3,.1])line(m,[[sx*.62,Y+.33,z],[sx*.62,Y-.17,z]])}});
       m.beam([0,Y+.28,.72],[0,Y+.45,.92],.1,.1,.6);
-    },colours:{pack:C.m,tassels:C.y}});
+    },colours:{}});
 }
-// BISON: a stepped armour hump carrying the twin cannons, a low ram-plate head with horns, a
+// BISON: a stepped armour hump, a low ram-plate head with horns, a
 // grille beard and a lean rear.
 {const k=.95,Y=1.9*k;
   mech('bison',{Y,s:1.3,col:C.o,top:3.6,legs:houndLegs(k,{t:.24,wx:.55}),reach:1.6,radius:1.6,
@@ -179,9 +174,8 @@ const mech=(id,o)=>animal(id,{...o,minCycle:o.minCycle??GA_KINDS.hound.minCycle}
       m.mark('horns',()=>{for(const sx of[-1,1]){m.beam([sx*.4,Y+.32,-1.55],[sx*.7,Y+.38,-1.6],.1,.1,.7);m.beam([sx*.7,Y+.38,-1.6],[sx*.74,Y+.72,-1.7],.08,.08,.35)}});
       m.mark('beard',()=>{for(let i=0;i<6;i++){const x=-.25+i*.1;line(m,[[x,Y-.55,-1.8],[x,Y-1.0,-1.75]])}line(m,[[-.3,Y-1.0,-1.75],[.3,Y-1.0,-1.75]])});
       m.mark('fur',()=>{for(let i=0;i<4;i++){const z=-1.1+i*.18;line(m,[[-.66,Y+.15,z],[-.6,Y+1.0+(i%2)*.1,z],[.6,Y+1.0+(i%2)*.1,z],[.66,Y+.15,z]])}});
-      pod(m,Y+1.28,-.2,-1.25,.2,.06);
       m.beam([0,Y+.25,1.0],[0,Y-.4,1.25],.07,.07,.6);m.mark('tail',()=>m.box([0,Y-.48,1.27],[.12,.18,.1]));
-    },colours:{horns:C.w,beard:C.y,fur:C.y,ram:C.y,barrels:C.w,tail:C.y}});
+    },colours:{horns:C.w,beard:C.y,fur:C.y,ram:C.y,tail:C.y}});
 }
 if(GA_KINDS.reindeer)GA_KINDS.reindeer.colours={nose:C.r,antlers:C.y,barrels:C.w};   // for side-by-side studio comparisons
 // Posed four-legged mesh colours for the scenes' drawUnit hook.
@@ -306,7 +300,7 @@ const kilimanjaro=staticMesh(m=>{
   m.mark('snow',()=>{const r=m.ringXZ(0,48.5,0,12.5,10,18);m.loft([m.ringXZ(0,44.5,0,44*1.25,44,18).map(([x,y,z],j)=>[x,y-(j%3)*1.8,z]),m.ringXZ(0,48,0,30*1.25,30,18)],false,false);line(m,r,true)});
 },{snow:C.w});
 // Machu Picchu: the steep peak of Huayna Picchu, the ridge of terraces in front of it, the
-// stone houses with their gables, and a ragged line of Andes behind.
+// stone houses with their gables.
 const machuPicchu=staticMesh(m=>{
   // The ridge the citadel stands on: a long hill with a flattened top, its flank stepped in terraces.
   const ridge=(y,rx,rz,cz)=>m.ringXZ(0,y,cz,rx,rz,14,PI/14);
@@ -314,14 +308,12 @@ const machuPicchu=staticMesh(m=>{
   m.mark('terraces',()=>{for(let k=1;k<7;k++){const y=k*1.7,rx=58-k*3.8,rz=30-k*2.6,pts=[];for(let i=0;i<=9;i++){const t=PI*1.05+i/9*PI*.9;pts.push([Math.cos(t)*rx,y,-6+Math.sin(t)*rz])}line(m,pts)}});
   // Huayna Picchu: the steep peak behind the citadel.
   m.mark('peak',()=>m.loft([m.ringXZ(4,-12,32,34,26,10),m.ringXZ(4,0,32,30,22,10),m.ringXZ(2,24,36,14,10,10),m.ringXZ(0,40,38,6,4.5,10),m.ringXZ(0,47,38,1.2,1.2,10)],false,true));
-  // The Andes, far behind: a row of solid peaks.
-  m.mark('andes',()=>{for(let i=0;i<7;i++){const x=-180+i*60,z=150+(i%2)*30,h=55+((i*37)%5)*12,r=48+(i%3)*10;m.loft([m.ringXZ(x,-40,z,r*1.3,r*1.05,9),m.ringXZ(x,0,z,r,r*.8,9),m.ringXZ(x+3,h*.6,z,r*.45,r*.38,9),m.ringXZ(x+5,h,z+2,3,3,9)],false,true)}});
   // The stone houses on top, each with a gable.
   m.mark('houses',()=>{const house=(x,z,yaw)=>{rbox(m,[x,13.1,z],[3.6,2.2,2.6],yaw);const ca=Math.cos(yaw),sa=Math.sin(yaw),e=(dx,dy)=>[x+ca*dx,dy,z-sa*dx];
       for(const s of[-1,1]){const c=e(s*1.8,14.2);line(m,[[c[0]-sa*1.3,14.2,c[2]-ca*1.3],[c[0],15.6,c[2]],[c[0]+sa*1.3,14.2,c[2]+ca*1.3]])}
       line(m,[e(-1.8,15.6),e(1.8,15.6)])};
     for(let i=0;i<10;i++)house(-22+i*4.8,-8+((i*7)%3)*3.2,.12*((i%3)-1))});
-},{terraces:C.g,peak:C.g,andes:C.c,houses:C.w});
+},{terraces:C.g,peak:C.g,houses:C.w});
 // Monument Valley: the two Mittens and Merrick Butte, each a sheer butte on a talus slope.
 const butte=(m,x,z,w,d,h,base,thumb)=>{
   m.loft([m.ringXZ(x,-6,z,w*1.95,d*2.4,12),m.ringXZ(x,0,z,w*1.7,d*2.1,12),m.ringXZ(x,base*.55,z,w*1.3,d*1.5,12),m.ringXZ(x,base,z,w*1.04,d*1.08,12)],false,false);

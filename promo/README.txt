@@ -59,22 +59,24 @@ VECTOR SPACE TEASER
 ===================
 
 A 3:19 teaser to "Stampede Across the Stars", new techno space rock from the
-Oh Hell music (D:\CodeGen\Oh Hellenders\stampede.wav). Eight worlds, one
-twelve-bar stop each, each with its own animal mechs and landmark:
+Oh Hell music (D:\CodeGen\Oh Hell\renders\stampede.wav). One unbroken run
+across one world, no cuts: after the descent the camera flies herd to herd
+along a single route, and the ground's colour and roll change gradually from
+herd to herd. Each herd has one landmark standing far off the route.
 
   0:00  Titles over space, the descent to a green world
-  0:14  England: horses gallop past Stonehenge
-  0:35  Australia: kangaroos bound past Uluru
-  0:56  Egypt: camels below the pyramids and the Sphinx
-  1:18  India: festival elephants by the Taj Mahal
-  1:39  Kenya: giraffes and zebras under Kilimanjaro, acacias
-  2:00  Peru: llamas below Machu Picchu
-  2:21  USA: a bison stampede through Monument Valley, saguaros
-  2:43  Antarctica: penguins among the icebergs under an aurora
-  2:57  Lift-off over the colony, and the fade to the stars
+  0:14  horses (Stonehenge far off)
+  0:35  kangaroos (Uluru)
+  0:56  camels (the pyramids)
+  1:18  elephants (the Taj Mahal)
+  1:39  giraffes and zebras (Kilimanjaro)
+  2:00  llamas (Machu Picchu)
+  2:21  bison (Monument Valley)
+  2:43  penguins among distant icebergs, under an aurora
+  2:57  Lift-off over the penguins, and the fade to the stars
 
 Open it with ?promo=teaser instead of ?promo. Everything else works the same:
-  ?promo=teaser&play          live with the music (&from=56.8 starts at Egypt)
+  ?promo=teaser&play          live with the music (&from=56.8 starts at the camels)
   ?promo=teaser&dpr=1.5       for rendering: PromoDirector.renderRange('teaser',0,198.6)
   bash promo/make-video.sh promo/out/teaser "D:/CodeGen/Oh Hell/renders/stampede.wav" promo/out/vector-space-teaser.mp4
 
@@ -82,8 +84,10 @@ Files
   teaser-song.js     the song's sections (136 bpm, the render starts 0.3 s in)
   teaser-models.js   horse, zebra, camel, elephant, giraffe, llama and bison
                      (ground-armour walkers on the game's gaits), the kangaroo
-                     and penguin (posed meshes), the landmarks and the props
-  teaser-scenes.js   the worlds: herd paths, camera keyframes, landmarks,
-                     fades, the aurora, the lift-off and the starfield
+                     and penguin (posed meshes) and the landmarks
+  teaser-scenes.js   the run: the herds' order and timing, the route, the
+                     camera keys and the flights between herds, rocks, the
+                     ground's zones, the aurora, the lift-off and the stars.
+                     TeaserScenes.studio({kind:'camel'}) films one animal alone.
   stampede.mp3       the song
 

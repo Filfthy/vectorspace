@@ -1,16 +1,18 @@
 'use strict';
-// The teaser: eight worlds to "Stampede Across the Stars", one twelve-bar stop each.
-//   0:00  the descent to a green world (titles)      0:14  England: horses past Stonehenge
-//   0:35  Australia: kangaroos bounding past Uluru   0:56  Egypt: camels below the pyramids
-//   1:18  India: festival elephants and the Taj Mahal 1:39  Kenya: giraffes and zebras under Kilimanjaro
-//   2:00  Peru: llamas below Machu Picchu            2:21  USA: a bison stampede in Monument Valley
-//   2:43  Antarctica: penguins among the icebergs, an aurora   2:57  lift-off, and the fade to the stars
-// Each world is a real dune-assault surface; its herd runs a fixed path and the camera is flown
-// on keyframes set relative to the herd, swinging wide to put the landmark behind the animals.
+// The teaser: one unbroken run across one world to "Stampede Across the Stars".
+// The drone comes down through the titles, lands, and then flies herd to herd along a single
+// long route with no cuts: horses, kangaroos, camels, elephants, giraffes and zebras, llamas,
+// bison, and penguins under an aurora. The ground's colour and roll shift gradually from herd
+// to herd; a few landmarks stand far off the route (Stonehenge, Uluru, the pyramids...).
+// Then the lift-off over the penguins and the fade to the stars.
+//   0:00 titles and the descent   0:14 horses     0:35 kangaroos   0:56 camels
+//   1:18 elephants   1:39 giraffes and zebras   2:00 llamas   2:21 bison   2:43 penguins
+//   2:57 lift-off, and the stars
 (()=>{
 const D=globalThis.PromoDirector;if(!D||!PROMO_SONG.teaser)return;
-const T=D.T,M=globalThis.TeaserModels,P=globalThis.PromoModels,PI=Math.PI,BAR=PROMO_SONG.bar;
+const T=D.T,M=globalThis.TeaserModels,P=globalThis.PromoModels,PI=Math.PI;
 const smooth=u=>u*u*(3-2*u),ease=(t,a,b)=>smooth(clamp((t-a)/(b-a),0,1));
+const LIFT=T['lift-off'];
 
 function resetGame(){
   try{campaign.currentMission=null;campaign.pendingMission=null;campaign.currentStageIndex=0}catch(_){}
@@ -26,149 +28,94 @@ function launch(edit){
   for(let i=0;i<400&&mode==='missionTransit';i++)update(1/30)
 }
 
-// ---------- The worlds ----------
-// cam keyframes: [u (s into the world), side (- left of the herd), along (+ ahead of its centre),
-// height, look ahead of the herd, look towards the landmark 0..1]. mirror swaps left and right.
-const CAM={
-  chase:[[0,-8,-44,9,8,0],[5.5,-14,-21,4.4,5,0],[10.5,-16,-3,3.3,3,0],[15.5,-23,11,4.8,0,.38],[21.6,-31,21,7,-2,.5]],
-  front:[[0,4,46,6,0,0],[5,3,24,2.4,0,0],[10,-8,8,2.2,0,0],[15.5,-18,-2,4.5,0,.42],[21.6,-26,-14,7,0,.55]],
-  slow:[[0,-5,-28,6,5,0],[5.5,-7,-11,3,3,0],[10.5,-8,-1,2.4,2,0],[15.5,-13,8,3.6,0,.42],[21.6,-19,14,5.5,-1,.55]],
-  close:[[0,4,26,4.2,0,0],[4.5,2.5,13,1.9,0,0],[9.5,-4,7,1.5,0,0],[14.1,-8,1,2.4,0,.3]],
-};
-const WORLDS=[
-  {name:'england',col:C.g,amp:.55,seed:301,herd:{kind:'horse',n:7,v:11,tints:[C.o,C.w,C.y,C.o,C.o,C.w,C.y]},cam:CAM.chase,
-    land:{mesh:M.stonehenge,col:C.w,s:1.7,at:17.5,side:36,ahead:6,r:26,foot:[[0,0,15],[2,-28,4]]},props:{mesh:M.oak,col:C.g,n:26,s:[.8,1.3]}},
-  {name:'australia',col:C.o,amp:.35,seed:302,crit:{type:'kangaroo',n:7,v:9.5,col:C.o,s:1.3},cam:CAM.front,mirror:true,
-    land:{mesh:M.uluru,col:C.r,s:1.4,at:16,side:100,ahead:-10,r:70,yaw:PI/2,foot:[[-30,0,17],[0,0,19],[30,0,17]]},props:{mesh:M.spinifex,col:C.y,n:40,s:[.8,1.4]}},
-  {name:'egypt',col:C.y,amp:1.25,seed:303,herd:{kind:'camel',n:6,v:5.5,space:1.4},camK:1.25,lookK:.6,cam:CAM.slow,
-    land:{mesh:M.giza,col:C.w,s:1.15,at:17,side:80,ahead:20,r:80,yaw:.5,foot:[[0,0,30],[-46,30,28],[-78,58,15],[-86,74,9],[30,-38,10]]},props:{mesh:M.palm,col:C.g,n:10,s:[1,1.4]}},
-  {name:'india',col:C.u,amp:.3,seed:304,herd:{kind:'elephant',n:5,v:3.6,space:2},camK:1.3,cam:CAM.front,mirror:true,
-    land:{mesh:M.taj,col:C.w,s:1.2,at:16,side:70,ahead:4,r:40,yaw:-PI/2,foot:[[0,0,28],[0,-50,9],[0,-72,9]]},props:{mesh:M.palm,col:C.g,n:22,s:[1,1.5]}},
-  {name:'kenya',col:C.o,amp:.35,seed:305,herd:{kind:'giraffe',n:4,v:6.5,space:1.5,mix:{kind:'zebra',n:6}},camK:1.3,lookK:.45,cam:CAM.chase,
-    land:{mesh:M.kilimanjaro,col:C.u,s:1.4,at:16,side:330,ahead:120,r:0},props:{mesh:M.acacia,col:C.g,n:22,s:[1,1.5]}},
-  {name:'peru',col:C.g,amp:.9,seed:306,herd:{kind:'llama',n:7,v:4.6,space:1.2},camK:1.45,lookK:.7,cam:CAM.slow,mirror:true,
-    land:{mesh:M.machuPicchu,col:C.g,s:1.3,at:16,side:95,ahead:30,r:60,yaw:PI,foot:[[0,-6,64],[2,34,34]]},props:{mesh:M.iceBlock,col:C.w,n:0}},
-  {name:'usa',col:C.y,amp:.45,seed:307,herd:{kind:'bison',n:12,v:11,space:1.25},camK:1.15,lookK:.6,cam:CAM.chase,
-    land:{mesh:M.monumentValley,col:C.o,s:1.4,at:17,side:110,ahead:20,r:90,yaw:.2,foot:[[-48,0,30],[10,12,30],[72,-10,42]]},props:{mesh:M.saguaro,col:C.g,n:24,s:[.9,1.4]}},
-  {name:'antarctica',col:C.c,amp:.25,seed:308,crit:{type:'penguin',n:11,v:1.3,col:C.w,s:1.25},cam:CAM.close,aurora:true,
-    land:{mesh:M.iceberg,col:C.w,s:3.2,at:9,side:85,ahead:70,r:0,many:[[60,90,2.4],[105,140,4],[150,50,3],[-80,190,3.4]]},props:{mesh:M.iceBlock,col:C.w,n:12,s:[.7,1.4]}},
+// ---------- The herds, in the order the route meets them ----------
+// K scales the camera's distances to the animals' size. amp is the ground's roll there.
+// Each herd's landmark stands far out on the side away from the camera (dist from the route).
+const HERDS=[
+  {sec:'england',kind:'horse',n:7,v:11,tints:[C.o,C.w,C.y,C.o,C.o,C.w,C.y],ground:C.g,amp:.55,rock:C.w,K:1,
+    land:{mesh:M.stonehenge,col:C.w,s:2.4,dist:210,foot:[[0,0,15],[2,-28,4]]}},
+  {sec:'australia',crit:'kangaroo',n:7,v:9.5,critCol:C.o,critS:1.3,ground:C.o,amp:.35,rock:C.y,K:1,
+    land:{mesh:M.uluru,col:C.r,s:1.4,dist:240,yaw:PI/2,foot:[[-30,0,17],[0,0,19],[30,0,17]]}},
+  {sec:'egypt',kind:'camel',n:6,v:5.5,space:1.4,ground:C.y,amp:1.1,rock:C.o,K:1.2,lookY:2.5,
+    land:{mesh:M.giza,col:C.w,s:1.15,dist:290,yaw:.5,foot:[[0,0,30],[-46,30,28],[-78,58,15],[-86,74,9],[30,-38,10]]}},
+  {sec:'india',kind:'elephant',n:5,v:3.6,space:2,ground:C.u,amp:.3,rock:C.w,K:1.5,lookY:2.4,
+    land:{mesh:M.taj,col:C.w,s:1.3,dist:280,yaw:-PI/2,foot:[[0,0,28],[0,-50,9],[0,-72,9]]}},
+  {sec:'kenya',kind:'giraffe',n:4,mix:{kind:'zebra',n:6},v:6.5,space:1.5,ground:C.o,amp:.35,rock:C.y,K:1.3,lookY:3,
+    land:{mesh:M.kilimanjaro,col:C.u,s:1.4,dist:500,sight:420,foot:[[0,0,170]]}},
+  {sec:'peru',kind:'llama',n:7,v:4.6,space:1.2,ground:C.g,amp:.9,rock:C.w,K:1.2,
+    land:{mesh:M.machuPicchu,col:C.g,s:1.3,dist:270,yaw:PI,foot:[[0,-6,64],[2,34,34]]}},
+  {sec:'usa',kind:'bison',n:12,v:11,space:1.25,ground:C.y,amp:.45,rock:C.o,K:1.15,
+    land:{mesh:M.monumentValley,col:C.o,s:1.4,dist:310,yaw:.2,foot:[[-48,0,30],[10,12,30],[72,-10,42]]}},
+  {sec:'antarctica',crit:'penguin',n:11,v:1.3,walk:.8,space:.6,critCol:C.w,critS:1.25,ground:C.c,amp:.25,rock:C.w,K:.8,lookY:.9,aurora:true,
+    bergs:[[140,25,1.4],[-160,70,1.8],[180,130,2],[-200,10,2.2],[150,-60,1.6],[-170,-110,1.8]]},
 ];
-const LEN=BAR*12;
+HERDS.forEach((H,i)=>{H.i=i;H.T=T[H.sec];H.Tn=i<HERDS.length-1?T[HERDS[i+1].sec]:Infinity;H.side=i%2?1:-1;H.walk=H.walk??Math.min(1.2,H.v*.25)});
 
-// ---------- Herd path: a gentle arc at constant speed ----------
-function pathAt(w,u){const p=w.path,h=p.h+p.turn*u,v=p.v;
-  if(Math.abs(p.turn)<1e-4)return{x:p.x+Math.sin(p.h)*v*u,z:p.z+Math.cos(p.h)*v*u,h};
-  return{x:p.x+v/p.turn*(Math.cos(p.h)-Math.cos(h)),z:p.z+v/p.turn*(Math.sin(h)-Math.sin(p.h)),h}}
+// The herd's speed: a slow walk until its turn, up to full speed as the camera arrives,
+// on until the camera has left for the next herd, then easing to a stop.
+function speedAt(H,t){
+  if(H.fixedV!=null)return H.fixedV;
+  if(t<H.T-3)return H.walk;
+  if(t<H.T-1)return lerp(H.walk,H.v,smooth((t-H.T+3)/2));
+  if(t<H.Tn+2)return H.v;
+  if(t<H.Tn+5)return H.v*(1-smooth((t-H.Tn-2)/3));
+  return 0
+}
+
+// ---------- The route ----------
+// A long straight line with a gentle sway. s is the distance along it, l the offset to the right.
+let run=null;
+const SWAY=14,SWAY_L=240;
+function routeAt(s){const R=run,X=SWAY*R.sway*Math.sin(s/SWAY_L),dX=SWAY*R.sway/SWAY_L*Math.cos(s/SWAY_L),h=R.H0+Math.atan(dX);
+  return{x:R.O.x+R.F0[0]*s+R.R0[0]*X,z:R.O.z+R.F0[1]*s+R.R0[1]*X,h}}
 const frameOf=h=>({F:[Math.sin(h),Math.cos(h)],R:[Math.cos(h),-Math.sin(h)]});
+function worldAt(s,l){const c=routeAt(s),{R}=frameOf(c.h);return{x:c.x+R[0]*l,z:c.z+R[1]*l,h:c.h}}
+const sOf=(x,z)=>(x-run.O.x)*run.F0[0]+(z-run.O.z)*run.F0[1];
 const ground=(x,z)=>GA_GROUND_Y+groundAssault.groundH(x,z);
+// Where a herd's centre is along the route at song time t (a precomputed table of its speed).
+const DT_TAB=.05;
+function tabulate(H){
+  const n=Math.ceil((PROMO_SONG.length+8)/DT_TAB)+2,cum=new Float64Array(n);
+  for(let k=1;k<n;k++)cum[k]=cum[k-1]+speedAt(H,(k-.5)*DT_TAB)*DT_TAB;H.cum=cum
+}
+function cumAt(H,t){const f=clamp(t/DT_TAB,0,H.cum.length-1.001),k=Math.floor(f);return lerp(H.cum[k],H.cum[k+1],f-k)}
+function sAt(H,t){return H.fixedV!=null?H.anchor+H.fixedV*(t-H.t0):H.anchor+cumAt(H,t)-cumAt(H,H.T)}
 
-// Catmull-Rom through the keyframes (each value separately), so the camera never stops at a key.
+// ---------- The camera ----------
+// Keys per herd: [u (s from the herd's turn), side (out from the herd, on its camera side),
+// along (+ ahead of its centre), height, look ahead of the centre]. It comes up behind the herd,
+// runs along its flank, gets a little ahead and falls back level with it as it thunders past.
+const KEYS=[[0,9,-30,5,8],[5,11,-12,3.2,5],[10,12,2,2.6,3],[15,13,14,2.8,0],[19.5,16,6,3.6,4]];
 function camKey(keys,u){
   const n=keys.length;if(u<=keys[0][0])return keys[0].slice(1);if(u>=keys[n-1][0])return keys[n-1].slice(1);
   let i=0;while(i<n-2&&u>keys[i+1][0])i++;
   const k0=keys[Math.max(0,i-1)],k1=keys[i],k2=keys[i+1],k3=keys[Math.min(n-1,i+2)],t=(u-k1[0])/(k2[0]-k1[0]),t2=t*t,t3=t2*t;
   return k1.slice(1).map((_,j)=>{const p0=k0[j+1],p1=k1[j+1],p2=k2[j+1],p3=k3[j+1];return .5*((2*p1)+(-p0+p2)*t+(2*p0-5*p1+4*p2-p3)*t2+(-p0+3*p1-3*p2+p3)*t3)})
 }
-function cameraAt(w,u){
-  if(w.studio){const S=w.studio,c=pathAt(w,u),{F,R}=frameOf(c.h),x=c.x+R[0]*S.side+F[0]*S.along,z=c.z+R[1]*S.side+F[1]*S.along,y=ground(x,z)+S.h,tx=c.x,tz=c.z,ty=ground(c.x,c.z)+(S.lookY||1.6);
-    return{x,y,z,yaw:Math.atan2(tx-x,tz-z),pitch:Math.atan2(y-ty,Math.hypot(tx-x,tz-z))}}
-  let K=w.def.camK||1,[s0,a0,h0,lookF,lookL]=camKey(w.def.cam,u),side=s0*K*(w.def.mirror?-1:1),along=a0*K,hgt=h0*Math.sqrt(K);
-  const c=pathAt(w,u),{F,R}=frameOf(c.h);
+function look(x,y,z,tx,ty,tz){return{x,y,z,yaw:Math.atan2(tx-x,tz-z),pitch:Math.atan2(y-ty,Math.hypot(tx-x,tz-z))}}
+// Height over a smoothed ground, so the camera never jolts over a ridge.
+function camGround(x,z){let g=0;for(const[a,b]of[[0,0],[4,0],[-4,0],[0,4],[0,-4]])g+=ground(x+a,z+b);return g/5}
+function herdCam(H,t){
+  const s=sAt(H,t),c=routeAt(s),{F,R}=frameOf(c.h),ty=ground(c.x,c.z)+(H.lookY||1.8);
+  if(run.studio){const S=run.studio,x=c.x+R[0]*S.side+F[0]*S.along,z=c.z+R[1]*S.side+F[1]*S.along;return look(x,ground(x,z)+S.h,z,c.x,ground(c.x,c.z)+(S.lookY||1.6),c.z)}
+  const K=H.K,[sd,al,hh,lf]=camKey(KEYS,t-H.T),side=sd*K*H.side,along=al*K;
   const x=c.x+R[0]*side+F[0]*along,z=c.z+R[1]*side+F[1]*along;
-  // Height over a smoothed ground, so the camera never jolts over a ridge.
-  let g=0;for(const[a,b]of[[0,0],[4,0],[-4,0],[0,4],[0,-4]])g+=ground(x+a,z+b);g/=5;
-  const y=g+hgt;
-  let tx=c.x+F[0]*lookF,tz=c.z+F[1]*lookF,ty=ground(c.x,c.z)+(w.lookY||1.8);
-  if(lookL>0&&w.land){const L=w.land;lookL*=w.def.lookK||1;tx=lerp(tx,L.x,lookL);tz=lerp(tz,L.z,lookL);ty=lerp(ty,ground(L.x,L.z)+L.top*.35,lookL*.5)}
-  return{x,y,z,yaw:Math.atan2(tx-x,tz-z),pitch:Math.atan2(y-ty,Math.hypot(tx-x,tz-z))}
+  return look(x,camGround(x,z)+hh*Math.sqrt(K),z,c.x+F[0]*lf*K,ty,c.z+F[1]*lf*K)
 }
-
-// ---------- Building a world ----------
-function scatter(w,rand){
-  const pr=w.def.props;w.props=[];if(!pr||!pr.n)return;
-  for(let i=0;i<pr.n;i++){
-    const u=-4+rand()*28,c=pathAt(w,u),{F,R}=frameOf(c.h),s=(rand()<.5?-1:1)*(w.def.mirror?-1:1),off=s<0?32+rand()*40:13+rand()*55;
-    const x=c.x+R[0]*s*off+F[0]*(rand()-.5)*8,z=c.z+R[1]*s*off+F[1]*(rand()-.5)*8;
-    if(w.land&&w.land.r&&Math.hypot(x-w.land.x,z-w.land.z)<w.land.r*1.1)continue;
-    w.props.push({x,z,s:pr.s[0]+rand()*(pr.s[1]-pr.s[0]),yaw:rand()*PI*2})
-  }
+// Between herds the camera lifts and flies on to the next one, turning to it as it goes.
+const FLY0=3.2,FLY1=1.3;
+function cameraAt(t){
+  const Hs=run.herds;let i=0;while(i<Hs.length-1&&t>=Hs[i+1].T+FLY1)i++;
+  const a=herdCam(Hs[i],t);if(i>=Hs.length-1||t<=Hs[i+1].T-FLY0)return a;
+  const b=ease(t,Hs[i+1].T-FLY0,Hs[i+1].T+FLY1),c=herdCam(Hs[i+1],t),arc=Math.sin(PI*b);
+  const by=ease(t,Hs[i+1].T-FLY0,Hs[i+1].T-FLY0+(FLY0+FLY1)*.6);
+  return{x:lerp(a.x,c.x,b),y:lerp(a.y,c.y,b)+4.5*arc,z:lerp(a.z,c.z,b),yaw:a.yaw+wrapAngle(c.yaw-a.yaw)*by,pitch:lerp(a.pitch,c.pitch,by)+.06*arc}
 }
-function buildWorld(w,origin){
-  const G=groundAssault,d=w.def,rand=Math.random;
-  G.units.length=0;G.groups.length=0;G.trees.length=0;G.state='promo';
-  w.path={x:origin.x,z:origin.z,h:origin.h,v:(d.herd||d.crit).v,turn:d.turn??.012};
-  // The landmark: beside the herd's path where it will be at u = at.
-  if(d.land){const L=d.land,c=pathAt(w,L.at),{F,R}=frameOf(c.h),s=w.def.mirror?-1:1;
-    w.land={...L,x:c.x+R[0]*L.side*s+F[0]*L.ahead,z:c.z+R[1]*L.side*s+F[1]*L.ahead,yaw:(L.yaw||0)+c.h,top:L.top||25*L.s};
-    if(L.many)w.extra=L.many.map(([sd,ah,sc])=>({x:c.x+R[0]*sd*s+F[0]*ah,z:c.z+R[1]*sd*s+F[1]*ah,s:sc,yaw:rand()*6.3}))}
-  // The ground: this world's roll, levelled under the landmark.
-  const amp=d.amp,base=Object.getPrototypeOf(G).rawDune;
-  G.flats=(G.flats||[]).filter(f=>!f.promo);
-  if(w.land){const L=w.land,ca=Math.cos(L.yaw),sa=Math.sin(L.yaw);
-    L.ext=0;for(const[fx,fz,fr]of(L.foot||(L.r?[[0,0,L.r/L.s]]:[]))){const x=fx*L.s,z=fz*L.s;L.ext=Math.max(L.ext,(Math.hypot(fx,fz)+fr)*L.s*.8);G.flats.push({x:L.x+x*ca+z*sa,z:L.z-x*sa+z*ca,r0:fr*L.s,r1:fr*L.s+30,promo:true})}
-    for(const e of w.extra||[])G.flats.push({x:e.x,z:e.z,r0:11*e.s,r1:11*e.s+22,promo:true})}
-  G.rawDune=function(x,z){return base.call(this,x,z)*amp};G.hCache.clear();
-  scatter(w,rand);
-  const grp={name:'HERD',letter:'H',cx:1e7,cwz:1e7,navX:1e7,navWZ:1e7,radius:1,cleared:false,ids:[]};
-  w.slots=[];
-  const sp=(d.herd||d.crit).space||1,slot=(i,n)=>{const row=Math.floor(i/3),col=i%3-1;return{r:(col*3.2+(rand()-.5)*1.4+(row%2)*1.2)*sp,f:(-row*5.5+(rand()-.5)*2)*sp,ph1:rand()*6.3,ph2:rand()*6.3}};
-  if(d.herd){
-    const list=[...Array(d.herd.n).fill(d.herd.kind),...(d.herd.mix?Array(d.herd.mix.n).fill(d.herd.mix.kind):[])];
-    list.forEach((kind,i)=>{const sl=slot(i,list.length),c=pathAt(w,0),{F,R}=frameOf(c.h),x=c.x+R[0]*sl.r+F[0]*sl.f,z=c.z+R[1]*sl.r+F[1]*sl.f;
-      const u=G.spawn(kind,x,z,c.h,grp);u.teaser=sl;u.speed=w.path.v;u.tint=d.herd.tints?.[i]||null;grp.ids.push(u.id)});
-    G.groups.push(grp)
-  }
-  if(d.crit){w.crits=[];for(let i=0;i<d.crit.n;i++){const sl=slot(i,d.crit.n);w.crits.push({...sl,ph:rand(),rate:.9+rand()*.25,x:0,z:0,h:w.path.h,slide:false})}}
-  w.built=true
-}
-
-// ---------- The scenes ----------
-const scenes=WORLDS.map((def,i)=>{
-  const w={name:def.name,t0:i===0?0:T[def.name],seed:def.seed,def,built:false,
-    setup(){
-      D.snow=false;w.built=false;w.crits=null;w.land=null;w.extra=null;
-      launch(m=>{
-        m.planetaryRequirements={landingBody:'planet',landingColour:{[C.g]:'green',[C.o]:'orange',[C.y]:'yellow',[C.u]:'blue',[C.c]:'cyan'}[def.col]||'green',moonCount:{min:1,max:2}};
-        m.modules=m.modules.filter(x=>(i===0&&x.type==='planet_descent')||x.type==='dune_assault')
-      });
-      planetRings=null;planetLandingColour=def.col;
-      if(i>0)buildWorld(w,{x:shipX,z:travel+30,h:viewYaw});
-    },
-    // The first world: the game's own descent, until the drone is down on the surface.
-    marks:i===0?[{ev:'surface',at:T.england-.4}]:null,
-    event(){return groundAssault?.active&&mode==='play'&&phase==='surface'?'surface':null},
-    pilot(dt,t){
-      if(!(groundAssault?.active&&phase==='surface'))return;
-      if(!w.built){const yaw=viewYaw;buildWorld(w,{x:shipX+Math.sin(yaw)*34,z:travel+Math.cos(yaw)*34,h:yaw+.12});w.from={x:shipX,y:shipY,z:travel,yaw:viewYaw,pitch:viewPitch,t}}
-      inputX=inputY=0
-    },
-    overlay(t){drawFade(w,t)}
-  };
-  w.u=t=>t-(i===0?T.england:w.t0);
-  return w
-});
-const byName=Object.fromEntries(scenes.map(s=>[s.name,s]));
-const teaserScene=()=>scenes.includes(D.scene)?D.scene:null;
-
-// The camera owns the view: after the game's own steering, every frame.
-const gameSteer=groundAssault.updateSteering.bind(groundAssault);
-groundAssault.updateSteering=function(dt,mx,my){
-  const r=gameSteer(dt,mx,my),w=teaserScene();
-  if(!w||!w.built||mode!=='play')return r;
-  const u=w.u(D.clock),c=liftOff(w,u)||cameraAt(w,u);
-  let b=1;if(w.from)b=ease(D.clock,w.from.t,w.from.t+1.8);
-  const f=w.from||c;
-  shipX=lerp(f.x,c.x,b);shipY=lerp(f.y,c.y,b);travel=lerp(f.z,c.z,b);
-  const yaw=wrapAngle(f.yaw+wrapAngle(c.yaw-f.yaw)*b);
-  const turn=w.lastYaw==null?0:wrapAngle(yaw-w.lastYaw);w.lastYaw=yaw;
-  viewYaw=yaw;viewPitch=lerp(f.pitch,c.pitch,b);viewRoll=moveToward(viewRoll,clamp(-turn*5,-.12,.12),dt*.8);
-  this.spd=0;surfaceVY=0;return r
-};
-// Antarctica's last part: the drone climbs away, pitching up into the stars.
-function liftOff(w,u){
-  if(w.name!=='antarctica')return null;const L=T['lift-off']-w.t0;if(u<L)return null;
-  // Rise straight up over the colony looking down on it, then tip back into the stars.
-  const base=cameraAt(w,L),k=u-L,up=Math.pow(k,1.6)*2.6,c=pathAt(w,u);
+// The end: the drone climbs straight up over the penguins, looking down on them, then tips
+// back into the stars.
+function liftOff(t){
+  if(run.studio||t<LIFT)return null;
+  const H=run.herds[run.herds.length-1],base=cameraAt(LIFT),k=t-LIFT,up=Math.pow(k,1.6)*2.6,c=routeAt(sAt(H,t));
   const x=base.x,z=base.z,y=base.y+up,cy=ground(c.x,c.z)+.8;
   const yawC=Math.atan2(c.x-x,c.z-z),pitchC=Math.atan2(y-cy,Math.max(1,Math.hypot(c.x-x,c.z-z)));
   const a=ease(k,0,1.6),yaw=wrapAngle(base.yaw+wrapAngle(yawC-base.yaw)*a);
@@ -176,16 +123,143 @@ function liftOff(w,u){
   return{x,y,z,yaw,pitch}
 }
 
-// The herd: every animal keeps its place on the path, galloping to catch up when behind.
+// ---------- The ground: its roll and colour change gently from herd to herd ----------
+const hex=c=>[1,3,5].map(k=>parseInt(c.slice(k,k+2),16));
+function mixCol(a,b,t){if(t<=0)return a;if(t>=1)return b;const A=hex(a),B=hex(b),m=A.map((v,k)=>lerp(v,B[k],t)),top=Math.max(...m)||1;
+  return'#'+m.map(v=>Math.round(v*255/top).toString(16).padStart(2,'0')).join('')}
+function groundColourAt(t){let c=run.herds[0].ground;for(const H of run.herds.slice(1))c=mixCol(c,H.ground,ease(t,H.T-FLY0,H.T+FLY1));return c}
+function ampAt(x,z){
+  if(!run||!run.bounds)return HERDS[0].amp;const s=sOf(x,z);let a=run.herds[0].amp;
+  for(let k=1;k<run.herds.length;k++)a=lerp(a,run.herds[k].amp,smooth(clamp((s-run.bounds[k]+30)/60,0,1)));
+  return a
+}
+function zoneOf(s){let k=0;while(k<run.herds.length-1&&s>=run.bounds[k+1])k++;return k}
+const baseDune=()=>Object.getPrototypeOf(groundAssault).rawDune;
+function terrainOn(){const G=groundAssault,base=baseDune();G.rawDune=function(x,z){return base.call(this,x,z)*ampAt(x,z)};G.hCache.clear()}
+
+// ---------- Building the run ----------
+function buildRun(origin,opt={}){
+  const G=groundAssault,rand=Math.random;
+  G.units.length=0;G.groups.length=0;G.trees.length=0;G.state='promo';
+  G.flats=(G.flats||[]).filter(f=>!f.promo);
+  run={O:{x:origin.x,z:origin.z},H0:origin.h,F0:[Math.sin(origin.h),Math.cos(origin.h)],R0:[Math.cos(origin.h),-Math.sin(origin.h)],
+    sway:opt.studio?0:1,studio:opt.studio||null,herds:opt.herds||HERDS.map(H=>({...H})),lands:[],bergs:[]};
+  const Hs=run.herds;
+  for(const H of Hs){H.live=false;H.units=[];H.crits=null;if(H.fixedV==null)tabulate(H)}
+  // Each herd starts a gap ahead of where the last one is when its turn comes.
+  if(opt.studio){Hs[0].anchor=30;Hs[0].t0=D.clock;Hs[0].spawnAt=-1e9;Hs[0].removeAt=1e9}
+  else Hs.forEach((H,i)=>{
+    H.anchor=i?sAt(Hs[i-1],H.T)+45+30*H.K+6*Hs[i-1].K:40;
+    H.spawnAt=i<2?-1e9:Hs[i-1].T-1;H.removeAt=H.Tn+6});
+  run.bounds=Hs.map((H,i)=>i?sAt(H,H.T)-30*H.K-25:-1e9);
+  // The landmarks: far out on the side away from the camera, where the herd is mid-run.
+  if(!opt.studio)for(const H of Hs){
+    if(H.land){const L=H.land,s=sAt(H,H.T+12)+40,p=worldAt(s,-H.side*L.dist),yaw=(L.yaw||0)+p.h;
+      const e={mesh:L.mesh,col:L.col,s:L.s,x:p.x,z:p.z,yaw,top:L.top||25*L.s,sight:L.sight||430,ext:0};
+      const ca=Math.cos(yaw),sa=Math.sin(yaw);
+      for(const[fx,fz,fr]of(L.foot||[])){const x=fx*L.s,z=fz*L.s;e.ext=Math.max(e.ext,(Math.hypot(fx,fz)+fr)*L.s*.8);G.flats.push({x:e.x+x*ca+z*sa,z:e.z-x*sa+z*ca,r0:fr*L.s,r1:fr*L.s+30,promo:true})}
+      e.keep=Math.max(e.ext,40)+20;run.lands.push(e)}
+    for(const[l,ds,sc]of H.bergs||[]){const p=worldAt(sAt(H,H.T)+ds,l);run.bergs.push({mesh:M.iceberg,col:C.w,s:sc,x:p.x,z:p.z,yaw:rand()*6.3,top:12*sc,sight:430,ext:11*sc,keep:11*sc+12});
+      G.flats.push({x:p.x,z:p.z,r0:11*sc,r1:11*sc+22,promo:true})}
+  }
+  terrainOn();
+  if(!opt.studio)scatterRocks(rand);
+  run.built=true
+}
+// Rocks all along the route, both sides, coloured for each stretch; never in the herds' lane,
+// on a landmark, or anywhere the camera flies.
+function scatterRocks(rand){
+  const G=groundAssault,Hs=run.herds;let rockLo=1e9;for(const v of asteroidMesh.v)rockLo=Math.min(rockLo,v[1]);
+  const cams=new Map(),key=(x,z)=>Math.floor(x/12)+','+Math.floor(z/12);
+  for(let t=Hs[0].T-4;t<LIFT+1;t+=.2){const c=cameraAt(t),k=key(c.x,c.z);(cams.get(k)||cams.set(k,[]).get(k)).push(c)}
+  const nearCam=(x,z,r)=>{const i=Math.floor(x/12),j=Math.floor(z/12);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(const c of cams.get((i+a)+','+(j+b))||[])if(Math.hypot(c.x-x,c.z-z)<r)return true;return false};
+  const s0=Hs[0].anchor-90,s1=sAt(Hs[Hs.length-1],LIFT)+160;
+  const rock=(s,l,sz)=>{
+    const p=worldAt(s,l),mx=1.05+rand()*1.25,my=.45+rand()*.62,mz=.95+rand()*1.1,bury=.12+rand()*.18,r=sz*Math.max(mx,mz)*.85;
+    if(nearCam(p.x,p.z,10+r))return;
+    for(const e of[...run.lands,...run.bergs])if(Math.hypot(p.x-e.x,p.z-e.z)<e.keep+r)return;
+    G.trees.push({kind:'rock',mesh:asteroidMesh,x:p.x,wz:p.z,s:sz,mx,my,mz,bury,base:rockLo,col:Hs[zoneOf(s)].rock,rot:[(rand()-.5)*.28,rand()*6.28,(rand()-.5)*.24],r,top:sz*my*(1-bury)*.9})};
+  for(let s=s0;s<s1;s+=10)for(const sg of[-1,1]){
+    if(rand()<.8)rock(s+(rand()-.5)*8,sg*(13+rand()*45),.9+rand()*2.3);
+    if(rand()<.4)rock(s+(rand()-.5)*8,sg*(58+rand()*60),1.4+rand()*3)}
+}
+// The herds come and go as the run needs them: each one appears out of sight ahead while the
+// camera is still on the one before it, and goes once the camera has left it.
+function slotOf(H,i,rand){const sp=H.space||1,row=Math.floor(i/3),col=i%3-1,rows=Math.ceil((H.n+(H.mix?.n||0))/3);
+  return{r:(col*3.2+(rand()-.5)*1.4+(row%2)*1.2)*sp,f:((rows-1)*2.75-row*5.5+(rand()-.5)*2)*sp,ph1:rand()*6.3,ph2:rand()*6.3}}
+function spawnHerd(H,t){
+  const G=groundAssault,rand=Math.random;H.live=true;
+  const c=routeAt(sAt(H,t)),{F,R}=frameOf(c.h);
+  if(H.kind){
+    const grp={name:'HERD',letter:'H',cx:1e7,cwz:1e7,navX:1e7,navWZ:1e7,radius:1,cleared:false,ids:[]};H.grp=grp;
+    const list=[...Array(H.n).fill(H.kind),...(H.mix?Array(H.mix.n).fill(H.mix.kind):[])];
+    list.forEach((kind,i)=>{const sl=slotOf(H,i,rand),x=c.x+R[0]*sl.r+F[0]*sl.f,z=c.z+R[1]*sl.r+F[1]*sl.f;
+      const u=G.spawn(kind,x,z,c.h,grp);u.teaser={...sl,H};u.speed=speedAt(H,t);u.tint=H.tints?.[i]||null;grp.ids.push(u.id);H.units.push(u)});
+    G.groups.push(grp)
+  }
+  if(H.crit){H.crits=[];for(let i=0;i<H.n;i++)H.crits.push({...slotOf(H,i,rand),ph:rand(),rate:.9+rand()*.25,x:0,z:0,h:c.h})}
+}
+function removeHerd(H){const G=groundAssault;H.live=false;
+  if(H.units.length){const gone=new Set(H.units);G.units=G.units.filter(u=>!gone.has(u));G.groups=G.groups.filter(g=>g!==H.grp);H.units=[]}
+  H.crits=null}
+function herdsTick(t){for(const H of run.herds){if(!H.live&&t>=H.spawnAt&&t<H.removeAt)spawnHerd(H,t);else if(H.live&&t>=H.removeAt)removeHerd(H)}}
+
+// ---------- The scene ----------
+const scene={name:'run',t0:0,seed:301,
+  setup(){
+    D.snow=false;run=null;scene.from=null;scene.lastYaw=null;
+    launch(m=>{
+      m.planetaryRequirements={landingBody:'planet',landingColour:'green',moonCount:{min:1,max:2}};
+      m.modules=m.modules.filter(x=>x.type==='planet_descent'||x.type==='dune_assault')
+    });
+    planetRings=null;planetLandingColour=C.g;
+    terrainOn()
+  },
+  // The game's own descent, until the drone is down on the surface.
+  marks:[{ev:'surface',at:T.england-.4}],
+  event(){return groundAssault?.active&&mode==='play'&&phase==='surface'?'surface':null},
+  pilot(dt,t){
+    if(!(groundAssault?.active&&phase==='surface'))return;
+    if(!run||!run.built){const yaw=viewYaw;buildRun({x:shipX,z:travel,h:yaw});scene.from={x:shipX,y:shipY,z:travel,yaw:viewYaw,pitch:viewPitch,t}}
+    herdsTick(t);inputX=inputY=0
+  },
+  overlay(t){
+    black(ease(t,LIFT+6,LIFT+9.5));drawStars(ease(t,LIFT+4.5,LIFT+9.5)*(1-ease(t,T.end+3.5,PROMO_SONG.length-.3)))
+  }
+};
+const ours=new Set([scene]);
+const teaserScene=()=>ours.has(D.scene)?D.scene:null;
+const active=()=>teaserScene()&&run&&run.built;
+
+// The camera owns the view: after the game's own steering, every frame.
+const gameSteer=groundAssault.updateSteering.bind(groundAssault);
+groundAssault.updateSteering=function(dt,mx,my){
+  const r=gameSteer(dt,mx,my),w=teaserScene();
+  if(!w||!active()||mode!=='play')return r;
+  const t=D.clock,c=liftOff(t)||cameraAt(t);
+  let b=1;if(w.from)b=ease(t,w.from.t,w.from.t+1.8);
+  const f=w.from||c;
+  shipX=lerp(f.x,c.x,b);shipY=lerp(f.y,c.y,b);travel=lerp(f.z,c.z,b);
+  const yaw=wrapAngle(f.yaw+wrapAngle(c.yaw-f.yaw)*b);
+  const turn=w.lastYaw==null?0:wrapAngle(yaw-w.lastYaw);w.lastYaw=yaw;
+  viewYaw=yaw;viewPitch=lerp(f.pitch,c.pitch,b);viewRoll=moveToward(viewRoll,clamp(-turn*5,-.12,.12),dt*.8);
+  if(!run.studio)this.groundCol=groundColourAt(t);
+  this.spd=0;surfaceVY=0;return r
+};
+
+// The herd: every animal keeps its place in the herd, galloping to catch up when behind,
+// and drifting slowly about its place at its own rhythm.
 const gameThink=groundAssault.think.bind(groundAssault);
 groundAssault.think=function(un,dt){
-  const w=teaserScene();if(!un.teaser||!w||!w.path)return gameThink(un,dt);
-  const u=w.u(D.clock),c=pathAt(w,u+.5),{F,R}=frameOf(c.h),sl=un.teaser;
-  // Each animal drifts slowly about its place, surging and easing at its own rhythm.
-  const sp=(w.def.herd?.space||1),dr=Math.sin(u*.42+(sl.ph1||0))*.8*sp,df=Math.sin(u*.29+(sl.ph2||0))*1.8*sp+Math.sin(u*1.1+(sl.ph1||0)*2)*.35*sp;
-  const tx=c.x+R[0]*(sl.r+dr)+F[0]*(sl.f+df),tz=c.z+R[1]*(sl.r+dr)+F[1]*(sl.f+df),want=Math.atan2(tx-un.x,tz-un.wz),dist=Math.hypot(tx-un.x,tz-un.wz);
-  un.h=wrapAngle(un.h+clamp(wrapAngle(want-un.h),-1.8*dt,1.8*dt));un.aggro=false;un.fireCD=99;
-  un.speed=moveToward(un.speed,clamp(w.path.v+(dist-w.path.v*.5)*.9,w.path.v*.4,w.path.v*1.5),dt*5)
+  if(!un.teaser||!active())return gameThink(un,dt);
+  const sl=un.teaser,H=sl.H,t=D.clock,v=speedAt(H,t),c=routeAt(sAt(H,t+.5)),{F,R}=frameOf(c.h);
+  const sp=H.space||1,k=clamp(v/4,.2,1),dr=Math.sin(t*.42+sl.ph1)*.8*sp*k,df=(Math.sin(t*.29+sl.ph2)*1.8+Math.sin(t*1.1+sl.ph1*2)*.35)*sp*k;
+  const tx=c.x+R[0]*(sl.r+dr)+F[0]*(sl.f+df),tz=c.z+R[1]*(sl.r+dr)+F[1]*(sl.f+df),dist=Math.hypot(tx-un.x,tz-un.wz);
+  un.aggro=false;un.fireCD=99;
+  if(v<.3&&dist<1.5){un.h=wrapAngle(un.h+clamp(wrapAngle(c.h-un.h),-.6*dt,.6*dt));un.speed=moveToward(un.speed,0,dt*4);return}
+  const want=Math.atan2(tx-un.x,tz-un.wz);
+  un.h=wrapAngle(un.h+clamp(wrapAngle(want-un.h),-1.8*dt,1.8*dt));
+  un.speed=moveToward(un.speed,clamp(v+(dist-v*.5)*.9,0,Math.max(v*1.5,3)),dt*5)
 };
 const gameDrawUnit=groundAssault.drawUnit.bind(groundAssault),coloured=new WeakSet();
 groundAssault.drawUnit=function(un){
@@ -209,54 +283,53 @@ const gameMarker=groundAssault.drawMarker.bind(groundAssault);
 groundAssault.drawMarker=function(){if(teaserScene())return;return gameMarker()};
 
 // ---------- Kangaroos and penguins ----------
-function moveCrits(w,dt){
-  if(!w.crits)return;const u=w.u(D.clock),d=w.def.crit;
-  for(const k of w.crits){const c=pathAt(w,u),{F,R}=frameOf(c.h),dr=Math.sin(u*.4+(k.ph1||0))*.6,df=Math.sin(u*.27+(k.ph2||0))*1.2+(k.slide?Math.min(9,u*.8):0);
-    k.x=c.x+R[0]*(k.r+dr)+F[0]*(k.f+df);k.z=c.z+R[1]*(k.r+dr)+F[1]*(k.f+df);k.h=c.h+(d.type==='penguin'?Math.sin(u*1.3+k.ph*6)*.12:0);
-    k.ph=(k.ph+dt*(d.type==='kangaroo'?1.7*k.rate:1.6*k.rate))%1}
+function moveCrits(dt){
+  const t=D.clock;
+  for(const H of run.herds){if(!H.crits)continue;const v=speedAt(H,t),c=routeAt(sAt(H,t)),{F,R}=frameOf(c.h),k=clamp(v/4,.2,1);
+    for(const q of H.crits){const dr=Math.sin(t*.4+q.ph1)*.6*k,df=Math.sin(t*.27+q.ph2)*1.2*k;
+      q.x=c.x+R[0]*(q.r+dr)+F[0]*(q.f+df);q.z=c.z+R[1]*(q.r+dr)+F[1]*(q.f+df);q.h=c.h+(H.crit==='penguin'?Math.sin(t*1.3+q.ph*6)*.12:0);
+      q.ph=(q.ph+dt*(H.crit==='kangaroo'?1.7*q.rate*clamp(v/H.v,.35,1):1.6*q.rate))%1}}
 }
-function drawCrit(w,k){
-  const d=w.def.crit,gy=ground(k.x,k.z),z=k.z-travel;
-  if(d.type==='kangaroo'){M.kangaroo.pose({u:k.ph});drawMesh({x:k.x,y:gy+M.hopH(k.ph)*d.s,z,s:d.s,rot:[0,k.h+PI,0]},M.kangaroo,d.col,1);return}
-  const wph=k.ph*PI*2;
-  if(k.slide){M.penguin.pose({w:0});drawMesh({x:k.x,y:gy+.35*d.s,z,s:d.s,rot:[-1.35,k.h+PI,0]},M.penguin,d.col,1);return}
-  M.penguin.pose({w:wph});drawMesh({x:k.x,y:gy,z,s:d.s,rot:[0,k.h+PI,Math.sin(wph)*.2]},M.penguin,d.col,1)
+function drawCrit(H,q){
+  const gy=ground(q.x,q.z),z=q.z-travel;
+  if(H.crit==='kangaroo'){M.kangaroo.pose({u:q.ph});drawMesh({x:q.x,y:gy+M.hopH(q.ph)*H.critS,z,s:H.critS,rot:[0,q.h+PI,0]},M.kangaroo,H.critCol,1);return}
+  const wph=q.ph*PI*2;M.penguin.pose({w:wph});drawMesh({x:q.x,y:gy,z,s:H.critS,rot:[0,q.h+PI,Math.sin(wph)*.2]},M.penguin,H.critCol,1)
 }
 
-// ---------- Landmarks, props, aurora: into the game's depth-sorted scene ----------
+// ---------- Landmarks, icebergs, crits and the aurora, into the game's depth-sorted scene ----------
+// Landmarks sort by their nearest edge but never nearer than 70, so they can't be drawn over
+// the animals or rocks in front of them.
 const gameTrees=groundAssault.appendTrees.bind(groundAssault);
-groundAssault.appendTrees=function(scene){
-  gameTrees(scene);const w=teaserScene();if(!w||!w.built)return;
-  const put=(x,z,mesh,col,s,yaw,top,sight,alpha=1,foot=0,ext=0)=>{
-    const dist=Math.hypot(x-shipX,z-travel);if(dist>sight+ext)return;
-    let gy=ground(x,z);if(foot)for(const[a,b]of[[foot,0],[-foot,0],[0,foot],[0,-foot]])gy=Math.min(gy,ground(x+a,z+b)-.2);
-    const q=camPoint([x,gy+top*.4,z-travel]);if(q[2]<-top-ext)return;
-    let near=q[2];if(ext)for(let k=0;k<8;k++){const a=k/8*2*PI,e=camPoint([x+Math.cos(a)*ext,gy+1,z+Math.sin(a)*ext-travel])[2];near=Math.min(near,e)}
-    const haze=clamp((sight+ext-dist)/(sight*.3),0,1)*alpha;
-    scene.push({z:Math.max(.3,near),draw:()=>drawMesh({x,y:gy-.15,z:z-travel,s,rot:[0,yaw,0],fadeZ:Math.max(0,q[2])*.7},mesh,col,haze)})};
-  if(w.land)put(w.land.x,w.land.z,w.land.mesh,w.land.col,w.land.s,w.land.yaw,w.land.top,w.land.mesh===M.kilimanjaro?900:520,.95,0,w.land.ext||0);
-  for(const e of w.extra||[])put(e.x,e.z,w.land.mesh,w.land.col,e.s,e.yaw,12*e.s,420,.9,0,11*e.s);
-  const pr=w.def.props;for(const p of w.props||[])put(p.x,p.z,pr.mesh,pr.col,p.s,p.yaw,5*p.s,150,.9,.6*p.s);
-  for(const k of w.crits||[]){const q=camPoint([k.x,ground(k.x,k.z)+1,k.z-travel]);if(q[2]>.4&&q[2]<150)scene.push({z:q[2],draw:()=>drawCrit(w,k)})}
-  if(w.def.aurora)scene.push({z:1e5,draw:()=>drawAurora(w)})
+groundAssault.appendTrees=function(scn){
+  gameTrees(scn);if(!active())return;
+  const put=e=>{
+    const dist=Math.hypot(e.x-shipX,e.z-travel);if(dist>e.sight+e.ext)return;
+    const gy=ground(e.x,e.z),q=camPoint([e.x,gy+e.top*.4,e.z-travel]);if(q[2]<-e.top-e.ext)return;
+    let near=q[2];if(e.ext)for(let k=0;k<8;k++){const a=k/8*2*PI;near=Math.min(near,camPoint([e.x+Math.cos(a)*e.ext,gy+1,e.z+Math.sin(a)*e.ext-travel])[2])}
+    const haze=clamp((e.sight+e.ext-dist)/(e.sight*.3),0,1)*.92;
+    scn.push({z:Math.max(70,near),draw:()=>drawMesh({x:e.x,y:gy-.15,z:e.z-travel,s:e.s,rot:[0,e.yaw,0],fadeZ:Math.max(0,q[2])*.7},e.mesh,e.col,haze)})};
+  for(const e of run.lands)put(e);for(const e of run.bergs)put(e);
+  for(const H of run.herds)for(const q of H.crits||[]){const p=camPoint([q.x,ground(q.x,q.z)+1,q.z-travel]);if(p[2]>.4&&p[2]<150)scn.push({z:p[2],draw:()=>drawCrit(H,q)})}
+  const t=D.clock,last=run.herds[run.herds.length-1],au=last.aurora?ease(t,last.T-FLY0,last.T+FLY1+2):0;
+  if(au>0)scn.push({z:1e5,draw:()=>drawAurora(au)})
 };
 const gameUpdateGA=groundAssault.update?.bind(groundAssault);
-if(gameUpdateGA)groundAssault.update=function(dt){const r=gameUpdateGA(dt);const w=teaserScene();if(w&&w.built)moveCrits(w,dt);return r};
+if(gameUpdateGA)groundAssault.update=function(dt){const r=gameUpdateGA(dt);if(active())moveCrits(dt);return r};
 
 // The aurora: green and cyan curtains hanging over the ice, rippling slowly.
-function drawAurora(w){
+function drawAurora(alpha){
   const t=D.clock;ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;
   for(let band=0;band<2;band++)for(let i=0;i<70;i++){
-    const az=w.path.h-.9+i*.026+band*.12,el0=.1+band*.05+Math.sin(i*.31+t*.4+band)*.03,el1=el0+.12+.07*Math.sin(i*.17-t*.6+band*2);
+    const az=run.H0-.9+i*.026+band*.12,el0=.1+band*.05+Math.sin(i*.31+t*.4+band)*.03,el1=el0+.12+.07*Math.sin(i*.17-t*.6+band*2);
     const dir=(el)=>[Math.sin(az)*Math.cos(el),Math.sin(el),Math.cos(az)*Math.cos(el)],R=3000;
     const a=dir(el0),b=dir(el1),pa=proj([shipX+a[0]*R,shipY+a[1]*R,a[2]*R]),pb=proj([shipX+b[0]*R,shipY+b[1]*R,b[2]*R]);
     if(!pa||!pb)continue;
-    ctx.globalAlpha=(.3+.2*Math.sin(i*.5+t*1.3+band))*(band?.7:1);ctx.strokeStyle=band?C.c:C.g;
+    ctx.globalAlpha=(.3+.2*Math.sin(i*.5+t*1.3+band))*(band?.7:1)*alpha;ctx.strokeStyle=band?C.c:C.g;
     ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);ctx.stroke()}
   ctx.restore()
 }
 
-// ---------- Fades between worlds, and the starfield at the end ----------
+// ---------- The starfield at the end ----------
 const STARS=(()=>{let s=1234567;const r=()=>((s=Math.imul(s^s>>>15,1|s)+0x6D2B79F5|0)>>>0)/4294967296;
   return Array.from({length:1800},()=>{const z=r()*2-1,a=r()*PI*2,k=Math.sqrt(1-z*z);return{d:[Math.cos(a)*k,z,Math.sin(a)*k],b:.25+r()*.75,tw:r()*6.3}})})();
 function drawStars(alpha){
@@ -266,38 +339,33 @@ function drawStars(alpha){
   ctx.restore()
 }
 function black(a){if(a<=0)return;ctx.save();ctx.globalAlpha=Math.min(1,a);ctx.fillStyle='#000';ctx.fillRect(-20,-20,W+40,H+40);ctx.restore()}
-function drawFade(w,t){
-  const idx=scenes.indexOf(w),next=scenes[idx+1];
-  // Out of each world into black over its last half second, in from black over the first.
-  if(idx>0)black(1-ease(t,w.t0,w.t0+.55));
-  if(next)black(ease(t,next.t0-.45,next.t0));
-  if(w.name==='antarctica'){const L=T['lift-off'];black(ease(t,L+6,L+9.5));drawStars(ease(t,L+4.5,L+9.5)*(1-ease(t,T.end+3.5,PROMO_SONG.length-.3)))}
-}
 // Once the world has faded out to the stars, the drone's guns go too.
 const gameDrawGun=window.drawGun;
-window.drawGun=function(g){const w=teaserScene();if(w&&w.name==='antarctica'&&D.clock>T['lift-off']+7.5)return;return gameDrawGun(g)};
+window.drawGun=function(g){if(teaserScene()===scene&&D.clock>LIFT+7.5)return;return gameDrawGun(g)};
 D.drawTitles=t=>{
   const a=D.window01(t,1.2,9.6,1.2);
   if(a>0){D.vtext('Vector Space',W*.5,viewH*.16,Math.round(W/22),C.g,a);D.vtext('Agent X',W*.5,viewH*.16+W/22,Math.round(W/40),C.w,a*.9)}
 };
 
-// ---------- Studio: one animal alone on flat ground, filmed from a fixed side, for model work ----------
-// TeaserScenes.studio({kind:'horse'} or {crit:'kangaroo'}, v, side, along, h, col) then studioShot(u) steps to u
-// seconds and draws the frame.
+// ---------- Studio: one herd alone on flat ground, filmed from a fixed side, for model work ----------
+// TeaserScenes.studio({kind:'horse'} or {crit:'kangaroo'}, v, n, side, along, h, lookY) then
+// studioShot(u) steps to u seconds and draws the frame.
+const studioScene={name:'studio',t0:0,seed:9};
+ours.add(studioScene);
 function studio(o){
-  const def={name:'studio',col:o.col||C.g,amp:0,seed:9,cam:CAM.chase,turn:0,
-    herd:o.kind?{kind:o.kind,n:o.n||1,v:o.v??10,space:o.space||1}:null,crit:o.crit?{type:o.crit,n:o.n||1,v:o.v??8,col:o.critCol||C.o,s:o.s||1.3}:null};
-  const w={name:'studio',def,t0:0,built:false,studio:{side:o.side??-9,along:o.along??0,h:o.h??1.8,lookY:o.lookY},u:t=>t-w.t0};
-  if(!scenes.includes(w))scenes.push(w);
   D.takeControl();D.seed(9);D.clock=1000;
   launch(m=>{m.planetaryRequirements={landingBody:'planet',landingColour:'green',moonCount:{min:0,max:0}};m.modules=m.modules.filter(x=>x.type==='dune_assault')});
-  planetRings=null;planetLandingColour=def.col;D.scene=w;w.t0=D.clock;
-  buildWorld(w,{x:shipX,z:travel+30,h:0});w.props=[];
-  TeaserScenes.cur=w;return w
+  planetRings=null;planetLandingColour=o.col||C.g;D.scene=studioScene;studioScene.t0=D.clock;studioScene.from=null;studioScene.lastYaw=null;
+  const base=o.kind?HERDS.find(h=>h.kind===o.kind||h.mix?.kind===o.kind):HERDS.find(h=>h.crit===o.crit);
+  const H={...base,kind:o.kind||null,mix:null,crit:o.crit||null,n:o.n||1,fixedV:o.v??10,tints:null,amp:0,lookY:o.lookY,critS:o.s||base.critS,critCol:o.critCol||base.critCol};
+  buildRun({x:shipX,z:travel,h:0},{studio:{side:o.side??-9,along:o.along??0,h:o.h??1.8,lookY:o.lookY},herds:[H]});
+  groundAssault.rawDune=function(){return 0};groundAssault.hCache.clear();
+  spawnHerd(H,D.clock);
+  return studioScene
 }
-function studioShot(u){const w=TeaserScenes.cur,dt=1/30;while(w.u(D.clock)<u-1e-6){D.gclock+=dt;D.clock+=dt;update(dt)}D.gclock+=dt;render(1e6+D.gclock*1000)}
+function studioShot(u){const dt=1/30;while(D.clock-studioScene.t0<u-1e-6){D.gclock+=dt;D.clock+=dt;update(dt)}D.gclock+=dt;render(1e6+D.gclock*1000)}
 
-D.scenes.push(...scenes);
+D.scenes.push(scene);
 D.T.videoEnd=PROMO_SONG.length;
-globalThis.TeaserScenes={scenes,byName,cameraAt,pathAt,WORLDS,studio,studioShot};
+globalThis.TeaserScenes={scene,cameraAt:t=>cameraAt(t),herdCam,HERDS,get run(){return run},studio,studioShot};
 })();
