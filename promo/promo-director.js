@@ -9,7 +9,8 @@
 if(Promo.Q.get('view'))return;
 const SONG=PROMO_SONG,FPS=+Promo.Q.get('fps')||30,DT=1/FPS;
 const secT=n=>SONG.sections.find(s=>s.name===n).t;
-const T={solo:secT('solo'),breakdown:secT('breakdown'),verse3:secT('verse 3'),outro:secT('outro'),riff:secT('riff'),verse2:secT('verse 2'),end:SONG.end+2.6};
+// The teaser has its own section names; its scenes read them from PROMO_SONG.
+const T=SONG.teaser?{end:SONG.end,...Object.fromEntries(SONG.sections.map(s=>[s.name,s.t]))}:{solo:secT('solo'),breakdown:secT('breakdown'),verse3:secT('verse 3'),outro:secT('outro'),riff:secT('riff'),verse2:secT('verse 2'),end:SONG.end+2.6};
 
 // ---- Repeatable randomness and time ----
 let seedState=1;
@@ -97,7 +98,9 @@ D.drawSnowfall=drawSnowfall;
 function vtext(s,x,y,size,col,alpha){const F=AgentXVectorFont,w=F.measure(s,size,null,'display');if(w>W*.88)size*=W*.88/w;
   ctx.save();ctx.globalAlpha=alpha;F.draw(ctx,s,x,y,size,{role:'display',align:'center',baseline:'middle',color:col});ctx.restore()}
 function window01(t,a,b,fade=.8){return clamp(Math.min((t-a)/fade,(b-t)/fade),0,1)}
+D.vtext=vtext;D.window01=window01;
 function drawTitles(t){
+  if(D.drawTitles)return D.drawTitles(t);
   const a=window01(t,1.0,9.9,1.1);
   if(a>0){vtext('Vector Space',W*.5,viewH*.15,Math.round(W/26),C.g,a);vtext('Agent X wishes you all a Merry Christmas',W*.5,viewH*.15+W/19,Math.round(W/26),C.w,a*.95)}
   const e=window01(t,T.end-9.5,T.end+20,1.4);   // held to the very end, while the bells ring on

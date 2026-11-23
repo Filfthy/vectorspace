@@ -14,9 +14,9 @@ document.head.appendChild(css);
 // Loaded whole into memory, so it can start part way in on any server (seeking a streamed file
 // needs range requests, which simple local servers don't give).
 const song=Promo.song=new Audio();
-const songReady=fetch('promo/xmasWords.mp3').then(r=>r.blob()).then(b=>{song.src=URL.createObjectURL(b);return new Promise(r=>song.readyState>=1?r():song.addEventListener('loadedmetadata',r,{once:true}))});
+const songReady=fetch(PROMO_SONG.mp3||'promo/xmasWords.mp3').then(r=>r.blob()).then(b=>{song.src=URL.createObjectURL(b);return new Promise(r=>song.readyState>=1?r():song.addEventListener('loadedmetadata',r,{once:true}))});
 const button=document.createElement('button');button.id='promoStart';
-button.innerHTML='PLAY THE CHRISTMAS PROMO<small>Space pauses · Esc leaves full screen</small>';
+button.innerHTML=(PROMO_SONG.button||'PLAY THE CHRISTMAS PROMO')+'<small>Space pauses · Esc leaves full screen</small>';
 document.body.appendChild(button);
 button.addEventListener('click',async()=>{
   button.remove();

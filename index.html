@@ -571,6 +571,7 @@
 <!-- The self-test: loads only with ?selftest, otherwise nothing. Runs on a throwaway save. -->
 <script>if(/[?&]selftest(&|=|$)/.test(location.search))document.write('<script src="selftest.js"><\/script>')</script>
 <!-- The Christmas promo video director: loads only with ?promo, otherwise nothing. -->
-<script>if(/[?&]promo(&|=|$)/.test(location.search))for(const f of["song-timing.js","promo-models.js","promo.js","promo-director.js","promo-scenes.js","promo-play.js"])document.write('<script src="promo/'+f+'"><\/script>')</script>
+<!-- ?promo=teaser is the animal-worlds teaser instead. -->
+<script>if(/[?&]promo(&|=|$)/.test(location.search))for(const f of(/[?&]promo=teaser/.test(location.search)?["teaser-song.js","promo-models.js","promo.js","promo-director.js","teaser-models.js","teaser-scenes.js","promo-play.js"]:["song-timing.js","promo-models.js","promo.js","promo-director.js","promo-scenes.js","promo-play.js"]))document.write('<script src="promo/'+f+'"><\/script>')</script>
 </body>
 </html>
