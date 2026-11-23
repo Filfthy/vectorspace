@@ -105,7 +105,7 @@ function buildWorld(w,origin){
   const amp=d.amp,base=Object.getPrototypeOf(G).rawDune;
   G.flats=(G.flats||[]).filter(f=>!f.promo);
   if(w.land){const L=w.land,ca=Math.cos(L.yaw),sa=Math.sin(L.yaw);
-    for(const[fx,fz,fr]of(L.foot||(L.r?[[0,0,L.r/L.s]]:[]))){const x=fx*L.s,z=fz*L.s;G.flats.push({x:L.x+x*ca+z*sa,z:L.z-x*sa+z*ca,r0:fr*L.s,r1:fr*L.s+30,promo:true})}
+    L.ext=0;for(const[fx,fz,fr]of(L.foot||(L.r?[[0,0,L.r/L.s]]:[]))){const x=fx*L.s,z=fz*L.s;L.ext=Math.max(L.ext,(Math.hypot(fx,fz)+fr)*L.s*.8);G.flats.push({x:L.x+x*ca+z*sa,z:L.z-x*sa+z*ca,r0:fr*L.s,r1:fr*L.s+30,promo:true})}
     for(const e of w.extra||[])G.flats.push({x:e.x,z:e.z,r0:11*e.s,r1:11*e.s+22,promo:true})}
   G.rawDune=function(x,z){return base.call(this,x,z)*amp};G.hCache.clear();
   scatter(w,rand);
@@ -118,7 +118,7 @@ function buildWorld(w,origin){
       const u=G.spawn(kind,x,z,c.h,grp);u.teaser=sl;u.speed=w.path.v;u.tint=d.herd.tints?.[i]||null;grp.ids.push(u.id)});
     G.groups.push(grp)
   }
-  if(d.crit){w.crits=[];for(let i=0;i<d.crit.n;i++){const sl=slot(i,d.crit.n);w.crits.push({...sl,ph:rand(),rate:.9+rand()*.25,x:0,z:0,h:w.path.h,slide:d.crit.type==='penguin'&&i%4===3})}}
+  if(d.crit){w.crits=[];for(let i=0;i<d.crit.n;i++){const sl=slot(i,d.crit.n);w.crits.push({...sl,ph:rand(),rate:.9+rand()*.25,x:0,z:0,h:w.path.h,slide:false})}}
   w.built=true
 }
 
@@ -196,6 +196,14 @@ groundAssault.drawUnit=function(un){
   drawMesh({x:un.x,y:this.ug(un),z:un.wz-travel,s:un.s,rot:[0,un.h+PI,0],fadeZ:Math.max(0,depth)*.8},un.mesh,un.tint||un.K.col,haze)
 };
 
+// The teaser's ground: fine cells (no level-of-detail morph) out to 230, coarse cells beyond,
+// tiling exactly. The game's morphing grid swims against anything standing on the true ground.
+const gameGround=groundAssault.appendGround.bind(groundAssault),gameLod=groundAssault.lodDrawn.bind(groundAssault),FINE_R=230;
+groundAssault.lodDrawn=function(level,i,j){if(!this._teaserLod)return gameLod(level,i,j);
+  if(level===0)return this.lodDist(4,i>>2,j>>2)<FINE_R;if(level===2){const d=this.lodDist(4,i,j);return d>=FINE_R&&d<GA_HORIZON}return false};
+groundAssault.appendGround=function(scene){if(!teaserScene())return gameGround(scene);
+  this._teaserLod=true;try{this.appendGroundLevel(scene,0,1,0,FINE_R+GA_CELL*8,1e9,1e9+1,1e9);this.appendGroundLevel(scene,2,4,FINE_R-GA_CELL*8,GA_HORIZON+GA_CELL*4,1e9,1e9+1,1e9)}finally{this._teaserLod=false}};
+
 // No game HUD on the surface (the altimeter and nav labels).
 const gameMarker=groundAssault.drawMarker.bind(groundAssault);
 groundAssault.drawMarker=function(){if(teaserScene())return;return gameMarker()};
@@ -219,14 +227,15 @@ function drawCrit(w,k){
 const gameTrees=groundAssault.appendTrees.bind(groundAssault);
 groundAssault.appendTrees=function(scene){
   gameTrees(scene);const w=teaserScene();if(!w||!w.built)return;
-  const put=(x,z,mesh,col,s,yaw,top,sight,alpha=1,foot=0)=>{
-    const dist=Math.hypot(x-shipX,z-travel);if(dist>sight)return;
+  const put=(x,z,mesh,col,s,yaw,top,sight,alpha=1,foot=0,ext=0)=>{
+    const dist=Math.hypot(x-shipX,z-travel);if(dist>sight+ext)return;
     let gy=ground(x,z);if(foot)for(const[a,b]of[[foot,0],[-foot,0],[0,foot],[0,-foot]])gy=Math.min(gy,ground(x+a,z+b)-.2);
-    const q=camPoint([x,gy+top*.4,z-travel]);if(q[2]<-top)return;
-    const haze=clamp((sight-dist)/(sight*.3),0,1)*alpha;
-    scene.push({z:Math.max(.3,q[2]),draw:()=>drawMesh({x,y:gy-.15,z:z-travel,s,rot:[0,yaw,0],fadeZ:Math.max(0,q[2])*.7},mesh,col,haze)})};
-  if(w.land)put(w.land.x,w.land.z,w.land.mesh,w.land.col,w.land.s,w.land.yaw,w.land.top,w.land.mesh===M.kilimanjaro?900:520,.95);
-  for(const e of w.extra||[])put(e.x,e.z,w.land.mesh,w.land.col,e.s,e.yaw,12*e.s,420,.9);
+    const q=camPoint([x,gy+top*.4,z-travel]);if(q[2]<-top-ext)return;
+    let near=q[2];if(ext)for(let k=0;k<8;k++){const a=k/8*2*PI,e=camPoint([x+Math.cos(a)*ext,gy+1,z+Math.sin(a)*ext-travel])[2];near=Math.min(near,e)}
+    const haze=clamp((sight+ext-dist)/(sight*.3),0,1)*alpha;
+    scene.push({z:Math.max(.3,near),draw:()=>drawMesh({x,y:gy-.15,z:z-travel,s,rot:[0,yaw,0],fadeZ:Math.max(0,q[2])*.7},mesh,col,haze)})};
+  if(w.land)put(w.land.x,w.land.z,w.land.mesh,w.land.col,w.land.s,w.land.yaw,w.land.top,w.land.mesh===M.kilimanjaro?900:520,.95,0,w.land.ext||0);
+  for(const e of w.extra||[])put(e.x,e.z,w.land.mesh,w.land.col,e.s,e.yaw,12*e.s,420,.9,0,11*e.s);
   const pr=w.def.props;for(const p of w.props||[])put(p.x,p.z,pr.mesh,pr.col,p.s,p.yaw,5*p.s,150,.9,.6*p.s);
   for(const k of w.crits||[]){const q=camPoint([k.x,ground(k.x,k.z)+1,k.z-travel]);if(q[2]>.4&&q[2]<150)scene.push({z:q[2],draw:()=>drawCrit(w,k)})}
   if(w.def.aurora)scene.push({z:1e5,draw:()=>drawAurora(w)})

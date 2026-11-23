@@ -58,212 +58,189 @@ function tube(m,pts,rx,ry,n=8,caps=[false,true]){
 }
 // A body along z: stations [z, half width, bottom y, top y], each an eight-sided section.
 const trunk=(m,st)=>m.loft(st.map(([z,w,y0,y1])=>ring8(w,y0,y1,z)));
-// HORSE: withers, a dipped back and a round croup; an arched neck carrying the mane; a head
-// angled down to a tapering muzzle; a flowing tail; legs with the knee in front and the hock
-// behind. Model faces -z; the hips sit at Y.
-{const Y=1.85,legs=[];
-  for(const sx of[-1,1]){
-    legs.push(gaLegDesign([sx*.34,Y,-.95],[sx*.38,.8,-1.05],[sx*.38,.28,-.95],[sx*.4,0,-.9],.19));
-    legs.push(gaLegDesign([sx*.36,Y+.1,.85],[sx*.4,.95,1.2],[sx*.4,.3,.98],[sx*.42,0,.95],.2))}
-  hooves(legs,{hoof:1,kneeK:.7});
-  animal('horse',{Y,s:1.2,col:C.o,top:3.6,legs,reach:1.75,minCycle:.3,
-    body(m){
-      trunk(m,[[-1.42,.2,1.95,2.3],[-1.25,.38,1.62,2.55],[-.9,.46,1.5,2.72],[-.4,.5,1.46,2.6],[.15,.5,1.5,2.5],[.7,.5,1.6,2.62],[1.15,.42,1.78,2.6],[1.38,.24,2.0,2.45]]);
-      // The neck rises from the withers and chest, arching to the poll.
-      const neck=[[0,2.3,-1.12],[0,2.62,-1.42],[0,2.98,-1.66],[0,3.3,-1.82],[0,3.52,-1.9]];
-      tube(m,neck,[.3,.27,.23,.2,.19],[.42,.38,.33,.27,.24],8,[false,false]);
-      // The head: broad at the forehead, angled down to the muzzle.
-      tube(m,[[0,3.6,-1.88],[0,3.42,-2.12],[0,3.14,-2.42],[0,2.92,-2.62]],[.2,.18,.15,.13],[.22,.2,.17,.15],8,[true,true]);
-      m.box([0,2.88,-2.66],[.24,.2,.12]);   // the nose
-      for(const sx of[-1,1]){m.beam([sx*.11,3.66,-1.84],[sx*.15,3.98,-1.74],.06,.11,.3);m.box([sx*.15,3.42,-2.12],[.06,.08,.08])}
-      m.mark('mane',()=>{const pts=[];for(let i=0;i<=12;i++){const u=i/12,j=Math.min(neck.length-1,u*(neck.length-1)),k=Math.floor(j),f=j-k,p=neck[k],q=neck[Math.min(k+1,neck.length-1)],x=p[1]+(q[1]-p[1])*f,z=p[2]+(q[2]-p[2])*f;
-        pts.push([i%2?.06:-.06,x+.36-u*.1+(i%2?.1:0),z+.2-u*.05])}line(m,pts);line(m,[[0,3.68,-1.92],[0,3.5,-2.1],[.05,3.42,-2.08]])});
-      m.mark('tail',()=>tube(m,[[0,2.5,1.35],[0,2.6,1.6],[0,2.35,1.85],[0,1.8,2.0],[0,1.25,2.02]],[.1,.14,.16,.17,.08],[.12,.16,.18,.18,.08],6,[false,true]));
-      // The mech: a plate along the spine and a sensor band across the brow.
-      m.box([0,2.66,-.25],[.36,.1,1.4]);m.mark('visor',()=>m.box([0,3.52,-2.02],[.42,.07,.08]));
-    },colours:{mane:C.y,tail:C.y,visor:C.c}});
-}
-// Legs in the hound's order (LF, LH, RF, RH): front and hind each [hip, knee, ankle, foot],
-// written for the left side (x < 0) and mirrored.
-function legs4(front,hind,t,o={}){
-  const mir=(p,sx)=>[Math.abs(p[0])*sx,p[1],p[2]],L=[];
-  for(const sx of[-1,1])for(const d of[front,hind])L.push(gaLegDesign(...d.map(p=>mir(p,sx)),t));
-  return hooves(L,{hoof:o.hoof??1,kneeK:o.kneeK??.7})
-}
-// Stripes: closed bands round a trunk section, two lines each so they read as bands.
-const bands=(m,st,every=1)=>{st.forEach(([z,w,y0,y1],i)=>{if(i%every)return;for(const dz of[-.05,.05])line(m,ring8(w*1.03,y0-.01,y1+.01,z+dz),true)})};
+// ===== The animal mechs. Like the reindeer: machines shaped like animals, built from box
+// sections and beams on the HOUND walker's legs (knee boxes, white hex feet), each with one
+// signature machine part. Model faces -z.
+// The HOUND's leg design scaled by k (hound: hips at 1.9).
+function houndLegs(k,o={}){const legs=[],wx=(o.wx??.55)*k,zf=(o.zf??-.9)*k,zb=(o.zb??.8)*k,t=(o.t??.2)*k,kb=o.backK??k;
+  for(const sx of[-1,1])for(const z of[zf,zb]){const kk=z<0?k:kb,Y=1.9*kk;
+    legs.push(gaLegDesign([sx*wx,Y-.1*kk,z],[sx*(wx+.25*kk),Y-.5*kk,z+(z<0?-.5:.5)*kk],[sx*(wx+.25*kk),.45*kk,z+(z<0?.15:-.1)*kk],[sx*(wx+.27*kk),0,z+(z<0?.1:-.1)*kk],t))}
+  return legs}
+// A box section at z: half width w, from y0 to y1 (top a little narrower).
+const bsec=(w,y0,y1,z,top=.92)=>[[-w,y0,z],[w,y0,z],[w*top,y1,z],[-w*top,y1,z]];
+const pod=(m,y,z0,z1,x=.22,r=.06)=>{m.box([0,y-.14,(z0+z1)/2],[.62,.28,Math.abs(z1-z0)*.55]);m.mark('barrels',()=>{for(const sx of[-1,1])m.barrel(sx*x,y,z0,z1,r)})};
+const fins=(m,from,to,n,h=.22)=>m.mark('mane',()=>{for(let i=0;i<n;i++){const u=(i+.5)/n,p=[from[0]+(to[0]-from[0])*u,from[1]+(to[1]-from[1])*u,from[2]+(to[2]-from[2])*u];m.box([p[0],p[1]+h/2,p[2]],[.06,h,.16])}});
+const mech=(id,o)=>animal(id,{...o,minCycle:o.minCycle??GA_KINDS.hound.minCycle});
 
-// ZEBRA: stockier than the horse, a short bristly mane, stripes banding it right round and a
-// tufted tail.
-{const Y=1.72,st=[[-1.32,.2,1.82,2.15],[-1.15,.36,1.52,2.38],[-.82,.45,1.42,2.5],[-.35,.5,1.38,2.42],[.15,.5,1.42,2.36],[.65,.5,1.5,2.45],[1.05,.42,1.66,2.44],[1.28,.24,1.86,2.3]];
-  const legs=legs4([[-.32,Y,-.88],[-.36,.75,-.98],[-.36,.26,-.88],[-.38,0,-.84]],[[-.34,Y+.1,.8],[-.38,.88,1.12],[-.38,.28,.92],[-.4,0,.9]],.18);
-  animal('zebra',{Y,s:1.15,col:C.w,top:3.3,legs,reach:1.6,minCycle:.3,
+// HORSE: an armoured chest, a raised beam neck with cooling fins for a mane, a long wedge
+// head with a visor, the twin cannon pod on its back and a cable tail.
+{const Y=1.9;
+  mech('horse',{Y,s:1.3,col:C.o,top:4,legs:houndLegs(1),reach:1.7,
     body(m){
-      trunk(m,st);
-      const neck=[[0,2.15,-1.05],[0,2.45,-1.32],[0,2.78,-1.55],[0,3.05,-1.7],[0,3.22,-1.76]];
-      tube(m,neck,[.3,.27,.23,.2,.19],[.4,.36,.31,.26,.23],8,[false,false]);
-      tube(m,[[0,3.3,-1.74],[0,3.12,-1.98],[0,2.86,-2.26],[0,2.68,-2.44]],[.2,.18,.15,.13],[.22,.2,.17,.15],8,[true,true]);
-      m.box([0,2.64,-2.48],[.24,.2,.12]);
-      for(const sx of[-1,1])m.beam([sx*.11,3.36,-1.7],[sx*.18,3.72,-1.6],.07,.13,.3);
-      m.mark('stripes',()=>{bands(m,st.slice(1,7));
-        neck.slice(0,4).forEach((p,i)=>line(m,[[-.28+i*.02,p[1]-.3,p[2]+.08],[0,p[1]+.38,p[2]+.05],[.28-i*.02,p[1]-.3,p[2]+.08]]));
-        for(const z of[-.6,.0,.6])line(m,[[-.5,2.0,z],[-.5,1.55,z+.12]]),line(m,[[.5,2.0,z],[.5,1.55,z+.12]])});
-      m.mark('mane',()=>{neck.forEach((p,i)=>{if(i<4)line(m,[[0,p[1]+.36,p[2]+.18],[0,p[1]+.62,p[2]+.2]])});line(m,neck.map(p=>[0,p[1]+.62,p[2]+.2]))});
-      m.mark('tail',()=>{tube(m,[[0,2.3,1.28],[0,2.1,1.48],[0,1.55,1.58]],[.06,.06,.05],[.06,.06,.05],6,[false,false]);m.box([0,1.4,1.6],[.16,.3,.16])});
+      m.loft([bsec(.42,Y-.42,Y+.3,-1.3),bsec(.52,Y-.38,Y+.36,-.35),bsec(.48,Y-.3,Y+.34,.6),bsec(.44,Y-.24,Y+.3,1.1)]);
+      m.beam([0,Y+.12,-1.12],[0,Y+1.35,-1.62],.34,.46,.78);
+      m.loft([bsec(.21,Y+1.12,Y+1.5,-1.56),bsec(.15,Y+.86,Y+1.12,-2.36)]);
+      m.mark('visor',()=>m.box([0,Y+1.28,-1.86],[.4,.08,.34]));
+      for(const sx of[-1,1])m.beam([sx*.13,Y+1.46,-1.6],[sx*.18,Y+1.78,-1.52],.07,.12,.35);
+      fins(m,[0,Y+.5,-1.2],[0,Y+1.42,-1.6],5,.24);
+      pod(m,Y+.6,-.45,-1.55);
+      m.mark('tail',()=>{m.beam([0,Y+.25,1.08],[0,Y-.05,1.45],.12,.12,.8);m.beam([0,Y-.05,1.45],[0,Y-.75,1.6],.1,.16,.4)});
+    },colours:{mane:C.y,tail:C.y,barrels:C.w,visor:C.c}});
+}
+// ZEBRA: the horse mech in white, plated with stripe panels, a crest of short fins.
+{const Y=1.85;
+  mech('zebra',{Y,s:1.2,col:C.w,top:3.9,legs:houndLegs(.97),reach:1.65,
+    body(m){
+      const st=[[-1.25,.42,Y-.4,Y+.3],[-.35,.52,Y-.36,Y+.34],[.55,.48,Y-.3,Y+.32],[1.05,.44,Y-.24,Y+.3]];
+      m.loft(st.map(([z,w,y0,y1])=>bsec(w,y0,y1,z)));
+      m.beam([0,Y+.12,-1.08],[0,Y+1.28,-1.56],.33,.44,.78);
+      m.loft([bsec(.2,Y+1.08,Y+1.44,-1.5),bsec(.14,Y+.84,Y+1.08,-2.26)]);
+      for(const sx of[-1,1])m.beam([sx*.12,Y+1.4,-1.54],[sx*.2,Y+1.74,-1.44],.08,.14,.35);
+      m.mark('stripes',()=>{for(let i=0;i<9;i++){const z=-1.1+i*.27,w=.52-Math.abs(i-3)*.012;for(const dz of[0,.07])line(m,[[-w,Y-.36,z+dz+.1],[-w*.95,Y+.33,z+dz],[w*.95,Y+.33,z+dz],[w,Y-.36,z+dz+.1]])}
+        for(let i=0;i<4;i++){const u=(i+.5)/4,y=Y+.2+u*1.05,z=-1.12-u*.45;line(m,[[-.2,y-.12,z+.04],[0,y+.16,z],[.2,y-.12,z+.04]])}});
+      fins(m,[0,Y+.45,-1.15],[0,Y+1.36,-1.55],6,.18);
+      m.mark('tail',()=>{m.beam([0,Y+.22,1.04],[0,Y-.5,1.32],.08,.08,.7);m.box([0,Y-.6,1.34],[.14,.24,.14])});
     },colours:{stripes:C.w,mane:C.y,tail:C.y}});
 }
-// CAMEL: long legs on broad pads, one tall hump with a tasselled saddle cloth, a neck that dips
-// low and rises to a level head. It paces: both legs on one side move together.
-{const Y=2.3;
-  const legs=legs4([[-.32,Y,-.9],[-.35,1.05,-1.0],[-.35,.32,-.9],[-.37,0,-.88]],[[-.34,Y+.05,.85],[-.38,1.2,1.15],[-.38,.34,.95],[-.4,0,.92]],.16,{hoof:1.35});
-  animal('camel',{Y,s:1.15,col:C.o,top:4.4,legs,reach:1.55,minCycle:.45,swayAmp:.08,
-    gaits:[{v:0,offsets:[0,0,.5,.5],swing:.3,lift:.32,bobAmp:.05,bobK:2,pitchAmp:0},{v:4,offsets:[0,0,.5,.5],swing:.45,lift:.4,bobAmp:.08,bobK:2,pitchAmp:.02}],
+// CAMEL: long legs, its hump a radar turret, an S-beam neck to a level head, cargo panniers.
+// It paces: both legs on one side move together.
+{const k=1.22,Y=1.9*k;
+  mech('camel',{Y,s:1.15,col:C.o,top:5,legs:houndLegs(k,{t:.17,zf:-.85,zb:.8}),reach:1.7*k,minCycle:.45,swayAmp:.07,
+    gaits:[{v:0,offsets:[0,0,.5,.5],swing:.3,lift:.3,bobAmp:.05,bobK:2,pitchAmp:0},{v:4,offsets:[0,0,.5,.5],swing:.45,lift:.4,bobAmp:.08,bobK:2,pitchAmp:.02}],
     body(m){
-      trunk(m,[[-1.3,.24,2.05,2.5],[-1.12,.38,1.85,2.72],[-.7,.44,1.95,2.85],[-.2,.46,2.0,2.9],[.35,.44,2.0,2.82],[.85,.38,2.05,2.78],[1.18,.24,2.25,2.7]]);
-      m.loft([m.ringXZ(0,2.8,-.15,.46,.7,10),m.ringXZ(0,3.15,-.13,.44,.64,10),m.ringXZ(0,3.38,-.1,.34,.5,10),m.ringXZ(0,3.5,-.08,.18,.28,10),m.ringXZ(0,3.54,-.06,.03,.04,10)],false,true);   // the hump, a rounded dome
-      const neck=[[0,2.45,-1.2],[0,2.2,-1.55],[0,2.25,-1.88],[0,2.62,-2.12],[0,3.08,-2.22],[0,3.3,-2.2]];
-      tube(m,neck,[.24,.22,.2,.18,.17,.17],[.34,.3,.26,.22,.2,.2],8,[false,false]);
-      tube(m,[[0,3.38,-2.14],[0,3.32,-2.4],[0,3.18,-2.72],[0,3.05,-2.9]],[.18,.17,.14,.12],[.2,.18,.15,.13],8,[true,true]);
-      for(const sx of[-1,1])m.beam([sx*.1,3.5,-2.12],[sx*.2,3.62,-2.04],.05,.08,.3);
-      m.mark('cloth',()=>{const r=m.ringXZ(0,2.82,-.12,.56,.8,12),hang=r.map(p=>[p[0]*1.05,p[1]-.42,p[2]*1.02]);m.loft([r,hang],false,false);
-        hang.forEach(p=>line(m,[p,[p[0],p[1]-.2,p[2]]]))});
-      m.mark('tassels',()=>{for(const sx of[-1,1])m.box([sx*.25,2.62,-2.2],[.08,.16,.08])});
-      tube(m,[[0,2.62,1.15],[0,2.4,1.3],[0,1.85,1.36]],[.06,.05,.05],[.06,.05,.05],6,[false,true]);
-    },colours:{cloth:C.m,tassels:C.y}});
+      m.loft([bsec(.38,Y-.34,Y+.3,-1.2),bsec(.46,Y-.4,Y+.36,-.3),bsec(.44,Y-.34,Y+.34,.6),bsec(.36,Y-.24,Y+.3,1.1)]);
+      m.mark('turret',()=>{m.loft([bsec(.44,Y+.34,Y+.36,-.75),bsec(.44,Y+.34,Y+.36,.45)]);
+        m.loft([[[-.42,Y+.36,-.6],[.42,Y+.36,-.6],[.42,Y+.36,.3],[-.42,Y+.36,.3]],[[-.3,Y+.95,-.4],[.3,Y+.95,-.4],[.3,Y+.95,.1],[-.3,Y+.95,.1]],[[-.16,Y+1.12,-.25],[.16,Y+1.12,-.25],[.16,Y+1.12,-.05],[-.16,Y+1.12,-.05]]],false,true)});
+      m.mark('dish',()=>{m.beam([0,Y+1.12,-.15],[0,Y+1.45,-.15],.05,.05);line(m,m.ringXY(0,Y+1.62,-.1,.24,8),true);line(m,[[0,Y+1.45,-.15],[0,Y+1.62,-.36]])});
+      m.beam([0,Y-.02,-1.12],[0,Y-.3,-1.7],.3,.34,.85);m.beam([0,Y-.3,-1.7],[0,Y+.9,-2.15],.26,.3,.8);
+      m.loft([bsec(.17,Y+.78,Y+1.1,-2.08),bsec(.12,Y+.68,Y+.9,-2.78)]);
+      for(const sx of[-1,1])m.beam([sx*.12,Y+1.08,-2.1],[sx*.22,Y+1.22,-2.02],.06,.08,.3);
+      m.mark('panniers',()=>{for(const sx of[-1,1]){m.box([sx*.6,Y-.05,-.15],[.22,.55,.75]);for(let i=0;i<4;i++)line(m,[[sx*.71,Y-.33,-.45+i*.2],[sx*.72,Y-.55,-.45+i*.2]])}});
+      m.beam([0,Y+.15,1.1],[0,Y-.55,1.32],.08,.08,.6);
+    },colours:{turret:C.y,dish:C.c,panniers:C.m}});
 }
-// ELEPHANT (India's festival elephants): pillar legs, a high domed head, fan ears, a trunk that
-// curls at the tip, upturned tusks, a painted blanket and a jewelled headpiece.
-{const Y=2.15;
-  const legs=legs4([[-.66,Y,-1.05],[-.68,1.05,-1.1],[-.68,.32,-1.05],[-.7,0,-1.05]],[[-.68,Y+.05,1.0],[-.7,1.1,1.08],[-.7,.32,1.0],[-.72,0,1.0]],.36,{hoof:1.5,kneeK:.55});
-  animal('elephant',{Y,s:1.2,col:C.w,top:4.4,legs,reach:1.3,minCycle:.9,radius:2,swayAmp:.05,
-    gaits:[{v:0,offsets:[.25,0,.75,.5],swing:.24,lift:.18,bobAmp:.05,bobK:2,pitchAmp:0},{v:3,offsets:[.25,0,.75,.5],swing:.32,lift:.24,bobAmp:.08,bobK:2,pitchAmp:.012}],
+// ELEPHANT (India's festival mechs): a heavy armoured hull, a segmented hose trunk, twin
+// cannons for tusks, armour-plate ears and a howdah on its back.
+{const k=1.12,Y=1.9*k;
+  mech('elephant',{Y,s:1.2,col:C.w,top:5,legs:houndLegs(k,{t:.3,wx:.7,zf:-1.0,zb:.95}),reach:1.3,minCycle:.85,radius:2,swayAmp:.04,
+    gaits:[{v:0,offsets:[.25,0,.75,.5],swing:.24,lift:.2,bobAmp:.04,bobK:2,pitchAmp:0},{v:3,offsets:[.25,0,.75,.5],swing:.32,lift:.26,bobAmp:.07,bobK:2,pitchAmp:.012}],
     body(m){
-      trunk(m,[[-1.55,.6,1.75,3.05],[-1.2,.88,1.45,3.35],[-.5,.98,1.35,3.5],[.3,.98,1.38,3.45],[1.0,.9,1.5,3.3],[1.45,.62,1.8,3.0]]);
-      tube(m,[[0,2.95,-1.4],[0,3.25,-1.85],[0,3.05,-2.25],[0,2.65,-2.45]],[.62,.66,.58,.42],[.62,.66,.56,.42],10,[false,true]);   // the domed head
-      m.mark('trunk',()=>tube(m,[[0,2.55,-2.4],[0,2.0,-2.62],[0,1.35,-2.7],[0,.75,-2.66],[0,.38,-2.48],[0,.3,-2.25],[0,.45,-2.15]],[.3,.26,.22,.18,.15,.12,.1],[.3,.26,.22,.18,.15,.12,.1],8,[false,true]));
-      m.mark('ears',()=>{for(const sx of[-1,1]){const e=[[sx*.55,3.4,-1.85],[sx*1.25,3.5,-1.55],[sx*1.5,2.9,-1.4],[sx*1.3,2.15,-1.5],[sx*.6,2.25,-1.85]];m.loft([e,e.map(p=>[p[0]+sx*.05,p[1],p[2]+.06])],true,true)}});
-      m.mark('tusks',()=>{for(const sx of[-1,1])tube(m,[[sx*.32,2.38,-2.32],[sx*.36,2.05,-2.68],[sx*.34,1.98,-3.0],[sx*.3,2.15,-3.25]],[.09,.08,.07,.03],[.09,.08,.07,.03],6,[true,true])});
-      m.mark('headpiece',()=>{const h=[[-.5,3.55,-2.0],[.5,3.55,-2.0],[.42,2.75,-2.42],[0,2.45,-2.52],[-.42,2.75,-2.42]];m.loft([h,h.map(p=>[p[0],p[1],p[2]-.05])],true,true);m.box([0,3.1,-2.3],[.18,.18,.1])});
-      m.mark('blanket',()=>{for(const sx of[-1,1]){const b=[[sx*1.0,3.25,-.9],[sx*1.0,3.25,.8],[sx*1.03,2.2,.75],[sx*1.03,2.2,-.85]];m.loft([b,b.map(p=>[p[0]+sx*.03,p[1],p[2]])],false,false);
-        for(let i=0;i<8;i++){const z=-.8+i*.22;line(m,[[sx*1.04,2.2,z],[sx*1.05,1.98,z]])}}m.box([0,3.52,-.05],[1.5,.1,1.7])});
-      tube(m,[[0,2.95,1.45],[0,2.4,1.62],[0,1.7,1.66]],[.06,.05,.05],[.06,.05,.05],6,[false,true]);
-    },colours:{tusks:C.w,blanket:C.m,headpiece:C.y,trunk:null,ears:null}});
+      m.loft([bsec(.78,Y-.55,Y+.7,-1.45),bsec(.95,Y-.6,Y+.95,-.5),bsec(.92,Y-.55,Y+.9,.5),bsec(.8,Y-.45,Y+.7,1.35)]);
+      m.loft([bsec(.62,Y,Y+1.05,-1.5),bsec(.52,Y-.2,Y+.85,-2.2)]);   // head
+      m.mark('trunk',()=>{const P=[[0,Y+.2,-2.2],[0,Y-.35,-2.42],[0,Y-.9,-2.5],[0,Y-1.4,-2.45],[0,Y-1.78,-2.28],[0,Y-1.9,-2.0]];
+        for(let i=0;i<P.length-1;i++){const w=.3-i*.04;m.beam(P[i],P[i+1],w,w,.9);m.box(P[i+1],[w*1.25,w*.6,w*1.25])}});
+      m.mark('tusks',()=>{for(const sx of[-1,1])m.barrel(sx*.32,Y-.05,-2.2,-3.15,.09)});
+      m.mark('ears',()=>{for(const sx of[-1,1]){const e=[[sx*.62,Y+.95,-1.7],[sx*1.3,Y+1.05,-1.45],[sx*1.42,Y+.2,-1.35],[sx*.62,Y,-1.6]];m.loft([e,e.map(p=>[p[0]+sx*.06,p[1],p[2]+.04])])}});
+      m.mark('howdah',()=>{m.box([0,Y+1.05,0],[1.3,.2,1.4]);for(const sx of[-1,1])for(const sz of[-1,1])m.beam([sx*.55,Y+1.15,sz*.58],[sx*.55,Y+1.85,sz*.58],.06,.06);
+        m.loft([[[-.75,Y+1.85,-.75],[.75,Y+1.85,-.75],[.75,Y+1.85,.75],[-.75,Y+1.85,.75]],[[-.1,Y+2.35,-.1],[.1,Y+2.35,-.1],[.1,Y+2.35,.1],[-.1,Y+2.35,.1]]],false,true)});
+      m.mark('blanket',()=>{for(const sx of[-1,1]){const b=bsec(.01,Y-.25,Y+.85,0).map(()=>0);const q=[[sx*.97,Y+.85,-.85],[sx*.97,Y+.85,.85],[sx*.99,Y-.25,.8],[sx*.99,Y-.25,-.8]];line(m,q,true);for(let i=0;i<7;i++)line(m,[[sx*.99,Y-.25,-.75+i*.25],[sx*1.0,Y-.45,-.75+i*.25]])}});
+      m.beam([0,Y+.35,1.38],[0,Y-.6,1.55],.08,.08,.5);
+    },colours:{tusks:C.w,trunk:null,ears:C.y,howdah:C.y,blanket:C.m}});
 }
-// GIRAFFE: tall front legs, a back sloping down to the hips, a long tapering neck with its mane,
-// a small head with ossicones, and patches on the body and neck.
-{const Y=3.0,Yb=2.6;
-  const legs=legs4([[-.3,Y,-.75],[-.33,1.45,-.82],[-.33,.38,-.74],[-.35,0,-.72]],[[-.32,Yb,.75],[-.36,1.45,1.02],[-.36,.4,.82],[-.38,0,.8]],.16);
-  animal('giraffe',{Y,s:1.15,col:C.y,top:6.9,legs,reach:2.0,minCycle:.5,
+// GIRAFFE: tall front legs and lower hips, its neck a lattice crane boom, antenna ossicones,
+// patch panels on the body and the boom.
+{const kf=1.45,kb=1.22,Y=1.9*kf;
+  mech('giraffe',{Y,s:1.15,col:C.y,top:7.2,legs:houndLegs(kf,{t:.15,zf:-.62,zb:.6,backK:kb,wx:.38}),reach:2.2,minCycle:.5,
     body(m){
-      const st=[[-1.1,.3,2.9,3.4],[-.9,.42,2.72,3.62],[-.45,.46,2.66,3.55],[.1,.44,2.55,3.3],[.55,.4,2.48,3.1],[.92,.3,2.52,2.98]];
-      trunk(m,st);
-      const neck=[[0,3.45,-.88],[0,4.15,-1.15],[0,4.95,-1.42],[0,5.75,-1.66],[0,6.35,-1.82]];
-      tube(m,neck,[.28,.22,.18,.15,.13],[.4,.32,.25,.19,.16],8,[false,false]);
-      tube(m,[[0,6.45,-1.8],[0,6.4,-2.05],[0,6.25,-2.35],[0,6.15,-2.5]],[.15,.14,.11,.09],[.17,.15,.12,.1],8,[true,true]);
-      m.mark('ossicones',()=>{for(const sx of[-1,1]){m.beam([sx*.08,6.58,-1.84],[sx*.1,6.92,-1.8],.05,.05);m.box([sx*.1,6.94,-1.8],[.09,.09,.09])}});
-      for(const sx of[-1,1])m.beam([sx*.12,6.52,-1.78],[sx*.32,6.62,-1.7],.04,.08,.3);
-      m.mark('mane',()=>line(m,neck.map((p,i)=>[0,p[1]+.18+(i%2)*.06,p[2]+.3-i*.03])));
-      m.mark('spots',()=>{for(const sx of[-1,1]){for(let i=0;i<5;i++)for(let j=0;j<2;j++){const z=-.85+i*.38+(j?.16:0),y=2.78+j*.32-i*.05,x=sx*(st[Math.min(5,i+1)][1]+.01),d=.13;
-            line(m,[[x,y-d,z-d],[x,y+d*.8,z-d*.6],[x,y+d,z+d*.7],[x,y-d*.6,z+d]],true)}
-          neck.slice(0,4).forEach((p,i)=>{const x=sx*([.28,.22,.18,.15][i]+.01),y=p[1]+.15,z=p[2]+.05,d=.13;line(m,[[x,y-d,z],[x,y,z-d*.7],[x,y+d,z],[x,y,z+d*.7]],true)})}});
-      tube(m,[[0,3.0,.92],[0,2.4,1.05],[0,1.85,1.1]],[.05,.04,.04],[.05,.04,.04],6,[false,false]);m.mark('tail',()=>m.box([0,1.72,1.1],[.12,.26,.12]));
-    },colours:{spots:C.o,ossicones:C.o,mane:C.o,tail:C.o}});
+      const yb=1.9*kb;
+      m.loft([bsec(.4,Y-.4,Y+.32,-1.0),bsec(.44,(Y+yb)/2-.42,(Y+yb)/2+.3,-.1),bsec(.38,yb-.34,yb+.24,.95)]);
+      m.mark('boom',()=>{const a=[0,Y+.2,-.85],b=[0,Y+3.2,-1.75];for(const sx of[-1,1])m.beam([sx*.14,a[1],a[2]],[sx*.11,b[1],b[2]],.09,.09);
+        const n=8;for(let i=0;i<n;i++){const u0=i/n,u1=(i+1)/n,P=u=>[a[1]+(b[1]-a[1])*u,a[2]+(b[2]-a[2])*u],p0=P(u0),p1=P(u1),w0=.14-.03*u0,w1=.14-.03*u1;
+          line(m,[[-w0,p0[0],p0[1]],[w1,p1[0],p1[1]]]);line(m,[[w0,p0[0],p0[1]],[-w1,p1[0],p1[1]]]);line(m,[[-w1,p1[0],p1[1]],[w1,p1[0],p1[1]]])}});
+      m.loft([bsec(.16,Y+3.05,Y+3.42,-1.72),bsec(.11,Y+2.98,Y+3.2,-2.38)]);
+      m.mark('ossicones',()=>{for(const sx of[-1,1]){m.beam([sx*.08,Y+3.4,-1.76],[sx*.12,Y+3.82,-1.72],.05,.05);m.box([sx*.12,Y+3.85,-1.72],[.1,.1,.1])}});
+      for(const sx of[-1,1])m.beam([sx*.13,Y+3.36,-1.7],[sx*.34,Y+3.46,-1.6],.05,.09,.3);
+      m.mark('spots',()=>{for(const sx of[-1,1])for(let i=0;i<4;i++)for(let j=0;j<2;j++){const z=-.82+i*.48+(j?.18:0),y=Y-.22+j*.3-i*.14,x=sx*.43,d=.11;line(m,[[x,y-d,z-d],[x,y+d,z-d],[x,y+d,z+d],[x,y-d,z+d]],true)}});
+      m.mark('tail',()=>{m.beam([0,1.9*kb,.95],[0,1.9*kb-.9,1.12],.05,.05);m.box([0,1.9*kb-1.0,1.13],[.12,.24,.12])});
+    },colours:{boom:C.o,spots:C.o,ossicones:C.o,tail:C.o}});
 }
-// LLAMA: slender legs on two-toed pads, a deep woolly body, a tall upright neck, banana ears with
-// tassels, and a woven blanket.
-{const Y=1.45;
-  const legs=legs4([[-.27,Y,-.62],[-.3,.68,-.7],[-.3,.22,-.62],[-.32,0,-.6]],[[-.28,Y+.05,.6],[-.32,.75,.85],[-.32,.24,.68],[-.34,0,.66]],.13,{hoof:1.2});
-  animal('llama',{Y,s:1.15,col:C.w,top:3.5,legs,reach:1.2,minCycle:.36,
+// LLAMA: a pack mech: a tall upright beam neck, banana-ear antennas with tassels, a frame
+// across its back carrying two panniers.
+{const k=.84,Y=1.9*k;
+  mech('llama',{Y,s:1.15,col:C.w,top:3.6,legs:houndLegs(k,{t:.17,zf:-.78,zb:.72}),reach:1.3,minCycle:.36,
     body(m){
-      trunk(m,[[-.95,.24,1.5,1.95],[-.8,.38,1.28,2.15],[-.35,.44,1.22,2.2],[.2,.44,1.24,2.2],[.65,.4,1.3,2.18],[.92,.28,1.45,2.1]]);
-      const neck=[[0,2.0,-.78],[0,2.45,-.86],[0,2.9,-.92],[0,3.2,-.94]];
-      tube(m,neck,[.24,.2,.18,.17],[.32,.27,.23,.21],8,[false,false]);
-      tube(m,[[0,3.3,-.9],[0,3.25,-1.12],[0,3.12,-1.38]],[.17,.14,.11],[.19,.15,.12],8,[true,true]);
-      for(const sx of[-1,1])tube(m,[[sx*.1,3.42,-.88],[sx*.17,3.7,-.84],[sx*.12,3.86,-.92]],[.05,.06,.03],[.03,.04,.02],6,[true,true]);
-      m.mark('tassels',()=>{for(const sx of[-1,1])m.box([sx*.15,3.62,-.86],[.09,.12,.09])});
-      m.mark('blanket',()=>{const top=[[-.3,2.24,-.5],[.3,2.24,-.5],[.3,2.24,.35],[-.3,2.24,.35]];m.loft([[[-.47,1.7,-.5],[.47,1.7,-.5],[.47,1.7,.35],[-.47,1.7,.35]],top],false,false);
-        for(const z of[-.32,-.08,.16])line(m,[[-.47,1.74,z],[-.3,2.24,z],[.3,2.24,z],[.47,1.74,z]]);
-        for(const sx of[-1,1])for(let i=0;i<5;i++)line(m,[[sx*.47,1.7,-.45+i*.19],[sx*.48,1.52,-.45+i*.19]])});
-      tube(m,[[0,2.05,.92],[0,2.2,1.05],[0,2.05,1.14]],[.09,.1,.05],[.09,.1,.05],6,[false,true]);
-    },colours:{blanket:C.m,tassels:C.y}});
+      m.loft([bsec(.36,Y-.3,Y+.32,-.85),bsec(.42,Y-.34,Y+.38,-.15),bsec(.38,Y-.28,Y+.34,.7)]);
+      m.beam([0,Y+.15,-.75],[0,Y+1.55,-.95],.26,.32,.85);
+      m.loft([bsec(.16,Y+1.45,Y+1.74,-.88),bsec(.11,Y+1.42,Y+1.6,-1.36)]);
+      for(const sx of[-1,1]){m.beam([sx*.1,Y+1.72,-.9],[sx*.16,Y+2.02,-.86],.06,.08,.5);m.beam([sx*.16,Y+2.02,-.86],[sx*.1,Y+2.16,-.94],.05,.05,.5)}
+      m.mark('tassels',()=>{for(const sx of[-1,1])m.box([sx*.16,Y+1.95,-.86],[.09,.12,.09])});
+      m.mark('pack',()=>{m.box([0,Y+.44,-.1],[.7,.1,.9]);for(const sx of[-1,1]){m.box([sx*.52,Y+.08,-.1],[.2,.5,.7]);for(const z of[-.3,.1])line(m,[[sx*.62,Y+.33,z],[sx*.62,Y-.17,z]])}});
+      m.beam([0,Y+.28,.72],[0,Y+.45,.92],.1,.1,.6);
+    },colours:{pack:C.m,tassels:C.y}});
 }
-// BISON: a massive shoulder hump, a low wide head with a beard and short curved horns, shaggy
-// forequarters, a lean rear and a tufted tail.
-{const Y=1.55;
-  const legs=legs4([[-.42,Y,-.9],[-.46,.7,-.98],[-.46,.24,-.9],[-.48,0,-.88]],[[-.4,Y+.1,.75],[-.44,.82,1.0],[-.44,.26,.82],[-.46,0,.8]],.22,{hoof:1.1,kneeK:.65});
-  animal('bison',{Y,s:1.25,col:C.o,top:3.2,legs,reach:1.55,radius:1.6,minCycle:.3,
+// BISON: a stepped armour hump carrying the twin cannons, a low ram-plate head with horns, a
+// grille beard and a lean rear.
+{const k=.95,Y=1.9*k;
+  mech('bison',{Y,s:1.3,col:C.o,top:3.6,legs:houndLegs(k,{t:.24,wx:.55}),reach:1.6,radius:1.6,
     body(m){
-      const st=[[-1.35,.36,1.55,2.35],[-1.1,.62,1.25,2.95],[-.65,.7,1.2,3.15],[-.15,.66,1.25,2.85],[.35,.55,1.35,2.45],[.8,.48,1.42,2.35],[1.12,.38,1.55,2.3],[1.3,.2,1.75,2.2]];
-      trunk(m,st);
-      tube(m,[[0,2.3,-1.3],[0,1.95,-1.62],[0,1.55,-1.9],[0,1.3,-2.05]],[.46,.44,.36,.28],[.5,.45,.36,.26],8,[false,true]);   // the low head
-      m.mark('horns',()=>{for(const sx of[-1,1])tube(m,[[sx*.38,2.05,-1.65],[sx*.62,2.08,-1.68],[sx*.7,2.3,-1.72],[sx*.62,2.45,-1.75]],[.08,.07,.05,.02],[.08,.07,.05,.02],6,[true,true])});
-      m.mark('beard',()=>{for(let i=0;i<7;i++){const x=-.3+i*.1;line(m,[[x,1.4,-1.85],[x*1.1,.95+(i%2)*.1,-1.8]])}});
-      m.mark('fur',()=>{st.slice(1,4).forEach(([z,w,y0,y1],i)=>{for(const sx of[-1,1])for(let k=0;k<4;k++){const y=y0+.2+k*(y1-y0-.4)/3;line(m,[[sx*w*1.02,y,z+.1],[sx*w*1.08,y-.22,z+.18]])}});
-        for(let i=0;i<5;i++)line(m,[[-.3+i*.15,1.3,-1.25],[-.3+i*.15,.92,-1.2]])});
-      tube(m,[[0,2.2,1.3],[0,1.95,1.42],[0,1.5,1.46]],[.06,.05,.05],[.06,.05,.05],6,[false,false]);m.mark('tail',()=>m.box([0,1.38,1.46],[.14,.26,.14]));
-    },colours:{horns:C.w,beard:C.y,fur:C.y,tail:C.y}});
+      m.loft([bsec(.58,Y-.5,Y+.82,-1.2),bsec(.66,Y-.52,Y+1.12,-.55),bsec(.58,Y-.42,Y+.62,.2),bsec(.48,Y-.32,Y+.42,1.0)]);
+      m.loft([bsec(.46,Y-.3,Y+.55,-1.22),bsec(.36,Y-.62,Y+.05,-1.95)]);   // the low head
+      m.mark('ram',()=>m.box([0,Y+.25,-1.62],[.86,.42,.14]));
+      m.mark('horns',()=>{for(const sx of[-1,1]){m.beam([sx*.4,Y+.32,-1.55],[sx*.7,Y+.38,-1.6],.1,.1,.7);m.beam([sx*.7,Y+.38,-1.6],[sx*.74,Y+.72,-1.7],.08,.08,.35)}});
+      m.mark('beard',()=>{for(let i=0;i<6;i++){const x=-.25+i*.1;line(m,[[x,Y-.55,-1.8],[x,Y-1.0,-1.75]])}line(m,[[-.3,Y-1.0,-1.75],[.3,Y-1.0,-1.75]])});
+      m.mark('fur',()=>{for(let i=0;i<4;i++){const z=-1.1+i*.18;line(m,[[-.66,Y+.15,z],[-.6,Y+1.0+(i%2)*.1,z],[.6,Y+1.0+(i%2)*.1,z],[.66,Y+.15,z]])}});
+      pod(m,Y+1.28,-.2,-1.25,.2,.06);
+      m.beam([0,Y+.25,1.0],[0,Y-.4,1.25],.07,.07,.6);m.mark('tail',()=>m.box([0,Y-.48,1.27],[.12,.18,.1]));
+    },colours:{horns:C.w,beard:C.y,fur:C.y,ram:C.y,barrels:C.w,tail:C.y}});
 }
 if(GA_KINDS.reindeer)GA_KINDS.reindeer.colours={nose:C.r,antlers:C.y,barrels:C.w};   // for side-by-side studio comparisons
 // Posed four-legged mesh colours for the scenes' drawUnit hook.
 const kindColours=(kind,m)=>({...feetWhite(m),...(GA_KINDS[kind]?.colours||{})});
 
-// ---------- Kangaroo: hops on its own posed rig ----------
+// ---------- Kangaroo mech: hops on its own posed rig ----------
 // pose {u}: hop cycle 0..1. Stance 0-0.32: it lands crouched and drives up off its feet. Flight
-// 0.32-1: legs swept back, the tail level behind as a counterweight, the feet swinging forward to
-// land. The scene lifts it by hopH(u). Faces -z; the feet stand on y = 0.
+// 0.32-1: legs swept back, the tail strut level behind, the feet swinging forward to land.
+// Built like the reindeer: box sections, beams, knee boxes, white pads. The scene lifts it by hopH(u).
 const ROO_ST=.32;
+function smoothRoo(t){return t*t*(3-2*t)}
+function lerpR(a,b,t){return a+(b-a)*t}
 function rooPose(u){
   const L1=.72,L2=.78,stance=u<ROO_ST,k=stance?smoothRoo(u/ROO_ST):0,f=stance?0:(u-ROO_ST)/(1-ROO_ST),arc=Math.sin(PI*f);
-  // thigh angle (forward of straight down), shin angle (behind straight down)
   let a1,a2;
   if(stance){a1=lerpR(1.15,.35,k);a2=lerpR(1.0,.25,k)}
   else{const land=f>.6?smoothRoo((f-.6)/.4):0;a1=lerpR(.35,-.55,Math.min(1,f*2.2))+land*1.6;a2=lerpR(lerpR(.25,.55,arc),1.0,land)}
-  const hipH=L1*Math.cos(a1)+L2*Math.cos(a2)+.1;
-  return{a1,a2,L1,L2,hipH,tilt:stance?lerpR(.55,.8,k):lerpR(.8,.55,f),air:stance?0:arc,stance}
+  return{a1,a2,L1,L2,hipH:L1*Math.cos(a1)+L2*Math.cos(a2)+.12,tilt:stance?lerpR(.5,.75,k):lerpR(.75,.5,f),air:stance?0:arc,stance}
 }
-function smoothRoo(t){return t*t*(3-2*t)}
-function lerpR(a,b,t){return a+(b-a)*t}
 function buildKangaroo(m,pose){
-  const P0=rooPose(pose.u||0),hip=[0,P0.hipH,.15],tl=P0.tilt;
-  // Torso: heavy at the hips, leaning forward to a narrow chest.
-  const fw=[0,Math.cos(tl),-Math.sin(tl)],at=d=>[hip[0],hip[1]+fw[1]*d,hip[2]+fw[2]*d];
-  tube(m,[at(-.18),at(.15),at(.55),at(.92),at(1.15)],[.4,.44,.38,.28,.22],[.46,.5,.42,.3,.24],8,[true,false]);
-  const ch=at(1.15),hd=[0,ch[1]+.42,ch[2]-.08];
-  tube(m,[ch,[0,ch[1]+.22,ch[2]-.02],hd],[.2,.17,.16],[.22,.18,.18],8,[false,false]);
-  tube(m,[hd,[0,hd[1]+.02,hd[2]-.2],[0,hd[1]-.06,hd[2]-.42]],[.17,.13,.07],[.19,.13,.07],8,[false,true]);   // head and snout
-  m.mark('ears',()=>{for(const sx of[-1,1])tube(m,[[sx*.08,hd[1]+.14,hd[2]+.04],[sx*.15,hd[1]+.44,hd[2]+.12],[sx*.17,hd[1]+.62,hd[2]+.18]],[.05,.08,.02],[.03,.05,.01],6,[true,true])});
-  // Forearms held in at the chest.
-  for(const sx of[-1,1]){const s0=at(.85),sh=[sx*.22,s0[1]-.05,s0[2]],el=[sx*.24,sh[1]-.32,sh[2]-.18],pw=[sx*.18,el[1]-.08,el[2]-.24];tube(m,[sh,el,pw],[.07,.06,.04],[.07,.06,.04],6,[false,true])}
-  // Hind legs: a big thigh, a long shin back to the heel, the long foot forward.
+  const P0=rooPose(pose.u||0),hy=P0.hipH,tl=P0.tilt,fw=[Math.cos(tl),-Math.sin(tl)],at=d=>[0,hy+fw[0]*d,.12+fw[1]*d];
+  // Torso: box sections leaning forward, heavy at the hips.
+  // A section square to the lean: x across, and P (up-and-back) through the body's depth.
+  const sect=(d,w,h)=>{const c=at(d),P=[Math.sin(tl),Math.cos(tl)];return[[-w,c[1]-P[0]*h,c[2]-P[1]*h],[w,c[1]-P[0]*h,c[2]-P[1]*h],[w*.9,c[1]+P[0]*h,c[2]+P[1]*h],[-w*.9,c[1]+P[0]*h,c[2]+P[1]*h]]};
+  m.loft([sect(-.2,.38,.3),sect(.35,.4,.32),sect(.85,.32,.24),sect(1.15,.22,.17)]);
+  const ch=at(1.15),hd=[0,ch[1]+.5,ch[2]-.12];
+  m.beam([0,ch[1]+.1,ch[2]],[0,hd[1]-.1,hd[2]+.05],.2,.22,.85);
+  m.loft([bsec(.16,hd[1]-.14,hd[1]+.16,hd[2]+.1),bsec(.09,hd[1]-.1,hd[1]+.04,hd[2]-.42)]);
+  m.mark('visor',()=>m.box([0,hd[1]+.06,hd[2]-.12],[.3,.06,.22]));
+  m.mark('ears',()=>{for(const sx of[-1,1])m.beam([sx*.1,hd[1]+.14,hd[2]+.05],[sx*.18,hd[1]+.62,hd[2]+.18],.06,.13,.3)});
+  for(const sx of[-1,1]){const s0=at(.78),sh=[sx*.26,s0[1],s0[2]],el=[sx*.28,sh[1]-.32,sh[2]-.16],pw=[sx*.22,el[1]-.08,el[2]-.24];m.beam(sh,el,.08,.08,.9);m.beam(el,pw,.07,.07,.8)}
   for(const sx of[-1,1]){
-    const h=[sx*.3,hip[1],hip[2]],kn=[sx*.33,h[1]-P0.L1*Math.cos(P0.a1),h[2]-P0.L1*Math.sin(P0.a1)],an=[sx*.33,kn[1]-P0.L2*Math.cos(P0.a2),kn[2]+P0.L2*Math.sin(P0.a2)];
-    const toeAng=P0.stance?0:P0.air*.9,toe=[sx*.33,an[1]-.08+Math.sin(toeAng)*.5,an[2]-Math.cos(toeAng)*.62];
-    tube(m,[h,[sx*.32,(h[1]+kn[1])/2,(h[2]+kn[2])/2],kn],[.22,.2,.12],[.3,.26,.14],8,[true,false]);
-    tube(m,[kn,an],[.1,.07],[.11,.07],6,[false,false]);
-    m.mark('foot'+sx,()=>tube(m,[an,[sx*.33,(an[1]+toe[1])/2,(an[2]+toe[2])/2],toe],[.08,.07,.05],[.06,.05,.03],6,[true,true]))}
-  // The tail: thick at the root, resting its tip on the ground in stance, level in flight.
-  m.mark('tail',()=>{const r=at(-.12),lift=P0.air;const pts=[r,[0,r[1]-.2+lift*.1,r[2]+.45],[0,lerpR(.35,r[1]-.25,lift),r[2]+.95],[0,lerpR(.12,r[1]-.2,lift),r[2]+1.5],[0,lerpR(.05,r[1]-.12,lift),r[2]+1.95]];
-    tube(m,pts,[.2,.17,.13,.09,.04],[.22,.18,.13,.09,.04],8,[false,true])});
+    const h=[sx*.32,hy,.12],kn=[sx*.36,hy-P0.L1*Math.cos(P0.a1),.12-P0.L1*Math.sin(P0.a1)],an=[sx*.36,kn[1]-P0.L2*Math.cos(P0.a2),kn[2]+P0.L2*Math.sin(P0.a2)];
+    const ta=P0.stance?0:P0.air*.9,toe=[sx*.36,an[1]-.05+Math.sin(ta)*.5,an[2]-Math.cos(ta)*.62];
+    m.box(h,[.3,.3,.3]);m.beam(h,kn,.26,.32,.8);m.mark('knee'+sx,()=>m.box(kn,[.26,.26,.26]));m.beam(kn,an,.13,.15,.85);m.box(an,[.18,.18,.18]);
+    m.mark('foot'+sx,()=>{m.beam(an,toe,.16,.1,.7);m.box([toe[0],toe[1]+.03,toe[2]+.08],[.2,.06,.3])})}
+  m.mark('tail',()=>{const r=at(-.12),lift=P0.air;const pts=[r,[0,r[1]-.18+lift*.12,r[2]+.5],[0,lerpR(.32,r[1]-.2,lift),r[2]+1.0],[0,lerpR(.1,r[1]-.18,lift),r[2]+1.55],[0,lerpR(.04,r[1]-.12,lift),r[2]+1.95]];
+    for(let i=0;i<4;i++){const w=.2-i*.04;m.beam(pts[i],pts[i+1],w,w,.85);m.box(pts[i+1],[w*1.2,w*1.2,w*.6])}});
 }
-const kangaroo=P.posedMesh(buildKangaroo,{ears:C.y,tail:C.y,'foot-1':C.w,foot1:C.w});
+const kangaroo=P.posedMesh(buildKangaroo,{ears:C.y,tail:C.y,visor:C.c,'foot-1':C.w,foot1:C.w,'knee-1':C.w,knee1:C.w});
 const hopH=u=>u>ROO_ST?Math.sin(PI*(u-ROO_ST)/(1-ROO_ST))*.62:0;
 
-// ---------- Penguin: waddles, and sometimes slides on its belly ----------
-// pose {w}: waddle phase (radians); {slide}: 0..1 tips it onto its belly.
+// ---------- Penguin mech: a squat walker that waddles ----------
+// pose {w}: waddle phase (radians). An angular hull (white chest plate on the front, a dark
+// back), a block beak, fin plates, short legs on orange pads. Faces -z.
 function buildPenguin(m,pose){
-  const w=pose.w||0,stepL=Math.max(0,Math.sin(w))*.14,stepR=Math.max(0,-Math.sin(w))*.14;
-  const rings=[[.0,.2],[.25,.38],[.55,.44],[.85,.4],[1.1,.32],[1.32,.22]];
-  // The body in two halves: a white front (the belly faces -z) and a dark back.
-  const half=(y,r,front)=>Array.from({length:7},(_,i)=>{const a=(front?PI:0)+i/6*PI;return[Math.cos(a)*r,y+.12,.03+Math.sin(a)*r*.86]});
-  m.mark('belly',()=>m.loft(rings.map(([y,r])=>half(y,r,true)),false,false));
-  m.mark('back',()=>m.loft(rings.map(([y,r])=>half(y,r,false)),false,false));
-  m.mark('head',()=>m.loft([m.ringXZ(0,1.42,.0,.2,.2,8),m.ringXZ(0,1.62,-.02,.19,.19,8),m.ringXZ(0,1.76,0,.1,.1,8)],false,true));
-  m.mark('beak',()=>m.beam([0,1.58,-.16],[0,1.52,-.42],.08,.06,.3));
-  m.mark('cheeks',()=>{for(const sx of[-1,1]){line(m,[[sx*.18,1.62,-.04],[sx*.2,1.48,-.08],[sx*.14,1.38,-.14]]);line(m,[[sx*.16,1.58,-.02],[sx*.24,1.4,-.06],[sx*.2,1.26,-.18],[sx*.1,1.22,-.3]])}});
-  m.mark('flippers',()=>{for(const sx of[-1,1]){const out=.35+.25*Math.abs(Math.sin(w*2));m.beam([sx*.36,1.1,.0],[sx*(.42+out*.25),.55,.05],.08,.14,.5)}});
-  m.mark('feet',()=>{for(const[sx,st]of[[-1,stepL],[1,stepR]])m.loft([[[sx*.08,st,-.1],[sx*.3,st,-.1],[sx*.32,st,-.36],[sx*.06,st,-.34]],[[sx*.1,st+.07,-.08],[sx*.28,st+.07,-.08],[sx*.28,st+.07,-.28],[sx*.1,st+.07,-.28]]])});
+  const w=pose.w||0,stepL=Math.max(0,Math.sin(w))*.16,stepR=Math.max(0,-Math.sin(w))*.16,oct=(y,r,rz=r*.86)=>m.ringXZ(0,y,.02,r,rz,8,PI/8);
+  m.mark('back',()=>m.loft([oct(.32,.34),oct(.62,.46),oct(1.02,.44),oct(1.32,.32),oct(1.48,.24)],true,false));
+  m.mark('belly',()=>{const plate=(y,r)=>[[-r*.62,y,-r*.82],[r*.62,y,-r*.82]];const rows=[[.4,.36],[.68,.47],[1.02,.45],[1.28,.33]];
+    m.loft(rows.map(([y,r])=>[...plate(y,r),[r*.6,y,-r*.86],[-r*.6,y,-r*.86]]),false,false)});
+  m.mark('head',()=>m.loft([oct(1.48,.24),oct(1.62,.27),oct(1.84,.23),oct(1.94,.12)],false,true));
+  m.mark('beak',()=>m.loft([bsec(.07,1.66,1.78,-.2),bsec(.03,1.64,1.7,-.5)]));
+  m.mark('visor',()=>m.box([0,1.8,-.17],[.36,.05,.1]));
+  m.mark('cheeks',()=>{for(const sx of[-1,1])m.box([sx*.22,1.68,-.06],[.04,.16,.12])});
+  m.mark('fins',()=>{for(const sx of[-1,1]){const out=.25+.2*Math.abs(Math.sin(w*2));m.loft([[[sx*.44,1.15,-.12],[sx*.44,1.15,.14]],[[sx*(.5+out*.25),.5,-.06],[sx*(.5+out*.25),.5,.1]]].map(r=>[...r,...r.slice().reverse().map(p=>[p[0]+sx*.05,p[1],p[2]])]),false,false)}});
+  for(const[sx,st]of[[-1,stepL],[1,stepR]])m.beam([sx*.16,.36,0],[sx*.18,st+.12,-.06],.12,.12,.9);
+  m.mark('feet',()=>{for(const[sx,st]of[[-1,stepL],[1,stepR]])m.loft([m.ringXZ(sx*.18,st,-.14,.2,.24,6),m.ringXZ(sx*.18,st+.08,-.12,.13,.16,6)])});
 }
-const penguin=P.posedMesh(buildPenguin,{back:C.u,head:C.u,flippers:C.u,belly:C.w,beak:C.y,cheeks:C.y,feet:C.o});
+const penguin=P.posedMesh(buildPenguin,{back:C.u,head:C.u,fins:C.u,belly:C.w,beak:C.y,cheeks:C.y,feet:C.o,visor:C.c});
 
 // ---------- Landmarks and props: static meshes ----------
 const staticMesh=(build,colours)=>P.posedMesh(build,colours);
