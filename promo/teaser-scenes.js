@@ -39,16 +39,16 @@ const WORLDS=[
   {name:'england',col:C.g,amp:.55,seed:301,herd:{kind:'horse',n:7,v:11,tints:[C.o,C.w,C.y,C.o,C.o,C.w,C.y]},cam:CAM.chase,
     land:{mesh:M.stonehenge,col:C.w,s:1.7,at:17.5,side:36,ahead:6,r:26},props:{mesh:M.oak,col:C.g,n:26,s:[.8,1.3]}},
   {name:'australia',col:C.o,amp:.35,seed:302,crit:{type:'kangaroo',n:7,v:9.5,col:C.o,s:1.3},cam:CAM.front,mirror:true,
-    land:{mesh:M.uluru,col:C.r,s:1.4,at:16,side:95,ahead:-10,r:70},props:{mesh:M.spinifex,col:C.y,n:40,s:[.8,1.4]}},
-  {name:'egypt',col:C.y,amp:1.25,seed:303,herd:{kind:'camel',n:6,v:5.5,space:1.4},camK:1.25,cam:CAM.slow,
+    land:{mesh:M.uluru,col:C.r,s:1.4,at:16,side:100,ahead:-10,r:70,yaw:PI/2},props:{mesh:M.spinifex,col:C.y,n:40,s:[.8,1.4]}},
+  {name:'egypt',col:C.y,amp:1.25,seed:303,herd:{kind:'camel',n:6,v:5.5,space:1.4},camK:1.25,lookK:.6,cam:CAM.slow,
     land:{mesh:M.giza,col:C.w,s:1.15,at:17,side:80,ahead:20,r:80,yaw:.5},props:{mesh:M.palm,col:C.g,n:10,s:[1,1.4]}},
-  {name:'india',col:C.u,amp:.3,seed:304,herd:{kind:'elephant',n:5,v:3.6,space:2},camK:1.7,cam:CAM.slow,mirror:true,
+  {name:'india',col:C.u,amp:.3,seed:304,herd:{kind:'elephant',n:5,v:3.6,space:2},camK:1.3,cam:CAM.front,mirror:true,
     land:{mesh:M.taj,col:C.w,s:1.2,at:16,side:70,ahead:4,r:40,yaw:-PI/2},props:{mesh:M.palm,col:C.g,n:22,s:[1,1.5]}},
-  {name:'kenya',col:C.o,amp:.35,seed:305,herd:{kind:'giraffe',n:4,v:6.5,space:1.5,mix:{kind:'zebra',n:6}},camK:1.3,cam:CAM.chase,
+  {name:'kenya',col:C.o,amp:.35,seed:305,herd:{kind:'giraffe',n:4,v:6.5,space:1.5,mix:{kind:'zebra',n:6}},camK:1.3,lookK:.45,cam:CAM.chase,
     land:{mesh:M.kilimanjaro,col:C.u,s:1.4,at:16,side:330,ahead:120,r:0},props:{mesh:M.acacia,col:C.g,n:22,s:[1,1.5]}},
-  {name:'peru',col:C.g,amp:.9,seed:306,herd:{kind:'llama',n:7,v:4.6},cam:CAM.slow,mirror:true,
+  {name:'peru',col:C.g,amp:.9,seed:306,herd:{kind:'llama',n:7,v:4.6,space:1.2},camK:1.45,lookK:.7,cam:CAM.slow,mirror:true,
     land:{mesh:M.machuPicchu,col:C.g,s:1.3,at:16,side:95,ahead:30,r:60,yaw:PI},props:{mesh:M.iceBlock,col:C.w,n:0}},
-  {name:'usa',col:C.y,amp:.45,seed:307,herd:{kind:'bison',n:12,v:11,space:1.25},camK:1.15,cam:CAM.chase,
+  {name:'usa',col:C.y,amp:.45,seed:307,herd:{kind:'bison',n:12,v:11,space:1.25},camK:1.15,lookK:.6,cam:CAM.chase,
     land:{mesh:M.monumentValley,col:C.o,s:1.4,at:17,side:110,ahead:20,r:90,yaw:.2},props:{mesh:M.saguaro,col:C.g,n:24,s:[.9,1.4]}},
   {name:'antarctica',col:C.c,amp:.25,seed:308,crit:{type:'penguin',n:11,v:1.3,col:C.w,s:1.25},cam:CAM.close,aurora:true,
     land:{mesh:M.iceberg,col:C.w,s:3.2,at:9,side:85,ahead:70,r:0,many:[[60,90,2.4],[105,140,4],[150,50,3],[-80,190,3.4]]},props:{mesh:M.iceBlock,col:C.w,n:12,s:[.7,1.4]}},
@@ -70,14 +70,14 @@ function camKey(keys,u){
   return k1.slice(1).map((_,j)=>{const p0=k0[j+1],p1=k1[j+1],p2=k2[j+1],p3=k3[j+1];return .5*((2*p1)+(-p0+p2)*t+(2*p0-5*p1+4*p2-p3)*t2+(-p0+3*p1-3*p2+p3)*t3)})
 }
 function cameraAt(w,u){
-  const K=w.def.camK||1,[s0,a0,h0,lookF,lookL]=camKey(w.def.cam,u),side=s0*K*(w.def.mirror?-1:1),along=a0*K,hgt=h0*Math.sqrt(K);
+  let K=w.def.camK||1,[s0,a0,h0,lookF,lookL]=camKey(w.def.cam,u),side=s0*K*(w.def.mirror?-1:1),along=a0*K,hgt=h0*Math.sqrt(K);
   const c=pathAt(w,u),{F,R}=frameOf(c.h);
   const x=c.x+R[0]*side+F[0]*along,z=c.z+R[1]*side+F[1]*along;
   // Height over a smoothed ground, so the camera never jolts over a ridge.
   let g=0;for(const[a,b]of[[0,0],[4,0],[-4,0],[0,4],[0,-4]])g+=ground(x+a,z+b);g/=5;
   const y=g+hgt;
   let tx=c.x+F[0]*lookF,tz=c.z+F[1]*lookF,ty=ground(c.x,c.z)+(w.lookY||1.8);
-  if(lookL>0&&w.land){const L=w.land;tx=lerp(tx,L.x,lookL);tz=lerp(tz,L.z,lookL);ty=lerp(ty,ground(L.x,L.z)+L.top*.35,lookL*.5)}
+  if(lookL>0&&w.land){const L=w.land;lookL*=w.def.lookK||1;tx=lerp(tx,L.x,lookL);tz=lerp(tz,L.z,lookL);ty=lerp(ty,ground(L.x,L.z)+L.top*.35,lookL*.5)}
   return{x,y,z,yaw:Math.atan2(tx-x,tz-z),pitch:Math.atan2(y-ty,Math.hypot(tx-x,tz-z))}
 }
 

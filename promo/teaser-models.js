@@ -188,12 +188,13 @@ function rbox(m,c,sz,yaw){const ca=Math.cos(yaw),sa=Math.sin(yaw),a=sz[0]/2,b=sz
 // Stonehenge: the sarsen circle with its lintels (gaps where stones have fallen), the five
 // trilithons of the horseshoe, bluestones, two fallen stones and the Heel Stone. Radius 12.
 const stonehenge=staticMesh(m=>{
-  const n=30,R=12,missing=new Set([3,4,9,13,14,15,19,22,23,24,26]);
-  for(let i=0;i<n;i++){if(missing.has(i))continue;const a=i/n*2*PI,h=4+((i*7)%3)*.12;rbox(m,[Math.sin(a)*R,h/2,Math.cos(a)*R],[1.9,h,1.0],a)}
-  for(let i=0;i<n;i++){if(missing.has(i)||missing.has((i+1)%n)||i%3===2)continue;const a=(i+.5)/n*2*PI;rbox(m,[Math.sin(a)*R,4.45,Math.cos(a)*R],[2.6,.7,.9],a)}
-  [[-PI*.62,6.2],[-PI*.82,7.2],[PI,7.6],[PI*.82,7.2],[PI*.62,6.2]].forEach(([a,h],i)=>{const r=7.2,cx=Math.sin(a)*r,cz=Math.cos(a)*r;
-    for(const s of[-1,1])rbox(m,[cx+Math.cos(a)*s*1.2,h/2,cz-Math.sin(a)*s*1.2],[1.6,h,1.0],a);if(i!==1)rbox(m,[cx,h+.4,cz],[4.2,.8,1.0],a)});
-  for(let i=0;i<14;i++){const a=PI*.35+i/14*PI*1.3;rbox(m,[Math.sin(a)*9.6,1,Math.cos(a)*9.6],[.7,2,.5],a)}
+  // A ruin: about half the sarsens still stand, a few still carrying their lintels.
+  const n=30,R=12.5,missing=new Set([2,3,4,8,9,12,13,14,15,18,19,21,22,23,24,26,27]);
+  for(let i=0;i<n;i++){if(missing.has(i))continue;const a=i/n*2*PI,h=4+((i*7)%3)*.15;rbox(m,[Math.sin(a)*R,h/2,Math.cos(a)*R],[1.5,h,.95],a)}
+  for(const i of[0,5,10,16]){const a=(i+.5)/n*2*PI;rbox(m,[Math.sin(a)*R,4.5,Math.cos(a)*R],[2.9,.7,.95],a)}
+  // The horseshoe of trilithons inside, taller towards the middle, one fallen.
+  [[-PI*.6,6.4],[-PI*.8,7.4],[PI,8.2],[PI*.8,7.4],[PI*.6,6.4]].forEach(([a,h],i)=>{if(i===3)return;const r=7,cx=Math.sin(a)*r,cz=Math.cos(a)*r;
+    for(const s of[-1,1])rbox(m,[cx+Math.cos(a)*s*1.25,h/2,cz-Math.sin(a)*s*1.25],[1.5,h,1.0],a);rbox(m,[cx,h+.4,cz],[4.4,.8,1.0],a)});
   rbox(m,[3,.45,-2],[1.2,.9,4.5],.4);rbox(m,[-9.5,.4,6],[1.4,.8,3.8],1.2);
   rbox(m,[2,2.4,-28],[2,4.8,1.6],.2);
 },null);
@@ -261,11 +262,11 @@ const machuPicchu=staticMesh(m=>{
 },{terraces:C.g,peak:C.g,andes:C.c,houses:C.w});
 // Monument Valley: the two Mittens and Merrick Butte, each a sheer butte on a talus slope.
 const butte=(m,x,z,w,d,h,base,thumb)=>{
-  m.loft([m.ringXZ(x,0,z,w*1.9,d*1.9,10),m.ringXZ(x,base,z,w*1.05,d*1.05,10)],false,false);
+  m.loft([m.ringXZ(x,0,z,w*1.7,d*2.1,12),m.ringXZ(x,base*.55,z,w*1.3,d*1.5,12),m.ringXZ(x,base,z,w*1.04,d*1.08,12)],false,false);
   const r=(y,k)=>[[x-w*k,y,z-d*k],[x+w*k,y,z-d*k],[x+w*k,y,z+d*k],[x-w*k,y,z+d*k]];m.loft([r(base,1),r(base+h,.94)]);
   for(let i=1;i<4;i++)line(m,r(base+h*i/4,1-.06*i/4),true);
-  if(thumb){const tx=x+thumb*w*1.35;m.loft([m.ringXZ(tx,base,z,w*.28,d*.32,6),m.ringXZ(tx,base+h*.95,z,w*.18,d*.22,6)])}};
-const monumentValley=staticMesh(m=>{butte(m,-40,0,7,5,26,8,-1);butte(m,8,10,7.5,5,27,8,1);butte(m,60,-8,14,7,20,7,0)},null);
+  if(thumb){const tx=x+thumb*w*1.32;m.loft([m.ringXZ(tx,base*.8,z,w*.2,d*.42,6),m.ringXZ(tx,base+h*1.05,z,w*.12,d*.26,6),m.ringXZ(tx,base+h*1.12,z,w*.06,d*.1,6)],false,true)}};
+const monumentValley=staticMesh(m=>{butte(m,-48,0,13,6,15,11,-1);butte(m,10,12,13,6,16,11,1);butte(m,72,-10,22,9,13,10,0)},null);
 // Icebergs and ice cliffs for Antarctica.
 const iceberg=staticMesh(m=>{
   m.loft([[[-9,0,-5],[6,0,-7],[11,0,1],[4,0,7],[-8,0,5]],[[-8,6,-4],[5,7,-6],[10,5,1],[3,6.5,6],[-7,7.5,4]],[[-5,9,-2],[2,11,-3],[6,8.5,1],[1,9.5,3],[-4,10.5,2]]].map(r=>r),false,true);
