@@ -264,14 +264,13 @@ const stonehenge=staticMesh(m=>{
   rbox(m,[3,.45,-2],[1.2,.9,4.5],.4);rbox(m,[-9.5,.4,6],[1.4,.8,3.8],1.2);
   rbox(m,[2,2.4,-28],[2,4.8,1.6],.2);
 },null);
-// Uluru: a long monolith, steep-sided and dome-topped, with gullies scored down its flanks.
+// Uluru: a long monolith, steep-sided and dome-topped.
 const uluru=staticMesh(m=>{
   const L=88,Wd=26,Hh=12,rings=[];
   for(let i=0;i<=10;i++){const u=i/10-.5,k=Math.pow(Math.cos(u*PI*.98),.45),x=u*L;const pts=[];
     for(let j=0;j<12;j++){const t=j/12*2*PI,c=Math.cos(t),s=Math.sin(t),y=Math.max(0,s)*Hh*k*(1+.08*Math.sin(i*1.7)),z=c*Wd/2*Math.pow(k,.6);pts.push([x,s<0?-4:y,z])}rings.push(pts)}
   m.loft(rings.map(r=>r.map(([x,y,z])=>[x,y,z])));
-  m.mark('gullies',()=>{for(let i=1;i<10;i++){const u=i/10-.5,x=u*L,k=Math.pow(Math.cos(u*PI*.98),.45);for(const sz of[-1,1])line(m,[[x,Hh*k*.92,sz*Wd*.2*k],[x+1.2,Hh*k*.45,sz*Wd*.43*Math.pow(k,.6)],[x+.6,0,sz*Wd*.5*Math.pow(k,.6)]])}});
-},{gullies:C.y});
+},null);
 // Giza: the three pyramids, their courses traced, and the Sphinx in front. The pyramids were
 // cased in white limestone once, so they are drawn white.
 const pyramid=(m,c,b,h)=>{const sq=(y,s)=>[[c[0]-s,y,c[2]-s],[c[0]+s,y,c[2]-s],[c[0]+s,y,c[2]+s],[c[0]-s,y,c[2]+s]];

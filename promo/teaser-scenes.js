@@ -409,7 +409,7 @@ function buildSky(){
     for(const k of[0,1]){const lat=sg*(5+k*8),h=c.y+9+k*2.5;
       sky.ships.push({mesh:fighterMesh,s:2.6,col:C.c,ts,te:ts+16,far:true,p0:[c.x-F[0]*(95+k*7)+R[0]*lat,h,c.z-F[1]*(95+k*7)+R[1]*lat],d:[F[0],0,F[1]],v:55,bank:sg*.45})}}
   {const ts=T.peru+3,tm=ts+12,{c,F,R}=camFrame(tm),sg=r()<.5?-1:1,D=200,mid=[c.x+F[0]*D,skyY(c,D,.17),c.z+F[1]*D],d=[R[0]*sg,0,R[1]*sg],v=12;
-    sky.ships.push({mesh:M.freighter,s:1.6,col:C.w,ts,te:ts+26,p0:[mid[0]-d[0]*v*12,mid[1],mid[2]-d[2]*v*12],d,v,bank:0})}
+    sky.ships.push({mesh:M.freighter,s:1.6,col:C.w,ts,te:ts+26,overLand:true,p0:[mid[0]-d[0]*v*12,mid[1],mid[2]-d[2]*v*12],d,v,bank:0})}
   // Fireworks over the elephants, launched every second or so from beyond the herd.
   const H4=run.herds.find(h=>h.sec==='india');
   for(let tl=H4.T+.5;tl<H4.Tn-2.5;tl+=.8+r()*.8){const{c,F,R}=camFrame(tl+1.5),D=85+r()*55,lx=(r()-.5)*D*.9,x=c.x+F[0]*D+R[0]*lx,z=c.z+F[1]*D+R[1]*lx,gy=ground(x,z);
@@ -440,7 +440,9 @@ function appendSky(scn){
     const q=camPoint([x,y,z-travel]);if(q[2]<1||q[2]>900)continue;
     // fighters fly on until they are specks in the distance, fading only far away
     const a=sh.far?Math.min(1,u/.5,clamp((900-q[2])/300,0,1)):Math.min(1,u/1,(sh.te-t)/1);
-    scn.push({z:q[2],draw:()=>drawMesh({x,y,z:z-travel,s:sh.s,rot:[0,Math.atan2(sh.d[0],sh.d[2])+PI,sh.bank]},sh.mesh,sh.col,a)})}
+    // the freighter is in the sky, nearer than any landmark: always in front of them (they sort at 70 or more),
+    // still behind the animals and rocks close by
+    scn.push({z:sh.overLand?Math.min(q[2],69):q[2],draw:()=>drawMesh({x,y,z:z-travel,s:sh.s,rot:[0,Math.atan2(sh.d[0],sh.d[2])+PI,sh.bank]},sh.mesh,sh.col,a)})}
   for(const b of sky.bursts){if(t<b.tl||t>b.tb+2.4)continue;const q=camPoint([b.x,b.by,b.z-travel]);if(q[2]<1)continue;
     scn.push({z:q[2],draw:()=>drawBurst(b,t)})}
 }

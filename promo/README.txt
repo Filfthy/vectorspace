@@ -75,7 +75,7 @@ crossing above the llamas and fireworks over the elephants. Each herd has its ow
   1:18  magenta elephants (the Taj Mahal), with brass and timpani
   1:39  giraffes and zebras (Kilimanjaro)
   2:00  llamas (Machu Picchu)
-  2:21  bison
+  2:21  bison (Monument Valley)
   2:43  penguins among distant icebergs, under an aurora
   2:57  the camera tilts up to a wide aurora and holds there; a shooting
         star crosses it as the picture fades out
