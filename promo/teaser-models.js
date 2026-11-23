@@ -142,15 +142,17 @@ const mech=(id,o)=>animal(id,{...o,minCycle:o.minCycle??GA_KINDS.hound.minCycle}
     body(m){
       const yb=1.9*kb;
       m.loft([bsec(.4,Y-.4,Y+.32,-1.0),bsec(.44,(Y+yb)/2-.42,(Y+yb)/2+.3,-.1),bsec(.38,yb-.34,yb+.24,.95)]);
-      m.mark('boom',()=>{const a=[0,Y+.2,-.85],b=[0,Y+3.2,-1.75];for(const sx of[-1,1])m.beam([sx*.14,a[1],a[2]],[sx*.11,b[1],b[2]],.09,.09);
-        const n=8;for(let i=0;i<n;i++){const u0=i/n,u1=(i+1)/n,P=u=>[a[1]+(b[1]-a[1])*u,a[2]+(b[2]-a[2])*u],p0=P(u0),p1=P(u1),w0=.14-.03*u0,w1=.14-.03*u1;
-          line(m,[[-w0,p0[0],p0[1]],[w1,p1[0],p1[1]]]);line(m,[[w0,p0[0],p0[1]],[-w1,p1[0],p1[1]]]);line(m,[[-w1,p1[0],p1[1]],[w1,p1[0],p1[1]]])}});
+      // The neck: a solid, tapering boom (body colour), braced on both sides like a crane jib.
+      {const a=[Y+.2,-.85],b=[Y+3.2,-1.75],sec=(p,w,d)=>[[-w,p[0],p[1]-d],[w,p[0],p[1]-d],[w,p[0],p[1]+d],[-w,p[0],p[1]+d]];
+        m.loft([sec(a,.27,.3),sec([(a[0]+b[0])/2,(a[1]+b[1])/2],.22,.24),sec(b,.16,.18)]);
+        m.mark('bracing',()=>{const n=7;for(const sx of[-1,1])for(let i=0;i<n;i++){const P=u=>[a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u],u0=i/n,u1=(i+1)/n,p0=P(u0),p1=P(u1),w0=(.27-.11*u0)*sx,w1=(.27-.11*u1)*sx,d0=.3-.12*u0,d1=.3-.12*u1;
+          line(m,[[w0,p0[0],p0[1]-d0*(i%2?1:-1)],[w1,p1[0],p1[1]+d1*(i%2?1:-1)]])}})}
       m.loft([bsec(.16,Y+3.05,Y+3.42,-1.72),bsec(.11,Y+2.98,Y+3.2,-2.38)]);
       m.mark('ossicones',()=>{for(const sx of[-1,1]){m.beam([sx*.08,Y+3.4,-1.76],[sx*.12,Y+3.82,-1.72],.05,.05);m.box([sx*.12,Y+3.85,-1.72],[.1,.1,.1])}});
       for(const sx of[-1,1])m.beam([sx*.13,Y+3.36,-1.7],[sx*.34,Y+3.46,-1.6],.05,.09,.3);
       m.mark('spots',()=>{for(const sx of[-1,1])for(let i=0;i<4;i++)for(let j=0;j<2;j++){const z=-.82+i*.48+(j?.18:0),y=Y-.22+j*.3-i*.14,x=sx*.43,d=.11;line(m,[[x,y-d,z-d],[x,y+d,z-d],[x,y+d,z+d],[x,y-d,z+d]],true)}});
       m.mark('tail',()=>{m.beam([0,1.9*kb,.95],[0,1.9*kb-.9,1.12],.05,.05);m.box([0,1.9*kb-1.0,1.13],[.12,.24,.12])});
-    },colours:{boom:C.o,spots:C.o,ossicones:C.o,tail:C.o}});
+    },colours:{bracing:C.o,spots:C.o,ossicones:C.o,tail:C.o}});
 }
 // LLAMA: a light mech with a tall upright beam neck and banana-ear antennas.
 {const k=.84,Y=1.9*k;
@@ -216,7 +218,10 @@ function buildKangaroo(m,pose){
     for(let i=0;i<4;i++){const w=.2-i*.04;m.beam(pts[i],pts[i+1],w,w,.85);m.box(pts[i+1],[w*1.2,w*1.2,w*.6])}});
 }
 const kangaroo=P.posedMesh(buildKangaroo,{ears:C.y,tail:C.y,visor:C.c,'foot-1':C.w,foot1:C.w,'knee-1':C.w,knee1:C.w});
-const hopH=u=>u>ROO_ST?Math.sin(PI*(u-ROO_ST)/(1-ROO_ST))*.62:0;
+const hopH=u=>u>ROO_ST?Math.sin(PI*(u-ROO_ST)/(1-ROO_ST))*.95:0;
+// How far through its leap the kangaroo is along the ground: its feet stay planted while it
+// crouches and pushes off, and the whole distance is covered in the air.
+const hopX=u=>u<ROO_ST?.03*u/ROO_ST:.03+.97*(u-ROO_ST)/(1-ROO_ST);
 
 // ---------- Penguin mech: a squat walker that waddles ----------
 // pose {w}: waddle phase (radians). An angular hull (white chest plate on the front, a dark
@@ -224,8 +229,13 @@ const hopH=u=>u>ROO_ST?Math.sin(PI*(u-ROO_ST)/(1-ROO_ST))*.62:0;
 function buildPenguin(m,pose){
   const w=pose.w||0,stepL=Math.max(0,Math.sin(w))*.16,stepR=Math.max(0,-Math.sin(w))*.16,oct=(y,r,rz=r*.86)=>m.ringXZ(0,y,.02,r,rz,8,PI/8);
   m.mark('back',()=>m.loft([oct(.32,.34),oct(.62,.46),oct(1.02,.44),oct(1.32,.32),oct(1.48,.24)],true,false));
-  m.mark('belly',()=>{const plate=(y,r)=>[[-r*.62,y,-r*.82],[r*.62,y,-r*.82]];const rows=[[.4,.36],[.68,.47],[1.02,.45],[1.28,.33]];
-    m.loft(rows.map(([y,r])=>[...plate(y,r),[r*.6,y,-r*.86],[-r*.6,y,-r*.86]]),false,false)});
+  // The white chest lies right on the hull: the front facet and half of each facet beside it,
+  // cut from the hull's own rings (radii interpolated at each height), a hair proud of it.
+  m.mark('belly',()=>{const prof=[[.32,.34],[.62,.46],[1.02,.44],[1.32,.32]],rAt=y=>{for(let i=1;i<prof.length;i++)if(y<=prof[i][0]){const[a,ra]=prof[i-1],[b,rb]=prof[i];return ra+(rb-ra)*(y-a)/(b-a)}return prof[prof.length-1][1]};
+    const row=y=>{const v=oct(y,rAt(y)),n=v.length;let k=0;for(let i=0;i<n;i++)if(v[i][2]+v[(i+1)%n][2]<v[k][2]+v[(k+1)%n][2])k=i;
+      const A=v[(k+n-1)%n],B=v[k],C2=v[(k+1)%n],D2=v[(k+2)%n],mid=(p,q)=>p.map((x,j)=>(x+q[j])/2),pts=[mid(A,B),B,C2,mid(C2,D2)],at=f=>pts.map(p=>[p[0]*f,p[1],.02+(p[2]-.02)*f]);
+      return[...at(1.015),...at(1.0).reverse()]};
+    m.loft([.4,.68,1.02,1.28].map(row),false,false)});
   m.mark('head',()=>m.loft([oct(1.48,.24),oct(1.62,.27),oct(1.84,.23),oct(1.94,.12)],false,true));
   m.mark('beak',()=>m.loft([bsec(.07,1.66,1.78,-.2),bsec(.03,1.64,1.7,-.5)]));
   m.mark('visor',()=>m.box([0,1.8,-.17],[.36,.05,.1]));
@@ -314,13 +324,35 @@ const machuPicchu=staticMesh(m=>{
       line(m,[e(-1.8,15.6),e(1.8,15.6)])};
     for(let i=0;i<10;i++)house(-22+i*4.8,-8+((i*7)%3)*3.2,.12*((i%3)-1))});
 },{terraces:C.g,peak:C.g,houses:C.w});
-// Monument Valley: the two Mittens and Merrick Butte, each a sheer butte on a talus slope.
-const butte=(m,x,z,w,d,h,base,thumb)=>{
-  m.loft([m.ringXZ(x,-6,z,w*1.95,d*2.4,12),m.ringXZ(x,0,z,w*1.7,d*2.1,12),m.ringXZ(x,base*.55,z,w*1.3,d*1.5,12),m.ringXZ(x,base,z,w*1.04,d*1.08,12)],false,false);
-  const r=(y,k)=>[[x-w*k,y,z-d*k],[x+w*k,y,z-d*k],[x+w*k,y,z+d*k],[x-w*k,y,z+d*k]];m.loft([r(base,1),r(base+h,.94)]);
-  for(let i=1;i<4;i++)line(m,r(base+h*i/4,1-.06*i/4),true);
-  if(thumb){const tx=x+thumb*w*1.32;m.loft([m.ringXZ(tx,base*.8,z,w*.2,d*.42,6),m.ringXZ(tx,base+h*1.05,z,w*.12,d*.26,6),m.ringXZ(tx,base+h*1.12,z,w*.06,d*.1,6)],false,true)}};
-const monumentValley=staticMesh(m=>{butte(m,-48,0,13,6,15,11,-1);butte(m,10,12,13,6,16,11,1);butte(m,72,-10,22,9,13,10,0)},null);
+// Monument Valley: weathered sandstone buttes. Each has a ragged outline (no two sides alike),
+// sheer cliffs banded with strata, a broken rim, and a wide rubble slope spilling out from the
+// foot. The Mittens each have a slender spire beside them, and a few lone spires stand apart.
+function vRand(seed){let s=seed*7919+13;return()=>{s=(s*16807)%2147483647;return s/2147483647}}
+function butte(m,x,z,rx,rz,h,base,rot,seed){
+  const r=vRand(seed),n=13,ca=Math.cos(rot),sa=Math.sin(rot);
+  const out=Array.from({length:n},(_,i)=>{const a=i/n*2*PI+(r()-.5)*.3,f=.78+r()*.38;return[Math.cos(a)*rx*f,Math.sin(a)*rz*f]});
+  const wob=()=>out.map(()=>1+(r()-.5)*.22);
+  const ring=(y,k,w)=>out.map(([px,pz],i)=>{const kk=k*(w?w[i]:1),X=px*kk,Z=pz*kk;return[x+X*ca+Z*sa,y,z-X*sa+Z*ca]});
+  // The rubble slope: broad and uneven, steepening up to the cliff foot.
+  m.loft([ring(-5,2.05,wob()),ring(base*.3,1.7,wob()),ring(base*.7,1.28,wob()),ring(base,1.04)],false,false);
+  // The cliffs, very slightly in-sloping, and a broken rim on top.
+  const rim=out.map(()=>(r()-.5)*1.4);
+  const top=ring(base+h,.96).map((p,i)=>[p[0],p[1]+rim[i],p[2]]);
+  m.loft([ring(base,1),top],false,true);
+  // Two bands of strata, wavering round the cliff as real bedding does.
+  m.mark('strata',()=>{for(const f of[.3+r()*.08,.62+r()*.08]){const ph=r()*6;line(m,ring(base+h*f,1-.04*f).map((p,i)=>[p[0],p[1]+Math.sin(i*1.7+ph)*h*.05,p[2]]),true)}});
+}
+function spire(m,x,z,rad,h,base,seed){
+  const r=vRand(seed),n=7,ring=(y,k)=>Array.from({length:n},(_,i)=>{const a=i/n*2*PI,f=k*(.85+r()*.3);return[x+Math.cos(a)*rad*f,y,z+Math.sin(a)*rad*f]});
+  m.loft([ring(-4,3.2),ring(base*.6,2.1),ring(base,1.1),ring(base+h*.55,.95),ring(base+h*.85,.75),ring(base+h,.45)],false,true);
+  m.mark('strata',()=>line(m,ring(base+h*.4,.97),true));
+}
+const monumentValley=staticMesh(m=>{
+  butte(m,-50,0,15,7,17,12,.15,1);spire(m,-71,3,2.4,16,10,2);        // West Mitten and its thumb
+  butte(m,14,14,14,7,18,12,-.1,3);spire(m,34,11,2.2,17,10,4);         // East Mitten and its thumb
+  butte(m,80,-14,24,11,14,11,.3,5);                                    // Merrick Butte
+  spire(m,40,-34,1.6,22,6,6);spire(m,-16,-38,1.4,15,5,7);spire(m,-96,-26,2,12,7,8)
+},{strata:C.r});
 // Icebergs and ice cliffs for Antarctica.
 const iceberg=staticMesh(m=>{
   m.loft([[[-9.5,-3,-5.5],[6.5,-3,-7.5],[11.5,-3,1],[4.5,-3,7.5],[-8.5,-3,5.5]],[[-9,0,-5],[6,0,-7],[11,0,1],[4,0,7],[-8,0,5]],[[-8,6,-4],[5,7,-6],[10,5,1],[3,6.5,6],[-7,7.5,4]],[[-5,9,-2],[2,11,-3],[6,8.5,1],[1,9.5,3],[-4,10.5,2]]].map(r=>r),false,true);
@@ -365,5 +397,5 @@ const spinifex=staticMesh(m=>{for(let i=0;i<11;i++){const a=i/11*2*PI;line(m,[[0
   m.box([0,.05,0],[.3,.1,.3])},null);
 const iceBlock=staticMesh(m=>{m.loft([[[-1.5,0,-1],[1.2,0,-1.3],[1.6,0,.9],[-1,0,1.2]],[[-1.2,1.4,-.8],[1,1.8,-1],[1.3,1.2,.7],[-.8,1.6,1]]],false,true)},null);
 
-globalThis.TeaserModels={quadLegs,kindColours,kangaroo,hopH,penguin,stonehenge,uluru,giza,taj,kilimanjaro,machuPicchu,monumentValley,iceberg,oak,palm,acacia,saguaro,spinifex,iceBlock};
+globalThis.TeaserModels={quadLegs,kindColours,kangaroo,hopH,hopX,penguin,stonehenge,uluru,giza,taj,kilimanjaro,machuPicchu,monumentValley,iceberg,oak,palm,acacia,saguaro,spinifex,iceBlock};
 })();

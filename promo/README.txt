@@ -60,20 +60,21 @@ VECTOR SPACE TEASER
 
 A 3:19 teaser to "Stampede Across the Stars", new techno space rock from the
 Oh Hell music (D:\CodeGen\Oh Hell\renders\stampede.wav). One unbroken run
-across one world, no cuts: after the descent the camera flies herd to herd
+across one world, no cuts: it opens on the ground and the camera flies herd to herd
 along a single route, and the ground's colour and roll change gradually from
-herd to herd. Each herd has one landmark standing far off the route.
+herd to herd. Most herds have one landmark standing far off the route. The
+drone is only a camera here: no guns on screen.
 
-  0:00  Titles over space, the descent to a green world
-  0:14  horses (Stonehenge far off)
+  0:00  Titles over a green world, gliding down to the horses
+  0:14  brown horses (Stonehenge far off)
   0:35  kangaroos (Uluru)
   0:56  camels (the pyramids)
   1:18  elephants (the Taj Mahal)
   1:39  giraffes and zebras (Kilimanjaro)
   2:00  llamas (Machu Picchu)
-  2:21  bison (Monument Valley)
+  2:21  bison
   2:43  penguins among distant icebergs, under an aurora
-  2:57  Lift-off over the penguins, and the fade to the stars
+  2:57  the camera tilts up to the aurora and holds there, then fades out
 
 Open it with ?promo=teaser instead of ?promo. Everything else works the same:
   ?promo=teaser&play          live with the music (&from=56.8 starts at the camels)
@@ -87,7 +88,7 @@ Files
                      and penguin (posed meshes) and the landmarks
   teaser-scenes.js   the run: the herds' order and timing, the route, the
                      camera keys and the flights between herds, rocks, the
-                     ground's zones, the aurora, the lift-off and the stars.
+                     ground's zones and the aurora ending.
                      TeaserScenes.studio({kind:'camel'}) films one animal alone.
   stampede.mp3       the song
 

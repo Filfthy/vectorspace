@@ -1,13 +1,13 @@
 'use strict';
 // The teaser: one unbroken run across one world to "Stampede Across the Stars".
-// The drone comes down through the titles, lands, and then flies herd to herd along a single
-// long route with no cuts: horses, kangaroos, camels, elephants, giraffes and zebras, llamas,
+// It opens on the ground under the titles, then flies herd to herd along a single long route
+// with no cuts: horses, kangaroos, camels, elephants, giraffes and zebras, llamas,
 // bison, and penguins under an aurora. The ground's colour and roll shift gradually from herd
 // to herd; a few landmarks stand far off the route (Stonehenge, Uluru, the pyramids...).
-// Then the lift-off over the penguins and the fade to the stars.
-//   0:00 titles and the descent   0:14 horses     0:35 kangaroos   0:56 camels
+// At the end the camera tilts up to the aurora over the penguins and holds there.
+//   0:00 titles over the ground   0:14 horses     0:35 kangaroos   0:56 camels
 //   1:18 elephants   1:39 giraffes and zebras   2:00 llamas   2:21 bison   2:43 penguins
-//   2:57 lift-off, and the stars
+//   2:57 up to the aurora
 (()=>{
 const D=globalThis.PromoDirector;if(!D||!PROMO_SONG.teaser)return;
 const T=D.T,M=globalThis.TeaserModels,P=globalThis.PromoModels,PI=Math.PI;
@@ -32,11 +32,11 @@ function launch(edit){
 // K scales the camera's distances to the animals' size. amp is the ground's roll there.
 // Each herd's landmark stands far out on the side away from the camera (dist from the route).
 const HERDS=[
-  {sec:'england',kind:'horse',n:7,v:11,tints:[C.o,C.w,C.y,C.o,C.o,C.w,C.y],ground:C.g,amp:.55,rock:C.w,K:1,
+  {sec:'england',kind:'horse',n:7,v:11,tints:Array(7).fill('#C8763A'),ground:C.g,amp:.55,rock:C.w,K:1,
     land:{mesh:M.stonehenge,col:C.w,s:2.4,dist:210,foot:[[0,0,15],[2,-28,4]]}},
   {sec:'australia',crit:'kangaroo',n:7,v:9.5,critCol:C.o,critS:1.3,ground:C.o,amp:.35,rock:C.y,K:1,
     land:{mesh:M.uluru,col:C.r,s:1.4,dist:240,yaw:PI/2,foot:[[-30,0,17],[0,0,19],[30,0,17]]}},
-  {sec:'egypt',kind:'camel',n:6,v:5.5,space:1.4,ground:C.y,amp:1.1,rock:C.o,K:1.2,lookY:2.5,
+  {sec:'egypt',kind:'camel',n:6,v:5.5,space:1.4,ground:C.y,amp:.75,rock:C.o,K:1.2,lookY:2.5,
     land:{mesh:M.giza,col:C.w,s:1.15,dist:290,yaw:.5,foot:[[0,0,30],[-46,30,28],[-78,58,15],[-86,74,9],[30,-38,10]]}},
   {sec:'india',kind:'elephant',n:5,v:3.6,space:2,ground:C.u,amp:.3,rock:C.w,K:1.5,lookY:2.4,
     land:{mesh:M.taj,col:C.w,s:1.3,dist:280,yaw:-PI/2,foot:[[0,0,28],[0,-50,9],[0,-72,9]]}},
@@ -45,11 +45,11 @@ const HERDS=[
   {sec:'peru',kind:'llama',n:7,v:4.6,space:1.2,ground:C.g,amp:.9,rock:C.w,K:1.2,
     land:{mesh:M.machuPicchu,col:C.g,s:1.3,dist:270,yaw:PI,foot:[[0,-6,64],[2,34,34]]}},
   {sec:'usa',kind:'bison',n:12,v:11,space:1.25,ground:C.y,amp:.45,rock:C.o,K:1.15,
-    land:{mesh:M.monumentValley,col:C.o,s:1.4,dist:310,yaw:.2,foot:[[-48,0,30],[10,12,30],[72,-10,42]]}},
+    land:{mesh:M.monumentValley,col:C.o,s:1.4,dist:290,yaw:.2,foot:[[-50,0,24],[14,14,24],[80,-14,36],[40,-34,6],[-16,-38,6],[-96,-26,8]]}},
   {sec:'antarctica',crit:'penguin',n:11,v:1.3,walk:.8,space:.6,critCol:C.w,critS:1.25,ground:C.c,amp:.25,rock:C.w,K:.8,lookY:.9,aurora:true,
     bergs:[[140,25,1.4],[-160,70,1.8],[180,130,2],[-200,10,2.2],[150,-60,1.6],[-170,-110,1.8]]},
 ];
-HERDS.forEach((H,i)=>{H.i=i;H.T=T[H.sec];H.Tn=i<HERDS.length-1?T[HERDS[i+1].sec]:Infinity;H.side=i%2?1:-1;H.walk=H.walk??Math.min(1.2,H.v*.25)});
+HERDS.forEach((H,i)=>{H.i=i;H.K*=1.35;H.T=T[H.sec];H.Tn=i<HERDS.length-1?T[HERDS[i+1].sec]:Infinity;H.side=i%2?1:-1;H.walk=H.walk??Math.min(1.2,H.v*.25)});
 
 // The herd's speed: a slow walk until its turn, up to full speed as the camera arrives,
 // on until the camera has left for the next herd, then easing to a stop.
@@ -86,6 +86,8 @@ function sAt(H,t){return H.fixedV!=null?H.anchor+H.fixedV*(t-H.t0):H.anchor+cumA
 // along (+ ahead of its centre), height, look ahead of the centre]. It comes up behind the herd,
 // runs along its flank, gets a little ahead and falls back level with it as it thunders past.
 const KEYS=[[0,9,-30,5,8],[5,11,-12,3.2,5],[10,12,2,2.6,3],[15,13,14,2.8,0],[19.5,16,6,3.6,4]];
+// The opening, under the titles: high and far back over the land, gliding down to the horses.
+const INTRO_KEYS=[[-15,2,-125,15,40],[-7.5,6,-70,8.5,20],...KEYS];
 function camKey(keys,u){
   const n=keys.length;if(u<=keys[0][0])return keys[0].slice(1);if(u>=keys[n-1][0])return keys[n-1].slice(1);
   let i=0;while(i<n-2&&u>keys[i+1][0])i++;
@@ -98,7 +100,7 @@ function camGround(x,z){let g=0;for(const[a,b]of[[0,0],[4,0],[-4,0],[0,4],[0,-4]
 function herdCam(H,t){
   const s=sAt(H,t),c=routeAt(s),{F,R}=frameOf(c.h),ty=ground(c.x,c.z)+(H.lookY||1.8);
   if(run.studio){const S=run.studio,x=c.x+R[0]*S.side+F[0]*S.along,z=c.z+R[1]*S.side+F[1]*S.along;return look(x,ground(x,z)+S.h,z,c.x,ground(c.x,c.z)+(S.lookY||1.6),c.z)}
-  const K=H.K,[sd,al,hh,lf]=camKey(KEYS,t-H.T),side=sd*K*H.side,along=al*K;
+  const K=H.K,[sd,al,hh,lf]=camKey(H.i===0?INTRO_KEYS:KEYS,t-H.T),side=(sd*K+3)*H.side,along=al*K;
   const x=c.x+R[0]*side+F[0]*along,z=c.z+R[1]*side+F[1]*along;
   return look(x,camGround(x,z)+hh*Math.sqrt(K),z,c.x+F[0]*lf*K,ty,c.z+F[1]*lf*K)
 }
@@ -111,16 +113,12 @@ function cameraAt(t){
   const by=ease(t,Hs[i+1].T-FLY0,Hs[i+1].T-FLY0+(FLY0+FLY1)*.6);
   return{x:lerp(a.x,c.x,b),y:lerp(a.y,c.y,b)+4.5*arc,z:lerp(a.z,c.z,b),yaw:a.yaw+wrapAngle(c.yaw-a.yaw)*by,pitch:lerp(a.pitch,c.pitch,by)+.06*arc}
 }
-// The end: the drone climbs straight up over the penguins, looking down on them, then tips
-// back into the stars.
+// The end: the camera stops by the penguins and tilts slowly up to the aurora, rising a little,
+// and stays on it to the end.
 function liftOff(t){
   if(run.studio||t<LIFT)return null;
-  const H=run.herds[run.herds.length-1],base=cameraAt(LIFT),k=t-LIFT,up=Math.pow(k,1.6)*2.6,c=routeAt(sAt(H,t));
-  const x=base.x,z=base.z,y=base.y+up,cy=ground(c.x,c.z)+.8;
-  const yawC=Math.atan2(c.x-x,c.z-z),pitchC=Math.atan2(y-cy,Math.max(1,Math.hypot(c.x-x,c.z-z)));
-  const a=ease(k,0,1.6),yaw=wrapAngle(base.yaw+wrapAngle(yawC-base.yaw)*a);
-  const pitch=k<3.6?lerp(base.pitch,pitchC,a):lerp(pitchC,-1.1,ease(k,3.6,7.6));
-  return{x,y,z,yaw,pitch}
+  const base=cameraAt(LIFT),k=t-LIFT,a=ease(k,0,7);
+  return{x:base.x,y:base.y+a*2.5,z:base.z,yaw:wrapAngle(base.yaw+wrapAngle(run.H0-base.yaw)*a),pitch:lerp(base.pitch,-.42,a)}
 }
 
 // ---------- The ground: its roll and colour change gently from herd to herd ----------
@@ -171,9 +169,9 @@ function buildRun(origin,opt={}){
 function scatterRocks(rand){
   const G=groundAssault,Hs=run.herds;let rockLo=1e9;for(const v of asteroidMesh.v)rockLo=Math.min(rockLo,v[1]);
   const cams=new Map(),key=(x,z)=>Math.floor(x/12)+','+Math.floor(z/12);
-  for(let t=Hs[0].T-4;t<LIFT+1;t+=.2){const c=cameraAt(t),k=key(c.x,c.z);(cams.get(k)||cams.set(k,[]).get(k)).push(c)}
+  for(let t=0;t<LIFT+1;t+=.2){const c=cameraAt(t),k=key(c.x,c.z);(cams.get(k)||cams.set(k,[]).get(k)).push(c)}
   const nearCam=(x,z,r)=>{const i=Math.floor(x/12),j=Math.floor(z/12);for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(const c of cams.get((i+a)+','+(j+b))||[])if(Math.hypot(c.x-x,c.z-z)<r)return true;return false};
-  const s0=Hs[0].anchor-90,s1=sAt(Hs[Hs.length-1],LIFT)+160;
+  const s0=Hs[0].anchor-190,s1=sAt(Hs[Hs.length-1],LIFT)+160;
   const rock=(s,l,sz)=>{
     const p=worldAt(s,l),mx=1.05+rand()*1.25,my=.45+rand()*.62,mz=.95+rand()*1.1,bury=.12+rand()*.18,r=sz*Math.max(mx,mz)*.85;
     if(nearCam(p.x,p.z,10+r))return;
@@ -186,7 +184,7 @@ function scatterRocks(rand){
 // The herds come and go as the run needs them: each one appears out of sight ahead while the
 // camera is still on the one before it, and goes once the camera has left it.
 function slotOf(H,i,rand){const sp=H.space||1,row=Math.floor(i/3),col=i%3-1,rows=Math.ceil((H.n+(H.mix?.n||0))/3);
-  return{r:(col*3.2+(rand()-.5)*1.4+(row%2)*1.2)*sp,f:((rows-1)*2.75-row*5.5+(rand()-.5)*2)*sp,ph1:rand()*6.3,ph2:rand()*6.3}}
+  return{r:(col*4.6+(rand()-.5)*2+(row%2)*1.8)*sp,f:((rows-1)*3.6-row*7.2+(rand()-.5)*2.6)*sp,ph1:rand()*6.3,ph2:rand()*6.3}}
 function spawnHerd(H,t){
   const G=groundAssault,rand=Math.random;H.live=true;
   const c=routeAt(sAt(H,t)),{F,R}=frameOf(c.h);
@@ -202,6 +200,9 @@ function spawnHerd(H,t){
 function removeHerd(H){const G=groundAssault;H.live=false;
   if(H.units.length){const gone=new Set(H.units);G.units=G.units.filter(u=>!gone.has(u));G.groups=G.groups.filter(g=>g!==H.grp);H.units=[]}
   H.crits=null}
+// A herd stays unseen while the camera is still on the one before it, and fades in as the
+// camera turns to fly to it.
+const seen=H=>run.studio||H.i===0?1:ease(D.clock,H.T-FLY0,H.T-FLY0+1.2);
 function herdsTick(t){for(const H of run.herds){if(!H.live&&t>=H.spawnAt&&t<H.removeAt)spawnHerd(H,t);else if(H.live&&t>=H.removeAt)removeHerd(H)}}
 
 // ---------- The scene ----------
@@ -210,22 +211,14 @@ const scene={name:'run',t0:0,seed:301,
     D.snow=false;run=null;scene.from=null;scene.lastYaw=null;
     launch(m=>{
       m.planetaryRequirements={landingBody:'planet',landingColour:'green',moonCount:{min:1,max:2}};
-      m.modules=m.modules.filter(x=>x.type==='planet_descent'||x.type==='dune_assault')
+      m.modules=m.modules.filter(x=>x.type==='dune_assault')
     });
     planetRings=null;planetLandingColour=C.g;
-    terrainOn()
+    terrainOn();buildRun({x:shipX,z:travel,h:viewYaw})
   },
-  // The game's own descent, until the drone is down on the surface.
-  marks:[{ev:'surface',at:T.england-.4}],
-  event(){return groundAssault?.active&&mode==='play'&&phase==='surface'?'surface':null},
-  pilot(dt,t){
-    if(!(groundAssault?.active&&phase==='surface'))return;
-    if(!run||!run.built){const yaw=viewYaw;buildRun({x:shipX,z:travel,h:yaw});scene.from={x:shipX,y:shipY,z:travel,yaw:viewYaw,pitch:viewPitch,t}}
-    herdsTick(t);inputX=inputY=0
-  },
-  overlay(t){
-    black(ease(t,LIFT+6,LIFT+9.5));drawStars(ease(t,LIFT+4.5,LIFT+9.5)*(1-ease(t,T.end+3.5,PROMO_SONG.length-.3)))
-  }
+  pilot(dt,t){if(run&&run.built)herdsTick(t);inputX=inputY=0},
+  // In from black at the start; out to black over the song's last bars.
+  overlay(t){black(1-ease(t,0,1.5));black(ease(t,PROMO_SONG.length-4,PROMO_SONG.length-.4))}
 };
 const ours=new Set([scene]);
 const teaserScene=()=>ours.has(D.scene)?D.scene:null;
@@ -267,7 +260,8 @@ groundAssault.drawUnit=function(un){
   this.pose(un);
   if(!coloured.has(un.mesh)){const b=gaBuilder(true);this.emit(b,un);un.mesh.edgeColors=P.edgeColours(b,M.kindColours(un.kind,b));coloured.add(un.mesh)}
   const dist=this.planarToShip(un),haze=clamp((GA_UNIT_SIGHT-dist)/40,0,1),depth=camPoint([un.x,this.ug(un),un.wz-travel])[2];
-  drawMesh({x:un.x,y:this.ug(un),z:un.wz-travel,s:un.s,rot:[0,un.h+PI,0],fadeZ:Math.max(0,depth)*.8},un.mesh,un.tint||un.K.col,haze)
+  const vis=seen(un.teaser.H);if(vis<=0)return;
+  drawMesh({x:un.x,y:this.ug(un),z:un.wz-travel,s:un.s,rot:[0,un.h+PI,0],fadeZ:Math.max(0,depth)*.8},un.mesh,un.tint||un.K.col,haze*vis)
 };
 
 // The teaser's ground: fine cells (no level-of-detail morph) out to 230, coarse cells beyond,
@@ -288,12 +282,13 @@ function moveCrits(dt){
   for(const H of run.herds){if(!H.crits)continue;const v=speedAt(H,t),c=routeAt(sAt(H,t)),{F,R}=frameOf(c.h),k=clamp(v/4,.2,1);
     for(const q of H.crits){const dr=Math.sin(t*.4+q.ph1)*.6*k,df=Math.sin(t*.27+q.ph2)*1.2*k;
       q.x=c.x+R[0]*(q.r+dr)+F[0]*(q.f+df);q.z=c.z+R[1]*(q.r+dr)+F[1]*(q.f+df);q.h=c.h+(H.crit==='penguin'?Math.sin(t*1.3+q.ph*6)*.12:0);
-      q.ph=(q.ph+dt*(H.crit==='kangaroo'?1.7*q.rate*clamp(v/H.v,.35,1):1.6*q.rate))%1}}
+      if(H.crit==='kangaroo'){const rate=1.2*q.rate*clamp(v/H.v,.35,1),d=v/rate,o=d*(M.hopX(q.ph)-q.ph);q.x+=F[0]*o;q.z+=F[1]*o}
+      q.ph=(q.ph+dt*(H.crit==='kangaroo'?1.2*q.rate*clamp(v/H.v,.35,1):1.6*q.rate))%1}}
 }
 function drawCrit(H,q){
-  const gy=ground(q.x,q.z),z=q.z-travel;
-  if(H.crit==='kangaroo'){M.kangaroo.pose({u:q.ph});drawMesh({x:q.x,y:gy+M.hopH(q.ph)*H.critS,z,s:H.critS,rot:[0,q.h+PI,0]},M.kangaroo,H.critCol,1);return}
-  const wph=q.ph*PI*2;M.penguin.pose({w:wph});drawMesh({x:q.x,y:gy,z,s:H.critS,rot:[0,q.h+PI,Math.sin(wph)*.2]},M.penguin,H.critCol,1)
+  const gy=ground(q.x,q.z),z=q.z-travel,vis=seen(H);if(vis<=0)return;
+  if(H.crit==='kangaroo'){M.kangaroo.pose({u:q.ph});drawMesh({x:q.x,y:gy+M.hopH(q.ph)*H.critS,z,s:H.critS,rot:[0,q.h+PI,0]},M.kangaroo,H.critCol,vis);return}
+  const wph=q.ph*PI*2;M.penguin.pose({w:wph});drawMesh({x:q.x,y:gy,z,s:H.critS,rot:[0,q.h+PI,Math.sin(wph)*.2]},M.penguin,H.critCol,vis)
 }
 
 // ---------- Landmarks, icebergs, crits and the aurora, into the game's depth-sorted scene ----------
@@ -311,20 +306,24 @@ groundAssault.appendTrees=function(scn){
   for(const e of run.lands)put(e);for(const e of run.bergs)put(e);
   for(const H of run.herds)for(const q of H.crits||[]){const p=camPoint([q.x,ground(q.x,q.z)+1,q.z-travel]);if(p[2]>.4&&p[2]<150)scn.push({z:p[2],draw:()=>drawCrit(H,q)})}
   const t=D.clock,last=run.herds[run.herds.length-1],au=last.aurora?ease(t,last.T-FLY0,last.T+FLY1+2):0;
-  if(au>0)scn.push({z:1e5,draw:()=>drawAurora(au)})
+  const big=ease(t,LIFT,LIFT+7);
+  if(big>0)scn.push({z:2e5,draw:()=>drawStars(big*.9)});
+  if(au>0)scn.push({z:1e5,draw:()=>drawAurora(au,big)})
 };
 const gameUpdateGA=groundAssault.update?.bind(groundAssault);
 if(gameUpdateGA)groundAssault.update=function(dt){const r=gameUpdateGA(dt);if(active())moveCrits(dt);return r};
 
 // The aurora: green and cyan curtains hanging over the ice, rippling slowly.
-function drawAurora(alpha){
-  const t=D.clock;ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;
-  for(let band=0;band<2;band++)for(let i=0;i<70;i++){
-    const az=run.H0-.9+i*.026+band*.12,el0=.1+band*.05+Math.sin(i*.31+t*.4+band)*.03,el1=el0+.12+.07*Math.sin(i*.17-t*.6+band*2);
+// At the end (big 0..1) the curtains grow taller and brighter, filling the sky the camera looks up to.
+function drawAurora(alpha,big=0){
+  const t=D.clock,n=Math.round(70+70*big),step=1.8/n;ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;
+  for(let band=0;band<3;band++)for(let i=0;i<n;i++){
+    if(band===2&&big<=0)break;
+    const az=run.H0-.9+i*step+band*.12+Math.sin(i*step*3+t*.15+band)*.08*big,el0=.1+band*(.05+.12*big)+Math.sin(i*step*12+t*.4+band)*(.03+.04*big),el1=el0+(.12+.07*Math.sin(i*step*6.5-t*.6+band*2))*(1+1.8*big);
     const dir=(el)=>[Math.sin(az)*Math.cos(el),Math.sin(el),Math.cos(az)*Math.cos(el)],R=3000;
     const a=dir(el0),b=dir(el1),pa=proj([shipX+a[0]*R,shipY+a[1]*R,a[2]*R]),pb=proj([shipX+b[0]*R,shipY+b[1]*R,b[2]*R]);
     if(!pa||!pb)continue;
-    ctx.globalAlpha=(.3+.2*Math.sin(i*.5+t*1.3+band))*(band?.7:1)*alpha;ctx.strokeStyle=band?C.c:C.g;
+    ctx.globalAlpha=Math.min(1,(.3+.2*Math.sin(i*step*19+t*1.3+band))*(band?.7:1)*alpha*(1+1.1*big));ctx.strokeStyle=band===1?C.c:band===2?C.m:C.g;
     ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);ctx.stroke()}
   ctx.restore()
 }
@@ -339,9 +338,9 @@ function drawStars(alpha){
   ctx.restore()
 }
 function black(a){if(a<=0)return;ctx.save();ctx.globalAlpha=Math.min(1,a);ctx.fillStyle='#000';ctx.fillRect(-20,-20,W+40,H+40);ctx.restore()}
-// Once the world has faded out to the stars, the drone's guns go too.
+// No guns: in the teaser the drone is only a camera.
 const gameDrawGun=window.drawGun;
-window.drawGun=function(g){if(teaserScene()===scene&&D.clock>LIFT+7.5)return;return gameDrawGun(g)};
+window.drawGun=function(g){if(teaserScene())return;return gameDrawGun(g)};
 D.drawTitles=t=>{
   const a=D.window01(t,1.2,9.6,1.2);
   if(a>0){D.vtext('Vector Space',W*.5,viewH*.16,Math.round(W/22),C.g,a);D.vtext('Agent X',W*.5,viewH*.16+W/22,Math.round(W/40),C.w,a*.9)}
