@@ -397,13 +397,31 @@ const spinifex=staticMesh(m=>{for(let i=0;i<11;i++){const a=i/11*2*PI;line(m,[[0
   m.box([0,.05,0],[.3,.1,.3])},null);
 const iceBlock=staticMesh(m=>{m.loft([[[-1.5,0,-1],[1.2,0,-1.3],[1.6,0,.9],[-1,0,1.2]],[[-1.2,1.4,-.8],[1,1.8,-1],[1.3,1.2,.7],[-.8,1.6,1]]],false,true)},null);
 
-// A freighter crossing high over the planet: a long hull, a spine of cargo pods, the bridge
-// at the stern and three engine bells. Faces -z.
+// A long-haul freighter: a rounded command section with a raised bridge and a window band, a
+// slender lattice spine carrying six clamped cargo pods, and a heavy drive section with three
+// flared engine bells and radiator fins. About 60 long; faces -z.
 const freighter=staticMesh(m=>{
-  m.loft([bsec(1.6,-1.6,1.4,-21),bsec(2.6,-2.2,2.2,-14),bsec(2.8,-2.4,2.4,12),bsec(2.2,-1.9,1.9,19)]);
-  m.mark('cargo',()=>{for(let i=0;i<6;i++)m.box([0,3.3,-11+i*4.2],[4.4,2,3.6])});
-  m.box([0,4.4,15],[3.2,3.4,3.4]);m.box([0,6.4,15.6],[2,.6,1.6]);
-  m.mark('engines',()=>{for(const[x,y]of[[-1.6,-.4],[1.6,-.4],[0,1.2]])m.barrel(x,y,19,22.5,1)});
-},{cargo:C.y,engines:C.c});
+  const E=(z,y,rx,ry,n=10,x=0)=>Array.from({length:n},(_,i)=>{const a=i/n*2*PI;return[x+Math.cos(a)*rx,y+Math.sin(a)*ry,z]});
+  // the command section, rounded and a little flattened, swelling back from a blunt nose
+  m.loft([E(-31,0,1.2,.8),E(-29.5,.1,3.2,2),E(-27,.2,4.6,2.9),E(-22,.2,5.4,3.3),E(-17,.1,5,3),E(-14.5,0,3.2,2.2)],true,true);
+  // the bridge: a raised blister with a slanted window band
+  m.loft([E(-25,2.6,2.2,.6,8),E(-23,3.6,2.4,1,8),E(-19,3.6,2.2,1,8),E(-17.5,2.8,1.6,.6,8)],true,true);
+  m.mark('windows',()=>{line(m,[[-2.1,3.9,-24.2],[2.1,3.9,-24.2]]);line(m,[[-2.2,3.4,-24.5],[2.2,3.4,-24.5]]);for(let i=-3;i<=3;i++)line(m,[[i*.6,3.4,-24.5],[i*.6,3.9,-24.2]])});
+  m.beam([0,4.6,-20],[0,7.2,-20.6],.12,.12);m.beam([0,6.4,-20.4],[1.2,6.6,-20.4],.08,.08);
+  // the spine: two rails with lattice bracing, from the command section back to the drive
+  for(const y of[-.6,.6])m.beam([0,y,-14.5],[0,y,15],.7,.5);
+  for(let i=0;i<12;i++){const z0=-14.5+i*2.45,z1=z0+2.45;line(m,[[.36,-.6,z0],[.36,.6,z1]]);line(m,[[-.36,.6,z0],[-.36,-.6,z1]])}
+  // six cargo pods, rounded, banded, clamped either side of the spine
+  m.mark('cargo',()=>{for(const sx of[-1,1])for(const[z0,z1]of[[-12.5,-4.5],[-3.5,4.5],[5.5,13.5]]){const x=sx*2.7;
+    m.loft([E(z0,0,1.3,1.6,8,x),E(z0+.8,0,2,2.4,8,x),E(z1-.8,0,2,2.4,8,x),E(z1,0,1.3,1.6,8,x)],true,true);
+    for(const z of[z0+2.7,z1-2.7])line(m,E(z,0,2.04,2.44,8,x),true)}});
+  m.mark('clamps',()=>{for(const sx of[-1,1])for(const z of[-8.5,.5,9.5])m.box([sx*1.1,0,z],[1.2,.5,1.4])});
+  // the drive section: a heavy hexagonal block, three flared bells, radiator fins above and below
+  const H=(z,r)=>m.ringXY(0,0,z,r,6,PI/6);
+  m.loft([H(15,2.4),H(16.5,4.4),H(23,4.6),H(24.5,3.6)],true,true);
+  m.mark('engines',()=>{for(const[x,y]of[[-2,-1.2],[2,-1.2],[0,1.8]]){m.loft([E(24.5,y,1,1,10,x),E(26,y,1.5,1.5,10,x),E(28.2,y,2.1,2.1,10,x)],false,false);line(m,E(27.6,y,1.2,1.2,10,x),true)}});
+  m.mark('fins',()=>{for(const sy of[-1,1])m.loft([[[-.15,sy*4.4,16.5],[.15,sy*4.4,16.5],[.15,sy*4.4,23],[-.15,sy*4.4,23]],[[-.15,sy*8.5,18.5],[.15,sy*8.5,18.5],[.15,sy*8.5,22.5],[-.15,sy*8.5,22.5]]]);
+    for(const sy of[-1,1])for(let i=1;i<4;i++){const f=i/4;line(m,[[.16,sy*(4.4+4.1*f),16.5+2*f],[.16,sy*(4.4+4.1*f),23-.5*f]])}});
+},{cargo:C.y,clamps:C.w,windows:C.c,engines:C.c,fins:C.c});
 globalThis.TeaserModels={freighter,quadLegs,kindColours,kangaroo,hopH,hopX,penguin,stonehenge,uluru,giza,taj,kilimanjaro,machuPicchu,monumentValley,iceberg,oak,palm,acacia,saguaro,spinifex,iceBlock};
 })();

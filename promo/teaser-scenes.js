@@ -32,7 +32,7 @@ function launch(edit){
 // K scales the camera's distances to the animals' size. amp is the ground's roll there.
 // Each herd's landmark stands far out on the side away from the camera (dist from the route).
 const HERDS=[
-  {sec:'england',kind:'horse',n:7,v:11,tints:Array(7).fill('#C8763A'),ground:C.g,amp:.55,rock:C.w,K:1,
+  {sec:'england',kind:'horse',n:7,v:11,tints:Array(7).fill(C.o),ground:C.g,amp:.55,rock:C.w,K:1,
     land:{mesh:M.stonehenge,col:C.w,s:2.4,dist:210,foot:[[0,0,15],[2,-28,4]]}},
   {sec:'australia',crit:'kangaroo',n:7,v:9.5,critCol:C.o,critS:1.3,ground:C.o,amp:.35,rock:C.y,K:1,
     land:{mesh:M.uluru,col:C.r,s:1.4,dist:240,yaw:PI/2,foot:[[-30,0,17],[0,0,19],[30,0,17]]}},
@@ -227,7 +227,7 @@ const scene={name:'run',t0:0,seed:301,
       m.planetaryRequirements={landingBody:'planet',landingColour:'green',moonCount:{min:1,max:2}};
       m.modules=m.modules.filter(x=>x.type==='dune_assault')
     });
-    planetRings=null;planetLandingColour=C.g;
+    planetRings=null;planetLandingColour=C.g;planetMoons=planetMoons.filter(m=>m.col!==C.o);   // no orange moon
     terrainOn();buildRun({x:shipX,z:travel,h:viewYaw})
   },
   pilot(dt,t){if(run&&run.built)herdsTick(t);inputX=inputY=0},
@@ -324,9 +324,15 @@ groundAssault.appendTrees=function(scn){
 // The stars and the aurora are drawn before the horizon, so the mountains stand in front of them.
 const gameHorizon=window.drawSharedSurfaceHorizon;
 window.drawSharedSurfaceHorizon=function(...args){
-  if(active()&&!run.studio){const t=D.clock,last=run.herds[run.herds.length-1],au=last.aurora?ease(t,last.T-FLY0,last.T+FLY1+2):0,big=ease(t,LIFT,LIFT+7);
-    if(big>0)drawStars(big*.9);if(au>0)drawAurora(au,big)}
+  if(active()&&!run.studio){const big=ease(D.clock,LIFT,LIFT+7);if(big>0)drawStars(big*.9)}
   return gameHorizon.apply(this,args)};
+// The aurora and the shooting star go after the moons (inside the horizon drawing, before the
+// mountains), so the moons sit behind the aurora.
+const gameMoons=window.drawSurfaceSkyMoons;
+window.drawSurfaceSkyMoons=function(...args){const r=gameMoons.apply(this,args);
+  if(active()&&!run.studio){const t=D.clock,last=run.herds[run.herds.length-1],au=last.aurora?ease(t,last.T-FLY0,last.T+FLY1+2):0,big=ease(t,LIFT,LIFT+7);
+    if(au>0)drawAurora(au,big);shootingStar(t)}
+  return r};
 const gameUpdateGA=groundAssault.update?.bind(groundAssault);
 if(gameUpdateGA)groundAssault.update=function(dt){const r=gameUpdateGA(dt);if(active())moveCrits(dt);return r};
 
@@ -345,6 +351,16 @@ function drawAurora(alpha,big=0){
   ctx.restore()
 }
 
+// A shooting star across the aurora as the picture fades out: a bright head, a tail fading behind it.
+const STAR_T=PROMO_SONG.length-3.8,STAR_D=1.2;
+function shootingStar(t){
+  if(t<STAR_T||t>STAR_T+STAR_D)return;const k=(t-STAR_T)/STAR_D,R=2000;
+  const at=u=>{const az=run.H0+.5-1.0*u,el=.7-.24*u;return proj([shipX+Math.sin(az)*Math.cos(el)*R,shipY+Math.sin(el)*R,Math.cos(az)*Math.cos(el)*R])};
+  const fade=Math.sin(PI*k);ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH*2.6;
+  for(let i=0;i<14;i++){const a=at(Math.max(0,k-i*.025)),b=at(Math.max(0,k-(i+1)*.025));if(!a||!b)continue;
+    ctx.globalAlpha=Math.min(1,fade*1.3)*(1-i/14);ctx.strokeStyle=i<2?C.w:C.c;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}
+  ctx.restore()
+}
 // ---------- The starfield at the end ----------
 const STARS=(()=>{let s=1234567;const r=()=>((s=Math.imul(s^s>>>15,1|s)+0x6D2B79F5|0)>>>0)/4294967296;
   return Array.from({length:1800},()=>{const z=r()*2-1,a=r()*PI*2,k=Math.sqrt(1-z*z);return{d:[Math.cos(a)*k,z,Math.sin(a)*k],b:.25+r()*.75,tw:r()*6.3}})})();
@@ -378,7 +394,7 @@ const skyY=(c,D,e)=>c.y+D*Math.tan(Math.max(.05,-c.pitch+e));
 function buildSky(){
   const r=seeded(4242),sky=run.sky={flocks:[],ships:[],bursts:[]};
   for(const H of run.herds){const B=BIRDS[H.sec];if(!B)continue;
-    const times=B.form==='circle'?[H.T+1]:B.form==='glide'?[H.T+3]:[H.T+2,H.T+11];
+    const times=B.form==='circle'?[H.T+1]:[H.T+3];   // one flock per place
     for(const ts of times){const sg=r()<.5?-1:1;
       const f={B,ts,te:B.form==='circle'?Math.min(H.Tn,LIFT)+2:ts+16,members:[]};
       if(B.form==='circle'){const{c,F,R}=camFrame(ts+6),D=70;f.cx=c.x+F[0]*D+R[0]*sg*12;f.cz=c.z+F[1]*D+R[1]*sg*12;f.cy=skyY(c,D,.16);f.rad=18+r()*8}
@@ -391,7 +407,7 @@ function buildSky(){
   // bison, and a freighter crossing slowly above the llamas.
   for(const ts of[T.egypt+6,T.usa+9]){const{c,F,R}=camFrame(ts+2.2),sg=r()<.5?-1:1;
     for(const k of[0,1]){const lat=sg*(5+k*8),h=c.y+9+k*2.5;
-      sky.ships.push({mesh:fighterMesh,s:2.6,col:C.c,ts,te:ts+5,p0:[c.x-F[0]*(95+k*7)+R[0]*lat,h,c.z-F[1]*(95+k*7)+R[1]*lat],d:[F[0],0,F[1]],v:55,bank:sg*.45})}}
+      sky.ships.push({mesh:fighterMesh,s:2.6,col:C.c,ts,te:ts+16,far:true,p0:[c.x-F[0]*(95+k*7)+R[0]*lat,h,c.z-F[1]*(95+k*7)+R[1]*lat],d:[F[0],0,F[1]],v:55,bank:sg*.45})}}
   {const ts=T.peru+3,tm=ts+12,{c,F,R}=camFrame(tm),sg=r()<.5?-1:1,D=200,mid=[c.x+F[0]*D,skyY(c,D,.17),c.z+F[1]*D],d=[R[0]*sg,0,R[1]*sg],v=12;
     sky.ships.push({mesh:M.freighter,s:1.6,col:C.w,ts,te:ts+26,p0:[mid[0]-d[0]*v*12,mid[1],mid[2]-d[2]*v*12],d,v,bank:0})}
   // Fireworks over the elephants, launched every second or so from beyond the herd.
@@ -421,7 +437,9 @@ function appendSky(scn){
     for(const m of f.members){const q=camPoint([...birdAt(f,m,t).p.slice(0,2),birdAt(f,m,t).p[2]-travel]);if(q[2]<1||q[2]>380)continue;
       scn.push({z:q[2],draw:()=>drawBird(f,m,t,a*.9)})}}
   for(const sh of sky.ships){if(t<sh.ts||t>sh.te)continue;const u=t-sh.ts,x=sh.p0[0]+sh.d[0]*sh.v*u,y=sh.p0[1],z=sh.p0[2]+sh.d[2]*sh.v*u;
-    const q=camPoint([x,y,z-travel]);if(q[2]<1||q[2]>700)continue;const a=Math.min(1,u/1,(sh.te-t)/1);
+    const q=camPoint([x,y,z-travel]);if(q[2]<1||q[2]>900)continue;
+    // fighters fly on until they are specks in the distance, fading only far away
+    const a=sh.far?Math.min(1,u/.5,clamp((900-q[2])/300,0,1)):Math.min(1,u/1,(sh.te-t)/1);
     scn.push({z:q[2],draw:()=>drawMesh({x,y,z:z-travel,s:sh.s,rot:[0,Math.atan2(sh.d[0],sh.d[2])+PI,sh.bank]},sh.mesh,sh.col,a)})}
   for(const b of sky.bursts){if(t<b.tl||t>b.tb+2.4)continue;const q=camPoint([b.x,b.by,b.z-travel]);if(q[2]<1)continue;
     scn.push({z:q[2],draw:()=>drawBurst(b,t)})}

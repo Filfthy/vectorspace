@@ -63,13 +63,13 @@ Oh Hell music (D:\CodeGen\Oh Hell\renders\stampede.wav). One unbroken run
 across one world, no cuts: it opens on the ground and the camera flies herd to herd
 along a single route, and the ground's colour and roll change gradually from
 herd to herd. Most herds have one landmark standing far off the route. The
-drone is only a camera here: no guns on screen. The sky has birds for
-each place, two fighter passes and a freighter, and fireworks over the
-elephants. Each herd has its own camera style (close, wide, high).
+drone is only a camera here: no guns on screen. The sky has one flock of
+birds for each place, two fighter passes, a freighter
+crossing above the llamas and fireworks over the elephants. Each herd has its own camera style (close, wide, high).
 
-  0:00  brown horses gallop past the camera, which turns and chases them
+  0:00  orange horses gallop past the camera, which turns and chases them
         (no title text)
-  0:14  brown horses (Stonehenge far off)
+  0:14  horses (Stonehenge far off)
   0:35  kangaroos (Uluru)
   0:56  camels (the pyramids)
   1:18  magenta elephants (the Taj Mahal), with brass and timpani
@@ -77,7 +77,8 @@ elephants. Each herd has its own camera style (close, wide, high).
   2:00  llamas (Machu Picchu)
   2:21  bison
   2:43  penguins among distant icebergs, under an aurora
-  2:57  the camera tilts up to a wide aurora and holds there, then fades out
+  2:57  the camera tilts up to a wide aurora and holds there; a shooting
+        star crosses it as the picture fades out
 
 Open it with ?promo=teaser instead of ?promo. Everything else works the same:
   ?promo=teaser&play          live with the music (&from=56.8 starts at the camels)
