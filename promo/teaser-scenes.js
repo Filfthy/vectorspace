@@ -183,7 +183,7 @@ function scatterRocks(rand){
 }
 // The herds come and go as the run needs them: each one appears out of sight ahead while the
 // camera is still on the one before it, and goes once the camera has left it.
-function slotOf(H,i,rand){const sp=H.space||1,row=Math.floor(i/3),col=i%3-1,rows=Math.ceil((H.n+(H.mix?.n||0))/3);
+function slotOf(H,i,rand){if(run&&run.studio&&H.n===1)return{r:0,f:0,ph1:0,ph2:0};const sp=H.space||1,row=Math.floor(i/3),col=i%3-1,rows=Math.ceil((H.n+(H.mix?.n||0))/3);
   return{r:(col*4.6+(rand()-.5)*2+(row%2)*1.8)*sp,f:((rows-1)*3.6-row*7.2+(rand()-.5)*2.6)*sp,ph1:rand()*6.3,ph2:rand()*6.3}}
 function spawnHerd(H,t){
   const G=groundAssault,rand=Math.random;H.live=true;

@@ -6,6 +6,9 @@
 (()=>{
 const P=globalThis.PromoModels,PI=Math.PI;
 const line=(m,pts,closed=false)=>gaLine(m,pts,closed);
+// An eye: a small six-sided lens lying on the head's surface (n points out of the head), a pupil bar across it.
+const eye=(m,c,n,r)=>{const tg=[n[2],0,-n[0]],P=(a,k=1)=>[c[0]+tg[0]*Math.sin(a)*r*k,c[1]+Math.cos(a)*r*k,c[2]+tg[2]*Math.sin(a)*r*k];
+  line(m,Array.from({length:6},(_,i)=>P(i/6*2*Math.PI)),true);line(m,[P(Math.PI/2,.5),P(-Math.PI/2,.5)])};
 
 // ---------- Four-legged animals ----------
 // Legs in the HOUND's order (LF, LH, RF, RH), scaled to a hip height Y.
@@ -73,18 +76,18 @@ const fins=(m,from,to,n,h=.22)=>m.mark('mane',()=>{for(let i=0;i<n;i++){const u=
 const mech=(id,o)=>animal(id,{...o,minCycle:o.minCycle??GA_KINDS.hound.minCycle});
 
 // HORSE: an armoured chest, a raised beam neck with cooling fins for a mane, a long wedge
-// head with a visor, the twin cannon pod on its back and a cable tail.
+// head with an eye on each side, and a cable tail.
 {const Y=1.9;
   mech('horse',{Y,s:1.3,col:C.o,top:4,legs:houndLegs(1),reach:1.7,
     body(m){
       m.loft([bsec(.42,Y-.42,Y+.3,-1.3),bsec(.52,Y-.38,Y+.36,-.35),bsec(.48,Y-.3,Y+.34,.6),bsec(.44,Y-.24,Y+.3,1.1)]);
       m.beam([0,Y+.12,-1.12],[0,Y+1.35,-1.62],.34,.46,.78);
       m.loft([bsec(.21,Y+1.12,Y+1.5,-1.56),bsec(.15,Y+.86,Y+1.12,-2.36)]);
-      m.mark('visor',()=>m.box([0,Y+1.28,-1.86],[.4,.08,.34]));
+      m.mark('eyes',()=>{for(const sx of[-1,1])eye(m,[sx*.2,Y+1.3,-1.8],[sx,0,0],.075)});
       for(const sx of[-1,1])m.beam([sx*.13,Y+1.46,-1.6],[sx*.18,Y+1.78,-1.52],.07,.12,.35);
       fins(m,[0,Y+.5,-1.2],[0,Y+1.42,-1.6],5,.24);
       m.mark('tail',()=>{m.beam([0,Y+.25,1.08],[0,Y-.05,1.45],.12,.12,.8);m.beam([0,Y-.05,1.45],[0,Y-.75,1.6],.1,.16,.4)});
-    },colours:{mane:C.y,tail:C.y,visor:C.c}});
+    },colours:{mane:C.y,tail:C.y,eyes:C.c}});
 }
 // ZEBRA: the horse mech in white, plated with stripe panels, a crest of short fins.
 {const Y=1.85;
@@ -123,7 +126,7 @@ const mech=(id,o)=>animal(id,{...o,minCycle:o.minCycle??GA_KINDS.hound.minCycle}
 // ELEPHANT (India's festival mechs): a heavy armoured hull, a segmented hose trunk, twin
 // tapered tusks and armour-plate ears.
 {const k=1.12,Y=1.9*k;
-  mech('elephant',{Y,s:1.2,col:C.w,top:5,legs:houndLegs(k,{t:.3,wx:.7,zf:-1.0,zb:.95}),reach:1.3,minCycle:.85,radius:2,swayAmp:.04,
+  mech('elephant',{Y,s:1.2,col:C.m,top:5,legs:houndLegs(k,{t:.3,wx:.7,zf:-1.0,zb:.95}),reach:1.3,minCycle:.85,radius:2,swayAmp:.04,
     gaits:[{v:0,offsets:[.25,0,.75,.5],swing:.24,lift:.2,bobAmp:.04,bobK:2,pitchAmp:0},{v:3,offsets:[.25,0,.75,.5],swing:.32,lift:.26,bobAmp:.07,bobK:2,pitchAmp:.012}],
     body(m){
       m.loft([bsec(.78,Y-.55,Y+.7,-1.45),bsec(.95,Y-.6,Y+.95,-.5),bsec(.92,Y-.55,Y+.9,.5),bsec(.8,Y-.45,Y+.7,1.35)]);
@@ -206,7 +209,7 @@ function buildKangaroo(m,pose){
   const ch=at(1.15),hd=[0,ch[1]+.5,ch[2]-.12];
   m.beam([0,ch[1]+.1,ch[2]],[0,hd[1]-.1,hd[2]+.05],.2,.22,.85);
   m.loft([bsec(.16,hd[1]-.14,hd[1]+.16,hd[2]+.1),bsec(.09,hd[1]-.1,hd[1]+.04,hd[2]-.42)]);
-  m.mark('visor',()=>m.box([0,hd[1]+.06,hd[2]-.12],[.3,.06,.22]));
+  m.mark('eyes',()=>{for(const sx of[-1,1])eye(m,[sx*.145,hd[1]+.07,hd[2]-.05],[sx,0,0],.05)});
   m.mark('ears',()=>{for(const sx of[-1,1])m.beam([sx*.1,hd[1]+.14,hd[2]+.05],[sx*.18,hd[1]+.62,hd[2]+.18],.06,.13,.3)});
   for(const sx of[-1,1]){const s0=at(.78),sh=[sx*.26,s0[1],s0[2]],el=[sx*.28,sh[1]-.32,sh[2]-.16],pw=[sx*.22,el[1]-.08,el[2]-.24];m.beam(sh,el,.08,.08,.9);m.beam(el,pw,.07,.07,.8)}
   for(const sx of[-1,1]){
@@ -217,7 +220,7 @@ function buildKangaroo(m,pose){
   m.mark('tail',()=>{const r=at(-.12),lift=P0.air;const pts=[r,[0,r[1]-.18+lift*.12,r[2]+.5],[0,lerpR(.32,r[1]-.2,lift),r[2]+1.0],[0,lerpR(.1,r[1]-.18,lift),r[2]+1.55],[0,lerpR(.04,r[1]-.12,lift),r[2]+1.95]];
     for(let i=0;i<4;i++){const w=.2-i*.04;m.beam(pts[i],pts[i+1],w,w,.85);m.box(pts[i+1],[w*1.2,w*1.2,w*.6])}});
 }
-const kangaroo=P.posedMesh(buildKangaroo,{ears:C.y,tail:C.y,visor:C.c,'foot-1':C.w,foot1:C.w,'knee-1':C.w,knee1:C.w});
+const kangaroo=P.posedMesh(buildKangaroo,{ears:C.y,tail:C.y,eyes:C.c,'foot-1':C.w,foot1:C.w,'knee-1':C.w,knee1:C.w});
 const hopH=u=>u>ROO_ST?Math.sin(PI*(u-ROO_ST)/(1-ROO_ST))*.95:0;
 // How far through its leap the kangaroo is along the ground: its feet stay planted while it
 // crouches and pushes off, and the whole distance is covered in the air.
@@ -238,13 +241,13 @@ function buildPenguin(m,pose){
     m.loft([.4,.68,1.02,1.28].map(row),false,false)});
   m.mark('head',()=>m.loft([oct(1.48,.24),oct(1.62,.27),oct(1.84,.23),oct(1.94,.12)],false,true));
   m.mark('beak',()=>m.loft([bsec(.07,1.66,1.78,-.2),bsec(.03,1.64,1.7,-.5)]));
-  m.mark('visor',()=>m.box([0,1.8,-.17],[.36,.05,.1]));
-  m.mark('cheeks',()=>{for(const sx of[-1,1])m.box([sx*.22,1.68,-.06],[.04,.16,.12])});
+  m.mark('eyes',()=>{for(const sx of[-1,1])eye(m,[sx*.185,1.79,-.135],[sx*.717,0,-.697],.045)});
+  m.mark('cheeks',()=>{for(const sx of[-1,1])m.box([sx*.25,1.62,.07],[.02,.14,.11])});
   m.mark('fins',()=>{for(const sx of[-1,1]){const out=.25+.2*Math.abs(Math.sin(w*2));m.loft([[[sx*.44,1.15,-.12],[sx*.44,1.15,.14]],[[sx*(.5+out*.25),.5,-.06],[sx*(.5+out*.25),.5,.1]]].map(r=>[...r,...r.slice().reverse().map(p=>[p[0]+sx*.05,p[1],p[2]])]),false,false)}});
   for(const[sx,st]of[[-1,stepL],[1,stepR]])m.beam([sx*.16,.36,0],[sx*.18,st+.12,-.06],.12,.12,.9);
   m.mark('feet',()=>{for(const[sx,st]of[[-1,stepL],[1,stepR]])m.loft([m.ringXZ(sx*.18,st,-.14,.2,.24,6),m.ringXZ(sx*.18,st+.08,-.12,.13,.16,6)])});
 }
-const penguin=P.posedMesh(buildPenguin,{back:C.u,head:C.u,fins:C.u,belly:C.w,beak:C.y,cheeks:C.y,feet:C.o,visor:C.c});
+const penguin=P.posedMesh(buildPenguin,{back:C.u,head:C.u,fins:C.u,belly:C.w,beak:C.y,cheeks:C.y,feet:C.o,eyes:C.c});
 
 // ---------- Landmarks and props: static meshes ----------
 const staticMesh=(build,colours)=>P.posedMesh(build,colours);

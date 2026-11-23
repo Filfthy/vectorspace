@@ -69,7 +69,7 @@ drone is only a camera here: no guns on screen.
   0:14  brown horses (Stonehenge far off)
   0:35  kangaroos (Uluru)
   0:56  camels (the pyramids)
-  1:18  elephants (the Taj Mahal)
+  1:18  magenta elephants (the Taj Mahal), with brass and timpani
   1:39  giraffes and zebras (Kilimanjaro)
   2:00  llamas (Machu Picchu)
   2:21  bison
