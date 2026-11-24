@@ -308,9 +308,12 @@ const taj=staticMesh(m=>{
 const kilimanjaro=staticMesh(m=>{
   const n=16,jag=(i,j,a)=>1+a*(Math.sin(j*2.7+i*1.3)*.6+Math.sin(j*5.1+i)*.4);
   const ring=(cx,cz,y,r,i,a)=>Array.from({length:n},(_,j)=>{const t=j/n*2*PI,k=jag(i,j,a);return[cx+Math.cos(t)*r*1.2*k,y+(i?Math.sin(j*3.3+i)*1.5:0),cz+Math.sin(t)*r*k]});
-  const kibo=[[-30,200,.04],[0,170,.06],[22,120,.07],[44,74,.06],[62,40,.05],[70,24,.04],[72,16,.02]];
-  m.loft(kibo.map(([y,r,a],i)=>ring(0,0,y,r,i,a)),false,true);
-  m.mark('snow',()=>{m.loft([ring(0,0,57,56,4,.2),ring(0,0,66,35,5,.1),ring(0,0,73,18,6,.03)],false,true)});
+  const kibo=[[-30,200,.04],[0,170,.06],[22,120,.07],[44,74,.06],[56,51,.05],[62,40,.05],[70,24,.04],[72,16,.02]].map(([y,r,a],i)=>ring(0,0,y,r,i,a));
+  // The snowline: a ragged edge, dipping down the gullies and up the ribs. The slope below it
+  // and the snow above it share this one ring, so the snow is the mountain's own top, not a cap.
+  const line=kibo[4].map(([x,y,z],j)=>[x,y+Math.sin(j*2.1)*3+Math.sin(j*4.7+1)*1.5,z]);
+  m.loft([...kibo.slice(0,4),line],false,false);
+  m.mark('snow',()=>m.loft([line,...kibo.slice(5)],false,true));
 },{snow:C.w});
 // Machu Picchu: the steep peak of Huayna Picchu, the ridge of terraces in front of it, the
 // stone houses with their gables.
