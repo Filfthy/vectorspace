@@ -232,7 +232,12 @@ const scene={name:'run',t0:0,seed:301,
   },
   pilot(dt,t){if(run&&run.built)herdsTick(t);inputX=inputY=0},
   // In from black at the start; out to black over the song's last bars.
-  overlay(t){black(1-ease(t,0,1.5));black(ease(t,PROMO_SONG.length-4,PROMO_SONG.length-.4))}
+  overlay(t){black(1-ease(t,0,1.5));const L=PROMO_SONG.length;black(ease(t,L-4,L-.4));
+    // As the picture fades, "Please Like and Share" comes up in the vector font and stays on the
+    // black to the end, stroked thicker than the game's text so it reads over the aurora.
+    const a=ease(t,L-3.6,L-2.2);if(a>0){const P=CanvasRenderingContext2D.prototype,lw=Object.getOwnPropertyDescriptor(P,'lineWidth');
+      Object.defineProperty(ctx,'lineWidth',{get(){return lw.get.call(this)/2.4},set(v){lw.set.call(this,v*2.4)},configurable:true});
+      try{D.vtext('Please Like and Share',W*.5,H*.5,H*.085,C.c,a)}finally{delete ctx.lineWidth}}}
 };
 const ours=new Set([scene]);
 const teaserScene=()=>ours.has(D.scene)?D.scene:null;
