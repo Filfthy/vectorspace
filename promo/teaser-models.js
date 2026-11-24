@@ -107,7 +107,7 @@ const mech=(id,o)=>animal(id,{...o,minCycle:o.minCycle??GA_KINDS.hound.minCycle}
 // the base of the neck, a neck that dips forward and curves up to a long muzzle.
 // It paces: both legs on one side move together.
 {const Y=2.6,k=Y/1.9;
-  mech('camel',{Y,s:1.1,col:C.o,top:6,legs:quadLegs(Y,-.9,.85,.34,.15,{kneeZ:.1,kneeH:.56}),reach:2.2,minCycle:.5,swayAmp:.07,
+  mech('camel',{Y,s:1.1,col:C.o,top:6,legs:houndLegs(k,{t:.13,wx:.3,zf:-.66,zb:.62}),reach:1.7*k,minCycle:.45,swayAmp:.07,
     gaits:[{v:0,offsets:[0,0,.5,.5],swing:.3,lift:.3,bobAmp:.05,bobK:2,pitchAmp:0},{v:4,offsets:[0,0,.5,.5],swing:.45,lift:.4,bobAmp:.08,bobK:2,pitchAmp:.02}],
     body(m){
       m.loft([bsec(.34,Y-.4,Y+.24,-1.15),bsec(.44,Y-.52,Y+.32,-.4),bsec(.4,Y-.36,Y+.3,.5),bsec(.3,Y-.18,Y+.24,1.05)]);
@@ -303,15 +303,13 @@ const taj=staticMesh(m=>{
   m.mark('pool',()=>{line(m,[[-2.5,.05,-19],[2.5,.05,-19],[2.5,.05,-80],[-2.5,.05,-80]],true);for(let z=-26;z>-80;z-=9)line(m,[[-2.5,.05,z],[2.5,.05,z]]);
     for(const sx of[-1,1])for(let z=-22;z>-80;z-=6)line(m,[[sx*4.5,0,z],[sx*4.5,1.6,z],[sx*4.2,2.4,z],[sx*4.8,2.4,z],[sx*4.5,1.6,z]])});
 },{finial:C.y,pool:C.c});
-// Kilimanjaro, far off: Kibo's broad cone with a flat, snow-capped summit, and the jagged
-// lesser peak of Mawenzi on its shoulder. Its foot sinks below the horizon.
+// Kilimanjaro: Kibo's single broad cone with a flat, snow-capped summit. Its foot sinks a little
+// into the ground.
 const kilimanjaro=staticMesh(m=>{
   const n=16,jag=(i,j,a)=>1+a*(Math.sin(j*2.7+i*1.3)*.6+Math.sin(j*5.1+i)*.4);
   const ring=(cx,cz,y,r,i,a)=>Array.from({length:n},(_,j)=>{const t=j/n*2*PI,k=jag(i,j,a);return[cx+Math.cos(t)*r*1.2*k,y+(i?Math.sin(j*3.3+i)*1.5:0),cz+Math.sin(t)*r*k]});
   const kibo=[[-30,200,.04],[0,170,.06],[22,120,.07],[44,74,.06],[62,40,.05],[70,24,.04],[72,16,.02]];
   m.loft(kibo.map(([y,r,a],i)=>ring(0,0,y,r,i,a)),false,true);
-  const maw=[[-30,90,.05],[20,54,.12],[48,26,.22],[60,10,.35]];
-  m.loft(maw.map(([y,r,a],i)=>ring(-120,40,y,r,i+3,a)),false,true);
   m.mark('snow',()=>{m.loft([ring(0,0,57,56,4,.2),ring(0,0,66,35,5,.1),ring(0,0,73,18,6,.03)],false,true)});
 },{snow:C.w});
 // Machu Picchu: the steep peak of Huayna Picchu, the ridge of terraces in front of it, the
@@ -350,14 +348,13 @@ function butte(m,x,z,rx,rz,h,base,rot,seed){
 function spire(m,x,z,rad,h,base,seed){
   const r=vRand(seed),n=7,ring=(y,k)=>Array.from({length:n},(_,i)=>{const a=i/n*2*PI,f=k*(.85+r()*.3);return[x+Math.cos(a)*rad*f,y,z+Math.sin(a)*rad*f]});
   m.loft([ring(-4,3.2),ring(base*.6,2.1),ring(base,1.1),ring(base+h*.55,.95),ring(base+h*.85,.75),ring(base+h,.45)],false,true);
-  m.mark('strata',()=>line(m,ring(base+h*.4,.97),true));
 }
 const monumentValley=staticMesh(m=>{
   butte(m,-50,0,15,7,17,12,.15,1);spire(m,-71,3,2.4,16,10,2);        // West Mitten and its thumb
   butte(m,14,14,14,7,18,12,-.1,3);spire(m,34,11,2.2,17,10,4);         // East Mitten and its thumb
   butte(m,80,-14,24,11,14,11,.3,5);                                    // Merrick Butte
   spire(m,40,-34,1.6,22,6,6);spire(m,-16,-38,1.4,15,5,7);spire(m,-96,-26,2,12,7,8)
-},{strata:C.r});
+},null);
 // Icebergs and ice cliffs for Antarctica.
 const iceberg=staticMesh(m=>{
   m.loft([[[-9.5,-3,-5.5],[6.5,-3,-7.5],[11.5,-3,1],[4.5,-3,7.5],[-8.5,-3,5.5]],[[-9,0,-5],[6,0,-7],[11,0,1],[4,0,7],[-8,0,5]],[[-8,6,-4],[5,7,-6],[10,5,1],[3,6.5,6],[-7,7.5,4]],[[-5,9,-2],[2,11,-3],[6,8.5,1],[1,9.5,3],[-4,10.5,2]]].map(r=>r),false,true);
