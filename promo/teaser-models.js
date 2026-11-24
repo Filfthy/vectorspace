@@ -103,25 +103,24 @@ const mech=(id,o)=>animal(id,{...o,minCycle:o.minCycle??GA_KINDS.hound.minCycle}
       m.mark('tail',()=>{m.beam([0,Y+.22,1.04],[0,Y-.5,1.32],.08,.08,.7);m.box([0,Y-.6,1.34],[.14,.24,.14])});
     },colours:{stripes:C.w,mane:C.y,tail:C.y}});
 }
-// CAMEL: tall straight legs, a deep chest narrowing to the hips, one tall hump peaked like a
-// ridge over the middle of the back, a neck that dips forward and curves up to a long muzzle.
+// CAMEL: tall straight legs, a deep chest narrowing to the hips, one tall hump rising out of
+// the base of the neck, a neck that dips forward and curves up to a long muzzle.
 // It paces: both legs on one side move together.
 {const Y=2.6,k=Y/1.9;
   mech('camel',{Y,s:1.1,col:C.o,top:6,legs:quadLegs(Y,-.9,.85,.34,.15,{kneeZ:.1,kneeH:.56}),reach:2.2,minCycle:.5,swayAmp:.07,
     gaits:[{v:0,offsets:[0,0,.5,.5],swing:.3,lift:.3,bobAmp:.05,bobK:2,pitchAmp:0},{v:4,offsets:[0,0,.5,.5],swing:.45,lift:.4,bobAmp:.08,bobK:2,pitchAmp:.02}],
     body(m){
-      trunk(m,[[-1.3,.3,Y-.35,Y+.22],[-.95,.42,Y-.62,Y+.3],[-.2,.46,Y-.5,Y+.34],[.55,.4,Y-.32,Y+.3],[1.05,.3,Y-.16,Y+.24]]);
-      // The hump: steep in front, peaked over the middle, raked long to the back. Its flanks
-      // swell before they meet in a narrow ridge, so it reads as flesh and armour, not a tent.
-      m.mark('hump',()=>{const B=Y+.3,R=[[-.7,.4,.05,.4],[-.5,.4,.5,.16],[-.3,.38,.88,.07],[-.08,.37,1.02,.05],[.18,.38,.92,.06],[.42,.39,.68,.1],[.64,.38,.4,.18],[.82,.34,.08,.3]];
-        const ring=([z,w,h,t])=>[[-w,B,z],[w,B,z],[w*.8,B+h*.62,z],[t,B+h,z],[-t,B+h,z],[-w*.8,B+h*.62,z]];
-        m.loft(R.map(ring),true,true)});
-      // The neck: forward and down from the shoulder, then curving up to the head.
-      tube(m,[[0,Y+.05,-1.05],[0,Y-.22,-1.6],[0,Y-.2,-2.05],[0,Y+.3,-2.4],[0,Y+.9,-2.55],[0,Y+1.18,-2.55]],[.26,.24,.2,.17,.15,.14],[.34,.3,.25,.2,.17,.15],8,[false,false]);
-      // The head: long and level, the muzzle drooping a little, small ears.
-      m.loft([bsec(.16,Y+1.02,Y+1.38,-2.42),bsec(.15,Y+1.0,Y+1.36,-2.7),bsec(.12,Y+.94,Y+1.2,-3.05),bsec(.1,Y+.9,Y+1.08,-3.3)],true,true);
-      for(const sx of[-1,1])m.beam([sx*.1,Y+1.34,-2.48],[sx*.2,Y+1.52,-2.4],.05,.07,.3);
-      m.mark('tail',()=>m.beam([0,Y+.18,1.08],[0,Y-.6,1.25],.06,.06,.6));
+      m.loft([bsec(.34,Y-.4,Y+.24,-1.15),bsec(.44,Y-.52,Y+.32,-.4),bsec(.4,Y-.36,Y+.3,.5),bsec(.3,Y-.18,Y+.24,1.05)]);
+      // The hump rises straight out of the base of the neck, peaks over the shoulders and rakes
+      // long to the back: one flowing line from the neck to the tail.
+      m.mark('hump',()=>{const R=[[-1.12,.3,.3,.2],[-.78,.38,.72,.1],[-.42,.4,.98,.05],[.2,.4,.7,.08],[.85,.32,.02,.3]];
+        m.loft(R.map(([z,w,h,t])=>{const B=Y+.28;return[[-w,B,z],[w,B,z],[t,B+h,z],[-t,B+h,z]]}),true,true)});
+      // The neck: from the front of the hump, forward and down, then up to the head.
+      tube(m,[[0,Y+.36,-.95],[0,Y+.02,-1.65],[0,Y+.2,-2.3],[0,Y+1.1,-2.55]],[.26,.22,.17,.14],[.32,.26,.2,.16],6,[false,false]);
+      // The head: long and level, small ears.
+      m.loft([bsec(.15,Y+1.0,Y+1.36,-2.45),bsec(.1,Y+.9,Y+1.12,-3.25)],true,true);
+      for(const sx of[-1,1])m.beam([sx*.09,Y+1.33,-2.5],[sx*.17,Y+1.5,-2.44],.05,.07,.3);
+      m.mark('tail',()=>m.beam([0,Y+.16,1.05],[0,Y-.6,1.22],.06,.06,.6));
     },colours:{tail:C.y}});
 }
 // ELEPHANT (India's festival mechs): a heavy armoured hull, a segmented hose trunk, twin

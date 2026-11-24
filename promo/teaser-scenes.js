@@ -41,7 +41,7 @@ const HERDS=[
   {sec:'india',kind:'elephant',n:5,v:3.6,space:2,ground:C.u,amp:.3,rock:C.w,K:1.5,lookY:2.4,
     land:{mesh:M.taj,col:C.w,s:1.3,dist:280,yaw:-PI/2,foot:[[0,0,28],[0,-50,9],[0,-72,9]]}},
   {sec:'kenya',kind:'giraffe',n:4,mix:{kind:'zebra',n:6},v:6.5,space:1.5,ground:C.o,amp:.35,rock:C.y,K:1.3,lookY:3,
-    land:{mesh:M.kilimanjaro,col:C.u,s:1.2,dist:500,sight:900,backdrop:true}},
+    land:{mesh:M.kilimanjaro,col:C.u,s:.75,dist:300,footR:150,foot:[[0,0,150]]}},
   {sec:'peru',kind:'llama',n:7,v:4.6,space:1.2,ground:C.g,amp:.9,rock:C.w,K:1.2,
     land:{mesh:M.machuPicchu,col:C.g,s:1.3,dist:270,yaw:PI,foot:[[0,-6,64],[2,34,34]]}},
   {sec:'usa',kind:'bison',n:12,v:11,space:1.25,ground:C.y,amp:.45,rock:C.o,K:1.15,
@@ -155,7 +155,7 @@ function buildRun(origin,opt={}){
   G.units.length=0;G.groups.length=0;G.trees.length=0;G.state='promo';
   G.flats=(G.flats||[]).filter(f=>!f.promo);
   run={O:{x:origin.x,z:origin.z},H0:origin.h,F0:[Math.sin(origin.h),Math.cos(origin.h)],R0:[Math.cos(origin.h),-Math.sin(origin.h)],
-    sway:opt.studio?0:1,studio:opt.studio||null,herds:opt.herds||HERDS.map(H=>({...H})),lands:[],backdrops:[],bergs:[]};
+    sway:opt.studio?0:1,studio:opt.studio||null,herds:opt.herds||HERDS.map(H=>({...H})),lands:[],bergs:[]};
   const Hs=run.herds;
   for(const H of Hs){H.live=false;H.units=[];H.crits=null;if(H.fixedV==null)tabulate(H)}
   // Each herd starts a gap ahead of where the last one is when its turn comes.
@@ -167,10 +167,10 @@ function buildRun(origin,opt={}){
   // The landmarks: far out on the side away from the camera, where the herd is mid-run.
   if(!opt.studio)for(const H of Hs){
     if(H.land){const L=H.land,s=sAt(H,H.T+12)+40,p=worldAt(s,-H.side*L.dist),yaw=(L.yaw||0)+p.h;
-      const e={mesh:L.mesh,col:L.col,s:L.s,x:p.x,z:p.z,yaw,t0:H.T-5,t1:H.Tn+3,top:L.top||25*L.s,sight:L.sight||430,ext:0};
+      const e={mesh:L.mesh,col:L.col,s:L.s,x:p.x,z:p.z,yaw,top:L.top||25*L.s,sight:L.sight||430,ext:0};
       const ca=Math.cos(yaw),sa=Math.sin(yaw);
       for(const[fx,fz,fr]of(L.foot||[])){const x=fx*L.s,z=fz*L.s;e.ext=Math.max(e.ext,(Math.hypot(fx,fz)+fr)*L.s*.8);G.flats.push({x:e.x+x*ca+z*sa,z:e.z-x*sa+z*ca,r0:fr*L.s,r1:fr*L.s+30,promo:true})}
-      e.keep=Math.max(e.ext,40)+20;(L.backdrop?run.backdrops:run.lands).push(e)}
+      e.keep=Math.max(e.ext,40)+20;if(L.footR)e.footR=e.ext=L.footR;run.lands.push(e)}
     for(const[l,ds,sc]of H.bergs||[]){const p=worldAt(sAt(H,H.T)+ds,l);run.bergs.push({mesh:M.iceberg,col:C.w,s:sc,x:p.x,z:p.z,yaw:rand()*6.3,top:12*sc,sight:430,ext:11*sc,keep:11*sc+12});
       G.flats.push({x:p.x,z:p.z,r0:11*sc,r1:11*sc+22,promo:true})}
   }
@@ -307,14 +307,16 @@ function drawCrit(H,q){
 
 // ---------- Landmarks, icebergs, crits and the aurora, into the game's depth-sorted scene ----------
 // Landmarks sort by their nearest edge but never nearer than 70, so they can't be drawn over
-// the animals or rocks in front of them.
+// the animals or rocks in front of them. A mountain (footR) sorts by the point of its foot
+// nearest the camera, so the ground in front of that point covers its foot.
 const gameTrees=groundAssault.appendTrees.bind(groundAssault);
 groundAssault.appendTrees=function(scn){
   gameTrees(scn);if(!active())return;
   const put=e=>{
     const dist=Math.hypot(e.x-shipX,e.z-travel);if(dist>e.sight+e.ext)return;
     const gy=ground(e.x,e.z),q=camPoint([e.x,gy+e.top*.4,e.z-travel]);if(q[2]<-e.top-e.ext)return;
-    let near=q[2];if(e.ext)for(let k=0;k<8;k++){const a=k/8*2*PI;near=Math.min(near,camPoint([e.x+Math.cos(a)*e.ext,gy+1,e.z+Math.sin(a)*e.ext-travel])[2])}
+    let near=q[2];if(e.footR){const dx=shipX-e.x,dz=travel-e.z,d=Math.hypot(dx,dz)||1;near=camPoint([e.x+dx/d*e.footR,gy,e.z+dz/d*e.footR-travel])[2]}
+    else if(e.ext)for(let k=0;k<8;k++){const a=k/8*2*PI;near=Math.min(near,camPoint([e.x+Math.cos(a)*e.ext,gy+1,e.z+Math.sin(a)*e.ext-travel])[2])}
     const haze=clamp((e.sight+e.ext-dist)/(e.sight*.3),0,1)*.92;
     scn.push({z:Math.max(70,near),draw:()=>drawMesh({x:e.x,y:gy-.15,z:e.z-travel,s:e.s,rot:[0,e.yaw,0],fadeZ:Math.max(0,q[2])*.7},e.mesh,e.col,haze)})};
   for(const e of run.lands)put(e);for(const e of run.bergs)put(e);
@@ -325,9 +327,7 @@ groundAssault.appendTrees=function(scn){
 const gameHorizon=window.drawSharedSurfaceHorizon;
 window.drawSharedSurfaceHorizon=function(...args){
   if(active()&&!run.studio){const big=ease(D.clock,LIFT,LIFT+7);if(big>0)drawStars(big*.9);
-    // a far mountain stands behind the horizon, so the hills and the ground in front hide its foot
-    for(const e of run.backdrops||[]){const dist=Math.hypot(e.x-shipX,e.z-travel),inT=Math.min(ease(D.clock,e.t0,e.t0+4),1-ease(D.clock,e.t1-3,e.t1));if(dist>e.sight||inT<=0)continue;
-      drawMesh({x:e.x,y:ground(e.x,e.z)-12,z:e.z-travel,s:e.s,rot:[0,e.yaw,0]},e.mesh,e.col,clamp((e.sight-dist)/(e.sight*.3),0,1)*.92*inT)}}
+}
   return gameHorizon.apply(this,args)};
 // The aurora and the shooting star go after the moons (inside the horizon drawing, before the
 // mountains), so the moons sit behind the aurora.
