@@ -65,15 +65,16 @@ along a single route, and the ground's colour and roll change gradually from
 herd to herd. Most herds have one landmark standing far off the route. The
 drone is only a camera here: no guns on screen. The sky has one flock of
 birds for each place, two fighter passes, a freighter
-crossing above the llamas and fireworks over the elephants. Each herd has its own camera style (close, wide, high).
+crossing above the llamas and fireworks over the elephants, each shell bursting
+on a snare. Each herd has its own camera style (close, wide, high).
 
   0:00  orange horses gallop past the camera, which turns and chases them
         (no title text)
   0:14  horses (Stonehenge far off)
   0:35  kangaroos (Uluru)
-  0:56  camels (the pyramids)
+  0:56  camels (the stepped pyramids)
   1:18  magenta elephants (the Taj Mahal), with brass and timpani
-  1:39  giraffes and zebras (Kilimanjaro)
+  1:39  giraffes and zebras (Kilimanjaro, standing on the ground, its top snow)
   2:00  llamas (Machu Picchu)
   2:21  bison (Monument Valley)
   2:43  penguins among distant icebergs, under an aurora
@@ -84,6 +85,9 @@ Open it with ?promo=teaser instead of ?promo. Everything else works the same:
   ?promo=teaser&play          live with the music (&from=56.8 starts at the camels)
   ?promo=teaser&dpr=1.5       for rendering: PromoDirector.renderRange('teaser',0,198.6)
   bash promo/make-video.sh promo/out/teaser "D:/CodeGen/Oh Hell/renders/stampede.wav" promo/out/vector-space-teaser.mp4
+  The 720p copy for sharing:
+  ffmpeg -i promo/out/vector-space-teaser.mp4 -vf scale=1280:720 -c:v libx264 -crf 25 -preset slow -pix_fmt yuv420p -c:a copy -movflags +faststart promo/out/vector-space-teaser-720p.mp4
+  The videos stay out of git (promo/out is ignored): 400 MB at 1080p, 78 MB at 720p.
 
 Files
   teaser-song.js     the song's sections (136 bpm, the render starts 0.3 s in)
