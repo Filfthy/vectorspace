@@ -41,7 +41,7 @@ const HERDS=[
   {sec:'india',kind:'elephant',n:5,v:3.6,space:2,ground:C.u,amp:.3,rock:C.w,K:1.5,lookY:2.4,
     land:{mesh:M.taj,col:C.w,s:1.3,dist:280,yaw:-PI/2,foot:[[0,0,28],[0,-50,9],[0,-72,9]]}},
   {sec:'kenya',kind:'giraffe',n:4,mix:{kind:'zebra',n:6},v:6.5,space:1.5,ground:C.o,amp:.35,rock:C.y,K:1.3,lookY:3,
-    land:{mesh:M.kilimanjaro,col:C.u,s:1.4,dist:500,sight:420,foot:[[0,0,170]]}},
+    land:{mesh:M.kilimanjaro,col:C.u,s:1.2,dist:500,sight:900,backdrop:true}},
   {sec:'peru',kind:'llama',n:7,v:4.6,space:1.2,ground:C.g,amp:.9,rock:C.w,K:1.2,
     land:{mesh:M.machuPicchu,col:C.g,s:1.3,dist:270,yaw:PI,foot:[[0,-6,64],[2,34,34]]}},
   {sec:'usa',kind:'bison',n:12,v:11,space:1.25,ground:C.y,amp:.45,rock:C.o,K:1.15,
@@ -155,7 +155,7 @@ function buildRun(origin,opt={}){
   G.units.length=0;G.groups.length=0;G.trees.length=0;G.state='promo';
   G.flats=(G.flats||[]).filter(f=>!f.promo);
   run={O:{x:origin.x,z:origin.z},H0:origin.h,F0:[Math.sin(origin.h),Math.cos(origin.h)],R0:[Math.cos(origin.h),-Math.sin(origin.h)],
-    sway:opt.studio?0:1,studio:opt.studio||null,herds:opt.herds||HERDS.map(H=>({...H})),lands:[],bergs:[]};
+    sway:opt.studio?0:1,studio:opt.studio||null,herds:opt.herds||HERDS.map(H=>({...H})),lands:[],backdrops:[],bergs:[]};
   const Hs=run.herds;
   for(const H of Hs){H.live=false;H.units=[];H.crits=null;if(H.fixedV==null)tabulate(H)}
   // Each herd starts a gap ahead of where the last one is when its turn comes.
@@ -167,10 +167,10 @@ function buildRun(origin,opt={}){
   // The landmarks: far out on the side away from the camera, where the herd is mid-run.
   if(!opt.studio)for(const H of Hs){
     if(H.land){const L=H.land,s=sAt(H,H.T+12)+40,p=worldAt(s,-H.side*L.dist),yaw=(L.yaw||0)+p.h;
-      const e={mesh:L.mesh,col:L.col,s:L.s,x:p.x,z:p.z,yaw,top:L.top||25*L.s,sight:L.sight||430,ext:0};
+      const e={mesh:L.mesh,col:L.col,s:L.s,x:p.x,z:p.z,yaw,t0:H.T-5,t1:H.Tn+3,top:L.top||25*L.s,sight:L.sight||430,ext:0};
       const ca=Math.cos(yaw),sa=Math.sin(yaw);
       for(const[fx,fz,fr]of(L.foot||[])){const x=fx*L.s,z=fz*L.s;e.ext=Math.max(e.ext,(Math.hypot(fx,fz)+fr)*L.s*.8);G.flats.push({x:e.x+x*ca+z*sa,z:e.z-x*sa+z*ca,r0:fr*L.s,r1:fr*L.s+30,promo:true})}
-      e.keep=Math.max(e.ext,40)+20;run.lands.push(e)}
+      e.keep=Math.max(e.ext,40)+20;(L.backdrop?run.backdrops:run.lands).push(e)}
     for(const[l,ds,sc]of H.bergs||[]){const p=worldAt(sAt(H,H.T)+ds,l);run.bergs.push({mesh:M.iceberg,col:C.w,s:sc,x:p.x,z:p.z,yaw:rand()*6.3,top:12*sc,sight:430,ext:11*sc,keep:11*sc+12});
       G.flats.push({x:p.x,z:p.z,r0:11*sc,r1:11*sc+22,promo:true})}
   }
@@ -324,7 +324,10 @@ groundAssault.appendTrees=function(scn){
 // The stars and the aurora are drawn before the horizon, so the mountains stand in front of them.
 const gameHorizon=window.drawSharedSurfaceHorizon;
 window.drawSharedSurfaceHorizon=function(...args){
-  if(active()&&!run.studio){const big=ease(D.clock,LIFT,LIFT+7);if(big>0)drawStars(big*.9)}
+  if(active()&&!run.studio){const big=ease(D.clock,LIFT,LIFT+7);if(big>0)drawStars(big*.9);
+    // a far mountain stands behind the horizon, so the hills and the ground in front hide its foot
+    for(const e of run.backdrops||[]){const dist=Math.hypot(e.x-shipX,e.z-travel),inT=Math.min(ease(D.clock,e.t0,e.t0+4),1-ease(D.clock,e.t1-3,e.t1));if(dist>e.sight||inT<=0)continue;
+      drawMesh({x:e.x,y:ground(e.x,e.z)-12,z:e.z-travel,s:e.s,rot:[0,e.yaw,0]},e.mesh,e.col,clamp((e.sight-dist)/(e.sight*.3),0,1)*.92*inT)}}
   return gameHorizon.apply(this,args)};
 // The aurora and the shooting star go after the moons (inside the horizon drawing, before the
 // mountains), so the moons sit behind the aurora.
@@ -410,12 +413,15 @@ function buildSky(){
       sky.ships.push({mesh:fighterMesh,s:2.6,col:C.c,ts,te:ts+16,far:true,p0:[c.x-F[0]*(95+k*7)+R[0]*lat,h,c.z-F[1]*(95+k*7)+R[1]*lat],d:[F[0],0,F[1]],v:55,bank:sg*.45})}}
   {const ts=T.peru+3,tm=ts+12,{c,F,R}=camFrame(tm),sg=r()<.5?-1:1,D=200,mid=[c.x+F[0]*D,skyY(c,D,.17),c.z+F[1]*D],d=[R[0]*sg,0,R[1]*sg],v=12;
     sky.ships.push({mesh:M.freighter,s:1.6,col:C.w,ts,te:ts+26,overLand:true,p0:[mid[0]-d[0]*v*12,mid[1],mid[2]-d[2]*v*12],d,v,bank:0})}
-  // Fireworks over the elephants, launched every second or so from beyond the herd.
+  // Fireworks over the elephants, launched from beyond the herd.
   const H4=run.herds.find(h=>h.sec==='india');
-  for(let tl=H4.T+.5;tl<H4.Tn-2.5;tl+=.8+r()*.8){const{c,F,R}=camFrame(tl+1.5),D=85+r()*55,lx=(r()-.5)*D*.9,x=c.x+F[0]*D+R[0]*lx,z=c.z+F[1]*D+R[1]*lx,gy=ground(x,z);
+  // Each shell bursts on a snare (beats 2 and 4 of the elephants' stomp), two at once at the top of every fourth bar.
+  const SB=PROMO_SONG.beat,SBAR=PROMO_SONG.bar,snares=[];
+  for(let k=0;k<12;k++)for(const q of[1,3])for(let j=0;j<(q===1&&k%4===0?2:1);j++)snares.push(H4.T+k*SBAR+q*SB);
+  for(const tb of snares.filter(x=>x>H4.T+1.2&&x<H4.Tn-1.6)){const tl=tb-.9,{c,F,R}=camFrame(tl+1.5),D=85+r()*55,lx=(r()-.5)*D*.9,x=c.x+F[0]*D+R[0]*lx,z=c.z+F[1]*D+R[1]*lx,gy=ground(x,z);
     const pal=[C.m,C.y,C.c,C.r,C.g,C.w],col=pal[Math.floor(r()*pal.length)],col2=r()<.4?pal[Math.floor(r()*pal.length)]:col;
     const parts=Array.from({length:60},()=>{const u=r()*2-1,a=r()*2*PI,k=Math.sqrt(1-u*u);return{d:[Math.cos(a)*k,u,Math.sin(a)*k],v:26+r()*8}});
-    sky.bursts.push({tl,tb:tl+.9,x,z,gy,by:skyY(c,D,.16+r()*.1),col,col2,parts})}
+    sky.bursts.push({tl,tb,x,z,gy,by:skyY(c,D,.16+r()*.1),col,col2,parts})}
 }
 function birdAt(f,m,t){
   const B=f.B,u=t-f.ts;

@@ -103,24 +103,26 @@ const mech=(id,o)=>animal(id,{...o,minCycle:o.minCycle??GA_KINDS.hound.minCycle}
       m.mark('tail',()=>{m.beam([0,Y+.22,1.04],[0,Y-.5,1.32],.08,.08,.7);m.box([0,Y-.6,1.34],[.14,.24,.14])});
     },colours:{stripes:C.w,mane:C.y,tail:C.y}});
 }
-// CAMEL: long legs, a knife-edged armour ridge for a hump, an S-beam neck to a level head.
+// CAMEL: tall straight legs, a deep chest narrowing to the hips, one tall hump peaked like a
+// ridge over the middle of the back, a neck that dips forward and curves up to a long muzzle.
 // It paces: both legs on one side move together.
-{const k=1.22,Y=1.9*k;
-  mech('camel',{Y,s:1.15,col:C.o,top:5,legs:houndLegs(k,{t:.17,zf:-.85,zb:.8}),reach:1.7*k,minCycle:.45,swayAmp:.07,
+{const Y=2.6,k=Y/1.9;
+  mech('camel',{Y,s:1.1,col:C.o,top:6,legs:quadLegs(Y,-.9,.85,.34,.15,{kneeZ:.1,kneeH:.56}),reach:2.2,minCycle:.5,swayAmp:.07,
     gaits:[{v:0,offsets:[0,0,.5,.5],swing:.3,lift:.3,bobAmp:.05,bobK:2,pitchAmp:0},{v:4,offsets:[0,0,.5,.5],swing:.45,lift:.4,bobAmp:.08,bobK:2,pitchAmp:.02}],
     body(m){
-      m.loft([bsec(.38,Y-.34,Y+.3,-1.2),bsec(.46,Y-.4,Y+.36,-.3),bsec(.44,Y-.34,Y+.34,.6),bsec(.36,Y-.24,Y+.3,1.1)]);
-      // The hump: a knife-edged armour ridge, steep at the front and raked long to the back,
-      // with plate seams down its flanks. Angular, not a dome.
-      m.mark('hump',()=>{const R=[[-.72,.42,.36,.42],[-.5,.4,.95,.1],[-.3,.36,1.22,.03],[.05,.38,1.0,.06],[.4,.42,.62,.14],[.62,.44,.36,.44]];
-        const ring=([z,w,h,t])=>[[-w,Y+.34,z],[w,Y+.34,z],[t,Y+h,z],[-t,Y+h,z]];
-        m.loft(R.map(ring));
-        for(const r of R.slice(1,-1))for(const sx of[-1,1])line(m,[[sx*r[1],Y+.34,r[0]],[sx*r[3],Y+r[2],r[0]]])});
-      m.beam([0,Y-.02,-1.12],[0,Y-.3,-1.7],.3,.34,.85);m.beam([0,Y-.3,-1.7],[0,Y+.9,-2.15],.26,.3,.8);
-      m.loft([bsec(.17,Y+.78,Y+1.1,-2.08),bsec(.12,Y+.68,Y+.9,-2.78)]);
-      for(const sx of[-1,1])m.beam([sx*.12,Y+1.08,-2.1],[sx*.22,Y+1.22,-2.02],.06,.08,.3);
-      m.beam([0,Y+.15,1.1],[0,Y-.55,1.32],.08,.08,.6);
-    },colours:{}});
+      trunk(m,[[-1.3,.3,Y-.35,Y+.22],[-.95,.42,Y-.62,Y+.3],[-.2,.46,Y-.5,Y+.34],[.55,.4,Y-.32,Y+.3],[1.05,.3,Y-.16,Y+.24]]);
+      // The hump: steep in front, peaked over the middle, raked long to the back. Its flanks
+      // swell before they meet in a narrow ridge, so it reads as flesh and armour, not a tent.
+      m.mark('hump',()=>{const B=Y+.3,R=[[-.7,.4,.05,.4],[-.5,.4,.5,.16],[-.3,.38,.88,.07],[-.08,.37,1.02,.05],[.18,.38,.92,.06],[.42,.39,.68,.1],[.64,.38,.4,.18],[.82,.34,.08,.3]];
+        const ring=([z,w,h,t])=>[[-w,B,z],[w,B,z],[w*.8,B+h*.62,z],[t,B+h,z],[-t,B+h,z],[-w*.8,B+h*.62,z]];
+        m.loft(R.map(ring),true,true)});
+      // The neck: forward and down from the shoulder, then curving up to the head.
+      tube(m,[[0,Y+.05,-1.05],[0,Y-.22,-1.6],[0,Y-.2,-2.05],[0,Y+.3,-2.4],[0,Y+.9,-2.55],[0,Y+1.18,-2.55]],[.26,.24,.2,.17,.15,.14],[.34,.3,.25,.2,.17,.15],8,[false,false]);
+      // The head: long and level, the muzzle drooping a little, small ears.
+      m.loft([bsec(.16,Y+1.02,Y+1.38,-2.42),bsec(.15,Y+1.0,Y+1.36,-2.7),bsec(.12,Y+.94,Y+1.2,-3.05),bsec(.1,Y+.9,Y+1.08,-3.3)],true,true);
+      for(const sx of[-1,1])m.beam([sx*.1,Y+1.34,-2.48],[sx*.2,Y+1.52,-2.4],.05,.07,.3);
+      m.mark('tail',()=>m.beam([0,Y+.18,1.08],[0,Y-.6,1.25],.06,.06,.6));
+    },colours:{tail:C.y}});
 }
 // ELEPHANT (India's festival mechs): a heavy armoured hull, a segmented hose trunk, twin
 // tapered tusks and armour-plate ears.
@@ -271,10 +273,10 @@ const uluru=staticMesh(m=>{
     for(let j=0;j<12;j++){const t=j/12*2*PI,c=Math.cos(t),s=Math.sin(t),y=Math.max(0,s)*Hh*k*(1+.08*Math.sin(i*1.7)),z=c*Wd/2*Math.pow(k,.6);pts.push([x,s<0?-4:y,z])}rings.push(pts)}
   m.loft(rings.map(r=>r.map(([x,y,z])=>[x,y,z])));
 },null);
-// Giza: the three pyramids, their courses traced, and the Sphinx in front. The pyramids were
-// cased in white limestone once, so they are drawn white.
-const pyramid=(m,c,b,h)=>{const sq=(y,s)=>[[c[0]-s,y,c[2]-s],[c[0]+s,y,c[2]-s],[c[0]+s,y,c[2]+s],[c[0]-s,y,c[2]+s]];
-  m.loft([sq(0,b/2),sq(h,.15)]);for(let k=1;k<8;k++){const y=h*k/8,s=b/2*(1-k/8);line(m,sq(y,s),true)}};
+// Giza: the three pyramids, built in steps, and the Sphinx in front. Drawn white, as they were
+// when cased in limestone.
+const pyramid=(m,c,b,h,n=Math.max(3,Math.round(h/3)))=>{const sq=(y,s)=>[[c[0]-s,y,c[2]-s],[c[0]+s,y,c[2]-s],[c[0]+s,y,c[2]+s],[c[0]-s,y,c[2]+s]];
+  for(let k=0;k<n;k++){const y0=h*k/n,y1=h*(k+1)/n,s0=b/2*(1-k/n),s1=b/2*(1-(k+.55)/n);m.loft([sq(y0,s0),sq(y1,s1)],true,true)}};
 const giza=staticMesh(m=>{
   pyramid(m,[0,0,0],40,25);pyramid(m,[-46,0,30],37,23.5);pyramid(m,[-78,0,58],18,11);
   for(let i=0;i<3;i++)pyramid(m,[-92+i*6,0,74],5,3);
@@ -302,11 +304,16 @@ const taj=staticMesh(m=>{
   m.mark('pool',()=>{line(m,[[-2.5,.05,-19],[2.5,.05,-19],[2.5,.05,-80],[-2.5,.05,-80]],true);for(let z=-26;z>-80;z-=9)line(m,[[-2.5,.05,z],[2.5,.05,z]]);
     for(const sx of[-1,1])for(let z=-22;z>-80;z-=6)line(m,[[sx*4.5,0,z],[sx*4.5,1.6,z],[sx*4.2,2.4,z],[sx*4.8,2.4,z],[sx*4.5,1.6,z]])});
 },{finial:C.y,pool:C.c});
-// Kilimanjaro, far off: a broad mountain with a flat summit under a ragged snow cap.
+// Kilimanjaro, far off: Kibo's broad cone with a flat, snow-capped summit, and the jagged
+// lesser peak of Mawenzi on its shoulder. Its foot sinks below the horizon.
 const kilimanjaro=staticMesh(m=>{
-  const prof=[[-45,190],[0,170],[8,150],[20,118],[32,86],[41,60],[46,44],[48,30],[48.5,10]],rings=prof.map(([y,r],i)=>m.ringXZ(0,y,0,r*1.25,r,18).map(([x,yy,z],j)=>[x,yy+(i>0&&i<prof.length-1?Math.sin(j*2.3+i)*1.2:0),z]));
-  m.loft(rings,false,false);
-  m.mark('snow',()=>{const r=m.ringXZ(0,48.5,0,12.5,10,18);m.loft([m.ringXZ(0,44.5,0,44*1.25,44,18).map(([x,y,z],j)=>[x,y-(j%3)*1.8,z]),m.ringXZ(0,48,0,30*1.25,30,18)],false,false);line(m,r,true)});
+  const n=16,jag=(i,j,a)=>1+a*(Math.sin(j*2.7+i*1.3)*.6+Math.sin(j*5.1+i)*.4);
+  const ring=(cx,cz,y,r,i,a)=>Array.from({length:n},(_,j)=>{const t=j/n*2*PI,k=jag(i,j,a);return[cx+Math.cos(t)*r*1.2*k,y+(i?Math.sin(j*3.3+i)*1.5:0),cz+Math.sin(t)*r*k]});
+  const kibo=[[-30,200,.04],[0,170,.06],[22,120,.07],[44,74,.06],[62,40,.05],[70,24,.04],[72,16,.02]];
+  m.loft(kibo.map(([y,r,a],i)=>ring(0,0,y,r,i,a)),false,true);
+  const maw=[[-30,90,.05],[20,54,.12],[48,26,.22],[60,10,.35]];
+  m.loft(maw.map(([y,r,a],i)=>ring(-120,40,y,r,i+3,a)),false,true);
+  m.mark('snow',()=>{m.loft([ring(0,0,57,56,4,.2),ring(0,0,66,35,5,.1),ring(0,0,73,18,6,.03)],false,true)});
 },{snow:C.w});
 // Machu Picchu: the steep peak of Huayna Picchu, the ridge of terraces in front of it, the
 // stone houses with their gables.
