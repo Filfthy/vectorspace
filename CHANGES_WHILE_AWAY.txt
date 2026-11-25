@@ -3276,3 +3276,10 @@ v2510 Base assault tunnel: wall guns, faster run, new reactor core
       bowed cage, coolant pipes into both walls, three counter rotating
       containment rings round a pulsing yellow core, and arcs crackling
       off it. It still takes the same hits.
+
+v2520 Longer base assault tunnel
+      The run through the bunker tunnel to the reactor is now about
+      two and a half times as long (around half a minute of wall guns
+      and barriers), and the escape after the reactor is long enough to
+      have its own barriers before the exit. The simulator and the
+      factory tunnel are unchanged.

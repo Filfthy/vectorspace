@@ -296,7 +296,11 @@ class MissionController {
  if(!objectiveAdvanceAllowed())return;
  const tutorialRun=tutorialFinalRun.isActive();
  mode='play';phase='trench';phaseT=0;modeT=0;trenchSpawn=tutorialRun?999:.45;trenchHaz=tutorialRun?2.35:lerp(2.45,.7,clamp((level-1)/4,0,1));groundTargets.length=0;bolts.length=0;hazards.length=0;inputX=inputY=aimX=aimY=0;viewYaw=viewPitch=viewRoll=0;shipX=tunnelOriginX;shipY=-2.2;shots.length=0;playerMissiles.length=0;reactorHits=0;reactorAnnounced=false;
- reactorBoundaryWorld=travel+188;escapeBoundaryWorld=reactorBoundaryWorld+86;exitDoorWorld=escapeBoundaryWorld+105;
+ // v2520 (Dave: the tunnel part is too short). The base assault run to the reactor is well
+ // over twice as long, and the escape is long enough to carry obstacles before the exit
+ // clears. The simulator and the factory (which adds its own length) keep the old figures.
+ const longRun=!tutorialRun&&!(groundAssault?.active&&groundAssault.variant==='factory');
+ reactorBoundaryWorld=travel+(longRun?460:188);escapeBoundaryWorld=reactorBoundaryWorld+86;exitDoorWorld=escapeBoundaryWorld+(longRun?230:105);
  const rw=reactorBoundaryWorld+38;groundTargets.push({type:'reactor',worldZ:rw,x:tunnelOriginX,y:-2.2,z:rw-travel,s:1.0,hp:tutorialRun?1:4,rot:[0,0,0],col:C.r,mesh:reactorCoreMesh,mx:1,my:1,mz:1,dead:false,flash:0,active:false});
  if(tutorialRun)tutorialFinalRun.onTunnelBegin();else say('TUNNEL RUN',.6);
  groundAssault?.onBeginTrench?.()
