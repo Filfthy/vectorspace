@@ -357,7 +357,39 @@ function hitFxColor(timer,base){
  return base
 }
 function objectHitColor(obj,base){return hitFxColor(obj?.hitFx||0,base)}
-function towerCapY(g){return g.y+2.84*g.s}
+// v2490 (Dave: nodes not on top of the pylons; use the Tesla tower lattice). Base assault
+// pylons are the Tesla perimeter mast, scaled by PYLON_MAST_K*g.s, and the node sits on its top.
+const PYLON_MAST_K=.6;
+function pylonMastTop(){return pylonMastTop.v??=Math.max(...teslaPylonMastMesh.v.map(v=>v[1]))}
+function towerCapY(g){return g.y+pylonMastTop()*PYLON_MAST_K*g.s-.06*g.s}
+// v2490 (Dave: the ground should be a little contoured, not flat as a pancake). A low roll
+// fixed in world X/Z for the base assault plain. It levels out round the bunker and along the
+// tunnel line so the run-in and the trench entry stay flat.
+let surfaceContour=false;
+function surfaceHill(x,wz){
+  if(!surfaceContour)return 0;
+  let h=.55*Math.sin(x*.088+.7)*Math.cos(wz*.079-.4)+.34*Math.sin((x*.6+wz)*.13+1.3)+.2*Math.cos((x-wz*.8)*.21)+.2;
+  if(surfaceBunkerActive&&Number.isFinite(entryBunkerWorldZ)){
+    const dz=wz-entryBunkerWorldZ,d=dz>0?Math.abs(x-entryBunkerX):Math.hypot(x-entryBunkerX,dz);
+    h*=clamp((d-30)/90,0,1)
+  }
+  return h
+}
+function surfaceGroundY(x,wz){return -3.5+surfaceHill(x,wz)}
+// v2490 (Dave: the ground guns should be like the ones in the Tesla tower mission). The base
+// assault's ground guns are the bunker raid's land gun: fixed plinth, traversing cradle and an
+// elevating barrel that tracks the drone and fires from its muzzle.
+function surfaceGunEmplacement(x,wz,s,extra={}){
+  const dx=shipX-x,dz=travel-wz;
+  return Object.assign({type:'surfacegun',worldZ:wz,x,y:surfaceGroundY(x,wz)+.76*s,z:wz-travel,s,hp:3,hitFx:0,
+    yaw:Math.atan2(dx,dz),pitch:0,rot:[0,0,0],col:C.r,mesh:landGunDevPlinthMesh,dead:false,shot:false,passed:false},extra)
+}
+function trackSurfaceGun(g,dt){
+  const p=bunkerRaid.pivotWorld(g),dx=shipX-p[0],dz=-p[2],h=Math.max(.001,Math.hypot(dx,dz));
+  const yawErr=wrapAngle(Math.atan2(dx,dz)-(g.yaw||0));
+  g.yaw=wrapAngle((g.yaw||0)+clamp(yawErr,-dt*2.6,dt*2.6));
+  g.pitch=moveToward(g.pitch||0,clamp(-Math.atan2(shipY-p[1],h),-.72,.30),dt*2.0)
+}
 function pointSegmentDistance(px,py,ax,ay,bx,by){
  const vx=bx-ax,vy=by-ay,wx=px-ax,wy=py-ay,d=vx*vx+vy*vy;
  const t=d>1e-9?clamp((wx*vx+wy*vy)/d,0,1):0;

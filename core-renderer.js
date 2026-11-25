@@ -478,13 +478,15 @@ class SceneRenderer {
  // Grid lines are fixed in world X/Z and generated around the current ship position.
  const gc=landingWorldColour(),x0=Math.floor((shipX-far)/spacing)*spacing,x1=shipX+far;
  const zWorld0=Math.floor((travel-far)/spacing)*spacing,zWorld1=travel+far;
+ // v2490: on the base assault plain the grid follows surfaceGroundY's gentle roll.
+ const gy=surfaceContour?(x,wz)=>surfaceGroundY(x,wz):()=>floor;
  for(let x=x0;x<=x1;x+=spacing){
    let prev=null;
-   for(let wz=zWorld0;wz<=zWorld1;wz+=6){const p=proj([x,floor,wz-travel]);if(prev&&p)line(prev.x,prev.y,p.x,p.y,gc,.72,.56*a);prev=p||null}
+   for(let wz=zWorld0;wz<=zWorld1;wz+=6){const p=proj([x,gy(x,wz),wz-travel]);if(prev&&p)line(prev.x,prev.y,p.x,p.y,gc,.72,.56*a);prev=p||null}
  }
  for(let wz=zWorld0;wz<=zWorld1;wz+=spacing){
    const rz=wz-travel;let prev=null;
-   for(let x=x0;x<=x1;x+=6){const p=proj([x,floor,rz]);if(prev&&p)line(prev.x,prev.y,p.x,p.y,gc,.78,.62*a);prev=p||null}
+   for(let x=x0;x<=x1;x+=6){const p=proj([x,gy(x,wz),rz]);if(prev&&p)line(prev.x,prev.y,p.x,p.y,gc,.78,.62*a);prev=p||null}
  }
  drawSharedSurfaceHorizon(floor,380,a,gc,gc)
 }
@@ -609,8 +611,9 @@ class SceneRenderer {
    drawMesh(obj,g.mesh,objectHitColor(g,C.m));
    return
  }
+ if(g.type==='surfacegun'){bunkerRaid.draw(g);return}
  if(g.type==='tower'){
-   drawMesh(g,towerBodyMesh,C.g);
+   drawMesh({x:g.x,y:g.y,z:g.z,s:PYLON_MAST_K*g.s,rot:[0,g.rot[1],0]},teslaPylonMastMesh,C.g);
    if(!g.capDead){
      const cap={x:g.x,y:towerCapY(g),z:g.z,s:.78*g.s,rot:[0,g.rot[1],0]};
      drawMesh(cap,towerCapMesh,hitFxColor(g.capHitFx,g.capCol||C.y))

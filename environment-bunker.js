@@ -35,7 +35,7 @@ const bunkerRaid={
   },
   begin(stage={}){
     const authored=globalThis.AgentXStoryContent?.sectionContent?.(stage?.contentId)||defaultBunkerContent;
-    this.configure(authored);this.reset();this.active=true;this.bunkerMode=true;
+    this.configure(authored);this.reset();this.active=true;this.bunkerMode=true;surfaceContour=false;
     mode='play';phase='surface';phaseT=modeT=0;travel=0;score=0;
     fighters.length=0;asteroids.length=0;groundTargets.length=0;bolts.length=0;hazards.length=0;shots.length=0;playerMissiles.length=0;
     const startContent=this.content.surfaceAssault.start;

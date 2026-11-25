@@ -1,6 +1,7 @@
 'use strict';
 class Game {
   reset({deferMissionStart=false}={}){
+    surfaceContour=false;
     cancelAbandonHold();if(abandonBlockedTimer){clearTimeout(abandonBlockedTimer);abandonBlockedTimer=0}
     // v910: a deferred ace callout or an armed ace never carries into the next run.
     if(globalThis.AgentXAces){AgentXAces.pending=null;AgentXAces.armed=false}if(globalThis.AgentXTenders){AgentXTenders.pending=null;AgentXTenders.armed=false}globalThis.AgentXMinelayers?.reset();globalThis.AgentXGhosts?.reset();
@@ -598,9 +599,9 @@ class Game {
        const dist=76+Math.random()*105+i*9;
        const gx=shipX+Math.sin(a)*dist,gwz=travel+Math.cos(a)*dist,kind=Math.random();
        let g;
-       if(kind<.07)g={type:'tower',worldZ:gwz,x:gx,y:-3.45,z:gwz-travel,s:.76+Math.random()*.12,my:1.58,hp:999,capHp:3,capHitFx:0,capDead:false,capDying:0,doorPylon:false,capCol:C.y,rot:[0,Math.random()*3.14,0],col:C.g,mesh:towerBodyMesh,dead:false,shot:false,passed:false};
-       else if(kind<.87)g={type:'surfacegun',worldZ:gwz,x:gx,y:-3.45,z:gwz-travel,s:.65+Math.random()*.13,hp:3,hitFx:0,rot:[0,Math.random()*3.14,0],col:C.r,mesh:turretMesh,dead:false,shot:false,passed:false};
-       else g={type:'bunker',worldZ:gwz,x:gx,y:-3.45,z:gwz-travel,s:.78+Math.random()*.11,hp:4,hitFx:0,rot:[0,Math.random()*3.14,0],col:C.r,mesh:bunkerMesh,dead:false,shot:false,passed:false};
+       if(kind<.07)g={type:'tower',worldZ:gwz,x:gx,y:surfaceGroundY(gx,gwz)+.05,z:gwz-travel,s:.76+Math.random()*.12,my:1.58,hp:999,capHp:3,capHitFx:0,capDead:false,capDying:0,doorPylon:false,capCol:C.y,rot:[0,Math.random()*3.14,0],col:C.g,mesh:towerBodyMesh,dead:false,shot:false,passed:false};
+       else if(kind<.87)g=surfaceGunEmplacement(gx,gwz,.74+Math.random()*.14);
+       else g={type:'bunker',worldZ:gwz,x:gx,y:surfaceGroundY(gx,gwz)+.05,z:gwz-travel,s:.78+Math.random()*.11,hp:4,hitFx:0,rot:[0,Math.random()*3.14,0],col:C.r,mesh:bunkerMesh,dead:false,shot:false,passed:false};
        groundTargets.push(g)
      }
      surfaceSpawn=.30+Math.random()*.26
@@ -608,8 +609,9 @@ class Game {
 
    for(const g of groundTargets){
      if(g.dead||g.dying)continue;syncWorldZ(g);
+     if(surfaceContour&&(g.type==='tower'||g.type==='surfacegun'||g.type==='bunker'))g.y=surfaceGroundY(g.x,g.worldZ)+(g.type==='surfacegun'?.76*g.s:.05);
      if(g.type==='tower')g.rot[1]+=dt*.12;
-     if(g.type==='surfacegun')g.rot[1]+=dt*.34;
+     if(g.type==='surfacegun')trackSurfaceGun(g,dt);
      const q=camPoint([g.x,g.y,g.z]),depth=q[2],sp=depth>.18?projectCam(q):null;
      const readable=!!(sp&&sp.x>-60&&sp.x<W+60&&sp.y>-50&&sp.y<viewH+50);
      if(g.type==='tower'&&!g.capDead&&readable&&depth<38&&depth>5){
@@ -618,7 +620,7 @@ class Game {
      }
      if(g.type==='surfacegun'&&readable&&depth<34&&depth>5){
        g.fireCD=(g.fireCD??(.85+Math.random()*.80))-dt;
-       if(g.fireCD<=0){spawnBolt(g.x,g.y+1.25*g.s,g.z,.95,1.85,.10);g.fireCD=.88+Math.random()*.48}
+       if(g.fireCD<=0){const m=bunkerRaid.muzzleWorld(g);spawnBolt(m[0],m[1],m[2],.95,1.85,.10);g.fireCD=.88+Math.random()*.48}
      }
      if(g.type==='bunker'&&readable&&depth<30&&depth>5){
        g.fireCD=(g.fireCD??(1.10+Math.random()*.85))-dt;

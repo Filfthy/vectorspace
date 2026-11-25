@@ -3251,3 +3251,12 @@ v2480 Network logos on the Networks tab
       (VOX, OSD, Free Traders, Red Jackals, Helix, QuickBite). They are
       the same white marks as on Mail and Contracts.
 
+
+v2490 Base assault: lattice pylons, real guns, rolling ground
+      The shield pylons are now the open lattice mast from the Tesla
+      tower mission, and the yellow node sits right on top of each one
+      (it used to float partway down). The red ground guns are now the
+      same emplacements as that mission: a plinth with a turning cradle
+      and a barrel that tracks the drone and fires from the muzzle.
+      The plain rolls gently instead of being dead flat. The drone rides
+      over it, and it levels out round the bunker for the run in.

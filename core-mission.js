@@ -203,7 +203,7 @@ class MissionController {
  spaceYawVel=spacePitchVel=0;
  // Open surface flight begins in a genuine ground-plane world. The approach attitude
  // is preserved, but yaw is now an unrestricted heading rather than a corridor offset.
- mode='play';phase='surface';phaseT=0;modeT=0;travel=0;
+ mode='play';phase='surface';phaseT=0;modeT=0;travel=0;surfaceContour=true;
  surfaceNeutralYaw=viewYaw;surfaceNeutralPitch=viewPitch;
  inputX=inputY=aimX=aimY=0;surfaceVX=0;surfaceVY=0;surfaceDistance=0;
  surfaceSpawn=.2;shots.length=0;playerMissiles.length=0;fighters.length=0;groundTargets.length=0;bolts.length=0;hazards.length=0;
@@ -221,7 +221,7 @@ class MissionController {
    const dist=70+(i%3)*18+Math.random()*12;
    const gx=shipX+Math.sin(a)*dist,gwz=travel+Math.cos(a)*dist;
    groundTargets.push({
-     type:'tower',worldZ:gwz,x:gx,y:-3.45,z:gwz-travel,
+     type:'tower',worldZ:gwz,x:gx,y:surfaceGroundY(gx,gwz)+.05,z:gwz-travel,
      s:.82+Math.random()*.08,my:1.62,hp:999,capHp:2,capHitFx:0,
      capDead:false,capDying:0,doorPylon:true,persistent:true,capCol:C.y,
      rot:[0,Math.random()*3.14,0],col:C.g,mesh:towerBodyMesh,
@@ -231,11 +231,7 @@ class MissionController {
    const escortA=a+(Math.random()<.5?-1:1)*(.10+Math.random()*.08);
    const escortDist=dist+10+Math.random()*8;
    const ex=shipX+Math.sin(escortA)*escortDist,ewz=travel+Math.cos(escortA)*escortDist;
-   groundTargets.push({
-     type:'surfacegun',worldZ:ewz,x:ex,y:-3.45,z:ewz-travel,
-     s:.66+Math.random()*.10,hp:3,hitFx:0,rot:[0,Math.random()*3.14,0],
-     col:C.r,mesh:turretMesh,dead:false,shot:false,passed:false,pylonEscort:true
-   });
+   groundTargets.push(surfaceGunEmplacement(ex,ewz,.76+Math.random()*.12,{pylonEscort:true}));
  }
 
  // Seed the open plain with plenty of activity. Red guns dominate, bunkers are less
@@ -244,9 +240,9 @@ class MissionController {
    const a=Math.random()*Math.PI*2,dist=58+Math.random()*125;
    const gx=shipX+Math.sin(a)*dist,gwz=travel+Math.cos(a)*dist,kind=Math.random();
    let g;
-   if(kind<.07)g={type:'tower',worldZ:gwz,x:gx,y:-3.45,z:gwz-travel,s:.78+Math.random()*.10,my:1.58,hp:999,capHp:3,capHitFx:0,capDead:false,capDying:0,doorPylon:false,capCol:C.y,rot:[0,Math.random()*3.14,0],col:C.g,mesh:towerBodyMesh,dead:false,shot:false,passed:false};
-   else if(kind<.86)g={type:'surfacegun',worldZ:gwz,x:gx,y:-3.45,z:gwz-travel,s:.65+Math.random()*.13,hp:3,hitFx:0,rot:[0,Math.random()*3.14,0],col:C.r,mesh:turretMesh,dead:false,shot:false,passed:false};
-   else g={type:'bunker',worldZ:gwz,x:gx,y:-3.45,z:gwz-travel,s:.78+Math.random()*.11,hp:4,hitFx:0,rot:[0,Math.random()*3.14,0],col:C.r,mesh:bunkerMesh,dead:false,shot:false,passed:false};
+   if(kind<.07)g={type:'tower',worldZ:gwz,x:gx,y:surfaceGroundY(gx,gwz)+.05,z:gwz-travel,s:.78+Math.random()*.10,my:1.58,hp:999,capHp:3,capHitFx:0,capDead:false,capDying:0,doorPylon:false,capCol:C.y,rot:[0,Math.random()*3.14,0],col:C.g,mesh:towerBodyMesh,dead:false,shot:false,passed:false};
+   else if(kind<.86)g=surfaceGunEmplacement(gx,gwz,.74+Math.random()*.14);
+   else g={type:'bunker',worldZ:gwz,x:gx,y:surfaceGroundY(gx,gwz)+.05,z:gwz-travel,s:.78+Math.random()*.11,hp:4,hitFx:0,rot:[0,Math.random()*3.14,0],col:C.r,mesh:bunkerMesh,dead:false,shot:false,passed:false};
    groundTargets.push(g)
  }
 
