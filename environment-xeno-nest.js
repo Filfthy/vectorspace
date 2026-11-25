@@ -819,6 +819,10 @@ const xenoNest={
       {wall:4,t:.17,y:-h*.12,flash:0},{wall:4,t:.39,y:h*.54,flash:0},{wall:4,t:.64,y:-h*.50,flash:0},{wall:4,t:.85,y:h*.18,flash:0},
       {wall:5,t:.16,y:h*.46,flash:0},{wall:5,t:.37,y:-h*.56,flash:0},{wall:5,t:.62,y:h*.08,flash:0},{wall:5,t:.84,y:-h*.28,flash:0}
     ];
+    // v2460 (Dave: more projectiles, from more than two or three shooters): a second set of
+    // mouths between the first on every wall, so fire can come from all round the room.
+    for(const w of[1,2,3,4,5])for(const[t,y]of[[.26,-.62],[.49,.66],[.73,-.34],[.5,-.02]])this.chamberOrifices.push({wall:w,t,y:h*y,flash:0,rest:0});
+    for(const o of this.chamberOrifices)o.rest=0;
     const f=this.regulatorChamberFrame();
     this.objective={type:'xenoRegulator',x:f.cx,y:f.cy,z:f.centerZ,s:3.35,mx:1,my:1,mz:1,rot:[0,0,0],col:C.m,mesh:globalThis.AgentXXenoNest?.regulator,hp:14,maxHp:14,hitFx:0,dead:false,dying:0};
     groundTargets.length=0;this.chamberCombatReady=false;say('REGULATOR CHAMBER',.65)
@@ -850,23 +854,27 @@ const xenoNest={
   },
   spawnChamberProjectile(){
     if(this.state!=='coreChamber'||!this.objective||this.objective.dead||this.objective.dying)return false;
-    if(bolts.reduce((n,b)=>n+(!b.dead&&b.chamberSpit?1:0),0)>=6)return false;
-    const live=this.chamberOrifices;if(!live.length)return false;
+    if(bolts.reduce((n,b)=>n+(!b.dead&&b.chamberSpit?1:0),0)>=14)return false;
+    const live=this.chamberOrifices.filter(o=>(o.rest||0)<=0);if(!live.length)return false;
 
     // In this room the nearest side walls should do most of the attacking.  Picking
     // uniformly from every orifice left most shots travelling lazily from the far
     // wall and made the chamber harmless.  Build a small pool of the nearest real
     // wall mouths, then vary within it so fire still comes from both sides/high/low.
-    const candidates=live.map(o=>{const w=this.chamberOrificeWorld(o);return{o,w,d:Math.hypot(w.p[0]-shipX,w.p[1]-shipY,w.p[2])}})
-      .sort((a,b)=>a.d-b.d).slice(0,Math.min(10,live.length));
+    // v2460: any mouth the player can actually see may fire (not just the nearest few),
+    // and a mouth that has just spat rests a moment, so fire comes from all round the room.
+    const seen=live.map(o=>{const w=this.chamberOrificeWorld(o),q=camPoint(w.p),pp=q&&q[2]>3?projectCam(q):null;return{o,w,on:!!(pp&&pp.x>-20&&pp.x<W+20&&pp.y>-20&&pp.y<viewH+20),d:Math.hypot(w.p[0]-shipX,w.p[1]-shipY,w.p[2])}});
+    let candidates=seen.filter(c=>c.on);if(candidates.length<4)candidates=seen.sort((a,b)=>a.d-b.d).slice(0,Math.min(12,seen.length));
     if(!candidates.length)return false;
     const chosen=candidates[(Math.random()*candidates.length)|0],o=chosen.o,w=chosen.w,start=v3add(w.p,v3scale(w.inward,.72)),before=bolts.length;
-    if(!spawnBolt(start[0],start[1],start[2],.18,0,.20)||bolts.length<=before)return false;
+    // v2460: chamber spit has its own limit (14), so it does not use the shared six-bolt cap.
+    bolts.push({x:start[0],y:start[1],z:start[2],homing:0,rot:Math.random()*6.28,rotSpeed:4+Math.random()*4,dead:false,visibleFor:0,visibleNow:false,age:0,leadShot:false});
 
     // Chamber spit is intentionally much more urgent than ordinary long-range
     // plasma.  It remains a normal shootable hostile bolt, but reaches the player
     // quickly enough that incoming fire competes with shooting the regulator.
-    const b=bolts[bolts.length-1],hitIntent=Math.random()<.82;
+    o.rest=.75+Math.random()*.6;
+    const b=bolts[bolts.length-1],hitIntent=Math.random()<.62;
     const missX=hitIntent?(Math.random()-.5)*1.15:(Math.random()<.5?-1:1)*(2.8+Math.random()*2.2);
     const missY=hitIntent?(Math.random()-.5)*1.05:(Math.random()-.5)*4.0;
     const tx=shipX+missX,ty=shipY+missY,tz=0,dx=tx-start[0],dy=ty-start[1],dz=tz-start[2];
@@ -883,7 +891,36 @@ const xenoNest={
   },
   beginExitCorridor(){
     this.state='coreEscape';this.escapeT=0;this.corridorTravel=0;bolts.length=0;
+    // v2460 (Dave: acid squirters in the tunnels when exiting). Acid glands grow from the
+    // walls of the way out. One swells for a moment as it comes into range, then squirts a
+    // gob of acid at the drone. Shoot the gob, or dodge it.
+    this.acidGlands=[];for(let d=46;d<this.coreLength-46;d+=18+Math.random()*16)this.acidGlands.push({d,a:Math.random()*Math.PI*2,cd:0,swell:0,fired:0});
     inputX=moveToward(inputX,0,.12);inputY=moveToward(inputY,0,.12);shipX=clamp(shipX,-5.8,5.8);shipY=clamp(shipY,-5.1,5.1)
+  },
+  acidGlandZ(g){return this.coreLength-g.d-this.corridorTravel},
+  acidGlandWorld(g,z){const c=this.corridorCenter(z),r=this.coreRadiusAt(z)*.9;return[c.x+Math.cos(g.a)*r,c.y+Math.sin(g.a)*r*.9,z]},
+  updateAcidGlands(dt){
+    for(const g of this.acidGlands||[]){
+      const z=this.acidGlandZ(g);g.cd=Math.max(0,g.cd-dt);
+      if(z<10||z>62){g.swell=Math.max(0,g.swell-dt*3);continue}
+      if(g.fired>=2)continue;
+      if(g.cd<=0){g.swell+=dt/.38;if(g.swell>=1){g.swell=0;g.fired++;g.cd=.9+Math.random()*.6;this.spitAcid(g,z)}}
+    }
+  },
+  spitAcid(g,z){
+    if(bolts.length>=10)return;
+    const p=this.acidGlandWorld(g,z),err=Math.random()<.6?.4:2.4,a=Math.random()*Math.PI*2;
+    const tx=shipX+Math.cos(a)*err,ty=shipY+Math.sin(a)*err,dx=tx-p[0],dy=ty-p[1],dz=-p[2],t=clamp(p[2]/44,.55,1.25);
+    bolts.push({x:p[0],y:p[1],z:p[2],spawnDistance:Math.hypot(dx,dy,dz),targetX:tx,targetY:ty,targetZ:0,hitIntent:err<1,leadShot:false,
+      vx:dx/t,vy:dy/t,vz:dz/t,homing:0,rot:Math.random()*6.28,rotSpeed:5+Math.random()*4,dead:false,visibleFor:0,visibleNow:false,age:0,maxLife:t+.8,
+      style:'toxicSpit',col:C.g,accentCol:C.y,visualScale:1.3,damageLabel:'XENO ACID'});
+    SoundFX.hit?.()
+  },
+  drawAcidGland(g,z){
+    const c=this.acidGlandWorld(g,z),sw=g.swell,r=.55+.55*sw,col=sw>0?C.y:C.g;
+    const ring=k=>Array.from({length:7},(_,i)=>{const t=i/6*Math.PI*2;return proj([c[0]+Math.cos(t)*r*k,c[1]+Math.sin(t)*r*k,z])});
+    for(const[k,al]of[[1,.9],[.55,.7]]){const pts=ring(k);for(let i=0;i<6;i++)if(pts[i]&&pts[i+1])line(pts[i].x,pts[i].y,pts[i+1].x,pts[i+1].y,col,1,al)}
+    const cc=this.corridorCenter(z),a=proj(c),b=proj([c[0]+(cc.x-c[0])*.18,c[1]+(cc.y-c[1])*.18,z-.4]);if(a&&b)line(a.x,a.y,b.x,b.y,col,1.1,.9)
   },
   clampCorePoint(x,y,margin=.72){
     // Keep the familiar tunnel steering envelope inside the much larger room.  The
@@ -1066,7 +1103,9 @@ const xenoNest={
     this.spawnT=.2;this.chaosVolleyT=.16;audio.music.setMode('violent');
     // No second leisurely instruction here: the regulator-break message already
     // gave the urgent order. The growing nav diamond now carries the guidance.
-    say('PROCEED IMMEDIATELY TO OBSERVATION POINT',.9)
+    say('PROCEED IMMEDIATELY TO OBSERVATION POINT',.9);
+    // v2460: say it out loud that the swarm is now hostile (voice-requests.js; text until recorded).
+    if(audio.hasVoice?.('xenoformsHostile'))audio.playVoice('xenoformsHostile',{once:false,priority:true});else say('WARNING · XENOFORMS HAVE TURNED HOSTILE',1.1)
   },
   navDistance(){return this.nav?Math.hypot(this.nav.x-shipX,this.nav.y-shipY,this.nav.z):Infinity},
   beginObservationHold(){
@@ -1163,7 +1202,7 @@ const xenoNest={
     // A handful of the visually nearest eggs hatch real larvae. They are selected
     // by apparent size rather than array order so the player actually sees the
     // biological event instead of a distant particle effect.
-    const nearest=[...visible].sort((a,b)=>b.score-a.score),modelCount=Math.min(10,nearest.length);
+    const nearest=[...visible].sort((a,b)=>b.score-a.score),modelCount=Math.min(16,nearest.length);
     const modelEggs=new Set(nearest.slice(0,modelCount).map(x=>x.b));
     const cap=Math.min(84,visible.length);
     for(let i=0;i<cap;i++){
@@ -1254,6 +1293,18 @@ const xenoNest={
       }
     }
   },
+  // v2460 (Dave: watching the attack you only see tiny dots). Once the drone has turned to
+  // watch, a scatter of big brood cells hangs close around it, kept clear of the middle of the
+  // view. When the swarm turns on the nest these burst first: larvae crawl out right by the
+  // drone and stream away towards the hive, so the attack is seen up close, not as dots.
+  seedObservationEggs(){
+    for(let i=0;i<16;i++){
+      const a=i/16*Math.PI*2+Math.random()*.25,z=24+(i%4)*12+Math.random()*8,rx=z*(.42+Math.random()*.3),ry=z*(.22+Math.random()*.16);
+      const w=cameraPointToWorld([Math.cos(a)*rx,Math.sin(a)*ry,z]);
+      const egg=this.makeBrood(w[0],w[1],w[2],1.2+Math.random()*.8,.8+Math.random()*1.0,[Math.random()*.6-.3,Math.random()*Math.PI*2,Math.random()*.6-.3]);
+      egg.nestFixed=true;egg.vx=egg.vy=egg.vz=0;egg.guidanceLocked=true;egg.awaitingRecycle=false;egg.offscreenT=0;egg.col=Math.random()<.5?C.y:C.o;this.brood.push(egg)
+    }
+  },
   beginDetonation(){
     this.state='detonation';this.detonationT=0;this.explosionBursts=0;this.coreExploded=false;this.destructionInitialized=false;this.destructionConfirmStarted=false;this.destructionConfirmAt=0;
     this.destructionLarvae.length=0;this.destructionShells.length=0;this.destructionImpacts.length=0;this.hiveChunks.length=0;
@@ -1311,11 +1362,13 @@ const xenoNest={
       for(const o of this.chamberOrifices)o.flash=Math.max(0,o.flash-dt);
       if(this.objective&&!this.objective.dead){
         this.objective.x=f.cx;this.objective.y=f.cy;this.objective.z=f.centerZ;
-        this.objective.rot[0]+=dt*.31;this.objective.rot[1]+=dt*.48;this.objective.rot[2]+=dt*.67
+        // v2460: the queen hovers and sways, facing the drone, instead of tumbling like a die.
+        {const t=time;this.objective.rot[0]=Math.sin(t*.7)*.07;this.objective.rot[1]=Math.sin(t*.45)*.32;this.objective.rot[2]=Math.sin(t*.38)*.09;this.objective.y=f.cy+Math.sin(t*1.1)*.6}
       }
       if(this.chamberTravel>=this.chamberHoldTravel-.01){
         if(!this.chamberCombatReady&&this.objective&&!this.objective.dead){this.chamberCombatReady=true;groundTargets.length=0;groundTargets.push(this.objective)}
-        this.chamberFireT-=dt;if(this.chamberFireT<=0){if(this.spawnChamberProjectile())this.chamberFireT=.18+Math.random()*.12;else this.chamberFireT=.10}
+        for(const o of this.chamberOrifices)o.rest=Math.max(0,(o.rest||0)-dt);
+        this.chamberFireT-=dt;if(this.chamberFireT<=0){const volley=Math.random()<.22?3:1;let n=0;for(let v=0;v<volley;v++)if(this.spawnChamberProjectile())n++;this.chamberFireT=n?(volley>1?.42:.09+Math.random()*.08):.06}
       }
       updateBoltsOnly(dt);
       if(this.objective?.dead)this.triggerFrenzy()
@@ -1330,7 +1383,7 @@ const xenoNest={
       // The exit is a literal fixed threshold at the end of this same corridor.
       // In the final throat the tunnel narrows and X is gently centred so the
       // player visibly crosses the mouth plane rather than entering a pause state.
-      bolts.length=0;
+      this.updateAcidGlands(dt);updateBoltsOnly(dt);
       const exitRemaining=this.coreLength-this.corridorTravel;
       if(exitRemaining<30){
         const pull=ease(clamp((30-exitRemaining)/30,0,1));
@@ -1365,7 +1418,7 @@ const xenoNest={
       this.observationTurnT+=dt;inputX=inputY=aimX=aimY=0;spaceYawVel=spacePitchVel=0;
       const u=ease(clamp(this.observationTurnT/2.25,0,1)),st=this.observationTurnStart,axis=this.observationTurnAxis||spaceUp,ang=(this.observationTurnAngle||Math.PI)*u;
       if(st){spaceForward=rotateAroundAxis(st.f,axis,ang);spaceRight=rotateAroundAxis(st.r,axis,ang);spaceUp=rotateAroundAxis(st.u,axis,ang);orthonormaliseSpaceOrientation();syncEulerFromSpaceOrientation();viewRoll=0}
-      if(this.observationTurnT>=2.25){this.state='observationHold';this.observationT=0;this.observationHoldOrientation={f:[...spaceForward],r:[...spaceRight],u:[...spaceUp]};say('HIVE IN VIEW · HOLD',.6)}
+      if(this.observationTurnT>=2.25){this.seedObservationEggs();this.state='observationHold';this.observationT=0;this.observationHoldOrientation={f:[...spaceForward],r:[...spaceRight],u:[...spaceUp]};say('HIVE IN VIEW · HOLD',.6)}
     }else if(this.state==='observationHold'){
       this.observationT+=dt;bolts.length=0;inputX=inputY=aimX=aimY=0;spaceYawVel=spacePitchVel=0;
       const hold=this.observationHoldOrientation;if(hold){spaceForward=[...hold.f];spaceRight=[...hold.r];spaceUp=[...hold.u];syncEulerFromSpaceOrientation();viewRoll=0}
@@ -1700,9 +1753,10 @@ const xenoNest={
     const portals=secs.map(s=>this.corePortalAt(s.z,null,s));
     const obstacles=[];
     for(const o of this.coreObstacles){const z=this.obstacleZ(o);if(z>near&&z<far)obstacles.push({o,z})}
+    if(this.state==='coreEscape')for(const g of this.acidGlands||[]){const z=this.acidGlandZ(g);if(z>near+1&&z<far)obstacles.push({g,z})}
     obstacles.sort((a,b)=>b.z-a.z);
     let obsIndex=0;
-    const drawFartherObstacles=minZ=>{while(obsIndex<obstacles.length&&obstacles[obsIndex].z>minZ){this.drawCoreObstacle(obstacles[obsIndex].o,obstacles[obsIndex].z);obsIndex++}};
+    const drawFartherObstacles=minZ=>{while(obsIndex<obstacles.length&&obstacles[obsIndex].z>minZ){const it=obstacles[obsIndex];if(it.g)this.drawAcidGland(it.g,it.z);else this.drawCoreObstacle(it.o,it.z);obsIndex++}};
     const last=secs.length-1,lastP=portals[last];
     if(lastP.every(Boolean))for(let k=0;k<6;k++){const a=lastP[k],b=lastP[(k+1)%6],col=(k&1)?C.y:C.o;line(a.x,a.y,b.x,b.y,col,.95,.78)}
     for(let i=secs.length-2;i>=0;i--){

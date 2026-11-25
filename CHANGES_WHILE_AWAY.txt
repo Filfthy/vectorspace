@@ -3203,3 +3203,28 @@ v2450 Mail shows what still needs following up
       drone activity · Mara Venn · CONTACT QUICKBITE. Click one to open
       its mail.
 
+v2460 The xeno nest: a wasp nest, a queen, acid in the tunnels, a real swarm attack
+      The hive is now a hanging paper wasp nest: a long teardrop of
+      overlapping scalloped layers, each lip flaring over the one below,
+      with a stalk and anchor pad on top and the entrance underneath.
+      Docking, the surface cells and the break-up all work as before.
+      The swarm regulator is now the xeno queen instead of a spinning
+      d20: crested head, red compound eyes, mandibles, six jointed legs,
+      four wings and a huge segmented egg sac with a sting. She hovers
+      and sways, facing you.
+      Her chamber fights back harder: twice as many wall mouths, any
+      mouth you can see may fire (each rests briefly after spitting, so
+      fire comes from all round the room), occasional three-mouth
+      volleys, and up to 14 spits in flight instead of 6.
+      The way out has acid glands on the walls. Each swells as it comes
+      into range and squirts a gob of acid at you. Shoot it or dodge.
+      Coming out of the nest, the voice warns that the xenoforms have
+      turned hostile. The line is in voices unprocessed as
+      warningthexenoformshaveturnedhostile.mp3. Until it is in voices/
+      the warning shows as text.
+      Watching the swarm destroy its nest is no longer a cloud of dots
+      far away. When the drone turns to watch, a scatter of big brood
+      cells hangs close around it. When the attack starts these burst
+      first, and larvae crawl out right beside you and stream away to
+      the hive.
+

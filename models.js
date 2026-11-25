@@ -592,7 +592,73 @@ const xenoRegulatorMesh={v:[
   [9,8,1],
 ]};
 
-globalThis.AgentXXenoNest={core:xenoHiveLMesh,brood:xenoBroodPrismMesh,regulator:xenoRegulatorMesh};
+
+// v2460 (Dave: a xeno queen instead of a d20). The swarm regulator is the queen: a crested
+// head with compound eyes and mandibles, a thorax with six jointed legs and four outlined
+// wings, a thin waist and a huge segmented egg-sac abdomen ending in a sting. About the same
+// size as the old icosahedron (radius ~1.9 at the game's scale), facing -z (the player).
+const xenoQueenMesh=(()=>{
+  const m=gaBuilder(true),PI=Math.PI,line=p=>gaLine(m,p);
+  const ell=(cx,cy,z,rx,ry,n=10)=>Array.from({length:n},(_,i)=>{const t=2*PI*i/n;return[cx+Math.cos(t)*rx,cy+Math.sin(t)*ry,z]});
+  const blob=(cx,cy,z0,z1,rx,ry,k=6,n=10)=>m.loft(Array.from({length:k+1},(_,i)=>{const u=i/k,s=Math.sin(Math.PI*(.08+.84*u));return ell(cx,cy,z0+(z1-z0)*u,rx*s,ry*s,n)}),true,true);
+  m.mark('body',()=>{
+    // Head and crest.
+    blob(0,.15,-2.05,-1.35,.4,.34);
+    for(const[x,y,z,tx,ty,tz]of[[0,.42,-1.65,0,1.0,-1.25],[-.2,.38,-1.6,-.42,.9,-1.2],[.2,.38,-1.6,.42,.9,-1.2],[-.32,.3,-1.5,-.7,.62,-1.1],[.32,.3,-1.5,.7,.62,-1.1]])m.beam([x,y,z],[tx,ty,tz],.07,.07,.25);
+    // Mandibles, curving in towards each other.
+    for(const sx of[-1,1]){m.beam([sx*.2,-.02,-1.98],[sx*.3,-.12,-2.3],.08,.07,.7);m.beam([sx*.3,-.12,-2.3],[sx*.1,-.18,-2.52],.06,.05,.4)}
+    // Thorax and waist.
+    blob(0,.12,-1.45,-.55,.52,.46);
+    m.loft([ell(0,.1,-.6,.18,.16,8),ell(0,.08,-.45,.12,.11,8),ell(0,.06,-.3,.2,.18,8)],false,false);
+    // The egg sac: a long swollen abdomen in segments, each band standing proud.
+    const segs=7,z0=-.32,z1=2.0;const rings=[];
+    for(let i=0;i<=segs;i++){const u=i/segs,z=z0+(z1-z0)*u,s=Math.sin(PI*(.1+.82*u))*(1-.25*u*u);rings.push(ell(0,.0-.15*u,z,.95*s+.02,.82*s+.02,12));
+      if(i<segs){const zm=z+(z1-z0)/segs*.5,um=(i+.5)/segs,sm=Math.sin(PI*(.1+.82*um))*(1-.25*um*um);rings.push(ell(0,-.15*um,zm,.95*sm*.96,.82*sm*.96,12))}}
+    m.loft(rings,true,true);
+    m.beam([0,-.32,1.98],[0,-.5,2.45],.12,.1,.15);
+    // Six legs from the thorax: thigh out and up, shin down to a hooked foot.
+    for(const sx of[-1,1])for(const[z,sp]of[[-1.3,-.35],[-1.0,0],[-.72,.4]]){
+      const hip=[sx*.4,-.12,z],knee=[sx*1.25,.35,z+sp],foot=[sx*1.55,-.75,z+sp*1.6];
+      m.beam(hip,knee,.08,.09,.8);m.beam(knee,foot,.06,.07,.55);m.box(knee,[.12,.12,.12]);
+    }
+  });
+  m.mark('eyes',()=>{for(const sx of[-1,1])blob(sx*.3,.24,-1.95,-1.6,.17,.17,4,8)});
+  m.mark('wings',()=>{
+    for(const sx of[-1,1])for(const[a,len,w]of[[.32,2.3,.55],[.2,1.8,.42]]){
+      const base=[sx*.25,.48,-1.1],tip=[sx*(.6+len*Math.sin(a)),.75,-1.1+len*Math.cos(a)];
+      const mid=[(base[0]+tip[0])/2,(base[1]+tip[1])/2,(base[2]+tip[2])/2],out=[sx*w*.9,.08,0];
+      line([base,[mid[0]+out[0],mid[1]+out[1],mid[2]],tip,[mid[0]-out[0]*.35,mid[1]-.04,mid[2]+.12],base]);
+      line([base,[tip[0]*.85,tip[1],tip[2]*.92]])
+    }
+    for(const sx of[-1,1])line([[sx*.12,.4,-2.0],[sx*.45,.85,-2.55],[sx*.8,.95,-2.75]]);
+  });
+  const col={eyes:C.r,wings:C.c},ranges=Object.entries(m.marks);
+  const colOf=i=>{for(const[k,[a,b]]of ranges)if(i>=a&&i<b)return col[k]||null;return null};
+  return{name:'Xeno Queen',v:m.v,e:m.e,faces:m.faces,edgeColors:m.e.map(e=>colOf(e[0]))}
+})();
+
+// v2460 (Dave: it is meant to be a wasp nest). The hive is a hanging paper nest: a long
+// teardrop built from overlapping scalloped layers, each band's lower lip flaring out over
+// the one below, a stalk and anchor pad at the top and the entrance hole underneath.
+// Radius about 1, like Hive L, so the scale, docking, surface mouths and break-up all carry on.
+const xenoWaspNestMesh=(()=>{
+  const m=gaBuilder(true),PI=Math.PI,n=22;
+  const R=y=>{const u=clamp((1.02-y)/1.98,0,1);return Math.max(.08,Math.sin(PI*Math.pow(u,.72))*.92*(1-.18*u))};
+  const ring=(y,r,ph,wob=.05)=>Array.from({length:n},(_,i)=>{const t=2*PI*i/n,k=r*(1+wob*Math.sin(t*5+ph)+wob*.6*Math.sin(t*3-ph*1.7));return[Math.cos(t)*k,y,Math.sin(t)*k]});
+  // Bands from the crown down: each one tucks in at its top and flares at its lower lip.
+  const tops=[.98,.78,.56,.34,.12,-.1,-.32,-.52,-.7];
+  for(let i=0;i<tops.length;i++){
+    const y0=tops[i],y1=(tops[i+1]??-.84)-.07,ym=(y0+y1)/2,ph=i*1.3;
+    m.loft([ring(y0,R(y0)*.9,ph),ring(ym,R(ym)*1.0,ph),ring(y1,R(y1)*1.07,ph,.07)],i===0,false)
+  }
+  // Entrance: a short collar at the bottom, open.
+  m.loft([ring(-.82,.24,0,.02),ring(-.9,.17,0,.02),ring(-.86,.12,0,.02),ring(-.7,.11,0,.02)],false,false);
+  // Stalk and anchor pad.
+  m.loft([ring(.96,.12,0,0),ring(1.2,.07,0,0),ring(1.32,.09,0,0)],false,false);
+  m.loft([ring(1.32,.32,.5,.12),ring(1.4,.38,.5,.12),ring(1.46,.24,.5,.12)],true,true);
+  return{name:'Xeno Wasp Nest',v:m.v,e:m.e,faces:m.faces}
+})();
+globalThis.AgentXXenoNest={core:xenoWaspNestMesh,brood:xenoBroodPrismMesh,regulator:xenoQueenMesh,hiveL:xenoHiveLMesh,d20:xenoRegulatorMesh};
 
 // ---------- development xenoforms ----------
 // Rigid body meshes with only a few deliberately articulated appendage groups.
