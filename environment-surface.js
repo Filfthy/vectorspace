@@ -199,6 +199,40 @@ function drawFlatSampledGridLine(a,b,segments,near=.18){
   ctx.moveTo(p0.x,p0.y);ctx.lineTo(p1.x,p1.y);return true
 }
 
+// v2380 critter mechs: a rabbit (long hind legs, upright ears) and a mouse (low body, long
+// tail), model units with the hip at about 1 (drawn at s about .5 and .35). Faces -z like the
+// ground armour. topology() builds edges and faces once per kind; pose() re-emits only the
+// vertices, in the same order, for a critter's gait phase.
+const CRITTER_KINDS={
+  rabbit:{offsets:[0,.5,0,.5],stride:.55,lift:.32,legs:[[-.3,.95,-.38,.22],[-.34,.9,.42,.24],[.3,.95,-.38,.22],[.34,.9,.42,.24]],
+    body(m,ph){m.loft([[[-.3,.75,-.55],[.3,.75,-.55],[.3,1.15,-.55],[-.3,1.15,-.55]],[[-.36,.72,.1],[.36,.72,.1],[.36,1.22,.1],[-.36,1.22,.1]],[[-.3,.78,.6],[.3,.78,.6],[.3,1.12,.55],[-.3,1.12,.55]]]);
+      m.loft([[[-.18,1.1,-.62],[.18,1.1,-.62],[.18,1.42,-.66],[-.18,1.42,-.66]],[[-.13,1.12,-.98],[.13,1.12,-.98],[.13,1.34,-.96],[-.13,1.34,-.96]]]);
+      const w=Math.sin(ph*6.283)*.06;for(const sx of[-1,1])m.beam([sx*.1,1.4,-.72],[sx*(.16+w),2.15,-.55+w],.08,.16,.6);
+      m.box([0,1.05,.72],[.22,.22,.18])}},
+  mouse:{offsets:[0,.5,.5,0],stride:.45,lift:.22,legs:[[-.26,.55,-.42,.16],[-.28,.55,.38,.16],[.26,.55,-.42,.16],[.28,.55,.38,.16]],
+    body(m,ph){m.loft([[[-.22,.45,-.7],[.22,.45,-.7],[.22,.72,-.7],[-.22,.72,-.7]],[[-.34,.42,-.1],[.34,.42,-.1],[.34,.85,-.1],[-.34,.85,-.1]],[[-.28,.45,.5],[.28,.45,.5],[.28,.78,.5],[-.28,.78,.5]]]);
+      m.loft([[[-.14,.5,-.72],[.14,.5,-.72],[.14,.66,-.72],[-.14,.66,-.72]],[[-.04,.54,-1.08],[.04,.54,-1.08],[.04,.6,-1.08],[-.04,.6,-1.08]]]);
+      for(const sx of[-1,1])m.loft([m.ringXY(sx*.17,.82,-.62,.12,6),m.ringXY(sx*.17,.82,-.58,.12,6)]);
+      const w=Math.sin(ph*6.283)*.2;gaLine(m,[[0,.6,.5],[w*.5,.5,.95],[w,.42,1.35],[w*.4,.5,1.75]])}}
+};
+function critterPose(m,K,ph,amp){
+  K.body(m,ph);
+  K.legs.forEach(([x,hy,z,t],i)=>{
+    const p=(ph+K.offsets[i])%1,st=p<.6,u=st?p/.6:(p-.6)/.4,dz=(st?.5-u:-.5+u)*K.stride*amp,lift=st?0:Math.sin(u*Math.PI)*K.lift*amp;
+    const hip=[x,hy,z],foot=[x*1.12,lift,z+dz],ankle=[foot[0],lift+t*.9,foot[2]+(z<0?.04:-.04)];
+    const knee=gaIK(hip,ankle,Math.hypot(.12,hy*.5),Math.hypot(.06,hy*.5),[0,0,z<0?-1:1]);
+    gaLeg(m,{hip,knee,ankle,foot},.08*(hy+.2),i)
+  })
+}
+const _critterTopo={};
+function critterMechMesh(c){
+  if(c.mesh)return c.mesh;const kind=c.rabbit?'rabbit':'mouse',K=CRITTER_KINDS[kind];
+  let T=_critterTopo[kind];if(!T){const b=gaBuilder(true);critterPose(b,K,0,0);T=_critterTopo[kind]={e:b.e,faces:b.faces,n:b.v.length}}
+  const b=gaBuilder(false);critterPose(b,K,0,0);
+  const mesh={v:b.v,e:T.e,faces:T.faces,pose(cr){const q=gaBuilder(false);critterPose(q,K,(cr.gait||0)%1,cr.amp||0);for(let i=0;i<mesh.v.length;i++){const a=mesh.v[i],v=q.v[i];a[0]=v[0];a[1]=v[1];a[2]=v[2]}}};
+  return c.mesh=mesh
+}
+
 class SurfaceDestinationApproachController {
   constructor(){this.reset()}
   reset(){
@@ -207,7 +241,7 @@ class SurfaceDestinationApproachController {
     this.speed=22.0;this.navPulse=0;this.seed=0x504c4149;this.trees=[];this.survey=[];this.surveyIntro=null;this.beacon=null;this.chatter=null;this.skyline=[];this.forestBands=[];this.forestFront=[];this.treeHitCD=0;
     this.visibleTrees=[];this.visibleForestFront=[];
     this.baseCache=new WeakMap();this.finishing=false;this.finishT=0;this.entryRadius=36;
-    this.lastHandoff=null;this.manualComplete=false;this.hills=null;this.marsh=null;this.skimmers=[];this.gliders=[]
+    this.lastHandoff=null;this.manualComplete=false;this.hills=null;this.marsh=null;this.skimmers=[];this.gliders=[];this._critRocks=null
   }
   rand(){this.seed=(Math.imul(this.seed,1664525)+1013904223)>>>0;return this.seed/4294967296}
   // Shared surface-object mechanism. Environments and missions submit discrete
@@ -990,46 +1024,45 @@ class SurfaceDestinationApproachController {
   }
   // v2370 (Dave: occasional critters like rabbits or mice). A few small animals on the
   // OSD world's plains, scenery only: they nibble, hop about, and bolt away from the drone
-  // when it passes low over them. Drawn small and white, so they are only seen up close.
+  // when it passes low over them. Small white quad mechs, so they are only seen up close.
   buildCritters(){
-    const T=this.targetWorldZ,X=this.targetX;
-    for(let n=0,N=9+Math.floor(this.rand()*4),tries=0;n<N&&tries<80;tries++){
-      const wz=25+this.rand()*(T-90),x=X*clamp(wz/T,0,1)+(this.rand()-.5)*60;
-      if(this.sceneryReserved(x,wz,3))continue;n++;
+    // v2380 (Dave: skitter really fast between rocks): they start tucked in beside a rock.
+    const T=this.targetWorldZ,rocks=this.trees.filter(t=>t.kind==='rock'&&!t.feature&&t.worldZ>20&&t.worldZ<T-60);if(!rocks.length)return;
+    for(let n=0,N=10+Math.floor(this.rand()*4);n<N;n++){
+      const r=rocks[Math.floor(this.rand()*rocks.length)],a=this.rand()*6.28,d=this.critterRockRadius(r);
       const rabbit=this.rand()<.6;
-      this.critters.push({x,wz,rabbit,s:rabbit?.75+this.rand()*.25:.42+this.rand()*.12,h:this.rand()*6.28,ph:this.rand()*6,rest:this.rand()*2,run:0,flee:0,dir:1})
+      this.critters.push({x:r.x+Math.sin(a)*d,wz:r.worldZ+Math.cos(a)*d,rabbit,s:rabbit?.5+this.rand()*.15:.32+this.rand()*.08,h:this.rand()*6.28,wait:this.rand()*4,target:null,rock:r})
     }
+  }
+  critterRockRadius(r){return 1.1*r.s*Math.max(r.mx||1,r.mz||1)+.6}
+  // A rock to run to: within reach, not the one it is at, and away from the drone if fleeing.
+  critterNextRock(c,flee){
+    const rocks=this._critRocks||(this._critRocks=this.trees.filter(t=>t.kind==='rock'&&!t.feature));let best=null,bs=-1e9;
+    for(const r of rocks){if(r===c.rock)continue;const d=Math.hypot(r.x-c.x,r.worldZ-c.wz);if(d<5||d>(flee?34:24))continue;
+      const sc=Math.random()*10+(flee?Math.hypot(r.x-shipX,r.worldZ-travel)*.6:0);if(sc>bs){bs=sc;best=r}}
+    if(!best)return false;const a=Math.atan2(c.x-best.x,c.wz-best.worldZ)+(Math.random()-.5)*1.2,d=this.critterRockRadius(best);
+    c.rock=best;c.target=[best.x+Math.sin(a)*d,best.worldZ+Math.cos(a)*d];return true
   }
   appendCritters(scene){
     if(!this.critters?.length)return;const t=this.navPulse||0,dt=Math.min(.05,this._critT==null?0:Math.max(0,t-this._critT));this._critT=t;
     for(const c of this.critters){
-      // Behaviour: rest a while, then a short run in a new direction; bolt from the drone.
-      const dx=c.x-shipX,dz=c.wz-travel,dist=Math.hypot(dx,dz);
-      if(dist<16&&shipY-this.groundY<6&&c.flee<=0){c.flee=1.6+Math.random();c.h=Math.atan2(dx,dz)+(Math.random()-.5)*.8}
+      // Hide beside a rock, then skitter flat out to another one. The drone passing low
+      // sends them running for cover further away.
+      const near=Math.hypot(c.x-shipX,c.wz-travel)<18&&shipY-this.groundY<6;
       let speed=0;
-      if(c.flee>0){c.flee-=dt;speed=c.rabbit?9:7}
-      else if(c.run>0){c.run-=dt;speed=c.rabbit?3:2.4;if(c.run<=0)c.rest=1+Math.random()*3}
-      else{c.rest-=dt;if(c.rest<=0){c.run=.6+Math.random()*1.4;c.h+=(Math.random()-.5)*2.4}}
-      if(speed){c.x+=Math.sin(c.h)*speed*dt;c.wz+=Math.cos(c.h)*speed*dt;c.ph+=dt*(c.rabbit?9:16)}
-      const gy=this.groundY+(this.hills?this.hillAt(c.x,c.wz):0),hop=speed&&c.rabbit?Math.abs(Math.sin(c.ph))*.45*c.s:0;
-      const q=camPoint([c.x,gy+hop,c.wz-travel]);if(q[2]<1.5||q[2]>90)continue;const p=projectCam(q);if(!p)continue;
-      // Face the way it is moving across the screen.
-      const ahead=camPoint([c.x+Math.sin(c.h),gy,c.wz+Math.cos(c.h)-travel]);if(ahead[2]>.5){const pa=projectCam(ahead);if(pa&&Math.abs(pa.x-p.x)>.5)c.dir=pa.x>p.x?1:-1}
-      const k=p.k*c.s,f=c.dir,P=(x,y)=>[p.x+x*k*f,p.y-y*k],rabbit=c.rabbit,stretch=speed?.12*Math.sin(c.ph):0,w=Math.sin(c.ph*.7)*.08,depth=q[2];
-      scene.push({z:depth,draw:()=>{
-      ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.strokeStyle=C.w;ctx.globalAlpha=clamp(1.2-depth/90,.3,.9);ctx.beginPath();
-      const poly=pts=>{pts.forEach(([x,y],i)=>{const[a,b]=P(x,y);i?ctx.lineTo(a,b):ctx.moveTo(a,b)})};
-      if(rabbit){
-        poly([[-.45-stretch,.05],[-.5,.28],[-.3,.45],[.05,.48],[.28,.4],[.32,.2],[.15,.02],[-.45-stretch,.05]]);
-        poly([[.25,.38],[.33,.55],[.5,.58],[.58,.46],[.5,.36],[.32,.33]]);
-        poly([[.38,.56],[.3,.95],[.36,.97],[.44,.58]]);poly([[.46,.57],[.5,.92],[.56,.9],[.52,.56]]);
-        poly([[-.5,.3],[-.62,.36],[-.56,.22]]);
-      }else{
-        poly([[-.3,.02],[-.32,.15],[-.12,.26],[.18,.24],[.36,.12],[.42,.06],[.25,.02],[-.3,.02]]);
-        poly([[.12,.24],[.16,.33],[.24,.3],[.2,.22]]);
-        poly([[-.32,.08],[-.55,.14+w],[-.75,.05-w],[-.9,.12]]);
-      }
-      ctx.stroke();ctx.restore()}})
+      if(c.target){
+        const dx=c.target[0]-c.x,dz=c.target[1]-c.wz,d=Math.hypot(dx,dz);c.h=Math.atan2(dx,dz);
+        speed=c.rabbit?13:15;const step=Math.min(d,speed*dt);c.x+=dx/d*step||0;c.wz+=dz/d*step||0;
+        if(d<.4){c.target=null;c.wait=near?.3:1.5+Math.random()*4}
+      }else{c.wait-=dt;if((near&&c.wait<1)||c.wait<=0){if(!this.critterNextRock(c,near))c.wait=1+Math.random()*2}}
+      const gy=this.groundY+(this.hills?this.hillAt(c.x,c.wz):0),hop=0;
+      const q=camPoint([c.x,gy,c.wz-travel]);if(q[2]<1||q[2]>110)continue;
+      // v2380 (Dave: not 2D rabbits, mini quad mechs): each critter is a small four-legged
+      // mech built with the ground armour's own builder, leg rig and knee solver, posed each
+      // frame. Rabbits bound (front pair, then hind pair), mice trot.
+      c.amp=moveToward(c.amp||0,speed?1:0,dt*6);c.gait=(c.gait||0)+dt*(speed?(c.rabbit?6:8):0);
+      const M=critterMechMesh(c);M.pose(c);
+      scene.push({z:q[2],draw:()=>drawMesh({type:'critterMech',x:c.x,y:gy+hop*.4,z:c.wz-travel,s:c.s,rot:[0,c.h+Math.PI,0]},M,C.w,.9)})
     }
   }
   drawFlocks(){

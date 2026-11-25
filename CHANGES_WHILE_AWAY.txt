@@ -3105,3 +3105,15 @@ v2380 The radar dishes are anchored and hide properly
       any other part of the building. The OSD Citadel's dish gets the
       same treatment, on a proper post on its tower dome.
 
+v2390 The OSD world's critters are mini quad mechs that skitter between rocks
+      The flat rabbit and mouse outlines are gone. Each critter is now a
+      small four-legged mech built from the same parts as the ground
+      armour (the mesh builder, the leg rig with knee solving, the same
+      thighs, shins and feet), solid, so it hides what is behind it and
+      rocks hide it. Robot rabbits have a boxy body, a head and two tall
+      ears, and run with the front pair then the hind pair together. Robot
+      mice are low with round ears and a swishing tail, and trot.
+      They hide tucked in beside a rock, then skitter flat out to another
+      rock nearby, legs a blur, and stop there. Fly low over one and it
+      bolts for cover further away from you. Scenery only.
+
