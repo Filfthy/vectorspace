@@ -3260,3 +3260,7 @@ v2490 Base assault: lattice pylons, real guns, rolling ground
       and a barrel that tracks the drone and fires from the muzzle.
       The plain rolls gently instead of being dead flat. The drone rides
       over it, and it levels out round the bunker for the run in.
+
+v2500 Blue pylons on the base assault
+      The lattice pylons are blue steel now instead of green, so they
+      stand out from the green moon. The yellow node on top is unchanged.

@@ -613,7 +613,8 @@ class SceneRenderer {
  }
  if(g.type==='surfacegun'){bunkerRaid.draw(g);return}
  if(g.type==='tower'){
-   drawMesh({x:g.x,y:g.y,z:g.z,s:PYLON_MAST_K*g.s,rot:[0,g.rot[1],0]},teslaPylonMastMesh,C.g);
+   // v2500 (Dave: no green pylons on a green moon). Blue steel, so the yellow node still stands out.
+   drawMesh({x:g.x,y:g.y,z:g.z,s:PYLON_MAST_K*g.s,rot:[0,g.rot[1],0]},teslaPylonMastMesh,C.u);
    if(!g.capDead){
      const cap={x:g.x,y:towerCapY(g),z:g.z,s:.78*g.s,rot:[0,g.rot[1],0]};
      drawMesh(cap,towerCapMesh,hitFxColor(g.capHitFx,g.capCol||C.y))
