@@ -3147,3 +3147,18 @@ v2410 Shoot the surface guns from inside the tunnel, and no slow exit
       one sits exactly where it is drawn through the opening, can be hit
       only where it actually shows through it, and stays destroyed.
 
+v2420 Missing Manifest: a fuller wreck and a curved freight depot
+      The Leviathan wreck keeps the hull you fly through (its corridor
+      and collisions follow those ribs), and gains an outside: twin
+      engine nacelles with bell nozzles on pylons at the stern, cargo
+      pods along both flanks (one torn half loose and canted out),
+      jagged burnt plating round the fracture, and a sensor dome with a
+      snapped antenna. Nothing new reaches into the corridor.
+      The Free Traders freight depot is no longer a box. The hall is a
+      curved-roof hangar with ribs over the roof, rounded ends and a
+      curved belly. The front wall stays flat, so the loading bays, the
+      logo and the terminal you upload to are exactly where they were.
+      The docked freighters have rounded hulls, a spine pod and engine
+      bells, and the roof carries round tanks, a radar dome, a pipe run,
+      radiator fins and the mast and dishes.
+

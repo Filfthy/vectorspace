@@ -1,4 +1,52 @@
 'use strict';
+// v2420 (Dave: the wreck could be improved overall). The flown hull, its corridor ribs,
+// props and recorder are untouched (collision follows those ribs). Around it, outside the
+// diamond corridor everywhere: twin engine nacelles with bell nozzles on pylons at the stern,
+// cargo pods along both flanks (one torn half loose and canted), jagged burnt plating round
+// the fracture, a sensor dome and a snapped antenna. One mesh, so hidden lines stay exact.
+let _leviathanDressed=null;
+function leviathanDressedWreckMesh(){
+  if(_leviathanDressed)return _leviathanDressed;
+  const base=globalThis.AgentXStoryWreckAssets?.leviathanContinuousInterior06;if(!base||typeof gaBuilder!=='function')return base;
+  const m=gaBuilder(true),PI=Math.PI,line=(p,c)=>gaLine(m,p,c);
+  const ringZ=(cx,cy,z,rx,ry,n,rot=0)=>Array.from({length:n},(_,i)=>{const t=rot+2*PI*i/n;return[cx+Math.cos(t)*rx,cy+Math.sin(t)*ry,z]});
+  m.mark('engine',()=>{
+    for(const sx of[-1,1]){const x=sx*1.28,y=-.18;
+      m.loft([ringZ(x,y,-2.3,.16,.16,10),ringZ(x,y,-2.45,.3,.3,10),ringZ(x,y,-3.6,.32,.32,10),ringZ(x,y,-3.85,.27,.27,10)],true,false);
+      m.loft([ringZ(x,y,-3.85,.2,.2,10),ringZ(x,y,-4.05,.27,.27,10),ringZ(x,y,-4.3,.38,.38,10)],false,false);
+      m.beam([sx*.55,-.17,-2.95],[sx*1.0,-.18,-3.0],.08,.14);m.beam([sx*.4,-.15,-3.3],[sx*1.02,-.17,-3.35],.06,.1);
+      for(const z of[-2.8,-3.2])line(ringZ(x,y,z,.33,.33,10).concat([ringZ(x,y,z,.33,.33,10)[0]]));
+    }
+  });
+  m.mark('cargo',()=>{
+    const pod=(x,y,z0,z1,r)=>m.loft([ringZ(x,y,z0,r*.55,r*.55,8),ringZ(x,y,z0+.08,r,r,8),ringZ(x,y,z1-.08,r,r,8),ringZ(x,y,z1,r*.55,r*.55,8)],true,true);
+    for(const sx of[-1,1])for(const[z0,z1]of[[-1.95,-1.4],[-1.3,-.75],[-.55,0],[.08,.62]]){
+      if(sx<0&&z0===-1.3){
+        // The torn one: half pulled off its mounts and canted outwards.
+        const cx=sx*1.86,cz=-1.0,a=.55;m.T=p=>{const dx=p[0]-cx,dz=p[2]-cz;return[cx+dx*Math.cos(a)-dz*Math.sin(a)*sx,p[1]+dz*.18,cz+dx*Math.sin(a)*sx+dz*Math.cos(a)]};
+        pod(sx*1.72,-.3,z0,z1,.15);m.T=null;continue}
+      pod(sx*1.66,-.32,z0,z1,.15);m.beam([sx*1.46,-.3,(z0+z1)/2],[sx*1.53,-.31,(z0+z1)/2],.04,.05);
+    }
+  });
+  m.mark('scorch',()=>{
+    // Jagged torn plating round the separation, leaning forward off the fracture rim.
+    const D=[[-1.189,-.15],[0,.21],[1.189,-.15],[0,-.51]];
+    for(let k=0;k<4;k++){const A=D[k],B=D[(k+1)%4],pts=[];
+      for(let i=0;i<=7;i++){const u=i/7,x=A[0]+(B[0]-A[0])*u,y=A[1]+(B[1]-A[1])*u,out=1+(i%2?.05:.0),dz=i%2?.12+.12*((i*37+k*11)%5)/4:.02;pts.push([x*out,-.15+(y+.15)*out,.75+dz])}
+      line(pts)}
+  });
+  m.mark('sensor',()=>{
+    m.loft([0,.35,.7,.92].map(k=>m.ringXZ(0,.12+.2*Math.sin(k*PI/2),-2.98,.22*Math.cos(k*PI/2),.22*Math.cos(k*PI/2),10)),false,true);
+    line([[.05,.3,-2.98],[.1,.78,-3.05],[.34,.98,-3.22]]);line([[.08,.6,-3.03],[-.12,.7,-3.0]]);
+  });
+  const col={engine:C.w,cargo:C.y,scorch:C.o,sensor:C.w},ranges=Object.entries(m.marks);
+  const colOf=i=>{for(const[k,[a,b]]of ranges)if(i>=a&&i<b)return col[k];return null};
+  const nb=base.v.length;
+  _leviathanDressed={name:'Leviathan Wreck, dressed 08',v:[...base.v,...m.v],e:[...base.e,...m.e.map(([a,b])=>[a+nb,b+nb])],
+    faces:[...base.faces,...m.faces.map(f=>f.map(i=>i+nb))],
+    edgeColors:[...(base.edgeColors||base.e.map(()=>null)),...m.e.map(e=>colOf(e[0]))]};
+  return _leviathanDressed
+}
 
 // Reusable space-route mechanism for missions that cross a streamed asteroid field,
 // suffer an in-field combat interruption, then continue to a persistent large wreck.
@@ -541,7 +589,7 @@ class AsteroidWreckMissionController {
     // than scene state or object-centre distance: no leaking outside and no popping.
     const requested=this.cfg().asset||'leviathanTrueSeparation04';
     const key=requested==='leviathanTrueSeparation04'?'leviathanContinuousInterior06':requested;
-    const mesh=globalThis.AgentXStoryWreckAssets?.[key];
+    const mesh=key==='leviathanContinuousInterior06'?leviathanDressedWreckMesh():globalThis.AgentXStoryWreckAssets?.[key];
     if(mesh){
       const pose=this.wreckPresentationPose(),d=this.wreckMeshDepth(mesh,pose);
       if(d!=null)scene.push({z:d,draw:()=>drawMesh(pose,mesh,C.c)})

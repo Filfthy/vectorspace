@@ -5,153 +5,83 @@
 // terrestrial pitched-roof shed.  Its bird mark is generated at runtime from the
 // canonical AgentXNetworkLogos.trade SVG path data, preserving the approved logo
 // exactly rather than baking a hand-redrawn approximation into this asset.
+// v2420 (Dave: the depot is a bit too boxy). The freight hall is now a curved-roof hangar:
+// the front wall stays flat (so the loading bays, the logo fascia and the exterior terminal
+// keep their exact places) and the roof sweeps over in one curve to the back. Ribs follow
+// the curve. The docked freighters have rounded hulls and engine bells, and the roof carries
+// round tanks, a radar dome, a pipe run and the mast and dishes rather than boxes.
 function buildFreeTradersFreightDepotMesh(){
-  const v=[],e=[],faces=[],edgeColors=[];
-  const pushV=p=>{v.push([Number(p[0])||0,Number(p[1])||0,Number(p[2])||0]);return v.length-1};
-  const edge=(a,b,col=null)=>{e.push([a,b]);edgeColors.push(col)};
-  const addBox=(x0,y0,z0,x1,y1,z1,col=C.y)=>{
-    const b=v.length;
-    v.push([x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0],[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]);
-    [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]].forEach(p=>edge(b+p[0],b+p[1],col));
-    faces.push([b,b+1,b+2,b+3],[b+4,b+7,b+6,b+5],[b,b+4,b+5,b+1],[b+3,b+2,b+6,b+7],[b,b+3,b+7,b+4],[b+1,b+5,b+6,b+2]);
-  };
-  const addLine=(a,b,col=C.y)=>{const ia=pushV(a),ib=pushV(b);edge(ia,ib,col)};
-  const addRect=(x0,y0,x1,y1,z,col=C.y,diag=false)=>{
-    const b=v.length;v.push([x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]);
-    edge(b,b+1,col);edge(b+1,b+2,col);edge(b+2,b+3,col);edge(b+3,b,col);if(diag){edge(b,b+2,col);edge(b+1,b+3,col)}
-  };
-  const addHexPrismZ=(cx,cy,z0,z1,rx,ry,col=C.w)=>{
-    const a=[],b=[];
-    for(let i=0;i<6;i++){const t=Math.PI*2*i/6;a.push(pushV([cx+Math.cos(t)*rx,cy+Math.sin(t)*ry,z0]));b.push(pushV([cx+Math.cos(t)*rx,cy+Math.sin(t)*ry,z1]))}
-    for(let i=0;i<6;i++){edge(a[i],a[(i+1)%6],col);edge(b[i],b[(i+1)%6],col);edge(a[i],b[i],col);faces.push([a[i],a[(i+1)%6],b[(i+1)%6],b[i]])}
-    faces.push([...a].reverse(),b)
-  };
-  const addBeam=(a,b,half=.035,col=C.y)=>{
-    // Axis-aligned service/docking arms in this asset only need compact rectangular
-    // solids. Choose the dominant axis and build a thin box around the segment.
-    const x0=Math.min(a[0],b[0])-half,x1=Math.max(a[0],b[0])+half;
-    const y0=Math.min(a[1],b[1])-half,y1=Math.max(a[1],b[1])+half;
-    const z0=Math.min(a[2],b[2])-half,z1=Math.max(a[2],b[2])+half;
-    addBox(x0,y0,z0,x1,y1,z1,col)
-  };
-  const addFreighter=(cx,side)=>{
-    // Simple large industrial freighter: hexagonal long body, pointed bow, twin
-    // engines.  These are background depot traffic, not combat ships.
-    const zFront=-.35,zRear=1.70,ring=[];
-    for(let i=0;i<6;i++){const t=Math.PI*2*i/6;ring.push(pushV([cx+Math.cos(t)*.48,-.28+Math.sin(t)*.28,zFront]))}
-    const rear=[];for(let i=0;i<6;i++){const t=Math.PI*2*i/6;rear.push(pushV([cx+Math.cos(t)*.48,-.28+Math.sin(t)*.28,zRear]))}
-    const nose=pushV([cx,-.28,-1.02]);
-    for(let i=0;i<6;i++){
-      edge(ring[i],ring[(i+1)%6],C.g);edge(rear[i],rear[(i+1)%6],C.g);edge(ring[i],rear[i],C.g);edge(nose,ring[i],C.g);
-      faces.push([ring[i],ring[(i+1)%6],rear[(i+1)%6],rear[i]],[nose,ring[(i+1)%6],ring[i]])
-    }
-    faces.push([...rear].reverse());
-    const engX=.25;
-    addBox(cx-engX-.12,-.42,1.69,cx-engX+.12,-.14,2.00,C.c);
-    addBox(cx+engX-.12,-.42,1.69,cx+engX+.12,-.14,2.00,C.c);
-    // A modest dorsal cargo spine distinguishes them from fighters.
-    addBox(cx-.24,-.03,.18,cx+.24,.10,1.25,C.g)
-  };
-
-  // Main flat-roofed corrugated freight hall.
-  addBox(-2.8,-1.0,-1.60,2.8,.70,1.80,C.y);
-  // Broad corrugation on the approach wall, physically interrupted around every
-  // loading-bay/window frame, the protected logo fascia and the terminal.  These
-  // ribs are wall detail, so they must never read as prison bars across glazing or
-  // branded/interactive panels.
-  const frontProtected=[
-    {x0:-2.28,x1:-1.22,y0:-.86,y1:.04},
-    {x0:-.94,x1:.18,y0:-.86,y1:.04},
-    {x0:.43,x1:1.53,y0:-.86,y1:.04},
-    {x0:-.84,x1:.84,y0:.04,y1:.66},
-    {x0:1.80,x1:2.52,y0:-.22,y1:.35}
-  ];
-  const addFrontCorrugation=x=>{
-    let spans=[[-.94,.65]];
-    for(const r of frontProtected){
-      if(x<r.x0||x>r.x1)continue;
-      const next=[];
-      for(const [a,b] of spans){
-        if(r.y1<=a||r.y0>=b){next.push([a,b]);continue}
-        if(r.y0>a+.001)next.push([a,Math.min(b,r.y0)]);
-        if(r.y1<b-.001)next.push([Math.max(a,r.y1),b])
-      }
-      spans=next
-    }
-    for(const [a,b] of spans)if(b-a>.025)addLine([x,a,-1.615],[x,b,-1.615],C.y)
-  };
-  for(let x=-2.45;x<=2.46;x+=.35)addFrontCorrugation(x);
-  // A few roof seams maintain the warehouse language without a pitched roof.
-  for(let z=-1.12;z<=1.32;z+=.61)addLine([-2.72,.715,z],[2.72,.715,z],C.y);
-
-  // Three closed loading-bay frames across the lower frontage.
-  const bay=(cx,w=.96,h=.78)=>{
-    addRect(cx-w/2,-.82,cx+w/2,-.82+h,-1.635,C.w);
-    addRect(cx-w/2+.09,-.73,cx+w/2-.09,-.13,-1.646,C.y);
-    addLine([cx,-.73,-1.648],[cx,-.13,-1.648],C.y)
-  };
+  const m=gaBuilder(true),PI=Math.PI,line=(p,c)=>gaLine(m,p,c),cols=[];
+  const mark=(col,fn)=>{const a=m.e.length;fn();cols.push([a,m.e.length,col])};
+  const box=(x0,y0,z0,x1,y1,z1)=>m.box([(x0+x1)/2,(y0+y1)/2,(z0+z1)/2],[x1-x0,y1-y0,z1-z0]);
+  const rect=(x0,y0,x1,y1,z,diag=false)=>{line([[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]],true);if(diag){line([[x0,y0,z],[x1,y1,z]]);line([[x1,y0,z],[x0,y1,z]])}};
+  const ringX=(x,cy,cz,ry,rz,n)=>Array.from({length:n},(_,i)=>{const t=2*PI*i/n;return[x,cy+Math.sin(t)*ry,cz+Math.cos(t)*rz]});
+  const ringZ=(cx,cy,z,rx,ry,n)=>Array.from({length:n},(_,i)=>{const t=2*PI*i/n;return[cx+Math.cos(t)*rx,cy+Math.sin(t)*ry,z]});
+  // Hall profile in (z,y): flat front wall up to the fascia, then one curve over to the back.
+  const P=[[-1.6,-1.0],[-1.6,.72],[-1.5,.96],[-1.22,1.16],[-.72,1.31],[0,1.37],[.72,1.31],[1.22,1.15],[1.56,.9],[1.76,.5],[1.8,0],[1.8,-1.0],[1.55,-1.2],[.45,-1.32],[-.8,-1.29],[-1.5,-1.12]];
+  const roofY=z=>{for(let i=1;i<P.length-2;i++){const a=P[i],b=P[i+1];if(z>=a[0]&&z<=b[0])return a[1]+(b[1]-a[1])*(z-a[0])/(b[0]-a[0])}return .72};
+  mark(C.y,()=>{
+    // Rounded ends: the profile shrinks towards its centre past each end of the hall, so the
+    // corners curve back instead of ending in flat walls. One span between, so no seams cross
+    // the bays or the fascia on the front.
+    const ends=[[3.3,.28],[3.16,.6],[2.98,.86],[2.8,1]],ring=(x,k)=>P.map(([z,y])=>[x,.1+(y-.1)*k,.1+(z-.1)*k]);
+    m.loft([...ends.map(([x,k])=>ring(-x,k)),...ends.slice().reverse().map(([x,k])=>ring(x,k))],true,true);
+    // Roof ribs, standing just proud of the skin so they read as structure on the curve.
+    for(let x=-2.45;x<=2.46;x+=.7)line(P.slice(1).map(([z,y])=>{const k=1.012;return[x,-1+(y+1)*k,z*k]}));
+  });
+  // Corrugation on the flat front wall, broken round the bays, the fascia and the terminal.
+  const frontProtected=[{x0:-2.28,x1:-1.22,y0:-.86,y1:.04},{x0:-.94,x1:.18,y0:-.86,y1:.04},{x0:.43,x1:1.53,y0:-.86,y1:.04},{x0:-.84,x1:.84,y0:.04,y1:.66},{x0:1.80,x1:2.52,y0:-.22,y1:.35}];
+  mark(C.y,()=>{for(let x=-2.45;x<=2.46;x+=.35){let spans=[[-.94,.65]];
+    for(const r of frontProtected){if(x<r.x0||x>r.x1)continue;const next=[];for(const[a,b]of spans){if(r.y1<=a||r.y0>=b){next.push([a,b]);continue}if(r.y0>a+.001)next.push([a,Math.min(b,r.y0)]);if(r.y1<b-.001)next.push([Math.max(a,r.y1),b])}spans=next}
+    for(const[a,b]of spans)if(b-a>.025)line([[x,a,-1.615],[x,b,-1.615]])}});
+  // Loading bays.
+  const bay=(cx,w,h)=>{mark(C.w,()=>rect(cx-w/2,-.82,cx+w/2,-.82+h,-1.635));mark(C.y,()=>{rect(cx-w/2+.09,-.73,cx+w/2-.09,-.13,-1.646);line([[cx,-.73,-1.648],[cx,-.13,-1.648]])})};
   bay(-1.75,1.02,.82);bay(-.38,1.05,.82);bay(.98,1.02,.82);
-
-  // Protected brand fascia: quiet flat panel, no structure crosses it. The exact
-  // canonical Free Traders bird is added below from network-logos.js.
-  addBox(-.78,.08,-1.705,.78,.63,-1.615,C.w);
-
-  // Exterior terminal: just the established wall-mounted screen language, not a
-  // booth or room. Dynamic pseudo-text is drawn by the controller on this face.
-  addBox(1.84,-.18,-1.785,2.48,.31,-1.615,C.w);
-  addRect(1.93,-.08,2.39,.21,-1.797,C.c);
-  addLine([2.16,-.18,-1.80],[2.16,-.43,-1.66],C.w);
-
-  // Restrained orbital hardware. One low service spine replaces the cluttered
-  // overhead girders from the previous audition pass.
-  addBox(-1.86,.72,.18,1.86,.91,1.10,C.y);
-  for(const x of [-1.20,0,1.20])addLine([x,.715,.18],[x,.915,1.10],C.w);
-
-  // Roof utility tanks, deliberately few and compact.
-  addHexPrismZ(-1.58,1.00,.45,1.24,.22,.16,C.w);
-  addHexPrismZ(-.98,1.00,.52,1.18,.20,.15,C.w);
-
-  // Small radiator wings — enough to say "orbital infrastructure" without taking
-  // over the warehouse silhouette.
-  addRect(-2.72,.90,-1.96,1.22,.66,C.c,true);
-  addRect(1.96,.90,2.72,1.22,.66,C.c,true);
-
-  // Asymmetric communications mast and two differently aimed dishes.
-  addLine([1.55,.91,.70],[1.55,1.82,.70],C.w);
-  addLine([1.55,1.34,.70],[1.92,1.51,.58],C.w);
-  addRect(1.82,1.40,2.08,1.61,.575,C.c,true);
-  addLine([1.55,1.61,.70],[1.31,1.83,.87],C.w);
-  addRect(1.17,1.74,1.42,1.94,.875,C.c,true);
-
-  // Real side docking arms physically connect the hall to two docked freighters.
-  addBeam([-2.80,-.18,.56],[-3.60,-.18,.56],.065,C.w);
-  addBeam([ 2.80,-.18,.72],[ 3.60,-.18,.72],.065,C.w);
-  addFreighter(-4.12,-1);addFreighter(4.12,1);
-
-  // Exact canonical Free Traders Compact bird. trade.paths contains only straight
-  // SVG M/L/Z commands, so no approximation or resampling is needed: every supplied
-  // line segment becomes a model edge with the original aspect ratio intact.
+  // Logo fascia and the exterior terminal (same places as before; the controller uses them).
+  mark(C.w,()=>{box(-.78,.08,-1.705,.78,.63,-1.615);box(1.84,-.18,-1.785,2.48,.31,-1.615);line([[2.16,-.18,-1.80],[2.16,-.43,-1.66]])});
+  mark(C.c,()=>rect(1.93,-.08,2.39,.21,-1.797));
+  // Roof: a pipe run along the crown, two round tanks, a radar dome, radiator fins, mast and dishes.
+  mark(C.w,()=>{
+    m.loft([ringX(-2.3,1.47,.35,.09,.09,8),ringX(2.3,1.47,.35,.09,.09,8)],true,true);
+    for(const x of[-1.6,-.4,.8,2.0])m.beam([x,1.33,.35],[x,1.4,.35],.08,.08);
+    for(const[x,z,r,h]of[[-1.62,.82,.27,.42],[-.98,.86,.23,.3]]){const y0=roofY(z)-.05;
+      m.loft([[0,r],[h,r],[h+r*.5,r*.86],[h+r*.85,r*.5],[h+r*.98,r*.15]].map(([dy,rr])=>m.ringXZ(x,y0+dy,z,rr,rr,10)),false,true)}
+    {const x=1.0,z=.95,y0=roofY(z)-.03;m.loft([0,.3,.6,.85].map(k=>m.ringXZ(x,y0+.32*Math.sin(k*PI/2),z,.3*Math.cos(k*PI/2),.3*Math.cos(k*PI/2),12)),false,true)}
+    for(const sx of[-1,1])m.beam([sx*2.3,1.15,.2],[sx*2.3,1.15,1.05],.03,.03);
+    line([[1.62,roofY(.7)-.02,.7],[1.62,2.2,.7]]);line([[1.62,1.75,.7],[1.98,1.9,.58]]);line([[1.62,1.98,.7],[1.38,2.18,.87]]);
+  });
+  mark(C.c,()=>{
+    for(const sx of[-1,1])line([[sx*2.3,1.15,.2],[sx*2.3,1.62,.2],[sx*2.3,1.62,1.05],[sx*2.3,1.15,1.05],[sx*2.3,1.62,.2]]);
+    const dish=(cx,cy,cz,r,ax,ay)=>{const pts=Array.from({length:13},(_,i)=>{const t=2*PI*i/12,p=[Math.cos(t)*r,Math.sin(t)*r,0];const y1=p[1]*Math.cos(ax)-p[2]*Math.sin(ax),z1=p[1]*Math.sin(ax)+p[2]*Math.cos(ax),x2=p[0]*Math.cos(ay)+z1*Math.sin(ay),z2=-p[0]*Math.sin(ay)+z1*Math.cos(ay);return[cx+x2,cy+y1,cz+z2]});line(pts);line([pts[0],pts[6]]);line([pts[3],pts[9]])};
+    dish(2.0,1.92,.56,.17,-.5,.6);dish(1.32,2.24,.9,.14,-.3,-.7)});
+  // Docking arms and the two docked freighters: rounded hulls, a spine pod, engine bells.
+  const freighter=(cx)=>{
+    mark(C.g,()=>{
+      m.loft([[-1.02,.04,.03],[-.8,.2,.13],[-.45,.4,.24],[-.1,.48,.29],[1.25,.48,.29],[1.55,.42,.25],[1.7,.34,.2]].map(([z,rx,ry])=>ringZ(cx,-.28,z,rx,ry,10)),true,true);
+      m.loft([[.15,.08,.05],[.3,.2,.12],[1.1,.2,.12],[1.25,.08,.05]].map(([z,rx,ry])=>ringZ(cx,-.02,z,rx,ry,8)),true,true);
+    });
+    mark(C.c,()=>{for(const ex of[-.2,.2])m.loft([ringZ(cx+ex,-.3,1.68,.08,.08,8),ringZ(cx+ex,-.3,1.82,.11,.11,8),ringZ(cx+ex,-.3,2.0,.16,.16,8)],true,false)});
+  };
+  mark(C.w,()=>{m.beam([-3.0,-.18,.56],[-3.66,-.18,.56],.13,.13);m.beam([3.0,-.18,.72],[3.66,-.18,.72],.13,.13);
+    for(const sx of[-1,1])m.loft([ringX(sx*3.0,-.18,sx<0?.56:.72,.17,.17,8),ringX(sx*3.14,-.18,sx<0?.56:.72,.12,.12,8)],false,false)});
+  freighter(-4.12);freighter(4.12);
+  // The exact Free Traders Compact bird, from the canonical SVG path data.
   const logo=globalThis.AgentXNetworkLogos?.trade;
-  if(logo?.paths?.length){
+  if(logo?.paths?.length)mark(C.w,()=>{
     const vb=String(logo.viewBox||'0 0 1 1').trim().split(/[ ,]+/).map(Number),vx=vb[0]||0,vy=vb[1]||0,vw=Math.max(.001,vb[2]||1),vh=Math.max(.001,vb[3]||1);
-    const logoHeight=.46,sc=logoHeight/vh,cx=0,cy=.355,cz=-1.718;
+    const sc=.46/vh,cy=.355,cz=-1.718;
     for(const d of logo.paths){
-      const tokens=String(d).match(/[MLZmlz]|-?\d+(?:\.\d+)?(?:e[-+]?\d+)?/gi)||[];
-      let i=0,cmd='',first=null,prev=null;
-      while(i<tokens.length){
-        const t=tokens[i++];
-        if(/^[MLZ]$/i.test(t)){cmd=t.toUpperCase();if(cmd==='Z'){if(prev!=null&&first!=null&&prev!==first)edge(prev,first,C.w);prev=first;continue}}
-        else{i--;}
-        if(cmd!=='M'&&cmd!=='L')continue;
-        if(i+1>=tokens.length)break;
+      const tokens=String(d).match(/[MLZmlz]|-?\d+(?:\.\d+)?(?:e[-+]?\d+)?/gi)||[];let i=0,cmd='',first=null,prev=null;
+      const P2=(x,y)=>{m.v.push([(x-(vx+vw*.5))*sc,cy-(y-(vy+vh*.5))*sc,cz]);return m.v.length-1};
+      while(i<tokens.length){const t=tokens[i++];
+        if(/^[MLZ]$/i.test(t)){cmd=t.toUpperCase();if(cmd==='Z'){if(prev!=null&&first!=null&&prev!==first)m.e.push([prev,first]);prev=first;continue}}else{i--}
+        if(cmd!=='M'&&cmd!=='L')continue;if(i+1>=tokens.length)break;
         const x=Number(tokens[i++]),y=Number(tokens[i++]);if(!Number.isFinite(x)||!Number.isFinite(y))continue;
-        const idx=pushV([cx+(x-(vx+vw*.5))*sc,cy-(y-(vy+vh*.5))*sc,cz]);
-        if(cmd==='M'){first=idx;prev=idx;cmd='L'}else{if(prev!=null)edge(prev,idx,C.w);prev=idx}
-      }
+        const idx=P2(x,y);if(cmd==='M'){first=idx;prev=idx;cmd='L'}else{if(prev!=null)m.e.push([prev,idx]);prev=idx}}
     }
-  }
-
-  return{name:'Free Traders Freight Depot — Flat Roof 01',v,e,faces,edgeColors};
+  });
+  const edgeColors=m.e.map((_,i)=>{for(const[a,b,c]of cols)if(i>=a&&i<b)return c;return C.y});
+  return{name:'Free Traders Freight Depot, curved hall 02',v:m.v,e:m.e,faces:m.faces,edgeColors};
 }
 
 class FreeTradersDepotController{
