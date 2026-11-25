@@ -1083,3 +1083,10 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .storyLeadTag{letter-spacing:var(--track-label);font-size:var(--type-compact)}
 .storyLeadText{color:var(--w)}
 .storyLeadMore{color:var(--x);font-size:var(--type-meta)}
+
+/* v2480 network logos on the Networks tab */
+.netName{display:flex;align-items:center;gap:12px}
+.netName .netLogo{width:34px;height:34px;color:var(--w)}
+.opArcName{display:flex;align-items:center;gap:9px}
+.opArcName .arcLogo{width:20px;height:20px;color:var(--w)}
+.opArc.done .arcLogo{color:var(--w)}

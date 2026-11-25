@@ -3245,3 +3245,9 @@ v2470 A bigger, living queen, and a sealed nest with no stalk
       destroythexenoqueen.mp3. Until it is in voices/ that moment shows
       as text.
 
+v2480 Network logos on the Networks tab
+      Each network on the Networks tab now has its logo beside its name,
+      and each storyline under Operator has a small logo for its network
+      (VOX, OSD, Free Traders, Red Jackals, Helix, QuickBite). They are
+      the same white marks as on Mail and Contracts.
+

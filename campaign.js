@@ -293,6 +293,18 @@ class CampaignController {
     return {cr:Math.round(b.cr/50)*50,xp:Math.round(b.xp),text}
   }
   armourKills(){return Object.values(this.stats().kills.armour).reduce((a,b)=>a+b,0)}
+  // v2480 (Dave: get the organisation logos in here). The canonical network marks from
+  // network-logos.js, drawn inline beside each network and storyline on the Networks tab.
+  networkLogoSvg(id,cls=''){
+    const def=globalThis.AgentXNetworkLogos?.[id];if(!def)return'';
+    return`<svg class="networkLogoMark ${cls}" viewBox="${def.viewBox}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" data-vector-ignore="1">${def.paths.map(d=>`<path d="${d}" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="square" stroke-linejoin="miter" vector-effect="non-scaling-stroke"/>`).join('')}</svg>`
+  }
+  networkIdForName(name){
+    const t=String(name||'').toLowerCase();
+    if(t.includes('free traders'))return'trade';if(t.includes('osd')||t.includes('orbital security'))return'security';
+    if(t.includes('red jackal'))return'jackals';if(t.includes('helix'))return'helix';if(t.includes('quickbite'))return'quickbite';
+    if(/(^|[^a-z])vox([^a-z]|$)/.test(t))return'vox';return''
+  }
   storyArcs(){
     const f=this.state.mailFlags||{},arc=(name,flags)=>({name,done:flags.filter(x=>f[x+'Done']).length,total:flags.length});
     return[arc('Mara Venn · VOX',['mara1','mara2','mara3']),arc('Kudo Shang · OSD',['kudo1','kudo2','kudo3']),arc('Corvella Pallis · Free Traders',['corvella1']),
@@ -2799,7 +2811,7 @@ class CampaignController {
     factionGridEl.innerHTML='';const st=this.stats(),esc=t=>this.escapeHtml(String(t)),n=v=>Number(v||0).toLocaleString();
     const nets=document.createElement('section');nets.className='netColumn';
     nets.innerHTML='<h3 class="opHeading">Networks</h3>'+Object.values(this.factions).map(f=>{const rep=clamp(f.rep,-100,100),jobs=st.contracts.byFaction[f.id]||0;
-      return `<div class="netRow"><div class="netName">${esc(f.name)}</div><div class="repTrack"><span style="left:${(rep+100)/2}%"></span></div><div class="netMeta"><span>${rep>0?'+':''}${rep} · ${esc(this.repLabel(rep))}</span><span>${jobs} contract${jobs===1?'':'s'}</span></div>${this.networkNextHtml(f.id)}${this.contactFileHtml(f.id,st)}</div>`}).join('');
+      return `<div class="netRow"><div class="netName">${this.networkLogoSvg(f.id,"netLogo")}<span>${esc(f.name)}</span></div><div class="repTrack"><span style="left:${(rep+100)/2}%"></span></div><div class="netMeta"><span>${rep>0?'+':''}${rep} · ${esc(this.repLabel(rep))}</span><span>${jobs} contract${jobs===1?'':'s'}</span></div>${this.networkNextHtml(f.id)}${this.contactFileHtml(f.id,st)}</div>`}).join('');
     const op=document.createElement('section');op.className='opColumn';
     const arcs=this.storyArcs(),main=arcs.reduce((a,x)=>a+x.done,0),mainT=arcs.reduce((a,x)=>a+x.total,0),k=st.kills;
     // v620: tonight's systems (agent missions, elite work, bounties, route events) on the record too.
@@ -2814,7 +2826,7 @@ class CampaignController {
     const got=this.state.achievements||{},ach=this.achievementDefs();
     op.innerHTML=`<div class="opIdent"><h3 class="opHeading">Operator</h3><div class="opName">AGENT X${this.state.title?` · <b>${esc(this.state.title.toUpperCase())}</b>`:''}</div>
         <div class="opLine">Level ${this.levelForXP()} · ${n(this.state.xp)} XP · ${esc(this.state.drone)}</div></div>
-      <div class="opBlock"><h4>Storylines <span>${main}/${mainT}</span></h4>${arcs.map(a=>`<div class="opArc${a.done>=a.total?' done':''}"><span>${esc(a.name)}</span><span class="opTicks">${'<i class="tick on"></i>'.repeat(a.done)}${'<i class="tick"></i>'.repeat(a.total-a.done)}<em>${a.done}/${a.total}</em></span></div>`).join('')}</div>
+      <div class="opBlock"><h4>Storylines <span>${main}/${mainT}</span></h4>${arcs.map(a=>`<div class="opArc${a.done>=a.total?' done':''}"><span class="opArcName">${this.networkLogoSvg(this.networkIdForName(a.name),"arcLogo")}<span>${esc(a.name)}</span></span><span class="opTicks">${'<i class="tick on"></i>'.repeat(a.done)}${'<i class="tick"></i>'.repeat(a.total-a.done)}<em>${a.done}/${a.total}</em></span></div>`).join('')}</div>
       <div class="opBlock"><h4>Record</h4><div class="opStats">${rec.map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('')}</div></div>
       <div class="opBlock"><h4>Achievements <span>${ach.filter(a=>got[a.id]!=null).length}/${ach.length}</span></h4><div class="opAch">${ach.map(a=>{const on=got[a.id]!=null;
         return `<div class="achBadge${on?' on':''}" title="${esc(a.text)}"><b>${esc(a.name)}</b><span>${on?esc(a.text):`${n(Math.min(a.v,a.goal))} / ${n(a.goal)}`}</span></div>`}).join('')}</div></div>`;
