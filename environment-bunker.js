@@ -915,9 +915,9 @@ const bunkerRaid={
   drawOsdCitadel(f,obj,z){
     const t=(typeof time==='number'?time:performance.now()/1000),A=f.mesh.anchors,s=f.s;
     const W3=p=>[f.x+p[0]*s,f.y+p[1]*s,z+p[2]*s];
-    drawMesh(obj,f.mesh,C.c,.94);
-    const dish=globalThis.AgentXOSDFacility?.citadelDish,dp=W3(A.dish);
-    if(dish)drawMesh({type:'osdCitadelDish',x:dp[0],y:dp[1],z:dp[2],s:s*.55,rot:[.75,t*.45,0]},dish,C.w,.94);
+    // The dish is part of the citadel mesh (v2380), turned here, so towers and the mast hide it properly.
+    const live=globalThis.AgentXOSDFacility?.citadelLive;
+    if(live){live.setPart([.75,t*.45,0]);drawMesh(obj,live,C.c,.94)}else drawMesh(obj,f.mesh,C.c,.94);
     // Approach lights: two rows on the ground in front of the hatch, a pulse running in.
     const n=A.lights.length/2;
     A.lights.forEach((p,i)=>{

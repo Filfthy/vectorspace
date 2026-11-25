@@ -783,6 +783,7 @@ const osdCitadelMesh=(()=>{
     m.loft(dome(CX,CZ,.54,1.3,.52,12),false,true);
     m.loft(dome(-1.32,1.0,.36,1.4,.34,10),false,true);
     m.loft(dome(1.18,.98,.33,1.65,.28,10),false,true);
+    m.box([1.18,2.1,.98],[.06,.4,.06]);
   });
   // Receiving bay standing proud of the bank, front right. Its front wall is four blocks
   // around a real opening, so the hatch is a hole and not a painted rectangle.
@@ -801,7 +802,6 @@ const osdCitadelMesh=(()=>{
     for(let j=0;j<N;j++)for(let i=0;i<3;i++)line([leg(j/N)[i],leg((j+1)/N)[(i+1)%3]]);
     line([[MX,MH,MZ],[MX,MH+.45,MZ]]);
     // Dish pedestal on the right tower's dome.
-    line([[1.18,1.9,.98],[1.18,2.06,.98]]);
   });
   // The OSD emblem from the old gatehouse, on the bay's parapet above the hatch.
   const old=osdTwinTowerFortressMesh,lv=old.v.slice(142,183),le=old.e.filter(e=>e[0]>=142&&e[0]<=182&&e[1]>=142&&e[1]<=182);
@@ -810,7 +810,7 @@ const osdCitadelMesh=(()=>{
   const colOf=i=>{for(const[k,[a,b]]of ranges)if(i>=a&&i<b)return col[k];return C.c};
   return{name:'OSD Citadel',v:m.v,e:m.e,faces:m.faces,edgeColors:m.e.map(e=>colOf(e[0])),
     deliveryHatch:{x:(hx0+hx1)/2,y:(hy0+hy1)/2,z:zf-.004,width:hx1-hx0,height:hy1-hy0,innerZ:zb+.04},
-    anchors:{beacon:[MX,MH+.45,MZ],dish:[1.18,2.06,.98],searchlights:[[-1.32,1.74,1.0],[CX,1.82,CZ]],
+    anchors:{beacon:[MX,MH+.45,MZ],dish:[1.18,2.3,.98],searchlights:[[-1.32,1.74,1.0],[CX,1.82,CZ]],
       lights:[0,1].flatMap(s=>Array.from({length:9},(_,i)=>[(hx0+hx1)/2+(s?.42:-.42),.01,zf-.25-i*.38]))}}
 })();
 // The rotating dish, drawn on its own each frame: a shallow bowl opening up the +y axis
@@ -848,6 +848,9 @@ const bunkerFortress04Mesh=(()=>{
     }
     // Turret bases on the crown.
     for(const s of[-1,1]){const x=s*4.3,z=-.9,y=crown(x,z);m.loft([m.ringXZ(x,y-.3,z,1.45,1.45,10),m.ringXZ(x,y+.35,z,1.35,1.35,10)],false,true)}
+    // Dish mount: a round plinth on the crown and a post up to the dish's pivot, so the
+    // dish sits on something and its tilted bowl clears the mound as it turns.
+    {const x=2.6,z=1.0,y=crown(x,z);m.loft([m.ringXZ(x,y-.3,z,.55,.55,10),m.ringXZ(x,y+.35,z,.5,.5,10)],false,true);m.box([x,y+.35+.55,z],[.2,1.1,.2])}
     // Vents.
     for(const[x,z]of[[-1.7,1.6],[1.4,1.9]]){const y=crown(x,z);m.loft([m.ringXZ(x,y-.3,z,.42,.42,8),m.ringXZ(x,y+.7,z,.42,.42,8),m.ringXZ(x,y+.85,z,.55,.55,8)],false,true)}
   });
@@ -869,7 +872,24 @@ const bunkerFortress04Mesh=(()=>{
   return{name:'Bunker Fortress 04',v:m.v,e:m.e,faces:m.faces,
     // The mound takes the colour of the world's ground; everything else is fixed.
     colorsFor(ground){let a=cache.get(ground);if(!a){a=edgeMarks.map(k=>col[k]||ground);cache.set(ground,a)}return a},
-    anchors:{beacon:[MXp,MY+3.55,MZp],dish:[2.6,crown(2.6,1.0)+.2,1.0],lamps:[[-2.05,1.55,F-.05],[2.05,1.55,F-.05]]}}
+    anchors:{beacon:[MXp,MY+3.55,MZp],dish:[2.6,crown(2.6,1.0)+1.45,1.0],lamps:[[-2.05,1.55,F-.05],[2.05,1.55,F-.05]]}}
 })();
 globalThis.AgentXOSDFacility.citadel=osdCitadelMesh;
 globalThis.AgentXOSDFacility.citadelDish=osdCitadelDishMesh;
+// v2380 (Dave: the dish clipped into the buildings in weird ways). A turning part is merged
+// into its building's own mesh, so the one hidden-line pass hides it behind turrets and domes
+// and hides the building behind it, instead of a separate dish painted over everything.
+// setPart(rot) rewrites only the part's vertices (in building units, about the anchor); the
+// edges and faces never change, so drawMesh's cached topology stays valid.
+function meshWithTurningPart(base,part,anchor,k){
+  const nb=base.v.length,ne=base.e.length;
+  const m={...base,v:[...base.v.map(v=>v.slice()),...part.v.map(v=>v.slice())],e:[...base.e,...part.e.map(([a,b])=>[a+nb,b+nb])],faces:[...(base.faces||[]),...(part.faces||[]).map(f=>f.map(i=>i+nb))]};
+  m.setPart=rot=>{for(let i=0;i<part.v.length;i++){const p=part.v[i],q=rotate([p[0]*k,p[1]*k,p[2]*k],rot),d=m.v[nb+i];d[0]=anchor[0]+q[0];d[1]=anchor[1]+q[1];d[2]=anchor[2]+q[2]}};
+  m.colorsWith=(baseCols,partCol)=>{const c=baseCols.slice(0,ne);for(let i=0;i<part.e.length;i++)c.push(partCol);return c};
+  m.setPart([0,0,0]);return m
+}
+const osdCitadelLiveMesh=meshWithTurningPart(osdCitadelMesh,osdCitadelDishMesh,osdCitadelMesh.anchors.dish,.55);
+osdCitadelLiveMesh.edgeColors=osdCitadelLiveMesh.colorsWith(osdCitadelMesh.edgeColors,C.w);
+const bunkerFortress04LiveMesh=meshWithTurningPart(bunkerFortress04Mesh,osdCitadelDishMesh,bunkerFortress04Mesh.anchors.dish,1.5);
+{const cache=new Map();bunkerFortress04LiveMesh.colorsFor=g=>{let c=cache.get(g);if(!c){c=bunkerFortress04LiveMesh.colorsWith(bunkerFortress04Mesh.colorsFor(g),C.w);cache.set(g,c)}return c}}
+globalThis.AgentXOSDFacility.citadelLive=osdCitadelLiveMesh;

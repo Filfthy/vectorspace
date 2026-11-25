@@ -3094,3 +3094,14 @@ v2370 A dug-in bunker, critters on the OSD world, no searchlights
       only, nothing to shoot, and they hide behind rocks and hills.
       The searchlight beams over the OSD Citadel are gone.
 
+v2380 The radar dishes are anchored and hide properly
+      The bunker's dish hung in the air with nothing under it and, as a
+      separate object drawn last, it showed through the turret in front
+      of it and dipped into the mound as it turned. It now stands on a
+      round concrete plinth and post, with its pivot high enough that
+      the tilted bowl clears the mound all the way round. The dish is
+      also part of the bunker's own mesh now (only its points turn each
+      frame), so turrets hide it and it hides what is behind it, like
+      any other part of the building. The OSD Citadel's dish gets the
+      same treatment, on a proper post on its tower dome.
+
