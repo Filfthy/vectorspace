@@ -207,7 +207,7 @@ class SurfaceDestinationApproachController {
     this.speed=22.0;this.navPulse=0;this.seed=0x504c4149;this.trees=[];this.survey=[];this.surveyIntro=null;this.beacon=null;this.chatter=null;this.skyline=[];this.forestBands=[];this.forestFront=[];this.treeHitCD=0;
     this.visibleTrees=[];this.visibleForestFront=[];
     this.baseCache=new WeakMap();this.finishing=false;this.finishT=0;this.entryRadius=36;
-    this.lastHandoff=null;this.manualComplete=false;this.hills=null
+    this.lastHandoff=null;this.manualComplete=false;this.hills=null;this.marsh=null;this.skimmers=[];this.gliders=[]
   }
   rand(){this.seed=(Math.imul(this.seed,1664525)+1013904223)>>>0;return this.seed/4294967296}
   // Shared surface-object mechanism. Environments and missions submit discrete
@@ -265,21 +265,80 @@ class SurfaceDestinationApproachController {
   // volcanic fissures follow the slopes.
   setupHills(ax,az){
     this.hills=null;
-    if(this.terrain!=='plains'||this.destination==='swamp'||this.destination==='osd'||this.scenery==='swamp')return;
+    if(this.terrain!=='plains'||this.destination==='osd')return;
+    // v2330: the swamp approach rolls too, lower and over a much wider band, so the land
+    // either side has contour and the low ground can lie wet (buildMarsh, below).
+    const swamp=this.scenery==='swamp',band=swamp?[84,30]:[34,18],pad=band[0]+band[1]+4;
     const bx=this.targetX,bz=this.targetWorldZ,dx=bx-ax,dz=bz-az,len=Math.hypot(dx,dz)||1;
     // Each entry: level within r0, full hills from r1.
     const obj=[];for(const p of this.survey||[])obj.push([p.x+(p.off||0),p.worldZ,14,40]);if(this.beacon)obj.push([this.beacon.x,this.beacon.worldZ,14,40]);
     for(const t of this.trees)if(t.feature==='crater'){const r0=1.5*t.s*Math.max(t.mx||1,t.mz||1)+2;obj.push([t.x,t.worldZ,r0,r0+14])}
-    this.hills={ax,az,bx,bz,dx,dz,len,len2:len*len,obj,road:this.road||null,endFlat:this.destination==='bunker'?55:40,
-      minX:Math.min(ax,bx)-56,maxX:Math.max(ax,bx)+56,minZ:Math.min(az,bz)-56,maxZ:Math.max(az,bz)+56,memo:new Map()};
+    this.hills={ax,az,bx,bz,dx,dz,len,len2:len*len,obj,road:this.road||null,endFlat:this.destination==='bunker'?55:40,band,amp:swamp?1.6:1,
+      minX:Math.min(ax,bx)-pad,maxX:Math.max(ax,bx)+pad,minZ:Math.min(az,bz)-pad,maxZ:Math.max(az,bz)+pad,memo:new Map()};
     // Scenery stands on the slopes (once, however often this runs).
     for(const t of this.trees){t.baseY??=t.y;t.hy=this.hillAt(t.x,t.worldZ);t.y=t.baseY+Math.max(0,t.hy-.25)}
     for(const t of this.forestFront||[]){t.baseY??=t.y;t.y=t.baseY+Math.max(0,this.hillAt(t.x,t.worldZ)-.25)}
+    if(swamp)this.buildMarsh()
+  }
+  // v2330 MARSH (Dave: the flight to the swamp was boring). Ground lower than the waterline
+  // lies wet: still water drawn as shimmering ripple dashes, with reeds and swamp plants
+  // growing thick in it. The rises stay dry with only a few plants. The waterline climbs as
+  // the swamp nears, so the land gets wetter until the last stretch is nearly all marsh.
+  // Every marsh plant is scenery the drone flies through (noHit).
+  wetLevel(wz){return .6+2.8*Math.pow(clamp(wz/Math.max(1,this.targetWorldZ),0,1),1.4)}
+  isWet(x,wz){return this.hillAt(x,wz)<this.wetLevel(wz)}
+  buildMarsh(){
+    if(this.marsh||!this.hills)return;
+    const reg=globalThis.AgentXAlienSwampScenery,meshOf=id=>reg?.get?.(id)||(typeof alienSwampSceneryMesh==='function'?alienSwampSceneryMesh(id):null);
+    const reeds=['swampReedTall','swampReedFan','swampReedWide','swampReedSpike'],acc=['alienBulbPlantConnected','alienUmbrellaPlantConnected','alienEggPodFat','alienEggClusterFat'];
+    const T=this.targetWorldZ,X=this.targetX;this.marsh={ripples:[]};
+    // The rises keep only a scattering of the old clumps.
+    // All swamp-approach plants are fly-through, so the reeds that hurt cannot be confused
+    // with the ones that do not.
+    this.trees=this.trees.filter(t=>t.feature||this.isWet(t.x,t.worldZ)||this.rand()<.4);for(const t of this.trees)t.noHit=true;
+    for(let tries=0,clumps=0;tries<1400&&clumps<90;tries++){
+      const wz=12+this.rand()*(T-40),x=X+(this.rand()-.5)*230;
+      if(this.rand()>.3+.7*clamp(wz/T,0,1)||!this.isWet(x,wz)||this.sceneryReserved(x,wz,4)||Math.hypot(x-X,wz-T)<34)continue;
+      clumps++;
+      for(let i=0,n=3+Math.floor(this.rand()*5);i<n;i++){
+        const px=x+(this.rand()-.5)*10,pz=wz+(this.rand()-.5)*10;if(!this.isWet(px,pz))continue;
+        const accent=this.rand()<.22,id=accent?acc[Math.floor(this.rand()*acc.length)]:reeds[Math.floor(this.rand()*reeds.length)],base=meshOf(id);if(!base)continue;
+        const sc=(accent?.8:.85)+this.rand()*.45,hy=this.hillAt(px,pz),baseY=this.groundY-this.meshBaseY(base)*sc;
+        const o={assetId:id,mesh:base,x:px,baseY,hy,y:baseY+Math.max(0,hy-.25),worldZ:pz,s:sc,rot:[0,this.rand()*Math.PI*2,0],col:resolvePaletteColor(base.singleColorKey)||C.g,hit:false,noHit:true,marsh:true};
+        if(!accent){o.my=1.3+this.rand()*.6;o.mx=1.05+this.rand()*.2;o.mz=1}
+        this.trees.push(o)
+      }
+    }
+    // Ripples: short dashes across the water, thicker on the ground as the swamp nears.
+    for(let wz=-24;wz<T+40;wz+=5)for(let x=X-150;x<=X+150;x+=5){
+      const jx=x+(this.rand()-.5)*4.5,jz=wz+(this.rand()-.5)*4.5;
+      if(this.rand()>.34+.4*clamp(jz/T,0,1)||!this.isWet(jx,jz))continue;
+      this.marsh.ripples.push([jx,jz,.7+this.rand()*1.7,this.rand()*Math.PI*2,this.groundY+this.hillAt(jx,jz)+.03])
+    }
+    // Rows of four, so each row sorts in with the hill strips (which are black-filled and
+    // would otherwise paint over water lying on low but raised ground).
+    const rows=new Map();for(const r of this.marsh.ripples){const k=Math.floor(r[1]/4)+':'+Math.floor(r[0]/24);if(!rows.has(k))rows.set(k,[]);rows.get(k).push(r)}
+    this.marsh.rows=[...rows.values()].map(list=>({wz:list.reduce((n,r)=>n+r[1],0)/list.length,x:list.reduce((n,r)=>n+r[0],0)/list.length,y:list.reduce((n,r)=>n+r[4],0)/list.length,list}))
+  }
+  appendMarsh(scene){
+    const m=this.marsh;if(!m?.rows)return;const t=this.navPulse||0,col=landingWorldColour();
+    for(const row of m.rows){
+      const dz=row.wz-travel;if(dz<1.5||dz>212)continue;
+      const d=camPoint([row.x,row.y,dz])[2];if(d<=.5)continue;
+      scene.push({z:d-.4,draw:()=>{
+        ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.strokeStyle=col;ctx.globalAlpha=clamp(.9-dz/300,.25,.78);ctx.beginPath();
+        for(const r of row.list){
+          const L=r[2]*(.55+.45*Math.sin(t*1.4+r[3])),ox=Math.sin(t*.5+r[3])*.35,z=r[1]-travel;
+          const a=camPoint([r[0]-L+ox,r[4],z]),b=camPoint([r[0]+L+ox,r[4],z]);if(a[2]<.6||b[2]<.6)continue;
+          const pa=projectCam(a),pb=projectCam(b);if(!pa||!pb)continue;ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y)
+        }
+        ctx.stroke();ctx.restore()}})
+    }
   }
   hillAt(x,wz){
     const h=this.hills;if(!h||x<h.minX||x>h.maxX||wz<h.minZ||wz>h.maxZ)return 0;
     const u=clamp(((x-h.ax)*h.dx+(wz-h.az)*h.dz)/h.len2,0,1),lx=h.ax+h.dx*u,lz=h.az+h.dz*u,dl=Math.hypot(x-lx,wz-lz);
-    const far=1-ease(clamp((dl-34)/18,0,1));if(far<=0)return 0;
+    const far=1-ease(clamp((dl-h.band[0])/h.band[1],0,1));if(far<=0)return 0;
     const along=u*h.len,de=Math.hypot(x-h.bx,wz-h.bz);
     let g=ease(clamp(along/50,0,1))*ease(clamp((de-h.endFlat)/50,0,1));if(g<=0)return 0;
     for(const o of h.obj){const dx=x-o[0];if(dx>o[3]||dx<-o[3])continue;const d=Math.hypot(dx,wz-o[1]);if(d<o[3]){g*=ease(clamp((d-o[2])/(o[3]-o[2]),0,1));if(g<=0)return 0}}
@@ -287,7 +346,7 @@ class SurfaceDestinationApproachController {
     const n=.5*Math.sin(x*.034+wz*.011+.4)+.32*Math.sin(wz*.029-x*.019+1.3)+.2*Math.sin(x*.071+wz*.053+.7)+.18*Math.sin(x*.013-wz*.021+2.1);
     const route=2.6*(.5+.5*Math.sin(along*.052+x*.012-1.2))*(.75+.25*Math.sin(along*.13+.4));
     const side=ease(clamp((dl-5)/16,0,1));
-    return(route*(1-side)+(route*.5+3.6*clamp(.45+.55*n,0,1.3))*side)*far*g
+    return(route*(1-side)+(route*.5+3.6*clamp(.45+.55*n,0,1.3))*side)*far*g*h.amp
   }
   // A ground point with the hill under it, or null if it is behind the camera or so far
   // outside the view that it would project to a huge screen position.
@@ -868,14 +927,62 @@ class SurfaceDestinationApproachController {
   // v1640: wildlife on green and blue worlds: two or three flocks wheeling over the plains,
   // each a loose cloud of small flapping V shapes. Scenery only.
   buildFlocks(){
-    this.flocks=[];if(!(this.worldKind==='temperate'||this.worldKind==='wet')||this.scenery==='rocks'||this.scenery==='swamp')return;
+    this.flocks=[];this.skimmers=[];this.gliders=[];
     const m=typeof campaign!=='undefined'?campaign.currentMission:null;if(!m||m.training)return;
+    if(this.scenery==='swamp'){this.buildSwampFlyers();return}
+    if(!(this.worldKind==='temperate'||this.worldKind==='wet')||this.scenery==='rocks')return;
     for(let n=0,N=2+Math.floor(this.rand()*2);n<N;n++){
       const cx=this.targetX+(this.rand()-.5)*220,cz=40+this.rand()*(this.routeLength+60),r=14+this.rand()*20,y=this.groundY+7+this.rand()*8,dir=this.rand()<.5?-1:1;
       this.flocks.push({cx,cz,r,y,dir,a:this.rand()*6.28,w:(.18+this.rand()*.12)*dir,birds:Array.from({length:6+Math.floor(this.rand()*6)},()=>({dx:(this.rand()-.5)*7,dy:(this.rand()-.5)*2.5,dz:(this.rand()-.5)*7,ph:this.rand()*6}))})
     }
   }
+  // v2330 swamp wildlife, scenery only. Skimmers: small flocks darting low over the water,
+  // which scatter up and outward when the drone passes over them. Gliders: one or two big
+  // slow manta shapes riding high and far off, for a sense of scale.
+  buildSwampFlyers(){
+    const T=this.targetWorldZ,X=this.targetX;
+    for(let n=0,N=5+Math.floor(this.rand()*3);n<N;n++){
+      const z0=30+(T-70)*(n+this.rand()*.8)/N,x0=X+(this.rand()-.5)*120,ang=(this.rand()-.5)*2.4,len=30+this.rand()*40;
+      this.skimmers.push({x0,z0,dx:Math.sin(ang),dz:Math.cos(ang),len,speed:5+this.rand()*4,ph:this.rand()*10,h:1.1+this.rand()*1.1,spook:0,
+        birds:Array.from({length:5+Math.floor(this.rand()*5)},()=>({dx:(this.rand()-.5)*4.5,dy:(this.rand()-.5)*.6,dz:(this.rand()-.5)*4.5,ph:this.rand()*6}))})
+    }
+    for(let n=0,N=1+(this.rand()<.6?1:0);n<N;n++){
+      const side=n?-1:(this.rand()<.5?-1:1);
+      this.gliders.push({cx:X+side*(150+this.rand()*60),cz:T*(.45+.5*this.rand()),r:40+this.rand()*30,y:this.groundY+34+this.rand()*14,w:(.045+this.rand()*.03)*(this.rand()<.5?-1:1),a:this.rand()*6.28,ph:this.rand()*6,span:4.5+this.rand()*2})
+    }
+  }
+  drawSwampFlyers(){
+    if(!this.skimmers?.length&&!this.gliders?.length)return;const t=this.navPulse||0,dt=Math.min(.05,this._flyT==null?0:Math.max(0,t-this._flyT));this._flyT=t;
+    ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;
+    ctx.strokeStyle=C.y;
+    for(const f of this.skimmers){
+      const u=((t+f.ph)*f.speed)%(2*f.len),s=u<f.len?u:2*f.len-u,dir=u<f.len?1:-1;
+      const cx=f.x0+f.dx*s,cz=f.z0+f.dz*s;
+      if(Math.hypot(cx-shipX,cz-travel)<18)f.spook=Math.min(1,f.spook+dt*3);else f.spook=Math.max(0,f.spook-dt*.25);
+      const sp=ease(f.spook),gy=this.groundY+(this.hills?this.hillAt(cx,cz):0)+f.h+sp*5,c=camPoint([cx,gy,cz-travel]);if(c[2]<3||c[2]>260)continue;
+      ctx.globalAlpha=clamp(1.15-c[2]/260,.25,.85);ctx.beginPath();
+      for(const b of f.birds){
+        const spread=1+sp*3.2,q=camPoint([cx+b.dx*spread+Math.sin(t*2.1+b.ph)*.5,gy+b.dy+sp*b.ph*.5+Math.sin(t*3+b.ph)*.2,cz+b.dz*spread+dir*Math.cos(t*1.7+b.ph)*.4-travel]);
+        if(q[2]<2)continue;const p=projectCam(q);if(!p)continue;
+        const k=clamp(p.k*.22,1.2,5),flap=Math.sin(t*(16+sp*8)+b.ph)*.6;ctx.moveTo(p.x-k,p.y-k*flap);ctx.lineTo(p.x,p.y+k*.15);ctx.lineTo(p.x+k,p.y-k*flap)
+      }
+      ctx.stroke()
+    }
+    ctx.strokeStyle=C.m;
+    for(const g of this.gliders){
+      const a=g.a+t*g.w,cx=g.cx+Math.sin(a)*g.r,cz=g.cz+Math.cos(a)*g.r,hd=a+(g.w>0?Math.PI/2:-Math.PI/2),fx=Math.sin(hd),fz=Math.cos(hd),rx=fz,rz=-fx;
+      const c=camPoint([cx,g.y,cz-travel]);if(c[2]<60||c[2]>460)continue;
+      const S=g.span,flap=Math.sin(t*1.1+g.ph)*.9,P=(f,r,y)=>{const q=camPoint([cx+fx*f+rx*r,g.y+y,cz+fz*f+rz*r-travel]);return q[2]>1?projectCam(q):null};
+      const pts=[P(S*.55,0,0),P(-S*.05,S,flap),P(-S*.38,S*.2,flap*.15),P(-S*.5,0,0),P(-S*.38,-S*.2,flap*.15),P(-S*.05,-S,flap),P(S*.55,0,0)],tail=[P(-S*.5,0,0),P(-S*1.5,0,-.2)];
+      ctx.globalAlpha=clamp(1.2-c[2]/460,.25,.7);ctx.beginPath();let pen=false;
+      for(const p of pts){if(!p){pen=false;continue}if(pen)ctx.lineTo(p.x,p.y);else{ctx.moveTo(p.x,p.y);pen=true}}
+      if(tail[0]&&tail[1]){ctx.moveTo(tail[0].x,tail[0].y);ctx.lineTo(tail[1].x,tail[1].y)}
+      ctx.stroke()
+    }
+    ctx.restore()
+  }
   drawFlocks(){
+    this.drawSwampFlyers();
     if(!this.flocks?.length)return;const t=this.navPulse||0;
     ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.strokeStyle=C.w;
     for(const f of this.flocks){
@@ -1009,7 +1116,7 @@ class SurfaceDestinationApproachController {
     ctx.restore()
   }
   draw(){
-    this.drawGround();this.drawRoad();if(!this.hills)this.drawFissures();const scene=[];this.appendEnvironmentObjects(scene);
+    this.drawGround();this.drawRoad();if(!this.hills)this.drawFissures();const scene=[];this.appendEnvironmentObjects(scene);this.appendMarsh(scene);
     if(this.destination==='osd'&&bunkerRaid?.active)bunkerRaid.appendOsdSurfaceObjects(scene);
     this.drawObjectScene(scene);this.drawFlocks();this.drawWeather();this.drawNavigation()
   }

@@ -3027,3 +3027,16 @@ v2320 Plain grid planets, and the descent line always plays
       to moon", so a job that opens on the descent, like Loose End,
       says it too.
 
+v2330 The flight to the swamp has contour, water and life
+      The swamp approach now rolls like the other plains, over a wider
+      band either side of the route. Low ground lies wet: still water
+      drawn as shimmering ripples, with reeds and swamp plants growing
+      thick in it, while the rises stay dry with only a few plants. The
+      waterline climbs as you near the swamp, so the land gets wetter
+      until the last stretch is nearly all marsh.
+      Small flocks of skimmers dart low over the water and scatter up
+      and out of the way as you pass over them. One or two big manta
+      gliders drift high and far off.
+      Every plant on the swamp approach is now fly-through, so there is
+      no guessing which reeds hurt. Scenery only, nothing to shoot.
+
