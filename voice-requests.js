@@ -60,7 +60,8 @@ globalThis.AgentXVoiceRequests={
   scanningMonolith:'Scanning the monolith.',
   monolithScanComplete:'Scan complete. Return the data to VOX.',
   // v2460: leaving the xeno nest after the regulator falls.
-  xenoformsHostile:'Warning. The xenoforms have turned hostile.'
+  xenoformsHostile:'Warning. The xenoforms have turned hostile.',
+  xenoDestroyQueen:'Destroy the xeno queen.'
 };
 // Expected filename: the spoken text in lower case with spaces and punctuation removed.
 globalThis.AgentXVoiceRequestFile=text=>String(text).toLowerCase().replace(/[^a-z0-9]/g,'')+'.mp3';

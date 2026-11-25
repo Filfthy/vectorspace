@@ -70,7 +70,7 @@ const xenoNest={
     if(this.state==='approach')return'XENO NEST · APPROACH';
     if(this.state==='doorApproach')return'XENO HIVE · ENTRY';
     if(this.state==='coreInbound')return'XENO CORE · INFILTRATION';
-    if(this.state==='coreChamber')return'XENO CORE · REGULATOR CHAMBER';
+    if(this.state==='coreChamber')return"XENO CORE · QUEEN'S CHAMBER";
     if(this.state==='coreChamberExit')return'XENO CORE · CHAMBER EXIT';
     if(this.state==='coreEscape')return'XENO CORE · ESCAPE';
     if(this.state==='coreExit')return'XENO CORE · EXIT';
@@ -89,8 +89,8 @@ const xenoNest={
       return d>this.zoneOuter?`OUTSIDE HIVE ZONE · CORE ${d}`:`APPROACHING HIVE · CORE ${d}`
     }
     if(this.state==='doorApproach')return'ENTRY AUTOPILOT';
-    if(this.state==='coreInbound')return'ADVANCE TO REGULATOR';
-    if(this.state==='coreChamber')return this.objective&&!this.objective.dead?`REGULATOR ${Math.max(0,this.objective.hp)}/${this.objective.maxHp}`:'REGULATOR DESTROYED';
+    if(this.state==='coreInbound')return'ADVANCE TO THE QUEEN';
+    if(this.state==='coreChamber')return this.objective&&!this.objective.dead?`QUEEN ${Math.max(0,this.objective.hp)}/${this.objective.maxHp}`:'QUEEN DESTROYED';
     if(this.state==='coreChamberExit')return'ENTER EXIT CORRIDOR';
     if(this.state==='coreEscape')return'ESCAPE THE CORE';
     if(this.state==='coreExit')return'OPEN HIVE MOUTH';
@@ -801,7 +801,7 @@ const xenoNest={
     // Once X commits to the core there is no time for calm music: this is the
     // high-speed hive run. The regulator itself now remains fixed in a dedicated
     // chamber instead of being dragged along the corridor ahead of the player.
-    audio.music.setMode('violent');audio.playVoice('xenoDestroyRegulator',{once:false,priority:true});
+    audio.music.setMode('violent');if(audio.hasVoice?.('xenoDestroyQueen'))audio.playVoice('xenoDestroyQueen',{once:false,priority:true});else say('DESTROY THE XENO QUEEN',1.1);
     say('HIVE CORE ENTRY',.7)
   },
   beginRegulatorChamber(){
@@ -824,8 +824,8 @@ const xenoNest={
     for(const w of[1,2,3,4,5])for(const[t,y]of[[.26,-.62],[.49,.66],[.73,-.34],[.5,-.02]])this.chamberOrifices.push({wall:w,t,y:h*y,flash:0,rest:0});
     for(const o of this.chamberOrifices)o.rest=0;
     const f=this.regulatorChamberFrame();
-    this.objective={type:'xenoRegulator',x:f.cx,y:f.cy,z:f.centerZ,s:3.35,mx:1,my:1,mz:1,rot:[0,0,0],col:C.m,mesh:globalThis.AgentXXenoNest?.regulator,hp:14,maxHp:14,hitFx:0,dead:false,dying:0};
-    groundTargets.length=0;this.chamberCombatReady=false;say('REGULATOR CHAMBER',.65)
+    this.objective={type:'xenoRegulator',x:f.cx,y:f.cy,z:f.centerZ,s:11,mx:1,my:1,mz:1,rot:[0,0,0],col:C.m,mesh:globalThis.AgentXXenoNest?.regulator,hp:14,maxHp:14,hitFx:0,dead:false,dying:0};
+    groundTargets.length=0;this.chamberCombatReady=false;say("THE QUEEN'S CHAMBER",.65)
   },
   regulatorChamberFrame(){
     const frontZ=this.chamberEntryDistance-this.chamberTravel,backZ=frontZ+this.chamberLength,centerZ=(frontZ+backZ)*.5;
@@ -1363,7 +1363,7 @@ const xenoNest={
       if(this.objective&&!this.objective.dead){
         this.objective.x=f.cx;this.objective.y=f.cy;this.objective.z=f.centerZ;
         // v2460: the queen hovers and sways, facing the drone, instead of tumbling like a die.
-        {const t=time;this.objective.rot[0]=Math.sin(t*.7)*.07;this.objective.rot[1]=Math.sin(t*.45)*.32;this.objective.rot[2]=Math.sin(t*.38)*.09;this.objective.y=f.cy+Math.sin(t*1.1)*.6}
+        {const t=time;this.objective.mesh?.pose?.(t);this.objective.rot[0]=Math.sin(t*.7)*.07;this.objective.rot[1]=Math.sin(t*.45)*.32;this.objective.rot[2]=Math.sin(t*.38)*.09;this.objective.y=f.cy+Math.sin(t*1.1)*.6}
       }
       if(this.chamberTravel>=this.chamberHoldTravel-.01){
         if(!this.chamberCombatReady&&this.objective&&!this.objective.dead){this.chamberCombatReady=true;groundTargets.length=0;groundTargets.push(this.objective)}

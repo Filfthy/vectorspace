@@ -21,7 +21,7 @@
       modules:(n,hp)=>[{type:'carrier_intercept',label:'Remnant Carrier',difficulty:5,target:n,fighterHp:hp}],
       stages:['Destroy the Escort','Chase the Carrier','Open the Hatch','Download the Core','Escape']},
     {id:'hive',title:'Hive Purge',family:'xeno_nest',
-      description:'The network has seeded another xeno nest to harvest homing tissue. Collect a pheromone mask from Helix, get inside and destroy the regulator.',
+      description:'The network has seeded another xeno nest to harvest homing tissue. Collect a pheromone mask from Helix, get inside and destroy the queen.',
       modules:()=>[helixLab({label:'Collect Pheromone Mask',transferMode:'pickup',hatchLabel:'PHEROMONE PICKUP',hatchPrompt:'PROCEED TO PHEROMONE PICKUP',securedMessage:'PHEROMONE MASK SECURED'}),
         {type:'space_transit',label:'Proceed to the Nest',duration:3.3,message:'HEADING TO XENO NEST',hud:'TO XENO NEST',playZoomSound:true},
         {type:'xeno_nest',label:'Destroy the Nest'}],

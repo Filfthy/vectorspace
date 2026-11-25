@@ -231,7 +231,7 @@
       failed:{subject:'Telemetry received',body:['Your drone was lost. The telemetry up to that point is genuinely useful. Thank you.','The swarm is still drifting. I still need the sample.']},
       abandoned:{subject:'Sample still required',body:['You withdrew before the recovery. The swarm has not dispersed.','I would like the sample intact, when you are ready.']}},
     {title:'Second Nest',risk:6,pay:26000,xp:1500,family:'xeno_nest',
-      description:'Navira has prepared a fresh pheromone mask. Collect it from the biolab, follow the chemical trail to the young nest, penetrate it and destroy its regulator.',
+      description:'Navira has prepared a fresh pheromone mask. Collect it from the biolab, follow the chemical trail to the young nest, penetrate it and destroy its queen.',
       modules:[
         helixLab({label:'Collect Pheromone Mask',transferMode:'pickup',hatchLabel:'PHEROMONE PICKUP',hatchPrompt:'PROCEED TO PHEROMONE PICKUP',securedMessage:'PHEROMONE MASK SECURED'}),
         transit('Follow the Trail','HEADING TO SECOND NEST','TO XENO NEST'),
@@ -239,7 +239,7 @@
       ],
       stages:['Collect the Pheromone Mask','Follow the Trail','Destroy the Second Nest'],
       offerSubject:'A young nest',
-      offer:['X. I found it. A second nest, young and growing quickly, at the end of the trail.','I have prepared a fresh pheromone mask. Collect it from the biolab, go inside and destroy the regulator.','I know. I would rather study it. But a young nest that close to shipping lanes will not stay young, and I would like everyone involved to stay alive.'],
+      offer:['X. I found it. A second nest, young and growing quickly, at the end of the trail.','I have prepared a fresh pheromone mask. Collect it from the biolab, go inside and destroy the queen.','I know. I would rather study it. But a young nest that close to shipping lanes will not stay young, and I would like everyone involved to stay alive.'],
       completeSubject:'The nest is gone',
       complete:['The nest is gone. I watched the readings fall to nothing. It was sad and fascinating in roughly equal measure.','Now I have to tell you something worrying. Our deep-core field lab stopped reporting six hours ago. It was studying the same chemistry.'],
       failed:{subject:'The nest responded',body:['The nest recognised you and responded decisively. That is fascinating, and inconvenient for your drone.','The mask is still viable. Please try again.']},

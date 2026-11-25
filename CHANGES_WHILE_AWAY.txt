@@ -3228,3 +3228,20 @@ v2460 The xeno nest: a wasp nest, a queen, acid in the tunnels, a real swarm att
       first, and larvae crawl out right beside you and stream away to
       the hive.
 
+v2470 A bigger, living queen, and a sealed nest with no stalk
+      The nest no longer has a stalk or anchor pad: it floats free and
+      rounds over at the top. A solid inner body now sits just inside
+      the layers, so the gaps between them show solid nest, not the
+      hollow inside of the shell.
+      The queen is twice the size she was and moves. She has a great
+      swept-back crest of spines, snapping mandibles, two scythe
+      forelegs that rear up and strike, walking legs that shift,
+      fluttering wings and a breathing egg sac studded with glowing
+      eggs.
+      Text and speech now say queen, not regulator: QUEEN'S CHAMBER,
+      QUEEN 14/14, ADVANCE TO THE QUEEN, and the Helix mission texts.
+      The spoken "Destroy the swarm regulator" is replaced by "Destroy
+      the xeno queen", rendered into voices unprocessed as
+      destroythexenoqueen.mp3. Until it is in voices/ that moment shows
+      as text.
+
