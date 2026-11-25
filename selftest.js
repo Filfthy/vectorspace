@@ -349,6 +349,8 @@
         // pilot wakes it, the other ending is exercised instead: the lattice is cleared.
         if(kind==='latticeSurvey'){if(routeDiversion.state==='lattice')latticeSteer(1);else if(routeDiversion.state==='latticeFight'){routeDiversion.finishLattice(true);break}}
         if(kind==='escort'||kind==='layerCrew'||routeDiversion.state==='customsFight'||(routeDiversion.state==='spill'&&fighters.some(f=>!f.dead&&!f.dying)))fightStep(.9);   // v1910/v2020: these only end when the raiders die
+        // v2590: a spill case picked up in passing has to be taken to the hauler before the job can end.
+        else if(routeDiversion.state==='spill'&&globalThis.AgentXCargoSpill.carried>0)spillStep(1);
         update(1/30);if(i%60===0)render(performance.now())}
       inputX=inputY=0;
       if(routeDiversion.active)return `still running after ${secs} s in state ${routeDiversion.state}`});

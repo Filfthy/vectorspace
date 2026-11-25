@@ -186,7 +186,7 @@ class TacoBeaconDeliveryController{
   onPiratesCleared(){
     if(!this.piratesActive())return false;
     fighters.length=0;bolts.length=0;playerMissiles.length=0;scenarioFlow.encounterProfile='standard';resetSpaceDogfightDirector();
-    audio.music.setMode(campaign.currentMission?.musicMode||'calm');this.state='deliveryNav';this.stateT=0;
+    audio.music.setMode('calm');this.state='deliveryNav';this.stateT=0;
     asteroidField.spaceBackdrop=false;phase='asteroids';mode='play';phaseT=modeT=0;
     courier.setNavigationLocked(false);SoundFX.objectiveComplete();audio.playVoice('proceedToAsteroidBase',{once:false,priority:false});this.active=false;this.state='handoff';return true
   }

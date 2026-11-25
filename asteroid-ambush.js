@@ -81,7 +81,7 @@
       fighters.length=0;bolts.length=0;playerMissiles.length=0;
       scenarioFlow.encounterProfile='standard';resetSpaceDogfightDirector();
       asteroidField.spaceBackdrop=false;phase='asteroids';mode='play';phaseT=modeT=0;
-      audio.music.setMode(campaign.currentMission?.musicMode||'calm');
+      audio.music.setMode('calm');   // v2590: the fight is won
       // Counted when the job succeeds (campaign completion), not here: v1920 review fix.
       if(campaign.currentMission)campaign.currentMission.ambushSurvived=true;
       this.state='done';

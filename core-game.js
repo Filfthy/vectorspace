@@ -549,7 +549,7 @@ class Game {
          // objects have remained around it.  Clearing the perimeter only removes the
          // combat hold; the next frame continues from the exact camera/ship pose.
          stationDelivery.perimeterCombatActive=false;stationDelivery.navPulse=0;
-         audio.music.setMode(campaign.currentMission?.musicMode||'calm');
+         audio.music.setMode('calm');   // v2590: the perimeter fight is won
          say(String(activeStage.postCombatMessage||'ROGUE DRONES DESTROYED · PROCEED TO BEACON').toUpperCase(),.86)
        }
      }else if(campaign.currentMission&&activeStage?.type==='combat_recovery'){

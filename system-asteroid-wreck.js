@@ -141,7 +141,7 @@ class AsteroidWreckMissionController {
     if(!this.active||this.state!=='ambush')return false;
     fighters.length=0;bolts.length=0;playerMissiles.length=0;
     scenarioFlow.encounterProfile='standard';
-    audio.music.setMode(campaign.currentMission?.musicMode||'calm');
+    audio.music.setMode('calm');   // v2590: the fight is won
     this.state='routeAfterCombat';this.stateT=0;asteroidField.spaceBackdrop=false;phase='asteroids';mode='play';
     resetSpaceDogfightDirector();
     // Put the ACTUAL wreck into the world as soon as the pirate interruption is over,

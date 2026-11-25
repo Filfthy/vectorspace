@@ -3338,3 +3338,14 @@ v2580 Calm music once a recovery fight is won
       section, set to battle music throughout. The music now turns calm
       the moment the search starts, on every fight then recover section
       (this also covers Dispatch Fault II and the board recovery jobs).
+
+v2590 No battle music coming back after a won fight
+      Live Specimens went calm after the swarm, then the battle music
+      came back on the zoom to the Helix biolab. Story chain missions
+      default to the battle playlist and the biolab visit used that
+      default. The biolab is now a quiet leg like transits and the
+      depot. The same default was used after several other won fights
+      (asteroid ambush, the hijacked freighter's pirates, the taco run
+      pirates, the station perimeter drones), and those now go calm too.
+      The self-test's side mission check now takes any case it picked
+      up in passing back to the hauler, so the spill can end.

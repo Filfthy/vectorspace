@@ -68,7 +68,7 @@ class HelixBiolabController{
     // player closes a few hundred units on the lab.
     const pc=cameraPointToWorld([x-160,y-128,distance+360]);
     this.planet={center:pc,radius:Number(stage.planetRadius)||290,tilt:-.31,spin0:1.17};
-    audio.music.setMode(campaign.currentMission?.musicMode||'calm');
+    audio.music.setMode('calm');   // v2590 (Dave: hostile music restarted at the biolab). A lab visit is a quiet leg.
     if(stage.voice)audio.playVoice(stage.voice,{once:false,priority:true});
     else say(String(stage.message||'PROCEED TO HELIX ORBITAL BIOLAB').toUpperCase(),.88);
     return true
