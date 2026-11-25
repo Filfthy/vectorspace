@@ -3177,3 +3177,12 @@ v2430 City buildings: windows where you can actually see them
       test frame about 10 of 137 visible buildings qualified, and the
       frame cost was about the same as with no extra windows.
 
+v2440 The plain blocks beside the penthouse climb get windows too
+      The big featureless blocks you see on the climb are not the
+      authored buildings but the cheap filler blocks down the side
+      streets and in the outer districts, drawn as bare boxes. When one
+      of them is clearly visible (the same per-frame test as v2430) it is
+      now drawn with a window grid on the two walls facing you, a
+      parapet line and a rooftop plant room with a mast. Hidden or small
+      ones stay plain boxes.
+

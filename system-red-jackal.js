@@ -954,7 +954,33 @@ class RedJackalDeliveryController {
       else this.drawCityFarWire(obj,info.far,b.col,.94,depth);
       return
     }
+    // v2440 (Dave: the plain blocks right beside the penthouse climb). The side-street and
+    // district blocks are simple cuboids; when one is clearly visible it is drawn with a
+    // window grid on the two walls facing the camera, a parapet and a rooftop plant room.
+    if(b._clear){const M=this.cityBlockDetailMesh(b,shipX<b.x?-1:1,travel<b.worldZ?-1:1);drawMesh({type:'cityBlock',x:b.x,y:this.groundY,z,s:1,rot:[0,0,0]},M,b.col,.92);return}
     const obj={type:'cityBuilding',x:b.x,y:this.groundY+b.h*.5,z,s:.5,mx:b.w,my:b.h,mz:b.d,rot:[0,0,0]};drawMesh(obj,courierFixtureBoxMesh,b.col,.92)
+  }
+  // One mesh per facing (which x wall and which z wall the camera sees), built once per block,
+  // so the edge set never changes under drawMesh's cached topology.
+  cityBlockDetailMesh(b,sx,sz){
+    const cache=b._detail||(b._detail={}),key=sx+':'+sz;if(cache[key])return cache[key];
+    const hw=b.w/2,hd=b.d/2,h=b.h,v=[],e=[],faces=[];
+    const P=p=>{v.push(p);return v.length-1},L=(a,c)=>e.push([P(a),P(c)]);
+    const box=(x0,x1,y0,y1,z0,z1)=>{const i=v.length;v.push([x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0],[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]);
+      for(const[a,c]of[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]])e.push([i+a,i+c]);
+      faces.push([i,i+1,i+2,i+3],[i+4,i+7,i+6,i+5],[i,i+4,i+5,i+1],[i+3,i+2,i+6,i+7],[i,i+3,i+7,i+4],[i+1,i+5,i+6,i+2])};
+    box(-hw,hw,0,h,-hd,hd);
+    // Parapet line just below the roof, and a plant room with a mast set back on the roof.
+    const top=h-.35,fl=2.0;
+    const xw=sx*(hw+.03),zw=sz*(hd+.03);
+    L([xw,top,-hd],[xw,top,hd]);L([-hw,top,zw],[hw,top,zw]);
+    for(let y=1.4;y<top-.6;y+=fl){L([xw,y,-hd+.35],[xw,y,hd-.35]);L([-hw+.35,y,zw],[hw-.35,y,zw])}
+    const colsX=Math.max(2,Math.round((b.d-.7)/1.9)),colsZ=Math.max(2,Math.round((b.w-.7)/1.9));
+    for(let k=1;k<colsX;k++){const z=-hd+.35+(b.d-.7)*k/colsX;L([xw,1.4,z],[xw,top-.6,z])}
+    for(let k=1;k<colsZ;k++){const x=-hw+.35+(b.w-.7)*k/colsZ;L([x,1.4,zw],[x,top-.6,zw])}
+    const pw=Math.min(b.w*.32,2.4),pd=Math.min(b.d*.3,2.4),px=-sx*b.w*.15,pz=-sz*b.d*.15;
+    box(px-pw/2,px+pw/2,h,h+1.1,pz-pd/2,pz+pd/2);L([px,h+1.1,pz],[px,h+3.4,pz]);
+    return cache[key]={name:'City block, detailed',v,e,faces}
   }
   hatchCorners(open=this.hatchOpen){
     const room=this.roomSpec();if(!room)return null;
