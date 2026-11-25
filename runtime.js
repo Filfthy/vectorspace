@@ -766,7 +766,7 @@ if(DEV_MODE){
 }
 
 // v2540 (Dave: select any side mission from the DEV tab). Every route diversion kind, launched
-// first thing on a short asteroid delivery, the same way the self-test exercises them.
+// on its own. v2560: the run is only that encounter, so it ends when the encounter does.
 const devSideSelect=document.getElementById('devSideSelect'),devLaunchSide=document.getElementById('devLaunchSide'),devSideStatus=document.getElementById('devSideStatus');
 if(DEV_MODE&&devSideSelect&&typeof routeDiversion!=='undefined'){
   const kinds=Object.keys(routeDiversion.KINDS||{}).map(k=>{const h=String(routeDiversion.KINDS[k].hud||k).toLowerCase().replace(/\b\w/g,ch=>ch.toUpperCase());return{k,label:`${h} (${k})`}}).sort((a,b)=>a.label.localeCompare(b.label));
@@ -776,8 +776,8 @@ if(DEV_MODE&&devSideSelect&&typeof routeDiversion!=='undefined'){
     if(campaign.currentMission||campaign.pendingMission){say('Finish or abandon the active/prepared mission first.');return}
     const kind=devSideSelect.value;if(!routeDiversion.KINDS[kind]){say('Pick a side mission.');return}
     const m=campaign.makeDevTemplatePreview('asteroid_delivery','security');if(!m){say('Could not build the carrier run.');return}
-    m.routeEncounter=null;m.modules=m.modules.filter(x=>x.type!=='route_diversion'&&!x.routeEncounter);
-    m.modules.splice(0,0,{type:'route_diversion',label:'Side Mission',diversion:kind,difficulty:2,spaceCombat:false,fighterHp:12});m.stages=m.modules.map(x=>x.label);
+    // The side mission is the whole run: it ends when the encounter does (no delivery after it).
+    m.routeEncounter=null;m.modules=[{type:'route_diversion',label:'Side Mission',diversion:kind,difficulty:2,spaceCombat:false,fighterHp:12}];m.stages=m.modules.map(x=>x.label);
     m.title=`DEV side mission: ${routeDiversion.KINDS[kind].hud||kind}`;
     const cheat=!!devMissionCheat?.checked;invulnerable=cheat;oneShotLasers=cheat;if(invulnEl)invulnEl.checked=cheat;if(oneShotLasersEl)oneShotLasersEl.checked=cheat;
     if(!campaign.launchDevTemplateTest('asteroid_delivery','security',{mission:m})){say('Could not launch it.');return}

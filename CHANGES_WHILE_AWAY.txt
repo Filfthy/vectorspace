@@ -3315,3 +3315,9 @@ v2550 Cargo Spill cases are tractored
       every other recovery package. At the hauler it holds station a
       little way off and tractors the hold across to her, the cases
       riding the beam one after another, before you fly on.
+
+v2560 DEV side mission tester runs the encounter alone
+      The Side mission tester no longer wraps the side mission in an
+      asteroid delivery. The run is just that encounter and ends with
+      the DEV debrief when it does, so Cargo Spill finishes at the
+      hauler, as the real contract does.
