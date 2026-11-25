@@ -2811,73 +2811,104 @@ class CampaignController {
     return `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M5 30 24 8l19 22-19-7Z"/><path d="M11 30h26M24 23v14"/><text x="5" y="44">${c}/${i}</text></svg>`
   }
   marketProducts(){const order={frame:0,weapon:1,consumable:2,internal:3};return [...Object.values(this.frames).filter(f=>f.id!=='AX-1').map(f=>({...f,productType:'frame'})),...this.shop.map(it=>({...it,productType:it.slot}))].sort((a,b)=>a.tier-b.tier+(a.tier===b.tier?((order[a.productType]??9)-(order[b.productType]??9)||a.price-b.price):0))}
+  // v2310 (Dave: the market was awkward). One filter row (kind tabs with counts, and
+  // "Available to me" or "Everything"), short two-line rows grouped under grade headers,
+  // and the detail panel leads with what the item does and ends with the purchase box.
+  // Picking a row swaps only the detail, so the list keeps its scroll position.
+  marketKindName(p){return p.productType==='frame'?'Frame':({consumable:'Consumable',weapon:'Weapon',internal:'Internal'}[p.slot]||'Gear')}
+  marketTierOpensAt(tier){return ({2:2,3:5,4:9,5:14})[tier]||1}
+  marketVisible(p,kind=this.marketKindView){
+    if(kind!=='all'&&p.productType!==kind)return false;
+    if(this.marketTierView==='all')return true;
+    const a=this.productAccess(p);return !!(a.ok||a.order||a.owned)
+  }
   renderShop(){
+    const oldList=shopGridEl.querySelector('.marketList'),keepScroll=oldList?oldList.scrollTop:0;
     shopGridEl.innerHTML='';
+    if(this.marketTierView!=='all')this.marketTierView='accessible';
+    if(!this.marketKindView)this.marketKindView='all';
+    const all=this.marketProducts();
+    const kinds=[['all','All'],['frame','Frames'],['weapon','Weapons'],['consumable','Consumables'],['internal','Internals']];
+    const access=this.marketAccessTier(),boost=this.favourTierBoost(),ai=this.tierInfo(access);
+    const shelfIn=access>=3?this.shelfChangesIn():0,ord=this.state.marketOrder,ordP=ord?(this.frames[ord.id]||this.items[ord.id]):null,ordN=this.orderWait();
+    const status=[`Market access <b>${ai.name} (${ai.roman})</b>`];
+    if(boost)status.push(`favour lifts you ${boost} grade${boost===1?'':'s'}`);
+    if(shelfIn)status.push(`shelf changes in ${shelfIn} contract${shelfIn===1?'':'s'}`);
+    if(ordP)status.push(`<b>${ordP.name}</b> on order, arrives in ${ordN} contract${ordN===1?'':'s'}`);
     const toolbar=document.createElement('div');toolbar.className='marketToolbar';
-    const tierButtons=[['accessible','Accessible'],...[1,2,3,4,5].map(t=>[String(t),this.tierInfo(t).name]),['all','All']];
-    const kindButtons=[['all','All gear'],['frame','Frames'],['weapon','Weapons'],['consumable','Consumables'],['internal','Internals']];
-    const shelfIn=this.marketAccessTier()>=3?this.shelfChangesIn():0,ord=this.state.marketOrder,ordP=ord?(this.frames[ord.id]||this.items[ord.id]):null,ordN=this.orderWait();
-    toolbar.innerHTML=`<div class="marketAccessSummary">MARKET ACCESS <b>${this.tierInfo(this.marketAccessTier()).name.toUpperCase()}</b> · NORMAL LEVEL BAND ${this.tierInfo(this.normalMarketTier()).name.toUpperCase()}${this.favourTierBoost()?` · FAVOUR +${this.favourTierBoost()} TIER${this.favourTierBoost()===1?'':'S'}`:''}${shelfIn?` · SHELF CHANGES IN ${shelfIn} CONTRACT${shelfIn===1?'':'S'}`:''}${ordP?` · ON ORDER <b>${ordP.name.toUpperCase()}</b> ARRIVES IN ${ordN}`:''}</div><div class="marketFilterRow tierFilters">${tierButtons.map(([v,l])=>`<button type="button" data-market-tier="${v}" class="${/^[1-5]$/.test(v)?this.tierClass(Number(v))+' ':''}${this.marketTierView===v?'active':''}">${l}</button>`).join('')}</div><div class="marketFilterRow kindFilters">${kindButtons.map(([v,l])=>`<button type="button" data-market-kind="${v}" class="${this.marketKindView===v?'active':''}">${l}</button>`).join('')}</div>`;
-    toolbar.querySelectorAll('[data-market-tier]').forEach(btn=>btn.addEventListener('click',()=>{this.marketTierView=btn.dataset.marketTier;this.selectedMarketProductId=null;this.renderShop()}));
-    toolbar.querySelectorAll('[data-market-kind]').forEach(btn=>btn.addEventListener('click',()=>{this.marketKindView=btn.dataset.marketKind;this.selectedMarketProductId=null;this.renderShop()}));
+    toolbar.innerHTML=`<div class="marketBar"><div class="marketFilterRow kindFilters">${kinds.map(([v,l])=>{const n=all.filter(p=>this.marketVisible(p,v)).length;return `<button type="button" data-market-kind="${v}" class="${this.marketKindView===v?'active':''}">${l} <span class="marketCount">${n}</span></button>`}).join('')}</div><div class="marketFilterRow marketShow">${[['accessible','Available to me'],['all','Everything']].map(([v,l])=>`<button type="button" data-market-tier="${v}" class="${this.marketTierView===v?'active':''}">${l}</button>`).join('')}</div></div><div class="marketAccessSummary">${status.join(' · ')}</div>`;
+    toolbar.querySelectorAll('[data-market-tier]').forEach(btn=>btn.addEventListener('click',()=>{this.marketTierView=btn.dataset.marketTier;this.renderShop()}));
+    toolbar.querySelectorAll('[data-market-kind]').forEach(btn=>btn.addEventListener('click',()=>{this.marketKindView=btn.dataset.marketKind;this.renderShop()}));
     shopGridEl.appendChild(toolbar);
 
-    const products=this.marketProducts().filter(p=>{
-      if(this.marketKindView!=='all'&&p.productType!==this.marketKindView)return false;
-      if(this.marketTierView==='accessible'){const a=this.productAccess(p);return a.ok||a.order||a.owned}
-      if(this.marketTierView!=='all'&&Number(this.marketTierView)!==p.tier)return false;
-      return true
-    });
-    if(!products.length){const empty=document.createElement('div');empty.className='marketEmpty';empty.textContent='No products match this view.';shopGridEl.appendChild(empty);return}
+    const products=all.filter(p=>this.marketVisible(p));
+    if(!products.length){const empty=document.createElement('div');empty.className='marketEmpty';empty.textContent=this.marketTierView==='all'?'Nothing of this kind is sold.':'Nothing of this kind is open to you yet. Choose Everything to see what is coming.';shopGridEl.appendChild(empty);return}
     if(!products.some(p=>p.id===this.selectedMarketProductId))this.selectedMarketProductId=products[0].id;
 
     const layout=document.createElement('div');layout.className='catalogLayout marketCatalog';
     const list=document.createElement('div');list.className='catalogList marketList';list.setAttribute('aria-label','Market products');
     const detail=document.createElement('section');detail.className='catalogDetail marketDetail';
-
+    const rows=[];let lastTier=0;
     for(const p of products){
-      const access=this.productAccess(p),isFrame=p.productType==='frame',tier=this.tierInfo(p.tier);
-      const price=this.marketPrice(p),discounted=price<p.price;
-      const offered=!access.ok&&access.order&&this.openOfferFor(p.id),tag=access.owned?'OWNED':(access.ok?(access.shelf?'ON THE SHELF':'IN STOCK'):(access.onOrder?'ON ORDER':(offered?'OFFERED IN MAIL':(access.order?'ORDER':'LOCKED')))),tagClass=access.ok||access.owned?'':(access.order?'order':'bad');
-      const row=document.createElement('button');row.type='button';row.className=`catalogRow marketRow ${this.tierClass(p.tier)}${access.ok||access.order||access.owned?'':' locked'}${p.id===this.selectedMarketProductId?' selected':''}`;
-      row.innerHTML=`<span class="catalogRowTitle">${p.name}</span><span class="catalogRowSub">${isFrame?'Frame':({consumable:'Consumable',weapon:'Weapon',internal:'Internal'}[p.slot])} · ${tier.name} (${tier.roman})</span><span class="catalogRowBlurb">${p.note}</span><span class="catalogRowFacts"><b>CR ${price.toLocaleString()}${p.slot==='consumable'?' / charge':''}${discounted?' · DISCOUNT':''}</b>${!isFrame&&(this.state.inventory[p.id]||0)?`<b>IN STORES ×${this.state.inventory[p.id]}</b>`:''}<b class="${tagClass}">${tag}</b></span>`;
-      row.addEventListener('click',()=>{this.selectedMarketProductId=p.id;this.renderShop()});list.appendChild(row)
+      if(p.tier!==lastTier){lastTier=p.tier;const t=this.tierInfo(p.tier),h=document.createElement('div');h.className=`marketGroup ${this.tierClass(p.tier)}`;
+        h.innerHTML=`<span>${t.name} (${t.roman})</span>${p.tier>access?`<em>opens around level ${this.marketTierOpensAt(p.tier)}</em>`:''}`;list.appendChild(h)}
+      const a=this.productAccess(p),isFrame=p.productType==='frame',price=this.marketPrice(p),discounted=price<p.price,stores=isFrame?0:(this.state.inventory[p.id]||0);
+      const offered=!a.ok&&a.order&&this.openOfferFor(p.id),active=isFrame&&this.state.drone===p.id;
+      const tag=active?'Flying':(a.owned||isFrame&&this.state.ownedFrames.includes(p.id)?'Owned':(a.ok?(a.shelf?'On the shelf':'In stock'):(a.onOrder?'On order':(offered?'Offered in mail':(a.order?'Order':'Locked')))));
+      const tagClass=a.ok||a.owned?'':(a.order?'order':'bad');
+      const row=document.createElement('button');row.type='button';row.dataset.id=p.id;
+      row.className=`catalogRow marketRow ${this.tierClass(p.tier)}${a.ok||a.order||a.owned?'':' locked'}${p.id===this.selectedMarketProductId?' selected':''}`;
+      row.innerHTML=`<span class="marketRowTop"><span class="catalogRowTitle">${p.name}</span><b class="marketRowPrice${discounted?' discount':''}">CR ${price.toLocaleString()}${p.slot==='consumable'?' each':''}</b></span><span class="marketRowBottom"><span>${this.marketKindName(p)}${stores?` · ${stores} in stores`:''}</span><b class="${tagClass}">${tag}</b></span>`;
+      row.addEventListener('click',()=>pick(p.id));rows.push(row);list.appendChild(row)
     }
-
-    const p=products.find(x=>x.id===this.selectedMarketProductId);
-    if(p){
-      const access=this.productAccess(p),isFrame=p.productType==='frame',owned=isFrame?this.state.ownedFrames.includes(p.id):(this.state.inventory[p.id]||0),active=isFrame&&this.state.drone===p.id;
-      const tier=this.tierInfo(p.tier),icon=isFrame?this.frameIcon(p):this.itemIcon(p.id),meta=isFrame?`Frame · ${tier.name} (${tier.roman})`:p.kind;
-      const specs=isFrame?`<div class="frameSpecs"><span>${p.shields} shields</span><span>${p.consumables} consumable</span><span>${p.internals} internal</span></div><div class="frameBonus">${p.bonusText}</div>`:'';
-      const faction=p.faction?`<div class="factionAccess">${p.factionName} · REP ${p.repReq}</div>`:'';
-      const compare=!isFrame&&p.slot==='weapon'?this.weaponCompareHtml(p):'';
-      const price=this.marketPrice(p),discounted=price<p.price;
-      detail.className=`catalogDetail marketDetail ${this.tierClass(p.tier)}${access.ok||access.order||access.owned?'':' locked'}`;
-      detail.innerHTML=`<div class="catalogDetailKicker">MARKET ITEM</div><div class="shopItemHead"><div class="itemIconFrame"><div class="shopItemIcon">${icon}</div></div><div><h3>${p.name}</h3><div class="missionFaction">${meta}</div></div></div>${faction}<div class="shopAccess ${access.ok||access.owned?'':(access.order?'order':'bad')}">${access.reason}</div><div class="shopPrice">CR ${price.toLocaleString()}${discounted?` <span class="mailDiscount">MAIL DISCOUNT · WAS CR ${p.price.toLocaleString()}</span>`:''}</div><div class="shopOwned">${isFrame?(active?'ACTIVE FRAME':(owned?'OWNED · SELECT IN DRONE BAY':'NOT OWNED')):`Workshop stock X${owned}`}</div><button class="marketBuyPrimary" type="button" ${(!access.ok||active||owned&&isFrame||this.state.money<price)?'disabled':''}>${isFrame?'Buy frame':'Buy one'}</button>${access.ok&&!active&&!(owned&&isFrame)&&this.state.money<price?`<div class="shopShort">Not enough credits · CR ${(price-this.state.money).toLocaleString()} more needed</div>`:''}<div class="catalogDetailDesc">${p.note}</div>${specs}${compare}`;
-      const buyBtn=detail.querySelector('.marketBuyPrimary');
-      if(!isFrame&&p.slot==='consumable'){
-        const pack=this.packSize(p)||Number(p.pack)||1,unit=Number(p.price)||0;
-        buyBtn.textContent=`BUY PACK OF ${pack} · CR ${(price+unit*(pack-1)).toLocaleString()}`;
-        const five=document.createElement('button');five.type='button';five.className='marketBuySecondary';five.disabled=buyBtn.disabled;
-        five.textContent=`BUY 5 PACKS · CR ${(price+unit*(pack*5-1)).toLocaleString()}`;buyBtn.after(five);
-        buyBtn.addEventListener('click',()=>this.buyItem(p.id,pack));five.addEventListener('click',()=>this.buyItem(p.id,pack*5));
-        const own=detail.querySelector('.shopOwned');if(own)own.textContent=`In stores ×${this.state.inventory[p.id]||0} charges · pack of ${this.packSize(p)} per slot`;
-      }else if(access.order&&!(isFrame&&owned)){
-        // Not on the shelf: order it, or see the contact offer for it.
-        const n=this.orderWait(),other=this.state.marketOrder&&!access.onOrder?(this.frames[this.state.marketOrder.id]||this.items[this.state.marketOrder.id]):null;
-        buyBtn.disabled=!!access.onOrder||!!other||this.state.money<price||this.equipmentLocked();
-        buyBtn.textContent=access.onOrder?`ON ORDER · ARRIVES IN ${n} CONTRACT${n===1?'':'S'}`:`ORDER · CR ${price.toLocaleString()} · ARRIVES IN 2 CONTRACTS`;
-        buyBtn.addEventListener('click',()=>this.placeOrder(p.id));if(access.onOrder)buyBtn.classList.add('onOrder');
-        const after=[];
-        if(access.onOrder){const c=document.createElement('button');c.type='button';c.className='marketBuySecondary';c.textContent='CANCEL ORDER · FULL REFUND';c.addEventListener('click',()=>this.cancelOrder());after.push(c)}
-        else if(other){const d=document.createElement('div');d.className='shopShort';d.textContent=`One order at a time · ${other.name} is on order`;after.push(d)}
-        else if(this.state.money<price){const d=document.createElement('div');d.className='shopShort';d.textContent=`Not enough credits · CR ${(price-this.state.money).toLocaleString()} more needed`;after.push(d)}
-        const offer=this.openOfferFor(p.id);
-        if(offer){const b=document.createElement('button');b.type='button';b.className='marketBuySecondary';b.textContent=`OFFERED IN MAIL · CR ${Number(offer.reward.price).toLocaleString()} · OPEN MAIL`;b.addEventListener('click',()=>this.setPanel('mail',{mailId:offer.id}));after.push(b)}
-        buyBtn.after(...after);
-      }else buyBtn.addEventListener('click',()=>isFrame?this.buyFrame(p.id):this.buyItem(p.id));
+    const pick=(id,focus=false)=>{
+      this.selectedMarketProductId=id;
+      for(const r of rows){const on=r.dataset.id===id;r.classList.toggle('selected',on);if(on){if(focus)r.focus();r.scrollIntoView({block:'nearest'})}}
+      this.renderMarketDetail(detail,products.find(x=>x.id===id))
+    };
+    list.addEventListener('keydown',ev=>{
+      if(ev.key!=='ArrowDown'&&ev.key!=='ArrowUp')return;ev.preventDefault();
+      const i=rows.findIndex(r=>r.dataset.id===this.selectedMarketProductId),j=clamp(i+(ev.key==='ArrowDown'?1:-1),0,rows.length-1);
+      pick(rows[j].dataset.id,true)
+    });
+    this.renderMarketDetail(detail,products.find(x=>x.id===this.selectedMarketProductId));
+    layout.append(this.wrapCatalogScroller(list,'catalogScrollHost marketScrollHost'),detail);shopGridEl.appendChild(layout);
+    if(keepScroll)list.scrollTop=keepScroll
+  }
+  renderMarketDetail(detail,p){
+    if(!p){detail.innerHTML='';return}
+    const access=this.productAccess(p),isFrame=p.productType==='frame',owned=isFrame?this.state.ownedFrames.includes(p.id):(this.state.inventory[p.id]||0),active=isFrame&&this.state.drone===p.id;
+    const tier=this.tierInfo(p.tier),icon=isFrame?this.frameIcon(p):this.itemIcon(p.id),meta=isFrame?`Frame · ${tier.name} (${tier.roman})`:(p.kind||`${this.marketKindName(p)} · ${tier.name} (${tier.roman})`);
+    const specs=isFrame?`<div class="frameSpecs"><span>${p.shields} shields</span><span>${p.consumables} consumable</span><span>${p.internals} internal</span></div><div class="frameBonus">${p.bonusText}</div>`:'';
+    const faction=p.faction?`<div class="factionAccess">${p.factionName} · rep ${p.repReq}</div>`:'';
+    const compare=!isFrame&&p.slot==='weapon'?this.weaponCompareHtml(p):'';
+    const price=this.marketPrice(p),discounted=price<p.price,money=this.state.money;
+    const have=isFrame?(active?'You are flying this frame':(owned?'You own this frame. Select it in the Drone bay':'')):(p.slot==='consumable'?`In stores: ${owned} charge${owned===1?'':'s'}. Packs of ${this.packSize(p)} per slot`:(owned?`In stores: ${owned}`:''));
+    detail.className=`catalogDetail marketDetail ${this.tierClass(p.tier)}${access.ok||access.order||access.owned?'':' locked'}`;
+    detail.innerHTML=`<div class="shopItemHead"><div class="itemIconFrame"><div class="shopItemIcon">${icon}</div></div><div><h3>${p.name}</h3><div class="missionFaction">${meta}</div></div></div><div class="catalogDetailDesc">${p.note}</div><div class="marketBuyBox"><div class="marketBuyHead"><div class="shopPrice">CR ${price.toLocaleString()}${p.slot==='consumable'?' each':''}${discounted?` <span class="mailDiscount">mail discount, was CR ${p.price.toLocaleString()}</span>`:''}</div><div class="shopAccess ${access.ok||access.owned?'':(access.order?'order':'bad')}">${access.reason}</div></div>${have?`<div class="shopOwned">${have}</div>`:''}<div class="marketBuyRow"><button class="marketBuyPrimary" type="button" ${(!access.ok||active||owned&&isFrame||money<price)?'disabled':''}>${isFrame?`Buy frame · CR ${price.toLocaleString()}`:`Buy one · CR ${price.toLocaleString()}`}</button></div><div class="marketWallet">You have CR ${money.toLocaleString()}</div></div>${specs||faction||compare?`<div class="marketSpecs">${specs}${faction}${compare}</div>`:''}`;
+    const buyBtn=detail.querySelector('.marketBuyPrimary'),buyRow=detail.querySelector('.marketBuyRow'),note=t=>{const d=document.createElement('div');d.className='shopShort';d.textContent=t;buyRow.after(d)};
+    if(!isFrame&&p.slot==='consumable'){
+      const pack=this.packSize(p)||Number(p.pack)||1,unit=Number(p.price)||0,one=price+unit*(pack-1),five=price+unit*(pack*5-1);
+      buyBtn.textContent=`Buy pack of ${pack} · CR ${one.toLocaleString()}`;buyBtn.disabled=!access.ok||money<one;
+      const b5=document.createElement('button');b5.type='button';b5.className='marketBuySecondary';b5.disabled=!access.ok||money<five;
+      b5.textContent=`Buy 5 packs · CR ${five.toLocaleString()}`;buyRow.appendChild(b5);
+      buyBtn.addEventListener('click',()=>this.buyItem(p.id,pack));b5.addEventListener('click',()=>this.buyItem(p.id,pack*5));
+      if(access.ok&&money<one)note(`Not enough credits. You need CR ${(one-money).toLocaleString()} more`);
+    }else if(access.order&&!(isFrame&&owned)){
+      // Not on the shelf: order it, or see the contact offer for it.
+      const n=this.orderWait(),other=this.state.marketOrder&&!access.onOrder?(this.frames[this.state.marketOrder.id]||this.items[this.state.marketOrder.id]):null;
+      buyBtn.disabled=!!access.onOrder||!!other||money<price||this.equipmentLocked();
+      buyBtn.textContent=access.onOrder?`On order · arrives in ${n} contract${n===1?'':'s'}`:`Order · CR ${price.toLocaleString()} · arrives in 2 contracts`;
+      buyBtn.addEventListener('click',()=>this.placeOrder(p.id));if(access.onOrder)buyBtn.classList.add('onOrder');
+      if(access.onOrder){const c=document.createElement('button');c.type='button';c.className='marketBuySecondary';c.textContent='Cancel order · full refund';c.addEventListener('click',()=>this.cancelOrder());buyRow.appendChild(c)}
+      else if(other)note(`One order at a time. ${other.name} is on order`);
+      else if(money<price)note(`Not enough credits. You need CR ${(price-money).toLocaleString()} more`);
+      const offer=this.openOfferFor(p.id);
+      if(offer){const b=document.createElement('button');b.type='button';b.className='marketBuySecondary';b.textContent=`Offered in mail · CR ${Number(offer.reward.price).toLocaleString()} · open mail`;b.addEventListener('click',()=>this.setPanel('mail',{mailId:offer.id}));buyRow.appendChild(b)}
+    }else{
+      buyBtn.addEventListener('click',()=>isFrame?this.buyFrame(p.id):this.buyItem(p.id));
+      if(access.ok&&!active&&!(owned&&isFrame)&&money<price)note(`Not enough credits. You need CR ${(price-money).toLocaleString()} more`);
     }
-    layout.append(this.wrapCatalogScroller(list,'catalogScrollHost marketScrollHost'),detail);shopGridEl.appendChild(layout)
   }
   // Pure stat calculation for the drone bay (and hover comparisons): no state change.
   droneStats({weapon=null,internals=null}={}){

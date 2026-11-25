@@ -3004,3 +3004,17 @@ v2300 The comet is gone
       one job in four. It is removed. The passing convoy lights the nav
       computer mentions are unchanged.
 
+v2310 The market is easier to use
+      One filter row: kind tabs with a count on each (All, Frames,
+      Weapons, Consumables, Internals) and a choice between Available
+      to me and Everything. The seven grade buttons are gone. Instead
+      the list is grouped under grade headers, and a grade you cannot
+      reach yet says the level it normally opens at.
+      Rows are two short lines (name and price, then kind and status),
+      so about twice as many fit. Picking a row no longer rebuilds the
+      list, so it keeps its place, and the arrow keys move up and down.
+      The detail leads with what the item does, then the price, buy
+      buttons and your credits, then specs and the weapon comparison.
+      Stock counts read "In stores: 3 charges" rather than X3, and the
+      buttons are no longer in capitals.
+

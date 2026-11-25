@@ -1034,3 +1034,34 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .mailOfferNote{margin:0 0 8px}
 .marketDetail .marketBuyPrimary.onOrder:disabled{border-color:var(--y)!important;color:var(--y)!important;background:transparent!important}
 
+
+/* v2300 market: one filter row, compact two-line rows under grade headers, purchase box */
+.marketToolbar{padding:8px 10px;gap:6px}
+.marketBar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.marketFilterRow button{height:30px}
+.marketCount{color:var(--x);margin-left:4px}
+.marketFilterRow button.active .marketCount{color:var(--c)}
+.marketShow button{min-width:0}
+.marketAccessSummary{color:var(--x);letter-spacing:var(--track-subtle)}
+.marketAccessSummary b{color:var(--y)}
+.marketGroup{flex-shrink:0;display:flex;justify-content:space-between;gap:10px;padding:7px 12px 5px 16px;border-bottom:1px solid var(--gd);color:var(--tc,var(--g));font-size:var(--type-label);letter-spacing:var(--track-label);box-shadow:inset 4px 0 0 var(--tc)}
+.marketGroup em{font-style:normal;color:var(--x)}
+.marketList>.marketRow{min-height:0!important;grid-template-rows:auto auto!important;row-gap:3px!important;padding:8px 14px 8px 18px!important}
+.marketList>.marketRow.selected::after{content:none}
+.marketRowTop,.marketRowBottom{display:flex!important;justify-content:space-between;align-items:baseline;gap:12px;min-width:0}
+.marketRowTop .catalogRowTitle{padding-right:0;font-size:var(--type-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.marketRowPrice{font-weight:400;color:var(--g);white-space:nowrap}
+.marketRowPrice.discount{color:var(--y)}
+.marketRowBottom{color:var(--c);font-size:var(--type-meta)}
+.marketRowBottom b{font-weight:400;color:var(--g);white-space:nowrap}
+.marketRowBottom .bad{color:var(--x)}
+.marketRowBottom .order{color:var(--y)}
+.marketDetail .catalogDetailDesc{margin:4px 0 12px}
+.marketBuyBox{margin-top:16px;border-top:1px solid var(--gd);padding-top:12px;display:grid;gap:8px}
+.marketBuyHead{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.marketDetail .marketBuyHead .shopPrice{margin:0}
+.marketBuyRow{display:flex;gap:10px;flex-wrap:wrap}
+.marketBuyRow .marketBuyPrimary,.marketBuyRow .marketBuySecondary{margin:0!important;min-height:38px;height:auto;padding:6px 16px}
+.marketWallet{color:var(--x);font-size:var(--type-meta)}
+.marketBuyBox{margin-top:0;border-top:0;padding:12px 0;border-bottom:1px solid var(--gd)}
+.marketSpecs{padding-top:4px}
