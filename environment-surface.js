@@ -941,40 +941,41 @@ class SurfaceDestinationApproachController {
   // slow manta shapes riding high and far off, for a sense of scale.
   buildSwampFlyers(){
     const T=this.targetWorldZ,X=this.targetX;
-    for(let n=0,N=5+Math.floor(this.rand()*3);n<N;n++){
-      const z0=30+(T-70)*(n+this.rand()*.8)/N,x0=X+(this.rand()-.5)*120,ang=(this.rand()-.5)*2.4,len=30+this.rand()*40;
+    // v2340 (Dave: did not see any): more flocks, strung along the route itself, bigger and white.
+    for(let n=0,N=9+Math.floor(this.rand()*3);n<N;n++){
+      const z0=30+(T-60)*(n+this.rand()*.8)/N,x0=X*clamp(z0/T,0,1)+(this.rand()-.5)*44,ang=(this.rand()-.5)*2.6,len=26+this.rand()*30;
       this.skimmers.push({x0,z0,dx:Math.sin(ang),dz:Math.cos(ang),len,speed:5+this.rand()*4,ph:this.rand()*10,h:1.1+this.rand()*1.1,spook:0,
-        birds:Array.from({length:5+Math.floor(this.rand()*5)},()=>({dx:(this.rand()-.5)*4.5,dy:(this.rand()-.5)*.6,dz:(this.rand()-.5)*4.5,ph:this.rand()*6}))})
+        birds:Array.from({length:8+Math.floor(this.rand()*7)},()=>({dx:(this.rand()-.5)*6,dy:(this.rand()-.5)*.8,dz:(this.rand()-.5)*6,ph:this.rand()*6}))})
     }
-    for(let n=0,N=1+(this.rand()<.6?1:0);n<N;n++){
-      const side=n?-1:(this.rand()<.5?-1:1);
-      this.gliders.push({cx:X+side*(150+this.rand()*60),cz:T*(.45+.5*this.rand()),r:40+this.rand()*30,y:this.groundY+34+this.rand()*14,w:(.045+this.rand()*.03)*(this.rand()<.5?-1:1),a:this.rand()*6.28,ph:this.rand()*6,span:4.5+this.rand()*2})
+    for(let n=0,N=2+(this.rand()<.5?1:0);n<N;n++){
+      const side=n%2?-1:1;
+      this.gliders.push({cx:X*.6+side*(45+this.rand()*40),cz:T*(.3+.25*n+.15*this.rand()),r:30+this.rand()*25,y:this.groundY+18+this.rand()*10,w:(.045+this.rand()*.03)*(this.rand()<.5?-1:1),a:this.rand()*6.28,ph:this.rand()*6,span:7+this.rand()*3})
     }
   }
   drawSwampFlyers(){
     if(!this.skimmers?.length&&!this.gliders?.length)return;const t=this.navPulse||0,dt=Math.min(.05,this._flyT==null?0:Math.max(0,t-this._flyT));this._flyT=t;
     ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;
-    ctx.strokeStyle=C.y;
+    ctx.strokeStyle=C.w;
     for(const f of this.skimmers){
       const u=((t+f.ph)*f.speed)%(2*f.len),s=u<f.len?u:2*f.len-u,dir=u<f.len?1:-1;
       const cx=f.x0+f.dx*s,cz=f.z0+f.dz*s;
       if(Math.hypot(cx-shipX,cz-travel)<18)f.spook=Math.min(1,f.spook+dt*3);else f.spook=Math.max(0,f.spook-dt*.25);
-      const sp=ease(f.spook),gy=this.groundY+(this.hills?this.hillAt(cx,cz):0)+f.h+sp*5,c=camPoint([cx,gy,cz-travel]);if(c[2]<3||c[2]>260)continue;
-      ctx.globalAlpha=clamp(1.15-c[2]/260,.25,.85);ctx.beginPath();
+      const sp=ease(f.spook),gy=this.groundY+(this.hills?this.hillAt(cx,cz):0)+f.h+sp*5,c=camPoint([cx,gy,cz-travel]);if(c[2]<3||c[2]>280)continue;
+      ctx.globalAlpha=clamp(1.2-c[2]/280,.4,.95);ctx.beginPath();
       for(const b of f.birds){
         const spread=1+sp*3.2,q=camPoint([cx+b.dx*spread+Math.sin(t*2.1+b.ph)*.5,gy+b.dy+sp*b.ph*.5+Math.sin(t*3+b.ph)*.2,cz+b.dz*spread+dir*Math.cos(t*1.7+b.ph)*.4-travel]);
         if(q[2]<2)continue;const p=projectCam(q);if(!p)continue;
-        const k=clamp(p.k*.22,1.2,5),flap=Math.sin(t*(16+sp*8)+b.ph)*.6;ctx.moveTo(p.x-k,p.y-k*flap);ctx.lineTo(p.x,p.y+k*.15);ctx.lineTo(p.x+k,p.y-k*flap)
+        const k=clamp(p.k*.45,2.6,11),flap=Math.sin(t*(16+sp*8)+b.ph)*.6;ctx.moveTo(p.x-k,p.y-k*flap);ctx.lineTo(p.x,p.y+k*.15);ctx.lineTo(p.x+k,p.y-k*flap)
       }
       ctx.stroke()
     }
     ctx.strokeStyle=C.m;
     for(const g of this.gliders){
       const a=g.a+t*g.w,cx=g.cx+Math.sin(a)*g.r,cz=g.cz+Math.cos(a)*g.r,hd=a+(g.w>0?Math.PI/2:-Math.PI/2),fx=Math.sin(hd),fz=Math.cos(hd),rx=fz,rz=-fx;
-      const c=camPoint([cx,g.y,cz-travel]);if(c[2]<60||c[2]>460)continue;
+      const c=camPoint([cx,g.y,cz-travel]);if(c[2]<14||c[2]>460)continue;
       const S=g.span,flap=Math.sin(t*1.1+g.ph)*.9,P=(f,r,y)=>{const q=camPoint([cx+fx*f+rx*r,g.y+y,cz+fz*f+rz*r-travel]);return q[2]>1?projectCam(q):null};
       const pts=[P(S*.55,0,0),P(-S*.05,S,flap),P(-S*.38,S*.2,flap*.15),P(-S*.5,0,0),P(-S*.38,-S*.2,flap*.15),P(-S*.05,-S,flap),P(S*.55,0,0)],tail=[P(-S*.5,0,0),P(-S*1.5,0,-.2)];
-      ctx.globalAlpha=clamp(1.2-c[2]/460,.25,.7);ctx.beginPath();let pen=false;
+      ctx.globalAlpha=clamp(1.25-c[2]/460,.35,.85);ctx.beginPath();let pen=false;
       for(const p of pts){if(!p){pen=false;continue}if(pen)ctx.lineTo(p.x,p.y);else{ctx.moveTo(p.x,p.y);pen=true}}
       if(tail[0]&&tail[1]){ctx.moveTo(tail[0].x,tail[0].y);ctx.lineTo(tail[1].x,tail[1].y)}
       ctx.stroke()

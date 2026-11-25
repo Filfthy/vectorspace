@@ -3040,3 +3040,10 @@ v2330 The flight to the swamp has contour, water and life
       Every plant on the swamp approach is now fly-through, so there is
       no guessing which reeds hurt. Scenery only, nothing to shoot.
 
+v2340 Swamp flyers you can actually see
+      You saw none. The skimmers were tiny yellow specks and the gliders
+      circled far out to the sides. Now there are nine to eleven
+      skimmer flocks strung along the route itself, white, twice the
+      size and with more in each flock, and two or three gliders,
+      bigger and much nearer, crossing the view ahead.
+
