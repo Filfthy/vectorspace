@@ -3117,3 +3117,24 @@ v2390 The OSD world's critters are mini quad mechs that skitter between rocks
       rock nearby, legs a blur, and stop there. Fly low over one and it
       bolts for cover further away from you. Scenery only.
 
+v2400 Exit fight, no phantom shots, busier critters, smoother OSD delivery
+      Leaving the bunker: the surviving surface guns you see through the
+      exit used to be scenery, and everything was cleared the moment you
+      came out. Now they are live guns on a short flight out under your
+      control. They track and fire as on the way in and you can destroy
+      them (the HUD counts them down). The climb out starts once you are
+      past the last of them. The inbound Tesla field no longer shows on
+      the way out.
+      Phantom shots: a laser burst fires over several frames, and when a
+      scene change cut one short its leftover shots were held, not
+      cancelled, then went off on the first frame back in control (for
+      example arriving at the second planet). A cut-short burst is now
+      dropped.
+      Critters: about twice as many, only by rocks near your route,
+      bigger, and they rest far less between dashes.
+      OSD delivery: the drone holds back further from the hatch, and the
+      package starts its tractor-beam trip well ahead of the drone
+      instead of right in front of the camera, so it no longer fills the
+      screen. The compound no longer vanishes while part of it is still
+      on screen as you turn away, and stays in view through the climb.
+

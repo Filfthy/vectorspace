@@ -524,6 +524,12 @@ const bunkerRaid={
     // hand over to the established breach autopilot instead of ending the DEV run.
     // Keep reinforcement pressure gradual. A sudden jump from 30 to 36 near the
     // bunker spawned a visible knot of emplacements and made the distribution lumpy.
+    // v2400 the fight back out past the surviving guns, then the usual exit climb.
+    if(this.raidState==='surfaceClear'&&this.clearRun&&mode==='play'){
+      const run=this.clearRun;run.t+=dt;
+      const left=groundTargets.some(g=>g.type==='landgun'&&!g.dead&&!g.dying&&g.worldZ>travel-4);
+      if(travel>run.endZ||run.t>14||(!left&&run.t>1.5)){this.clearRun=null;groundTargets.length=0;bolts.length=0;this.devExitPending=true;beginSurfaceExit({continueMission:true});return}
+    }
     const gunContent=this.content.surfaceAssault.guns,pop=gunContent.population;
     this.desired=bunkerDist<pop.nearDistance?pop.near:bunkerDist<pop.midDistance?pop.mid:pop.far;
     if(!this.bunkerReached&&bunkerDist<gunContent.stopSpawningDistance){this.desired=0;this.spawnCooldown=999}
@@ -698,7 +704,23 @@ const bunkerRaid={
     this.raidState='surfaceClear';mode='bunkerSurfaceClear';phase='surface';modeT=phaseT=0;
     surfaceBunkerActive=false;groundTargets.length=0;bolts.length=0;hazards.length=0;shots.length=0;playerMissiles.length=0;
     inputX=inputY=aimX=aimY=0;viewYaw=viewPitch=viewRoll=0;travel=0;
-    const message=this.content.presentation.messages.clearOfBunker;say(message.text,message.hold)
+    const message=this.content.presentation.messages.clearOfBunker;say(message.text,message.hold);
+    // v2400 (Dave: can't shoot the land guns while exiting). The surviving surface battery
+    // seen through the exit used to be decoration, cleared the moment the drone came out.
+    // Now they are live guns again on a short flight out under the player's control: they
+    // track and fire as on the way in and can be destroyed. The exit climb starts once
+    // the drone is past the last of them (or after a time limit).
+    const emp=this.content.surfaceAssault.guns.emplacement,live=this.surfaceGuns.filter(g=>!g.dead).map(src=>{
+      const out=Math.max(0,entryBunkerWorldZ-src.worldZ),worldZ=out+4,x=entryBunkerX-(src.x-entryBunkerX);
+      return{type:'landgun',landGunTest:true,returnGun:true,worldZ,x,y:src.y,z:worldZ,s:src.s,hp:src.hp,hitFx:0,yaw:Math.PI,pitch:0,rot:[0,0,0],col:C.r,mesh:landGunDevPlinthMesh,
+        fireCD:1.2+Math.random()*1.6,dead:false,shot:false,passed:false}
+    }).filter(g=>g.worldZ<170);
+    this.clearRun=null;
+    if(live.length){
+      groundTargets.push(...live);shipX=entryBunkerX;this.teslaPylons=[];   // the inbound Tesla field is behind the bunker now
+      this.clearRun={t:0,endZ:Math.max(...live.map(g=>g.worldZ))+18};
+      mode='play';phase='surface';
+    }
   },
   beginOsdSpace(){
     this.raidState='osdSpace';this.osdState='planetHold';this.osdT=0;this.devExitPending=false;this.bunkerMode=false;
@@ -887,7 +909,7 @@ const bunkerRaid={
     drawMesh({type:'osdCircuitryBox',x:state.point[0],y:state.point[1],z:state.point[2],s:.5,mx:dims[0],my:dims[1],mz:dims[2],rot:[0,0,0]},courierFixtureBoxMesh,state.landed?C.y:C.c,.98)
   },
   drawOsdFacility(){
-    const f=this.osdFacility,visual=this.content.osdDelivery.facility.visual;if(!f?.mesh)return;const z=f.worldZ-travel,d=camPoint([f.x,f.y+f.s*.75,z])[2];if(d<=.25||d>visual.visibleFar)return;
+    const f=this.osdFacility,visual=this.content.osdDelivery.facility.visual;if(!f?.mesh)return;const z=f.worldZ-travel,d=camPoint([f.x,f.y+f.s*.75,z])[2];if(d<=-f.s*3||d>visual.visibleFar)return;   // v2400: cull on the whole compound, not its centre
     const obj={type:'osdTwinTowerFortress',x:f.x,y:f.y,z,s:f.s,rot:f.rot};
     if(f.mesh.anchors){this.drawOsdCitadel(f,obj,z);return}
     // The authored roof feature used three crossing strokes at vertices 136..141,
@@ -952,7 +974,7 @@ const bunkerRaid={
   appendOsdSurfaceObjects(scene){
     const f=this.osdFacility;if(!f)return scene;
     surfaceDestination.appendWorldObject(scene,{
-      x:f.x,y:f.y+f.s*.75,worldZ:f.worldZ,maxDepth:this.content.osdDelivery.facility.visual.visibleFar,
+      x:f.x,y:f.y+f.s*.75,worldZ:f.worldZ,maxDepth:this.content.osdDelivery.facility.visual.visibleFar,minDepth:-f.s*3,
       draw:()=>{
         this.drawOsdFacility();
         // Keep the hatch assembly internally ordered as one physical landmark. The
@@ -967,7 +989,7 @@ const bunkerRaid={
   drawOsdSurfaceScene(){
     // Once the launch zoom starts the craft is already pointing vertically away from
     // the planet. Do not keep projecting the compound behind/through the near plane.
-    if(mode==='surfaceExit'&&(surfaceExitPitchProgress()>.82||surfaceExitZoomProgress()>.001))return;
+    if(mode==='surfaceExit'&&surfaceExitZoomProgress()>.001)return;   // v2400: keep it in view through the climb
     surfaceDestination.drawGround();const scene=[];
     surfaceDestination.appendScenery(scene);this.appendOsdSurfaceObjects(scene);surfaceDestination.drawObjectScene(scene)
   },
@@ -1268,6 +1290,7 @@ const bunkerRaid={
   hudRight(){
     if(!this.active)return'';
     const hud=this.content.presentation.hud;
+    if(this.raidState==='surfaceClear'&&this.clearRun){const n=groundTargets.filter(g=>g.type==='landgun'&&!g.dead&&!g.dying).length;return n?`GUNS ${n}`:'CLEAR'}
     if(this.raidState==='osdSpace')return hud.osdPlanet;
     if(this.raidState==='osdDescent')return hud.osdDescent;
     if(this.raidState==='osdDelivery'){

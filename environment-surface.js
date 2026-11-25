@@ -1027,18 +1027,20 @@ class SurfaceDestinationApproachController {
   // when it passes low over them. Small white quad mechs, so they are only seen up close.
   buildCritters(){
     // v2380 (Dave: skitter really fast between rocks): they start tucked in beside a rock.
-    const T=this.targetWorldZ,rocks=this.trees.filter(t=>t.kind==='rock'&&!t.feature&&t.worldZ>20&&t.worldZ<T-60);if(!rocks.length)return;
-    for(let n=0,N=10+Math.floor(this.rand()*4);n<N;n++){
+    // v2400 (Dave: had to hunt hard for them, and they mostly stood still): twice as many,
+    // only at rocks near the route, bigger, and far less time resting between dashes.
+    const T=this.targetWorldZ,X=this.targetX,rocks=this.trees.filter(t=>t.kind==='rock'&&!t.feature&&t.worldZ>20&&t.worldZ<T-60&&Math.abs(t.x-X*clamp(t.worldZ/T,0,1))<42);if(!rocks.length)return;
+    for(let n=0,N=22+Math.floor(this.rand()*6);n<N;n++){
       const r=rocks[Math.floor(this.rand()*rocks.length)],a=this.rand()*6.28,d=this.critterRockRadius(r);
       const rabbit=this.rand()<.6;
-      this.critters.push({x:r.x+Math.sin(a)*d,wz:r.worldZ+Math.cos(a)*d,rabbit,s:rabbit?.5+this.rand()*.15:.32+this.rand()*.08,h:this.rand()*6.28,wait:this.rand()*4,target:null,rock:r})
+      this.critters.push({x:r.x+Math.sin(a)*d,wz:r.worldZ+Math.cos(a)*d,rabbit,s:rabbit?.7+this.rand()*.2:.45+this.rand()*.1,h:this.rand()*6.28,wait:this.rand()*1.5,target:null,rock:r})
     }
   }
   critterRockRadius(r){return 1.1*r.s*Math.max(r.mx||1,r.mz||1)+.6}
   // A rock to run to: within reach, not the one it is at, and away from the drone if fleeing.
   critterNextRock(c,flee){
     const rocks=this._critRocks||(this._critRocks=this.trees.filter(t=>t.kind==='rock'&&!t.feature));let best=null,bs=-1e9;
-    for(const r of rocks){if(r===c.rock)continue;const d=Math.hypot(r.x-c.x,r.worldZ-c.wz);if(d<5||d>(flee?34:24))continue;
+    for(const r of rocks){if(r===c.rock)continue;const d=Math.hypot(r.x-c.x,r.worldZ-c.wz);if(d<4||d>(flee?34:26))continue;
       const sc=Math.random()*10+(flee?Math.hypot(r.x-shipX,r.worldZ-travel)*.6:0);if(sc>bs){bs=sc;best=r}}
     if(!best)return false;const a=Math.atan2(c.x-best.x,c.wz-best.worldZ)+(Math.random()-.5)*1.2,d=this.critterRockRadius(best);
     c.rock=best;c.target=[best.x+Math.sin(a)*d,best.worldZ+Math.cos(a)*d];return true
@@ -1053,8 +1055,8 @@ class SurfaceDestinationApproachController {
       if(c.target){
         const dx=c.target[0]-c.x,dz=c.target[1]-c.wz,d=Math.hypot(dx,dz);c.h=Math.atan2(dx,dz);
         speed=c.rabbit?13:15;const step=Math.min(d,speed*dt);c.x+=dx/d*step||0;c.wz+=dz/d*step||0;
-        if(d<.4){c.target=null;c.wait=near?.3:1.5+Math.random()*4}
-      }else{c.wait-=dt;if((near&&c.wait<1)||c.wait<=0){if(!this.critterNextRock(c,near))c.wait=1+Math.random()*2}}
+        if(d<.4){c.target=null;c.wait=near?.2:.4+Math.random()*1.4}
+      }else{c.wait-=dt;if((near&&c.wait<1)||c.wait<=0){if(!this.critterNextRock(c,near))c.wait=.5+Math.random()*1}}
       const gy=this.groundY+(this.hills?this.hillAt(c.x,c.wz):0),hop=0;
       const q=camPoint([c.x,gy,c.wz-travel]);if(q[2]<1||q[2]>110)continue;
       // v2380 (Dave: not 2D rabbits, mini quad mechs): each critter is a small four-legged

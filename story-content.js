@@ -214,7 +214,7 @@ const sourceTrace = {
     },
     hatch:{
       cargoWidthFraction:.255,recessFloorOffset:.54,frontClearanceMin:.45,frontClearanceWidthFraction:.045,backClearance:.35,
-      standOffYOffset:-.20,standOffZOffset:-16,departGroundYOffset:1.90,departZOffset:-36,
+      standOffYOffset:-.20,standOffZOffset:-30,departGroundYOffset:1.90,departZOffset:-48,
       recessCentreYOffsetFraction:.10,recessScale:.88,doorScale:.84,doorLift:1.02,doorFrontOffset:.035,doorDepth:.12
     },
     sequence:{
@@ -227,7 +227,7 @@ const sourceTrace = {
       departFallbackDistance:28,departSpeed:18.5,departYRate:2.2,departYawRate:1.4,departPitchRate:1.2,departRollRate:2.4,departEpsilon:.1
     },
     tractor:{
-      cargoOrigin:[0,-.34,1.05],beamOrigin:[0,-.34,.62],arcHeight:.12,waves:7,flowRate:.72,
+      cargoOrigin:[0,-1.4,9],beamOrigin:[0,-.8,2.6],arcHeight:.12,waves:7,flowRate:.72,
       startFraction:.10,spanFraction:.82,halfWidthStart:8,halfWidthMax:34,halfWidthBase:10,halfWidthDistanceScale:.055,
       bowStart:5,bowEnd:18
     }

@@ -110,6 +110,8 @@ class Game {
   update(dt){
  if(paused)return;if(statusHold>0){statusHold-=dt;if(statusHold<=0)hud()}if(mode==='idle'||mode==='dead'){drainCallouts(dt);return}
  updatePlayerMissiles(dt);
+ // v2400: a burst cut short by a scene change is dropped, never carried into the next scene.
+ if(laserBurstRemaining>0&&mode!=='play'&&mode!=='trenchEntry')laserBurstRemaining=0;
  time+=dt;modeT+=dt;shotCD=Math.max(0,shotCD-dt);playerGunKick=Math.max(0,playerGunKick-dt);playerGunKicks[0]=Math.max(0,playerGunKicks[0]-dt);playerGunKicks[1]=Math.max(0,playerGunKicks[1]-dt);flash=Math.max(0,flash-dt);
  speechSubtitleT=Math.max(0,speechSubtitleT-dt);if(speechSubtitleT<=0)speechSubtitleText='';drainCallouts(dt);
  tutorialAnnouncementT=Math.max(0,tutorialAnnouncementT-dt);if(tutorialAnnouncementT<=0)tutorialAnnouncementText='';

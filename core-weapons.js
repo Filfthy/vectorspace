@@ -19,6 +19,11 @@ class WeaponController {
  return{x:W*.5+ax*W*.155,y:viewH*.48+ay*viewH*.155}
 }
   shoot(){
+ // v2400 (Dave: an unwanted shot as the drone reaches the next planet, as if cached from
+ // the last scene). A burst fires over several frames; when a scene change cut one short,
+ // its leftover shots were only held, not cancelled, and went off on the first frame back
+ // in play. Anything that blocks firing other than the gun's own cycle time now ends the burst.
+ if(laserBurstRemaining>0&&((mode!=='play'&&mode!=='trenchEntry')||forest?.autopilotActive?.()||asteroidWreckRun?.autopilotActive?.()||freeTradersDepot?.autopilotActive?.()||carrierIntercept?.autopilotActive?.()||helixBiolab?.autopilotActive?.()||paused||gateVisible()||campaign.isOpen()||!fullscreenActive())){laserBurstRemaining=0;return}
  if((mode!=='play'&&mode!=='trenchEntry')||forest?.autopilotActive?.()||asteroidWreckRun?.autopilotActive?.()||freeTradersDepot?.autopilotActive?.()||carrierIntercept?.autopilotActive?.()||helixBiolab?.autopilotActive?.()||paused||gateVisible()||campaign.isOpen()||!fullscreenActive()||shotCD>0||laserBurstRemaining<=0)return;
  laserBurstRemaining--;
  shotCD=BASE_LASER_INTERVAL*campaign.laserIntervalMultiplier();
