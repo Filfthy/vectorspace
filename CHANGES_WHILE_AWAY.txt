@@ -3330,3 +3330,11 @@ v2570 Calm music after the fight on story missions
       transits and the Free Traders depot are now always calm. This also
       fixes the same thing on Runaway (the depot), Live Specimens and
       Second Nest (the transit home).
+
+v2580 Calm music once a recovery fight is won
+      Live Specimens (Navira's first Helix job, "A swarm with no nest")
+      kept the battle music after the swarm was destroyed, all through
+      the search for the sample. The fight and the recovery are one
+      section, set to battle music throughout. The music now turns calm
+      the moment the search starts, on every fight then recover section
+      (this also covers Dispatch Fault II and the board recovery jobs).

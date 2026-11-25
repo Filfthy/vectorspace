@@ -184,7 +184,10 @@ const salvageRecovery={
   beginSearch(){
     if(!this.active)this.prepare(campaign.currentStage()||{});
     this.state='search';this.navPulse=0;this.tractorT=0;this.secured=false;
-    if(this.stage?.stationAnchor&&stationDelivery?.active){stationDelivery.state='recoverySearch';audio.music.setMode('calm')}
+    if(this.stage?.stationAnchor&&stationDelivery?.active)stationDelivery.state='recoverySearch';
+    // v2580 (Dave: a swarm with no nest kept the battle music after the xenos were dead). The
+    // search only starts once the fight is won, so every combat recovery goes calm here.
+    audio.music.setMode('calm');
     fighters.length=0;bolts.length=0;playerMissiles.length=0;resetSpaceDogfightDirector();
 
     if(this.stage?.wreckageSearch)return this.beginWreckageSearch();
