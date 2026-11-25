@@ -351,7 +351,7 @@ class SceneRenderer {
    this.drawCelestialSphere(b.center,R*m.radiusFactor,camPos,projectFn,{
      col:m.col,tilt:planetTilt+m.axisOffset,spin:m.spin0+time*m.spinSpeed,
      lats:[-.78,0,.78],lonCount:5,gridAlpha:.68,limbAlpha:.94,width:.78,
-     craters:m.craters||(m.craters=Math.random()<.5?makeCraters(4+Math.floor(Math.random()*3)):[])
+     craters:null   // v2320: no craters drawn on moons from orbit
    })
  }
 }
@@ -369,7 +369,7 @@ class SceneRenderer {
  }).sort((a,b)=>b.d-a.d);
  for(const b of bodies){
    if(b.kind==='planet'){this.drawSphere(b.center,b.radius,[0,0,0],localProj);continue}
-   this.drawCelestialSphere(b.center,b.radius,[0,0,0],localProj,{col:b.col,tilt:b.tilt,spin:b.spin,lats:[-.78,0,.78],lonCount:5,gridAlpha:.68,limbAlpha:.94,width:.78,craters:b.craters})
+   this.drawCelestialSphere(b.center,b.radius,[0,0,0],localProj,{col:b.col,tilt:b.tilt,spin:b.spin,lats:[-.78,0,.78],lonCount:5,gridAlpha:.68,limbAlpha:.94,width:.78})
  }
 }
   drawWorldPlanet(){

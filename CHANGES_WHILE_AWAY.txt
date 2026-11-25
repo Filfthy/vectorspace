@@ -3018,3 +3018,12 @@ v2310 The market is easier to use
       Stock counts read "In stores: 3 charges" rather than X3, and the
       buttons are no longer in capitals.
 
+v2320 Plain grid planets, and the descent line always plays
+      Every planet is now the plain latitude and longitude grid. The
+      banded style (which looked like a striped coin when seen edge on)
+      and the cratered style are gone, and moons no longer show craters
+      from orbit. Craters on a moon's plains are unchanged.
+      "Descending to planet" now jumps the voice queue like "Descending
+      to moon", so a job that opens on the descent, like Loose End,
+      says it too.
+

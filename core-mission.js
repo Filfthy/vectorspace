@@ -47,7 +47,8 @@ class MissionController {
  // v820/v850: rings and surface style are rolled once per mission (v910), not on every
  // bearing reset, so a ringed banded world does not change when an ambush starts.
  {const mid=(typeof campaign!=='undefined'&&campaign.currentMission?.id)||'';if(planetLookFor!==mid){planetLookFor=mid;
-  const r=Math.random();planetStyle=r<.55?'grid':(r<.8?'banded':'cratered');planetCraters=planetStyle==='cratered'?makeCraters(7):[];
+  // v2320 (Dave): every planet is the plain latitude and longitude grid, no bands, no craters.
+  planetStyle='grid';planetCraters=[];
   planetRings=Math.random()<.28?{inc:(Math.random()<.5?-1:1)*(.30+Math.random()*.22),bands:Math.random()<.5?[1.42,1.60]:[1.40,1.58,1.84]}:null;
   // v2210: a ringed planet is a gas giant, so never one the drone lands on. Its moons may be.
   // Any mission that descends to the planet itself (not only to a moon) gets no rings.
@@ -166,7 +167,9 @@ class MissionController {
  approachTurnTargetPitch=a.pitch;
  SoundFX.zoom();
  // Planet and moon descents use separate recordings so the spoken destination is exact.
- if(planetLandingBody==='moon')audio.playVoice('descendingToMoon',{once:true,priority:true});else audio.playVoice('descending')
+ // v2320: the planet line jumps the queue like the moon line, so a mission that opens on the
+ // descent (Loose End) still says it rather than leaving it queued behind the launch line.
+ audio.playVoice(planetLandingBody==='moon'?'descendingToMoon':'descending',{once:true,priority:true})
 }
   beginSurface(){
  // The bunker recovery operation continues after extraction: the first
