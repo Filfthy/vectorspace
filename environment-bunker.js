@@ -911,19 +911,13 @@ const bunkerRaid={
     if(logo?.e?.length)drawMesh(obj,logo,C.w,.98)
   },
   // v2360 the OSD Citadel and its live parts: the radar dish turning on the right tower,
-  // the red beacon on the mast, approach lights chasing in towards the hatch, and two
-  // searchlights sweeping the sky.
+  // the red beacon on the mast and approach lights chasing in towards the hatch.
   drawOsdCitadel(f,obj,z){
     const t=(typeof time==='number'?time:performance.now()/1000),A=f.mesh.anchors,s=f.s;
     const W3=p=>[f.x+p[0]*s,f.y+p[1]*s,z+p[2]*s];
     drawMesh(obj,f.mesh,C.c,.94);
     const dish=globalThis.AgentXOSDFacility?.citadelDish,dp=W3(A.dish);
     if(dish)drawMesh({type:'osdCitadelDish',x:dp[0],y:dp[1],z:dp[2],s:s*.55,rot:[.75,t*.45,0]},dish,C.w,.94);
-    // Searchlights: long faint beams from the dome tops, slowly sweeping and crossing.
-    A.searchlights.forEach((p,i)=>{
-      const a=t*(.32+.07*i)+i*2.4,dir=[Math.sin(a)*.55,1,Math.cos(a)*.55+.25],b=W3(p),e=[b[0]+dir[0]*s*5,b[1]+dir[1]*s*5,b[2]+dir[2]*s*5];
-      const pb=proj(b),pe=proj(e);if(pb&&pe)line(pb.x,pb.y,pe.x,pe.y,C.c,1,.22)
-    });
     // Approach lights: two rows on the ground in front of the hatch, a pulse running in.
     const n=A.lights.length/2;
     A.lights.forEach((p,i)=>{

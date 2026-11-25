@@ -430,7 +430,18 @@ class SceneRenderer {
  // local z=-5.7; offset its origin so that plane remains exactly the tunnel door
  // plane used by the established entry code.
  const obj={type:'bunkerFortress03',x:bx,y:surf,z:z+frontOffset,s:scale,rot:[0,0,0]};
- drawMesh(obj,bunkerFortress03Mesh,C.y,Math.max(1,alpha/.22))
+ // v2370: Fortress 04, the buried command post, with the same door plane and aperture.
+ const M=typeof bunkerFortress04Mesh!=='undefined'?bunkerFortress04Mesh:null;
+ if(!M){drawMesh(obj,bunkerFortress03Mesh,C.y,Math.max(1,alpha/.22));return}
+ const ground=groundAssault?.active?(groundAssault.groundCol||C.gd):landingWorldColour(),a=Math.max(1,alpha/.22);
+ M.edgeColors=M.colorsFor(ground);drawMesh(obj,M,C.y,a);
+ const t=typeof time==='number'?time:performance.now()/1000,A=M.anchors,W3=p=>[obj.x+p[0]*scale,obj.y+p[1]*scale,obj.z+p[2]*scale];
+ const dish=globalThis.AgentXOSDFacility?.citadelDish;
+ if(dish){const d=W3(A.dish);if(camPoint(d)[2]>.5)drawMesh({type:'bunkerDish',x:d[0],y:d[1],z:d[2],s:scale*1.5,rot:[.8,-t*.6,0]},dish,C.w,a*.9)}
+ if((t%1.4)<.45){const q=proj(W3(A.beacon));if(q){const r=clamp(q.k*.09,1.5,5);line(q.x-r,q.y,q.x+r,q.y,C.r,1.3,.95);line(q.x,q.y-r,q.x,q.y+r,C.r,1.3,.95)}}
+ // Door lamps: alternate flashing either side of the blast door.
+ A.lamps.forEach((p,i)=>{const on=Math.floor(t*2.2+i)%2===0,q=proj(W3(p));if(!q)return;const r=clamp(q.k*.32,2,10);
+   line(q.x-r,q.y,q.x+r,q.y,on?C.r:C.x,1.2,on?.95:.5);line(q.x,q.y-r,q.x,q.y+r,on?C.r:C.x,1.2,on?.95:.5)})
 }
   drawDistantBunker(z,alpha=.55,bx=0){
  const surf=-3.5,wall=trenchWall(),halfH=tunnelHalfH();

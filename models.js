@@ -822,5 +822,54 @@ const osdCitadelDishMesh=(()=>{
   gaLine(m,[[0,.42,0],[0,.5,0]]);
   return{name:'OSD Citadel dish',v:m.v,e:m.e,faces:m.faces}
 })();
+
+// v2370 (Dave: the bunker you raid is too plain). Bunker Fortress 04: a buried command post.
+// A long earth mound (drawn in the ground's colour) with a concrete portal standing out of
+// its face, angled wing walls stepping down either side, two armoured gun turrets and a
+// pair of vents on the crown. The blast door aperture is the same as Fortress 03 (front plane
+// z=-5.7, half width 1.344, height 2.144 at the game's scale of 1.25), so the entry, door
+// breach and tunnel code are unchanged. The radar dish, mast beacon and door lamps are drawn
+// live by drawFortressBunkerShell from the anchors kept here.
+const bunkerFortress04Mesh=(()=>{
+  const m=gaBuilder(true),PI=Math.PI,line=(p,c)=>gaLine(m,p,c);
+  const F=-5.7,DW=1.36,DH=2.16;
+  // Earth mound: half an ellipsoid, slightly flattened on top, sunk a little into the ground.
+  const MX=9.8,MZ=5.0,MH=4.6,MC=-.3;
+  m.mark('mound',()=>m.loft([0,.22,.42,.6,.76,.9].map(k=>{const a=k*PI/2;return m.ringXZ(0,MH*Math.sin(a)-.15,MC,MX*Math.cos(a),MZ*Math.cos(a),24)}),false,true));
+  const crown=(x,z)=>MH*Math.sqrt(Math.max(0,1-(x/MX)**2-((z-MC)/MZ)**2))-.15;
+  m.mark('concrete',()=>{
+    const blk=(x0,x1,y0,y1,z0,z1)=>m.box([(x0+x1)/2,(y0+y1)/2,(z0+z1)/2],[x1-x0,y1-y0,z1-z0]);
+    // Portal: two piers and a deep lintel round the door, a sloped hood above it.
+    blk(-2.7,-DW,0,DH,F,-3.9);blk(DW,2.7,0,DH,F,-3.9);blk(-2.7,2.7,DH,3.05,F,-3.9);
+    m.loft([[[-3.0,3.05,F-.25],[3.0,3.05,F-.25],[3.0,3.05,-3.9],[-3.0,3.05,-3.9]],[[-2.6,3.75,-4.9],[2.6,3.75,-4.9],[2.6,3.75,-3.6],[-2.6,3.75,-3.6]]]);
+    // Wing walls: tall at the portal, stepping down outwards along the mound's foot.
+    for(const s of[-1,1]){const x0=s*2.7,x1=s*7.6;
+      m.loft([[[x0,0,F+.1],[x0,0,F+.75],[x0,2.8,F+.75],[x0,2.8,F+.1]],[[x1,0,F+1.3],[x1,0,F+1.9],[x1,.45,F+1.9],[x1,.45,F+1.3]]]);
+    }
+    // Turret bases on the crown.
+    for(const s of[-1,1]){const x=s*4.3,z=-.9,y=crown(x,z);m.loft([m.ringXZ(x,y-.3,z,1.45,1.45,10),m.ringXZ(x,y+.35,z,1.35,1.35,10)],false,true)}
+    // Vents.
+    for(const[x,z]of[[-1.7,1.6],[1.4,1.9]]){const y=crown(x,z);m.loft([m.ringXZ(x,y-.3,z,.42,.42,8),m.ringXZ(x,y+.7,z,.42,.42,8),m.ringXZ(x,y+.85,z,.55,.55,8)],false,true)}
+  });
+  m.mark('armour',()=>{
+    for(const s of[-1,1]){const x=s*4.3,z=-.9,y=crown(x,z)+.35;
+      m.loft([0,.35,.65,.88].map(k=>m.ringXZ(x,y+1.0*Math.sin(k*PI/2),z,1.2*Math.cos(k*PI/2),1.2*Math.cos(k*PI/2),10)),false,true);
+      // Twin barrels, pointing out over the approach.
+      for(const dx of[-.26,.26])m.barrel(x+dx,y+.5,z-.8,z-3.3,.12,6);
+    }
+  });
+  // Hazard chevrons across the lintel, a hair in front of its face so they read as paint.
+  m.mark('hazard',()=>{for(let i=-5;i<=4;i++){const x=i*.5+.25;line([[x-.2,DH+.12,F-.02],[x+.2,DH+.78,F-.02]])}});
+  // Comms mast on the crown, behind the portal.
+  const MXp=-2.9,MZp=1.2,MY=crown(MXp,MZp);
+  m.mark('mast',()=>{line([[MXp,MY-.2,MZp],[MXp,MY+3.4,MZp]]);for(const k of[.35,.62,.85])line([[MXp-.5*(1-k),MY+3.4*k,MZp],[MXp+.5*(1-k),MY+3.4*k,MZp]])});
+  const col={mound:null,concrete:C.y,armour:C.y,hazard:C.r,mast:C.w},ranges=Object.entries(m.marks);
+  const mark=i=>{for(const[k,[a,b]]of ranges)if(i>=a&&i<b)return k;return 'concrete'},edgeMarks=m.e.map(e=>mark(e[0]));
+  const cache=new Map();
+  return{name:'Bunker Fortress 04',v:m.v,e:m.e,faces:m.faces,
+    // The mound takes the colour of the world's ground; everything else is fixed.
+    colorsFor(ground){let a=cache.get(ground);if(!a){a=edgeMarks.map(k=>col[k]||ground);cache.set(ground,a)}return a},
+    anchors:{beacon:[MXp,MY+3.55,MZp],dish:[2.6,crown(2.6,1.0)+.2,1.0],lamps:[[-2.05,1.55,F-.05],[2.05,1.55,F-.05]]}}
+})();
 globalThis.AgentXOSDFacility.citadel=osdCitadelMesh;
 globalThis.AgentXOSDFacility.citadelDish=osdCitadelDishMesh;

@@ -932,9 +932,10 @@ class SurfaceDestinationApproachController {
   // v1640: wildlife on green and blue worlds: two or three flocks wheeling over the plains,
   // each a loose cloud of small flapping V shapes. Scenery only.
   buildFlocks(){
-    this.flocks=[];this.skimmers=[];this.gliders=[];
+    this.flocks=[];this.skimmers=[];this.gliders=[];this.critters=[];
     const m=typeof campaign!=='undefined'?campaign.currentMission:null;if(!m||m.training)return;
     if(this.scenery==='swamp'){this.buildSwampFlyers();return}
+    if(this.destination==='osd')this.buildCritters();
     if(!(this.worldKind==='temperate'||this.worldKind==='wet')||this.scenery==='rocks')return;
     for(let n=0,N=2+Math.floor(this.rand()*2);n<N;n++){
       const cx=this.targetX+(this.rand()-.5)*220,cz=40+this.rand()*(this.routeLength+60),r=14+this.rand()*20,y=this.groundY+7+this.rand()*8,dir=this.rand()<.5?-1:1;
@@ -986,6 +987,50 @@ class SurfaceDestinationApproachController {
       ctx.stroke()
     }
     ctx.restore()
+  }
+  // v2370 (Dave: occasional critters like rabbits or mice). A few small animals on the
+  // OSD world's plains, scenery only: they nibble, hop about, and bolt away from the drone
+  // when it passes low over them. Drawn small and white, so they are only seen up close.
+  buildCritters(){
+    const T=this.targetWorldZ,X=this.targetX;
+    for(let n=0,N=9+Math.floor(this.rand()*4),tries=0;n<N&&tries<80;tries++){
+      const wz=25+this.rand()*(T-90),x=X*clamp(wz/T,0,1)+(this.rand()-.5)*60;
+      if(this.sceneryReserved(x,wz,3))continue;n++;
+      const rabbit=this.rand()<.6;
+      this.critters.push({x,wz,rabbit,s:rabbit?.75+this.rand()*.25:.42+this.rand()*.12,h:this.rand()*6.28,ph:this.rand()*6,rest:this.rand()*2,run:0,flee:0,dir:1})
+    }
+  }
+  appendCritters(scene){
+    if(!this.critters?.length)return;const t=this.navPulse||0,dt=Math.min(.05,this._critT==null?0:Math.max(0,t-this._critT));this._critT=t;
+    for(const c of this.critters){
+      // Behaviour: rest a while, then a short run in a new direction; bolt from the drone.
+      const dx=c.x-shipX,dz=c.wz-travel,dist=Math.hypot(dx,dz);
+      if(dist<16&&shipY-this.groundY<6&&c.flee<=0){c.flee=1.6+Math.random();c.h=Math.atan2(dx,dz)+(Math.random()-.5)*.8}
+      let speed=0;
+      if(c.flee>0){c.flee-=dt;speed=c.rabbit?9:7}
+      else if(c.run>0){c.run-=dt;speed=c.rabbit?3:2.4;if(c.run<=0)c.rest=1+Math.random()*3}
+      else{c.rest-=dt;if(c.rest<=0){c.run=.6+Math.random()*1.4;c.h+=(Math.random()-.5)*2.4}}
+      if(speed){c.x+=Math.sin(c.h)*speed*dt;c.wz+=Math.cos(c.h)*speed*dt;c.ph+=dt*(c.rabbit?9:16)}
+      const gy=this.groundY+(this.hills?this.hillAt(c.x,c.wz):0),hop=speed&&c.rabbit?Math.abs(Math.sin(c.ph))*.45*c.s:0;
+      const q=camPoint([c.x,gy+hop,c.wz-travel]);if(q[2]<1.5||q[2]>90)continue;const p=projectCam(q);if(!p)continue;
+      // Face the way it is moving across the screen.
+      const ahead=camPoint([c.x+Math.sin(c.h),gy,c.wz+Math.cos(c.h)-travel]);if(ahead[2]>.5){const pa=projectCam(ahead);if(pa&&Math.abs(pa.x-p.x)>.5)c.dir=pa.x>p.x?1:-1}
+      const k=p.k*c.s,f=c.dir,P=(x,y)=>[p.x+x*k*f,p.y-y*k],rabbit=c.rabbit,stretch=speed?.12*Math.sin(c.ph):0,w=Math.sin(c.ph*.7)*.08,depth=q[2];
+      scene.push({z:depth,draw:()=>{
+      ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.strokeStyle=C.w;ctx.globalAlpha=clamp(1.2-depth/90,.3,.9);ctx.beginPath();
+      const poly=pts=>{pts.forEach(([x,y],i)=>{const[a,b]=P(x,y);i?ctx.lineTo(a,b):ctx.moveTo(a,b)})};
+      if(rabbit){
+        poly([[-.45-stretch,.05],[-.5,.28],[-.3,.45],[.05,.48],[.28,.4],[.32,.2],[.15,.02],[-.45-stretch,.05]]);
+        poly([[.25,.38],[.33,.55],[.5,.58],[.58,.46],[.5,.36],[.32,.33]]);
+        poly([[.38,.56],[.3,.95],[.36,.97],[.44,.58]]);poly([[.46,.57],[.5,.92],[.56,.9],[.52,.56]]);
+        poly([[-.5,.3],[-.62,.36],[-.56,.22]]);
+      }else{
+        poly([[-.3,.02],[-.32,.15],[-.12,.26],[.18,.24],[.36,.12],[.42,.06],[.25,.02],[-.3,.02]]);
+        poly([[.12,.24],[.16,.33],[.24,.3],[.2,.22]]);
+        poly([[-.32,.08],[-.55,.14+w],[-.75,.05-w],[-.9,.12]]);
+      }
+      ctx.stroke();ctx.restore()}})
+    }
   }
   drawFlocks(){
     this.drawSwampFlyers();
@@ -1122,7 +1167,7 @@ class SurfaceDestinationApproachController {
     ctx.restore()
   }
   draw(){
-    this.drawGround();this.drawRoad();if(!this.hills)this.drawFissures();const scene=[];this.appendEnvironmentObjects(scene);this.appendMarsh(scene);
+    this.drawGround();this.drawRoad();if(!this.hills)this.drawFissures();const scene=[];this.appendEnvironmentObjects(scene);this.appendMarsh(scene);this.appendCritters(scene);
     if(this.destination==='osd'&&bunkerRaid?.active)bunkerRaid.appendOsdSurfaceObjects(scene);
     this.drawObjectScene(scene);this.drawFlocks();this.drawWeather();this.drawNavigation()
   }

@@ -3079,3 +3079,18 @@ v2360 The OSD compound is rebuilt as the OSD Citadel
       departure work exactly as before (flown through to the end).
       The old model stays in models.js, unused.
 
+v2370 A dug-in bunker, critters on the OSD world, no searchlights
+      The bunker you raid (and every bunker that uses the same model) is
+      rebuilt as a buried command post: a long earth mound in the
+      ground's colour with a concrete portal standing out of its face,
+      a sloped hood over the blast door, red hazard stripes on the
+      lintel, angled wing walls stepping down either side, two armoured
+      turrets with twin barrels on the crown, two vents, a mast with a
+      blinking red beacon, a turning radar dish, and red lamps flashing
+      in turn either side of the door. The door, breach and tunnel are
+      exactly where they were.
+      The OSD world has a few rabbits and mice on its plains. They
+      nibble, hop about and bolt when you fly low over them. Scenery
+      only, nothing to shoot, and they hide behind rocks and hills.
+      The searchlight beams over the OSD Citadel are gone.
+
