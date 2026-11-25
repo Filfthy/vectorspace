@@ -2388,6 +2388,43 @@ class CampaignController {
     const d=this.state.discounts?.[id];if(!d||!(d.uses>0))return;
     d.uses--;if(d.uses<=0)delete this.state.discounts[id]
   }
+  // v2450 (Dave: mark the mails that still need following up). A mail's status comes from
+  // what its buttons would do now, not from a fixed priority. ACTION: a contract or briefing
+  // still to open. ACCEPTED: that contract is prepared or in flight. DONE: finished, or the
+  // briefing has already been opened. GIFT and OFFER: an unclaimed reward (not pinned).
+  mailStatus(m){
+    const acts=Array.isArray(m.actions)&&m.actions.length?m.actions:(m.action?[m.action]:[]);
+    const rank={action:5,accepted:4,offer:3,gift:2,done:1};let st=null;const bump=x=>{if(!st||rank[x]>rank[st])st=x};
+    for(const a of acts){
+      if(a?.type==='vox'){const cur=this.currentMission?.voxMailId===m.id||this.pendingMission?.voxMailId===m.id;bump(m.contractDone?'done':(cur?'accepted':'action'))}
+      else if(a?.type==='story'||a?.type==='storyBriefing'){
+        const c=this.storyContract(a.contractId),done=!!(c&&this.state.mailFlags?.[`${c.storyFlag}Done`]),cur=this.currentMission?.storyContractId===a.contractId||this.pendingMission?.storyContractId===a.contractId;
+        let opened=false;if(a.type==='storyBriefing'&&!done&&!cur){const bm=this.storyBriefingMail(a.contractId);opened=!!(bm&&this.state.mail.some(x=>x.id===bm.id))}
+        bump(done||opened?'done':(cur?'accepted':'action'))}
+    }
+    if(m.reward&&!st){const r=m.reward;if(m.claimed||(r.type==='offer'&&(r.expiresAt-(this.state.completed||0))<=0))bump('done');else bump(r.type==='offer'?'offer':'gift')}
+    return st
+  }
+  mailStatusLabel(st){return({action:'ACTION',accepted:'ACCEPTED',done:'DONE',gift:'GIFT',offer:'OFFER'})[st]||''}
+  // Mails that are the live end of a storyline or contract: accepted ones first, then newest.
+  openLeads(){
+    return this.state.mail.map(m=>({m,st:this.mailStatus(m)})).filter(x=>x.st==='action'||x.st==='accepted')
+      .sort((a,b)=>(a.st===b.st?0:(a.st==='accepted'?-1:1))||((b.m.seq||0)-(a.m.seq||0)))
+  }
+  // The current-lead strip at the top of Mail and Contracts. Click a lead to open its mail.
+  leadStrip(){
+    const leads=this.openLeads();if(!leads.length)return null;
+    const el=document.createElement('div');el.className='storyLeads';
+    for(const{m,st}of leads.slice(0,2)){
+      const view=this.resolveMail(m),acts=Array.isArray(m.actions)&&m.actions.length?m.actions:(m.action?[m.action]:[]),a=acts.find(x=>['vox','story','storyBriefing'].includes(x?.type));
+      const what=st==='accepted'?'Launch from the Drone bay':(a?.label||'Open the mail');
+      const b=document.createElement('button');b.type='button';b.className=`storyLead ${st}`;
+      b.innerHTML=`<span class="storyLeadTag">${st==='accepted'?'IN PROGRESS':'LEAD'}</span><span class="storyLeadText">${this.escapeHtml(view.subject)} · ${this.escapeHtml(String(view.from).split(' · ')[0])} · ${this.escapeHtml(what)}</span>`;
+      b.addEventListener('click',()=>{this.selectedMailId=m.id;this.markMailRead(m.id);this.mailFilter='all';this.setPanel('mail',{mailId:m.id})});el.appendChild(b)
+    }
+    if(leads.length>2){const more=document.createElement('span');more.className='storyLeadMore';more.textContent=`+${leads.length-2} more open in Mail`;el.appendChild(more)}
+    return el
+  }
   renderMail(){
     const host=document.getElementById('mailGrid');if(!host)return;
     this.updateMailBadge();host.innerHTML='';
@@ -2413,7 +2450,8 @@ class CampaignController {
       if(f==='gifts')return !!m.reward;
       if(f==='unread')return !m.read||m.id===this.selectedMailId;
       return true};
-    const mails=all.filter(matches);
+    const pin=m=>{const st=this.mailStatus(m);return st==='accepted'?2:(st==='action'?1:0)};
+    const mails=all.filter(matches).sort((a,b)=>(pin(b)-pin(a))||((b.seq||0)-(a.seq||0)));
     if(!mails.some(m=>m.id===this.selectedMailId))this.selectedMailId=(mails.find(m=>!m.read)||mails[0]||null)?.id||null;
     const layout=document.createElement('div');layout.className='mailLayout';
     const list=document.createElement('div');list.className='mailList cabinetScrollBody';list.setAttribute('aria-label','Mail inbox');list.tabIndex=0;
@@ -2425,16 +2463,16 @@ class CampaignController {
     };
     if(!mails.length){list.innerHTML='<div class="mailEmpty">No messages in this filter.</div>';detail.innerHTML='<div class="catalogEmptyDetail">Choose another mail filter.</div>'}
     for(const m of mails){
-      const view=this.resolveMail(m),p=this.mailPriority(m),label=this.mailPriorityLabel(m);
-      const row=document.createElement('button');row.type='button';row.className=`mailRow priority-${p}${m.id===this.selectedMailId?' selected':''}${m.read?'':' unread'}`;
+      const view=this.resolveMail(m),p=this.mailPriority(m),st=this.mailStatus(m),label=this.mailStatusLabel(st);
+      const row=document.createElement('button');row.type='button';row.className=`mailRow priority-${p}${st?' status-'+st:''}${m.id===this.selectedMailId?' selected':''}${m.read?'':' unread'}`;
       row.innerHTML=`<span class="mailRowSubject">${this.escapeHtml(view.subject)}</span><span class="mailRowFrom">${this.escapeHtml(view.from)}</span><span class="mailPriority">${label}</span>${m.read?'':'<span class="mailNew">NEW</span>'}`;
       row.addEventListener('click',()=>{this.selectedMailId=m.id;this.markMailRead(m.id);this.renderMail()});list.appendChild(row)
     }
     const m=mails.find(x=>x.id===this.selectedMailId);
     if(m){
-      const view=this.resolveMail(m),body=view.body.map(p=>`<p>${this.escapeHtml(p)}</p>`).join(''),priority=this.mailPriorityLabel(m);
+      const view=this.resolveMail(m),body=view.body.map(p=>`<p>${this.escapeHtml(p)}</p>`).join(''),dst=this.mailStatus(m),priority=dst?({action:'ACTION NEEDED',accepted:'ACCEPTED',done:'DONE',gift:'GIFT TO CLAIM',offer:'OFFER OPEN'})[dst]:'';
       const welcomeSimulator=m.id==='welcome_vox'&&Array.isArray(m.actions)&&m.actions.some(a=>a?.type==='tutorial');
-      detail.innerHTML=`<div class="mailDetailKicker priority-${this.mailPriority(m)}">${this.escapeHtml(m.category.toUpperCase())} · ${priority} PRIORITY</div><h2>${this.escapeHtml(view.subject)}</h2><div class="mailFrom">FROM ${this.escapeHtml(view.from)}</div><div class="mailBody">${body}</div><div class="mailActions${welcomeSimulator?' welcomeSimulatorActions':''}"></div>`;
+      detail.innerHTML=`<div class="mailDetailKicker priority-${this.mailPriority(m)}${dst?' status-'+dst:''}">${this.escapeHtml(m.category.toUpperCase())}${priority?' · '+priority:''}</div><h2>${this.escapeHtml(view.subject)}</h2><div class="mailFrom">FROM ${this.escapeHtml(view.from)}</div><div class="mailBody">${body}</div><div class="mailActions${welcomeSimulator?' welcomeSimulatorActions':''}"></div>`;
       const actions=detail.querySelector('.mailActions');
       if(welcomeSimulator){
         const recommendation=document.createElement('div');
@@ -2485,7 +2523,7 @@ class CampaignController {
       }
     }
     const listScroll=wrapMailScroller(list,'mailListScrollHost'),detailScroll=wrapMailScroller(detail,'mailDetailScrollHost');
-    layout.append(listScroll.shell,detailScroll.shell);host.append(bar,layout);
+    layout.append(listScroll.shell,detailScroll.shell);{const strip=this.leadStrip();if(strip)host.append(strip)}host.append(bar,layout);
     // Use the exact same draggable outline scrollbar component as the rest of the
     // cabinet UI. The inbox/detail panes are dynamic, so initialise after insertion.
     requestAnimationFrame(()=>{
@@ -2667,6 +2705,7 @@ class CampaignController {
   }
   renderMissions(){
     missionBoardEl.innerHTML='';
+    {const strip=this.leadStrip();if(strip)missionBoardEl.appendChild(strip)}
     const toolbar=document.createElement('div');
     toolbar.className='contractBoardToolbar';
     // v307: one free board refresh after each run; further redraws cost a small

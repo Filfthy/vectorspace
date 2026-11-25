@@ -3186,3 +3186,20 @@ v2440 The plain blocks beside the penthouse climb get windows too
       parapet line and a rooftop plant room with a mast. Hidden or small
       ones stay plain boxes.
 
+v2450 Mail shows what still needs following up
+      Every story mail used to say HIGH, so the live lead looked the same
+      as finished threads. The tag on each mail now says where it stands,
+      worked out from its buttons rather than fixed when it was sent:
+      ACTION (yellow): a contract or briefing still to open.
+      ACCEPTED (cyan): that contract is prepared or in flight.
+      DONE (dimmed): finished, or the briefing has been opened.
+      GIFT or OFFER: an unclaimed reward or a buy offer still open.
+      Mails with nothing to do carry no tag. The detail heading says the
+      same (STORY · ACTION NEEDED and so on).
+      ACTION and ACCEPTED mails are pinned to the top of the list, with
+      a coloured bar down the side, accepted ones first.
+      A lead strip at the top of the Mail and Contracts tabs shows the
+      open leads (up to two, then a count): for example LEAD · Possible
+      drone activity · Mara Venn · CONTACT QUICKBITE. Click one to open
+      its mail.
+

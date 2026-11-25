@@ -1065,3 +1065,21 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .marketWallet{color:var(--x);font-size:var(--type-meta)}
 .marketBuyBox{margin-top:0;border-top:0;padding:12px 0;border-bottom:1px solid var(--gd)}
 .marketSpecs{padding-top:4px}
+
+/* v2450 mail status in place of priority, pinned open leads, and the current-lead strip */
+.mailRow.status-action .mailPriority{color:var(--y)}
+.mailRow.status-accepted .mailPriority{color:var(--c)}
+.mailRow.status-done .mailPriority{color:var(--x)}
+.mailRow.status-gift .mailPriority,.mailRow.status-offer .mailPriority{color:var(--g)}
+.mailRow.status-action{box-shadow:inset 4px 0 0 var(--y)}
+.mailRow.status-accepted{box-shadow:inset 4px 0 0 var(--c)}
+.mailRow.status-done .mailRowSubject{color:var(--x)!important}
+.mailDetailKicker.status-action{color:var(--y)}
+.mailDetailKicker.status-accepted{color:var(--c)}
+.mailDetailKicker.status-done{color:var(--x)}
+.storyLeads{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 8px}
+.storyLead{display:flex;align-items:center;gap:10px;height:auto;min-height:30px;padding:4px 12px;text-align:left;border-color:var(--y)!important;color:var(--y)!important;font-size:var(--type-meta)}
+.storyLead.accepted{border-color:var(--c)!important;color:var(--c)!important}
+.storyLeadTag{letter-spacing:var(--track-label);font-size:var(--type-compact)}
+.storyLeadText{color:var(--w)}
+.storyLeadMore{color:var(--x);font-size:var(--type-meta)}
