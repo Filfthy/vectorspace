@@ -297,7 +297,7 @@ class MissionController {
  const tutorialRun=tutorialFinalRun.isActive();
  mode='play';phase='trench';phaseT=0;modeT=0;trenchSpawn=tutorialRun?999:.45;trenchHaz=tutorialRun?2.35:lerp(2.45,.7,clamp((level-1)/4,0,1));groundTargets.length=0;bolts.length=0;hazards.length=0;inputX=inputY=aimX=aimY=0;viewYaw=viewPitch=viewRoll=0;shipX=tunnelOriginX;shipY=-2.2;shots.length=0;playerMissiles.length=0;reactorHits=0;reactorAnnounced=false;
  reactorBoundaryWorld=travel+188;escapeBoundaryWorld=reactorBoundaryWorld+86;exitDoorWorld=escapeBoundaryWorld+105;
- const rw=reactorBoundaryWorld+38;groundTargets.push({type:'reactor',worldZ:rw,x:tunnelOriginX,y:-2.2,z:rw-travel,s:1.0,hp:tutorialRun?1:4,rot:[0,0,0],col:C.r,mesh:cubeMesh,mx:.55,my:2.7,mz:.55,dead:false,flash:0,active:false});
+ const rw=reactorBoundaryWorld+38;groundTargets.push({type:'reactor',worldZ:rw,x:tunnelOriginX,y:-2.2,z:rw-travel,s:1.0,hp:tutorialRun?1:4,rot:[0,0,0],col:C.r,mesh:reactorCoreMesh,mx:1,my:1,mz:1,dead:false,flash:0,active:false});
  if(tutorialRun)tutorialFinalRun.onTunnelBegin();else say('TUNNEL RUN',.6);
  groundAssault?.onBeginTrench?.()
 }
@@ -306,13 +306,13 @@ class MissionController {
  mode='play';phase='trench';phaseT=0;modeT=0;groundTargets.length=0;bolts.length=0;hazards.length=0;reactorHits=0;reactorAnnounced=false;
  if(!Number.isFinite(tunnelStartWorld))tunnelStartWorld=travel;tunnelOriginX=shipX;
  reactorBoundaryWorld=travel+48;escapeBoundaryWorld=reactorBoundaryWorld+92;exitDoorWorld=escapeBoundaryWorld+105;const rw=reactorBoundaryWorld+38;
- groundTargets.push({type:'reactor',worldZ:rw,x:tunnelOriginX,y:-2.2,z:rw-travel,s:1.0,hp:4,rot:[0,0,0],col:C.r,mesh:cubeMesh,mx:.55,my:2.7,mz:.55,dead:false,flash:0,active:false});say('REACTOR SECTION AHEAD',.7)
+ groundTargets.push({type:'reactor',worldZ:rw,x:tunnelOriginX,y:-2.2,z:rw-travel,s:1.0,hp:4,rot:[0,0,0],col:C.r,mesh:reactorCoreMesh,mx:1,my:1,mz:1,dead:false,flash:0,active:false});say('REACTOR SECTION AHEAD',.7)
 }
   beginReactor(){
  if(!objectiveAdvanceAllowed())return;
  mode='play';phase='reactor';phaseT=0;modeT=0;reactorHits=0;groundTargets.length=0;bolts.length=0;hazards.length=0;reactorBoundaryWorld=travel-1;escapeBoundaryWorld=travel+50;exitDoorWorld=escapeBoundaryWorld+105;
  const tutorialRun=tutorialFinalRun.isActive();
- const rw=travel+26;groundTargets.push({type:'reactor',worldZ:rw,x:tunnelOriginX,y:-2.2,z:26,s:1.0,hp:tutorialRun?1:4,rot:[0,0,0],col:C.r,mesh:cubeMesh,mx:.55,my:2.7,mz:.55,dead:false,flash:0,active:true});reactorAnnounced=true;if(tutorialRun)tutorialFinalRun.onReactorReached();else audio.playVoice('destroyReactorAhead',{once:true,priority:true})
+ const rw=travel+26;groundTargets.push({type:'reactor',worldZ:rw,x:tunnelOriginX,y:-2.2,z:26,s:1.0,hp:tutorialRun?1:4,rot:[0,0,0],col:C.r,mesh:reactorCoreMesh,mx:1,my:1,mz:1,dead:false,flash:0,active:true});reactorAnnounced=true;if(tutorialRun)tutorialFinalRun.onReactorReached();else audio.playVoice('destroyReactorAhead',{once:true,priority:true})
 }
   failReactor(){say('REACTOR INTACT',.7);beginEscape(false)
 }

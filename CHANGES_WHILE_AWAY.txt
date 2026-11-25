@@ -3264,3 +3264,15 @@ v2490 Base assault: lattice pylons, real guns, rolling ground
 v2500 Blue pylons on the base assault
       The lattice pylons are blue steel now instead of green, so they
       stand out from the green moon. The yellow node on top is unchanged.
+
+v2510 Base assault tunnel: wall guns, faster run, new reactor core
+      The guns in the bunker tunnel are now the tracking wall
+      emplacements from the Tesla tower mission (the same ones the
+      factory tunnel uses), turning to follow the drone and firing from
+      the barrel. They come a little more often to suit the faster run.
+      The tunnel and the escape run a quarter faster. The reactor
+      stretch keeps the old speed so there is time to line up the shot.
+      The reactor core is rebuilt: clamps on the floor and ceiling, a
+      bowed cage, coolant pipes into both walls, three counter rotating
+      containment rings round a pulsing yellow core, and arcs crackling
+      off it. It still takes the same hits.

@@ -664,8 +664,10 @@ class Game {
      const side=Math.random()<.5?-1:1,yOff=-1.0+Math.random()*2.0,z=38+Math.random()*10,wz=travel+z;
      if(groundAssault?.factoryTunnel?.()){if(wz<reactorBoundaryWorld-18)groundAssault.spawnTunnelGun(side,wz);trenchSpawn=1.25+Math.random()*.7}
      else{
-     if(wz<reactorBoundaryWorld-18)groundTargets.push({type:'wallgun',worldZ:wz,x:0,y:0,yOff,z,s:.82,hp:3,hitFx:0,rot:[0,0,0],col:C.r,mesh:wallGunMesh,dead:false,shot:false,side,mx:-side});
-     trenchSpawn=1.15+Math.random()*.62}
+     // v2510 (Dave: tunnel guns like the Tesla tower mission's). The bunker raid's tracking
+     // wall emplacement, the same one the factory tunnel plants on its walls.
+     if(wz<reactorBoundaryWorld-18)groundAssault.spawnTunnelGun(side,wz);
+     trenchSpawn=.95+Math.random()*.52}
    }
    if(rb>REACTOR_CLEAR_RUN&&trenchHaz<=0){
      spawnBarrierSet(reactorBoundaryWorld-18);

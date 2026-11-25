@@ -649,6 +649,44 @@ const xenoQueenMesh=(()=>{
   return mesh
 })();
 
+// v2510 (Dave: we need a better core model). The base assault reactor core, built to fill the
+// tunnel: clamps bolted to floor and ceiling, a bowed six-member cage, coolant pipes into both
+// walls, three counter-rotating containment rings round a pulsing core, and arcs crackling off
+// it. reactorCorePose(m,t) emits the same vertices in the same order for any t, so the mesh is
+// built once and pose(t) rewrites its points each frame. Origin is the tunnel centre.
+function reactorCorePose(m,t){
+  const PI=Math.PI,pulse=1+.09*Math.sin(t*5.2);
+  m.mark('frame',()=>{
+    for(const sy of[-1,1])m.loft([m.ringXZ(0,sy*1.3,0,1.05,1.05,8,PI/8),m.ringXZ(0,sy*1.13,0,.96,.96,8,PI/8),m.ringXZ(0,sy*1.03,0,.5,.5,8,PI/8)],true,true);
+    for(const sy of[-1,1])m.loft([m.ringXZ(0,sy*1.03,0,.24,.24,8),m.ringXZ(0,sy*.74,0,.24,.24,8),m.ringXZ(0,sy*.6,0,.33,.33,8)],false,false);
+    for(let i=0;i<6;i++){const a=i*PI/3,pts=[];
+      for(let k=0;k<=4;k++){const y=-1.08+k*.54,r=.8+.24*Math.cos(y/1.1*PI/2);pts.push([Math.cos(a)*r,y,Math.sin(a)*r])}
+      for(let k=0;k<4;k++)m.beam(pts[k],pts[k+1],.09,.09)}
+    for(const sx of[-1,1]){m.beam([sx*.3,-.86,0],[sx*1.02,-.86,0],.15,.15);m.beam([sx*1.02,-.86,0],[sx*1.78,-.86,0],.24,.24);m.box([sx*1.74,-.86,0],[.1,.52,.52]);
+      m.beam([sx*.3,.86,0],[sx*1.78,.86,0],.1,.1)}
+  });
+  m.mark('rings',()=>{
+    for(const[y,r,sp]of[[-.44,.64,1.4],[0,.78,-1.05],[.44,.64,1.4]]){const rot=t*sp,q=(rr,yy)=>m.ringXZ(0,yy,0,rr,rr,12,rot);
+      m.loft([q(r,y-.06),q(r,y+.06),q(r-.09,y+.06),q(r-.09,y-.06),q(r,y-.06)],false,false)}
+  });
+  m.mark('core',()=>{const Rr=.47*pulse;
+    m.loft(Array.from({length:7},(_,i)=>{const u=i/6,y=-Rr*Math.cos(PI*u),r=Math.max(.05,Rr*Math.sin(PI*u));return m.ringXZ(0,y,0,r,r,10,t*.7)}),true,true)});
+  m.mark('arcs',()=>{
+    for(let i=0;i<4;i++){const seed=Math.floor(t*11+i*2.7),a=i*PI/2+Math.sin(seed*1.7)*.6,yy=Math.sin(seed*2.3)*.55,pts=[];
+      for(let k=0;k<=5;k++){const u=k/5,r=.42+u*.42,j=Math.sin(seed*12.99+k*78.23)*.16;pts.push([Math.cos(a+j)*r,yy*u+Math.sin(seed*4.1+k*2.1)*.1,Math.sin(a+j)*r])}
+      gaLine(m,pts)}
+  });
+}
+const reactorCoreMesh=(()=>{
+  const top=gaBuilder(true);reactorCorePose(top,0);
+  const col={rings:C.m,core:C.y,arcs:C.c},ranges=Object.entries(top.marks),colOf=i=>{for(const[k,[a,b]]of ranges)if(i>=a&&i<b)return col[k]||null;return null};
+  const cols=top.e.map(e=>colOf(e[0]));
+  const mesh={name:'Reactor Core',v:top.v.map(p=>p.slice()),e:top.e,faces:top.faces,edgeColors:cols,baseColors:cols,
+    pose(t){const q=gaBuilder(false);reactorCorePose(q,t);for(let i=0;i<mesh.v.length;i++){const a=mesh.v[i],b=q.v[i];a[0]=b[0];a[1]=b[1];a[2]=b[2]}}};
+  return mesh
+})();
+
+
 // v2460 (Dave: it is meant to be a wasp nest). The hive is a hanging paper nest: a long
 // teardrop built from overlapping scalloped layers, each band's lower lip flaring out over
 // the one below, rounded over at the top, with the entrance hole underneath.

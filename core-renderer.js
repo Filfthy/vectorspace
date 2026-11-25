@@ -621,6 +621,10 @@ class SceneRenderer {
    }
  }else if(g.type==='reactor'){
    if(g.factoryReactor){groundAssault.drawReactor(g);return}
+   if(g.mesh===reactorCoreMesh){
+     const m=reactorCoreMesh,c=tunnelCenter(g.z);m.pose(time);m.edgeColors=(g.hitFx||0)>0?null:m.baseColors;
+     drawMesh({x:c.x,y:c.y,z:g.z,s:1,rot:[0,0,0],hitFx:g.hitFx||0},m,objectHitColor(g,C.r));return
+   }
    const col=objectHitColor(g,C.r);
    drawMesh(g,g.mesh,col);
    for(let i=0;i<3;i++){

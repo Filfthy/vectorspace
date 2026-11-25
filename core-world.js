@@ -31,7 +31,9 @@ class World {
  if(mode==='play'&&phase==='surface')return 0;
  // Factory: fast tunnel and escape, but the reactor section slows to an attack run.
  if(mode==='play'&&phase==='reactor'&&groundAssault?.factoryTunnel?.())return 6.5;
- if(mode==='play'&&(phase==='trench'||phase==='reactor'||phase==='escape'))return FLIGHT_SPEED*(groundAssault?.factoryTunnel?.()?1.75:1);
+ // v2510 (Dave: the tunnel should be a bit faster). The base assault tunnel and escape run
+ // a quarter faster; the reactor attack run and the simulator keep flight speed.
+ if(mode==='play'&&(phase==='trench'||phase==='reactor'||phase==='escape'))return FLIGHT_SPEED*(groundAssault?.factoryTunnel?.()?1.75:(phase!=='reactor'&&!tutorialFinalRun?.isActive?.()?1.25:1));
  return 0;
 }
   trenchWall(){const ar=W/Math.max(1,H);const wide=clamp((ar-1.35)/(.4278),0,1);return lerp(1.95,1.68,wide)}
