@@ -3308,3 +3308,10 @@ v2540 DEV side mission tester, steeper forest take-off
       Leaving the forest, the nose now comes up hard at once and the
       climb is front loaded, and the drone stops running forward as it
       pitches up, so it climbs out instead of flying into the treeline.
+
+v2550 Cargo Spill cases are tractored
+      Getting close to a case no longer just scoops it. The drone stops,
+      turns to the case and tractors it aboard with the same beam as
+      every other recovery package. At the hauler it holds station a
+      little way off and tractors the hold across to her, the cases
+      riding the beam one after another, before you fly on.

@@ -4,9 +4,9 @@
 //
 // A Free Traders job. A hauler took a hit and her hold split open. Her consignment was
 // small sealed cases of valuables, and they are now tumbling round her. AX-1 is a small
-// drone, not a freighter: it carries HOLD cases at a time. Fly through a case (within
-// REACH) to pick it up, then fly back to the hauler (within DROP of her) to hand the
-// cases over. A few seconds in, pirate scavengers arrive. They go for the loose cases,
+// drone, not a freighter: it carries HOLD cases at a time. Fly up to a case (within REACH)
+// and the drone stops and tractors it aboard. Fly back to the hauler (within DROP of her)
+// and it holds station and tractors the hold across to her. A few seconds in, pirate scavengers arrive. They go for the loose cases,
 // not the drone, and any case one reaches is gone, until the drone shoots that
 // scavenger, which then fights back. Cases keep drifting slowly outward and any that get
 // LOST_RANGE from the hauler are gone too. Pay and Free Traders standing follow the share
@@ -14,13 +14,13 @@
 // Hooks: route-diversion.js begin / update / onFightCleared / hudLeft / appendScene /
 // drawMarker / reset, for the route_diversion stage with diversion:'spill'.
 const AgentXCargoSpill={
-  REACH:8,DROP:30,HOLD:3,SCAV_AT:5,LOST_RANGE:520,
-  pods:[],hauler:null,carried:0,picked:0,handing:[],
+  REACH:14,DROP:58,HOLD:3,SCAV_AT:5,LOST_RANGE:520,
+  pods:[],hauler:null,carried:0,picked:0,handover:null,
   state:'idle',t:0,got:0,stolen:0,lost:0,total:0,scavsIn:false,scavsDone:false,lastTake:0,lastFull:-9,lastLost:-9,deliverCue:false,last:null,
   begin(stage,risk){
     risk=Math.max(1,Number(risk)||1);this.risk=risk;
     const n=Math.max(8,Math.min(12,7+Math.round(risk*.5))),clusters=Math.ceil(n/3);
-    this.pods=[];this.handing=[];this.t=0;this.got=0;this.stolen=0;this.lost=0;this.carried=0;this.picked=0;this.total=n;
+    this.pods=[];this.handover=null;this.t=0;this.got=0;this.stolen=0;this.lost=0;this.carried=0;this.picked=0;this.total=n;
     this.scavsIn=false;this.scavsDone=false;this.lastTake=-9;this.lastFull=-9;this.lastLost=-9;this.deliverCue=false;this.state='spill';this.last=null;
     // The hauler sits ahead in the lane, a little low and turned, so her length reads.
     const side=Math.random()<.5?-1:1,h=cameraPointToWorld([side*18,-6,240]);
@@ -46,28 +46,29 @@ const AgentXCargoSpill={
   // when every case is settled and no scavenger is left, otherwise null.
   update(dt){
     if(this.state!=='spill')return null;
-    this.t+=dt;const k=OPEN_SPACE_CRUISE*dt,h=this.hauler;
+    this.t+=dt;const h=this.hauler;
+    // v2550 (Dave: we always tractor cargo). While the hold is being beamed across the drone
+    // holds station, so nothing shifts past it.
+    if(this.handover)this.updateHandover(dt);
+    const k=this.handover?0:OPEN_SPACE_CRUISE*dt;
     h.x-=spaceMoveX*k;h.y-=spaceMoveY*k;h.z-=spaceMoveZ*k;
-    for(const c of this.handing){c.x-=spaceMoveX*k;c.y-=spaceMoveY*k;c.z-=spaceMoveZ*k;const g=Math.min(1,dt*3.2);c.x+=(h.x-c.x)*g;c.y+=(h.y-c.y)*g;c.z+=(h.z-c.z)*g;c.t+=dt;c.rot[1]+=dt*4}
-    this.handing=this.handing.filter(c=>c.t<.9);
     for(const p of this.pods){
       p.flash=Math.max(0,p.flash-dt);if(p.state!=='free')continue;
       p.x-=spaceMoveX*k;p.y-=spaceMoveY*k;p.z-=spaceMoveZ*k;
       p.x+=p.drift[0]*dt;p.y+=p.drift[1]*dt;p.z+=p.drift[2]*dt;p.rot[0]+=p.spin[0]*dt;p.rot[1]+=p.spin[1]*dt;
-      if(Math.hypot(p.x-shipX,p.y-shipY,p.z)<this.REACH){
-        if(this.carried<this.HOLD){p.state='carried';this.carried++;this.picked++;
-          callout(this.carried>=this.HOLD?'HOLD FULL · TAKE THE CASES TO THE HAULER':`CASE ABOARD · HOLD ${this.carried} OF ${this.HOLD}`,1.1,false);SoundFX.relayCalibrated?.();continue}
-        if(this.t-this.lastFull>3){this.lastFull=this.t;callout('HOLD FULL · TAKE THE CASES TO THE HAULER',1.2,false)}
+      if(!this.handover&&Math.hypot(p.x-shipX,p.y-shipY,p.z)<this.REACH){
+        // In reach: the drone stops, turns to the case and tractors it aboard, the same
+        // recovery pickup used for every other package (system-salvage.js).
+        if(this.carried<this.HOLD&&!salvageRecovery.active&&this.beginTractor(p))return null;
+        if(this.carried>=this.HOLD&&this.t-this.lastFull>3){this.lastFull=this.t;callout('HOLD FULL · TAKE THE CASES TO THE HAULER',1.2,false)}
       }
       // Drifted out of the hauler's scanner range: gone.
       if(Math.hypot(p.x-h.x,p.y-h.y,p.z-h.z)>this.LOST_RANGE){p.state='lost';this.lost++;
         if(this.t-this.lastLost>3){this.lastLost=this.t;callout('A CASE DRIFTED OUT OF RANGE',1.2,false)}}
     }
-    // Hand the hold over once the drone is alongside the hauler.
-    if(this.carried>0&&this.haulerDistance()<this.DROP){
-      const n=this.carried;this.got+=n;this.carried=0;
-      for(const p of this.pods)if(p.state==='carried'){p.state='got';this.handing.push({x:shipX,y:shipY-.6,z:3,s:.62,mx:1,my:.7,mz:1.3,rot:[0,0,0],t:0})}
-      callout(`${n} CASE${n>1?'S':''} DELIVERED · ${this.got} OF ${this.total} ABOARD THE HAULER`,1.4,false);SoundFX.objectiveComplete?.()
+    // Alongside the hauler with cases aboard: hold station and tractor them across.
+    if(!this.handover&&this.carried>0&&this.haulerDistance()<this.DROP){
+      this.handover={t:0,n:this.carried};callout('HOLDING STATION · TRANSFERRING CARGO',1.2,false)
     }
     // Scavengers that have not been shot fly for the nearest loose case (steerScavenger)
     // and take it when they reach it.
@@ -100,6 +101,49 @@ const AgentXCargoSpill={
     f.vx=u[0]*spd;f.vy=u[1]*spd;f.vz=u[2]*spd;f.x+=f.vx*dt;f.y+=f.vy*dt;f.z+=f.vz*dt;f.shotsLeft=0;
     if(typeof orientFighter==='function')orientFighter(f);return true
   },
+  beginTractor(p){
+    const n=this.carried+1;
+    const ok=salvageRecovery.beginEmbeddedPickup({package:{x:p.x,y:p.y,z:p.z,rot:[p.rot[0],p.rot[1],0]},
+      stage:{recoveryLabel:'cargo case',tractorSeconds:1.15,recoveredMessage:n>=this.HOLD?'HOLD FULL · TAKE THE CASES TO THE HAULER':`CASE ABOARD · HOLD ${n} OF ${this.HOLD}`},
+      onComplete:()=>{p.state='carried';this.carried++;this.picked++},restorePhase:'space'});
+    if(ok)p.state='tractor';return ok
+  },
+  HANDOVER_SECONDS:1.6,
+  updateHandover(dt){
+    const H=this.handover,h=this.hauler;H.t+=dt;inputX=inputY=0;
+    this.alignTo([h.x,h.y,h.z],dt);
+    if(H.t>=this.HANDOVER_SECONDS){
+      this.got+=H.n;this.carried=Math.max(0,this.carried-H.n);let left=H.n;
+      for(const p of this.pods)if(left>0&&p.state==='carried'){p.state='got';left--}
+      this.handover=null;
+      callout(`${H.n} CASE${H.n>1?'S':''} DELIVERED · ${this.got} OF ${this.total} ABOARD THE HAULER`,1.4,false);SoundFX.objectiveComplete?.()
+    }
+  },
+  // Turn the drone smoothly to face a point (as the recovery pickup does for a package).
+  alignTo(pt,dt){
+    if(typeof ensureSpaceOrientation!=='function')return;
+    ensureSpaceOrientation();const d=v3norm([pt[0]-shipX,pt[1]-shipY,pt[2]]);if(v3len(d)<.0001)return;
+    const angle=Math.acos(clamp(v3dot(spaceForward,d),-1,1));
+    if(angle>.002){let axis=v3cross(spaceForward,d);if(v3len(axis)<.001)axis=spaceUp;axis=v3norm(axis);
+      const turn=Math.min(angle,Math.max(.25,angle*3)*dt);
+      spaceForward=rotateAroundAxis(spaceForward,axis,turn);spaceRight=rotateAroundAxis(spaceRight,axis,turn);spaceUp=rotateAroundAxis(spaceUp,axis,turn);
+      orthonormaliseSpaceOrientation();syncEulerFromSpaceOrientation()}
+    viewRoll=moveToward(viewRoll,0,dt*2.8)
+  },
+  // The transfer beam: wavefronts flowing out from the drone's bay to the hauler, and the
+  // cases riding it across one after another.
+  drawHandover(){
+    const H=this.handover,h=this.hauler;if(!H||!h)return;
+    const hq=camPoint([h.x,h.y,h.z]);if(hq[2]<.5)return;const hp=projectCam(hq);if(!hp)return;
+    const sx=W*.5,sy=viewH+Math.max(70,viewH*.18),flow=(H.t*.5)%1;
+    ctx.save();ctx.strokeStyle=C.c;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.globalAlpha=.7;
+    for(let i=0;i<5;i++){const t=(((i/5)+flow)%1),tp=1-Math.pow(1-t,2.05),half=lerp(8,30,tp),x=lerp(sx,hp.x,tp),y=lerp(sy,hp.y,tp),bow=lerp(4,10,tp);
+      if(y<-40||y>viewH+60)continue;ctx.beginPath();ctx.moveTo(x-half,y);ctx.quadraticCurveTo(x,y-bow,x+half,y);ctx.stroke()}
+    ctx.restore();
+    const start=cameraPointToWorld([0,-.95,1.55]);
+    for(let i=0;i<H.n;i++){const q=ease(clamp((H.t-i*.22)/(this.HANDOVER_SECONDS-.5),0,1));if(q<=0||q>=1)continue;
+      drawMesh({x:lerp(start[0],h.x,q),y:lerp(start[1],h.y,q),z:lerp(start[2],h.z,q),s:.5,mx:1.02,my:.22,mz:.7,rot:[0,H.t*3+i,0]},courierFixtureBoxMesh,C.c,.98)}
+  },
   scavengerCount(){return Math.max(2,Math.min(5,2+Math.round(this.risk*.3)))},
   share(){return this.total?this.got/this.total:0},
   hud(def){return `${def.hud} · HOLD ${this.carried}/${this.HOLD} · DELIVERED ${this.got}/${this.total}${this.stolen?` · STOLEN ${this.stolen}`:''}`},
@@ -108,12 +152,12 @@ const AgentXCargoSpill={
     const h=this.hauler;if(h){const q=camPoint([h.x,h.y,h.z]);if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(h,routeDiversion.FREIGHTER_MESH,C.c,.95)})}
     for(const p of this.pods){if(p.state!=='free')continue;const q=camPoint([p.x,p.y,p.z]);
       if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(p,courierFixtureBoxMesh,C.y,.98)})}
-    for(const c of this.handing){const q=camPoint([c.x,c.y,c.z]);if(q[2]>.18)scene.push({z:q[2],draw:()=>drawMesh(c,courierFixtureBoxMesh,C.y,.9)})}
   },
   // The way to the hauler while the drone has cases aboard, and the nearest loose case
   // while it has room. Each gets a label on screen, or an edge arrow when it is not.
   drawMarker(){
     if(this.state!=='spill')return;
+    if(this.handover){this.drawHandover();return}
     const mark=(pt,label,col,lift)=>{
       const q=camPoint(pt),pp=q[2]>.2?projectCam(q):null;
       ctx.save();ctx.textAlign='center';ctx.textBaseline='bottom';ctx.font='400 10px Consolas,monospace';ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.strokeStyle=col;
@@ -128,6 +172,6 @@ const AgentXCargoSpill={
     let best=null,bd=1e9;for(const p of this.free()){const d=Math.hypot(p.x-shipX,p.y-shipY,p.z);if(d<bd){bd=d;best=p}}
     if(best)mark([best.x,best.y,best.z],'CASE',C.y,best.s*1.6)
   },
-  reset(){this.pods=[];this.handing=[];this.hauler=null;this.carried=0;this.picked=0;this.lost=0;this.state='idle';this.t=0;this.got=0;this.stolen=0;this.scavsIn=false}
+  reset(){this.pods=[];this.handover=null;this.hauler=null;this.carried=0;this.picked=0;this.lost=0;this.state='idle';this.t=0;this.got=0;this.stolen=0;this.scavsIn=false}
 };
 globalThis.AgentXCargoSpill=AgentXCargoSpill;

@@ -357,7 +357,7 @@ const stars=Array.from({length:1900},(_,i)=>{
  }
 });
 function starSpeedNow(){
- if(mode==='recoveryPickup')return 0;
+ if(mode==='recoveryPickup'||globalThis.AgentXCargoSpill?.handover)return 0;
  if(typeof xenoNest!=='undefined'&&xenoNest.active&&xenoNest.state==='departure')return lerp(12,225,ease(clamp(xenoNest.departureT/3.15,0,1)))
  if(mode==='abandonExit')return lerp(8,235,ease(clamp(modeT/ABANDON_EXIT_SECONDS,0,1)))
  if(mode==='surfaceExit')return lerp(2,220,surfaceExitZoomProgress())

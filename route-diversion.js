@@ -95,7 +95,7 @@ const routeDiversion={
       clean:{say:'PICKET BEHIND · CARGO NEVER SCANNED',text:'Cargo through the picket unscanned',pay:.15,rep:2},
       flagged:{say:'INTERCEPTORS DOWN · CARGO THROUGH',text:'Scanned at the picket, interceptors fought off',pay:-.2,rep:-2}},
     // v2080: the Free Traders' Cargo Spill (cargo-spill.js). The whole job, so main:true.
-    spill:{nav:'CARGO ADRIFT · PICK UP THE CASES · BRING THEM TO THE HAULER',hud:'CARGO SPILL',window:1e9},
+    spill:{nav:'CARGO ADRIFT · TRACTOR THE CASES · BRING THEM TO THE HAULER',hud:'CARGO SPILL',window:1e9},
     layerCrew:{nav:'MINELAYER CREW SEEDING THE LANE · BREAK THEM UP',hud:'MINELAYER CREW',window:1e9,
       cleared:{say:'LANE CLEARED · OSD WILL LOG IT',text:'Minelayer crew broken up, lane cleared',pay:.08,rep:2,repFaction:'security'}},
     migration:{nav:'XENO MIGRATION CROSSING · FLY CLOSE TO SCAN · DO NOT FIRE',hud:'XENO MIGRATION',window:30,need:3,

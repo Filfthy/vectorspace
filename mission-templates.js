@@ -2899,7 +2899,7 @@
         contactId:'corvella_pallis',
         titles:['Cargo Spill','Pick Up My Cases','Spilled Freight','Boxes Everywhere'],
         descriptions:[
-          'Sweetie, one of my haulers took a hit and her hold split open. She was carrying the good stuff, little sealed cases, and now they are tumbling all round her. Your drone can carry three at a time. Fly through them, then fly them back to her. Every case you bring home is money I do not have to cry about.',
+          'Sweetie, one of my haulers took a hit and her hold split open. She was carrying the good stuff, little sealed cases, and now they are tumbling all round her. Your drone can carry three at a time. Tractor them aboard, then take them back to her. Every case you bring home is money I do not have to cry about.',
           'Babe, there are cases of my best consignment drifting round a crippled hauler with my name stencilled on every one, and pirates on the way with sticky fingers. Pick them up three at a time and hand them back to the crew. Anyone who tries to help themselves, shoot.',
           'A hauler lost her hold, Sweetie. The crew is fine, the cargo is everywhere. Small sealed cases, light enough for your drone, three to a trip. The scavengers only want the cases, not you, until you give them a reason. Collect first, shoot second, or both at once if you are showing off.'
         ],
