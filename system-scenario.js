@@ -275,7 +275,11 @@ class ScenarioFlowController {
     // Combat encounters always use the violent playlist; when they hand back to a
     // delivery/travel/surface section, restore the mission's authored base mode.
     const combatMusic=(stage.type==='fighters'||stage.type==='combat_recovery'||stage.type==='station_defence_recovery'||stage.type==='customs_drones'||stage.type==='deep_core'||stage.type==='deep_core_surface'||stage.type==='carrier_intercept'||stage.type==='dune_assault');
-    audio.music.setMode(combatMusic?'violent':(mission?.musicMode||campaign.currentMission?.musicMode||'calm'));
+    // v2570 (Dave: Blockade kept the battle music all the way to the depot and after). Story
+    // chains default to the violent playlist, but a transit or a depot visit after the fight
+    // is a quiet leg, so it is always calm whatever the mission's base mode.
+    const quietLeg=stage.type==='space_transit'||stage.type==='free_traders_depot_terminal';
+    audio.music.setMode(combatMusic?'violent':(quietLeg?'calm':(mission?.musicMode||campaign.currentMission?.musicMode||'calm')));
     if(stage.type==='asteroid_wreck_recovery'){
       asteroidWreckRun.begin(stage);return true
     }

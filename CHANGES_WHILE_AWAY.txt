@@ -3321,3 +3321,12 @@ v2560 DEV side mission tester runs the encounter alone
       asteroid delivery. The run is just that encounter and ends with
       the DEV debrief when it does, so Cargo Spill finishes at the
       hauler, as the real contract does.
+
+v2570 Calm music after the fight on story missions
+      Blockade (Corvella's second Free Traders job) kept the battle
+      music after the blockade was broken, all the way to the depot and
+      out again. Story chain missions default to the battle playlist, so
+      every travel leg and depot visit after a fight inherited it. Space
+      transits and the Free Traders depot are now always calm. This also
+      fixes the same thing on Runaway (the depot), Live Specimens and
+      Second Nest (the transit home).

@@ -106,7 +106,7 @@ class FreeTradersDepotController{
       x:w[0],y:w[1],z:w[2],s:Math.max(12,Number(this.stage?.scale)||26),
       rot:[Number(this.stage?.pitch)||0,Number(this.stage?.yaw)||.075,Number(this.stage?.roll)||0]
     };
-    audio.music.setMode(campaign.currentMission?.musicMode||'calm');
+    audio.music.setMode('calm');   // v2570: the depot is a quiet leg, whatever the mission's base mode
     say(String(this.stage?.startMessage||'FREE TRADERS FREIGHT DEPOT AHEAD').toUpperCase(),.82);return true
   }
   stop(){this.reset()}
