@@ -115,9 +115,12 @@
   // v2080 Cargo Spill: steer for the nearest free pod ahead. With none ahead, fight.
   const spillStep=(skill=1)=>{
     const S=globalThis.AgentXCargoSpill;let best=null,bz=1e9;
-    // Only pods still within reach of a gentle turn, nearest and most central first.
-    for(const p of S.free()){const q=camPoint([p.x,p.y,p.z]),off=Math.hypot(q[0],q[1]);if(q[2]>4&&q[2]<300&&off<q[2]*.45+3){const score=q[2]+off*4;if(score<bz){bz=score;best=q}}}
+    // v2530: with a full hold, or nothing loose left to fetch, head back to the hauler.
+    // Otherwise the nearest loose case, turning round for it if it is behind.
+    if(S.hauler&&(S.carried>=S.HOLD||(S.carried>0&&!S.free().length)))best=camPoint([S.hauler.x,S.hauler.y,S.hauler.z]);
+    else for(const p of S.free()){const q=camPoint([p.x,p.y,p.z]),d=Math.hypot(q[0],q[1],q[2]);if(d<bz){bz=d;best=q}}
     if(!best){fightStep(.9);return}
+    if(best[2]<4){const rate=.12*skill,tx=best[0]>=0?1:-1;inputX=clamp(inputX+clamp(tx-inputX,-rate,rate),-1,1);inputY=clamp(inputY+clamp(-inputY,-rate,rate),-1,1);return}
     const rate=.12*skill,tx=clamp(best[0]/5,-1,1),ty=clamp(-best[1]/5,-1,1);
     inputX=clamp(inputX+clamp(tx-inputX,-rate,rate),-1,1);inputY=clamp(inputY+clamp(ty-inputY,-rate,rate),-1,1)
   };
@@ -368,8 +371,8 @@
         if(b.pods!==b.r.pods||!(b.paid>0))return `a real Cargo Spill brought ${b.r.pods} pods, counted ${b.pods}, paid ${b.paid}`;
         pilotNotes.push(`real customs ${a.r.outcome} CR ${a.paid}, real spill ${b.r.pods} pods CR ${b.paid}`);return
       }
-      // v2080: Cargo Spill flown twice, once going for the pods and once flying straight
-      // past them. Both must end, and going for the pods must bring more home.
+      // v2080: Cargo Spill flown twice, once going for the cases and once flying straight
+      // past them. Both must end, and going for the cases must bring more home.
       if(id==='cargo_spill'){
         const runs=[];
         for(const still of[false,true]){reset();c.launchDevTemplateTest('cargo_spill','trade');invulnerable=true;const r=flySpill(1,{still});runs.push(r);

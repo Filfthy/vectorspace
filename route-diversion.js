@@ -95,7 +95,7 @@ const routeDiversion={
       clean:{say:'PICKET BEHIND · CARGO NEVER SCANNED',text:'Cargo through the picket unscanned',pay:.15,rep:2},
       flagged:{say:'INTERCEPTORS DOWN · CARGO THROUGH',text:'Scanned at the picket, interceptors fought off',pay:-.2,rep:-2}},
     // v2080: the Free Traders' Cargo Spill (cargo-spill.js). The whole job, so main:true.
-    spill:{nav:'CARGO ADRIFT · FLY THROUGH THE PODS TO SCOOP THEM',hud:'CARGO SPILL',window:1e9},
+    spill:{nav:'CARGO ADRIFT · PICK UP THE CASES · BRING THEM TO THE HAULER',hud:'CARGO SPILL',window:1e9},
     layerCrew:{nav:'MINELAYER CREW SEEDING THE LANE · BREAK THEM UP',hud:'MINELAYER CREW',window:1e9,
       cleared:{say:'LANE CLEARED · OSD WILL LOG IT',text:'Minelayer crew broken up, lane cleared',pay:.08,rep:2,repFaction:'security'}},
     migration:{nav:'XENO MIGRATION CROSSING · FLY CLOSE TO SCAN · DO NOT FIRE',hud:'XENO MIGRATION',window:30,need:3,
@@ -485,21 +485,21 @@ const routeDiversion={
     stage.spaceCombat=true;
     scenarioFlow.startFighterStage({...stage,target:n,fighterHp:Math.round(12*k),profile:'pirate',navMessage:null,silentStart:true},'pirate',{preservePhase:true});
     scenarioFlow.encounterHudTag=this.KINDS.spill.hud;audio.music.setMode('violent');
-    callout(`${n} SCAVENGERS INBOUND · THEY ARE AFTER THE PODS`,2.2);if(audio?.hasVoice?.('scavengersInbound'))audio.playVoice('scavengersInbound',{once:false,priority:false});
+    callout(`${n} SCAVENGERS INBOUND · THEY ARE AFTER THE CASES`,2.2);if(audio?.hasVoice?.('scavengersInbound'))audio.playVoice('scavengersInbound',{once:false,priority:false});
   },
-  // Every scavenger down: the pods left are the drone's to collect. Reset the kill goal so
+  // Every scavenger down: the cases left are the drone's to collect. Reset the kill goal so
   // the main loop does not report the same fight as cleared every frame.
   onSpillScavengersCleared(){
     fighters.length=0;bolts.length=0;this.stage.spaceCombat=false;scenarioFlow.encounterProfile='standard';resetSpaceDogfightDirector();
     interceptorGoal=9999;interceptorsDestroyed=0;interceptorClearDelay=0;audio.music.setMode('calm');
-    AgentXCargoSpill.scavsDone=true;if(AgentXCargoSpill.free().length)callout('SCAVENGERS DOWN · COLLECT WHAT IS LEFT',1.8)
+    AgentXCargoSpill.scavsDone=true;if(AgentXCargoSpill.free().length)callout('SCAVENGERS DOWN · COLLECT WHAT IS LEFT',1.8);else if(AgentXCargoSpill.carried)callout('SCAVENGERS DOWN · BRING THE LAST CASES TO THE HAULER',1.8)
   },
   finishSpill(){
     const S=AgentXCargoSpill,f=S.share(),got=S.got,total=S.total,stolen=S.stolen;
-    // Break-even at about a third of the pods, +25% for a near-clean sweep. v2090: an empty
+    // Break-even at about a third of the cases, +25% for a near-clean sweep. v2090: an empty
     // haul costs up to 28% of the fee and 4 standing (was 15% and 2).
     const say=f>=.6?'CARGO RECOVERED · CORVELLA WILL BE THRILLED':(f>=.3?'SPILL CLEARED · SOME CARGO SAVED':'MOST OF THE CARGO IS GONE');
-    const o={id:'recovered',say,text:`Recovered ${got} of ${total} pods${stolen?`, ${stolen} stolen`:''}`,pay:Math.round(clamp((f-.35)*.8,-.3,.25)*100)/100,rep:f>=.6?2:(f<.3?-4:0),extra:{pods:got,podsTotal:total}};
+    const o={id:'recovered',say,text:`Delivered ${got} of ${total} cases${stolen?`, ${stolen} stolen`:''}`,pay:Math.round(clamp((f-.35)*.8,-.3,.25)*100)/100,rep:f>=.6?2:(f<.3?-4:0),extra:{pods:got,podsTotal:total}};
     S.last={got,total,stolen};S.reset();
     callout(say,2.4);if(f>=.3)SoundFX.objectiveComplete?.();audio.music.setMode('calm');
     this.record(o);fighters.length=0;bolts.length=0;this.end()

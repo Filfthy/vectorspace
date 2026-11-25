@@ -433,6 +433,7 @@ class Game {
      if(f.dead||f.dying)continue;
      if(tutorialCombatActive&&tutorialCombat.updateFighter(f,dt))continue;
      if(tutorialConsumablesActive&&tutorialConsumables.updateFighter(f,dt))continue;
+     if(globalThis.AgentXCargoSpill?.steerScavenger(f,dt))continue;   // v2530: scavengers fly for the loose cases
      tickFighterEvasion(f,dt);
 
      // Egress is genuine continuous motion. A fighter may only be reframed onto a

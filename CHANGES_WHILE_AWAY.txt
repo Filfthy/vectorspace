@@ -3283,3 +3283,16 @@ v2520 Longer base assault tunnel
       and barriers), and the escape after the reactor is long enough to
       have its own barriers before the exit. The simulator and the
       factory tunnel are unchanged.
+
+v2530 Cargo Spill reworked for a small drone
+      The drone no longer swallows freight pods. The hauler is now in
+      the scene, crippled with her hold split open, and her cargo is
+      small sealed cases tumbling all round her. The drone carries three
+      at a time: fly through a case to pick it up, then fly back to the
+      hauler to hand them over. The HUD shows HOLD n/3 and DELIVERED, a
+      HAULER marker appears while you have cases aboard, and a full
+      hold says so. Cases drift slowly outward and are lost if they get
+      too far from the hauler. Fewer cases than there were pods (8 to
+      12). Scavengers now really fly for the loose cases and take them
+      unless you shoot them. Briefings, Corvella's notes, the codex, the
+      achievement (Every Last Case) and the stats now say cases.

@@ -2874,9 +2874,10 @@
     }
   };
 
-  // v2080 Cargo Spill, the Free Traders' own job (cargo-spill.js). A hauler's cargo is
-  // adrift across a lane: fly through the pods to scoop them while pirate scavengers try
-  // to take them. Pay and standing follow the share brought home.
+  // v2080 Cargo Spill, the Free Traders' own job (cargo-spill.js). v2530: a hauler's hold
+  // split and her small sealed cases are adrift round her. The drone carries three at a
+  // time back to her while pirate scavengers try to take them. Pay and standing follow the
+  // share delivered.
   const cargoSpill={
     id:'cargo_spill',
     version:1,
@@ -2891,22 +2892,22 @@
     reward:{basePay:1600,payPerRisk:820,payRiskSquare:105,randomPay:300,roundPay:50,baseXp:160,xpPerRisk:45,xpRiskSquare:5},
     defaults:{},
     sections:[
-      {type:'route_diversion',label:'Scoop the Cargo',params:{diversion:'spill',main:true,spaceCombat:false,fighterHp:12}}
+      {type:'route_diversion',label:'Recover the Cases',params:{diversion:'spill',main:true,spaceCombat:false,fighterHp:12}}
     ],
     presentation:{
       trade:{
         contactId:'corvella_pallis',
-        titles:['Cargo Spill','Pick Up My Pods','Spilled Freight','Boxes Everywhere'],
+        titles:['Cargo Spill','Pick Up My Cases','Spilled Freight','Boxes Everywhere'],
         descriptions:[
-          'Sweetie, one of my haulers took a hit and dumped her whole cargo across a lane. The pods are drifting. Fly straight through them to scoop them up, as many as you can, before the scavengers do. Every pod you bring home is money I do not have to cry about.',
-          'Babe, there are cargo pods tumbling across a lane with my name stencilled on every one, and pirates on the way with sticky fingers. Fly through the pods to collect them. Anyone who tries to help themselves, shoot.',
-          'A hauler lost her load, Sweetie. The crew is fine, the cargo is everywhere. The scavengers only want the pods, not you, until you give them a reason. Collect first, shoot second, or both at once if you are showing off.'
+          'Sweetie, one of my haulers took a hit and her hold split open. She was carrying the good stuff, little sealed cases, and now they are tumbling all round her. Your drone can carry three at a time. Fly through them, then fly them back to her. Every case you bring home is money I do not have to cry about.',
+          'Babe, there are cases of my best consignment drifting round a crippled hauler with my name stencilled on every one, and pirates on the way with sticky fingers. Pick them up three at a time and hand them back to the crew. Anyone who tries to help themselves, shoot.',
+          'A hauler lost her hold, Sweetie. The crew is fine, the cargo is everywhere. Small sealed cases, light enough for your drone, three to a trip. The scavengers only want the cases, not you, until you give them a reason. Collect first, shoot second, or both at once if you are showing off.'
         ],
-        completionSubjects:['The pods','My cargo, rescued'],
-        completionBodies:['Sweetie, the pods are in the depot and Accounts has stopped sobbing. CR {credits} is on its way to you. Standing: +{rep}.'],
-        failureMail:{contactId:'corvella_pallis',subjects:['Oh, babe, the pods'],bodies:['Your drone went down out there and the scavengers had my cargo to themselves after that. I am going to need a large drink and a small accountant.']},
-        abandonMail:{contactId:'corvella_pallis',subjects:['You left my pods'],bodies:['You flew off and left my cargo floating in a lane, Sweetie. Somebody is going to pick it up. It will not be me.']},
-        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['The hauler crew again'],bodies:['Babe, the crew whose cargo you scooped up have named a pod after you. It is the one that was full of shoes. I think it is a compliment.']}
+        completionSubjects:['The cases','My cargo, rescued'],
+        completionBodies:['Sweetie, the cases are back in the depot and Accounts has stopped sobbing. CR {credits} is on its way to you. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Oh, babe, the cases'],bodies:['Your drone went down out there and the scavengers had my cargo to themselves after that. I am going to need a large drink and a small accountant.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['You left my cases'],bodies:['You flew off and left my cargo floating round a crippled hauler, Sweetie. Somebody is going to pick it up. It will not be me.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['The hauler crew again'],bodies:['Babe, the crew whose cargo you carried home have named a case after you. It is the one that was full of shoes. I think it is a compliment.']}
       }
     }
   };

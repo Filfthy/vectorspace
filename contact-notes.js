@@ -128,7 +128,7 @@
       station_defence:["Sweetie, somebody is bullying a station I like. Go and show them what a real drone looks like."],
       survey_run:["Babe, it is a survey. Fly low, look pretty, come home. That is practically a date."],
       crater_cores:["Sweetie, I am buying a moon. Well, a bit of one. Go and dig your lovely nose into its craters for me."],
-      cargo_spill:["Sweetie, those pods are full of my money and they are drifting off in every direction. Gather them up like a good drone.","Babe, fly through the pods, not round them. The scavengers are not shy and neither should you be."],
+      cargo_spill:["Sweetie, those cases are full of my money and they are drifting off in every direction. Gather them up like a good drone.","Babe, three at a time and straight back to the hauler. The scavengers are not shy and neither should you be."],
       convoy_escort:["Sweetie, that hauler is full of my money and she cannot shoot back. You can. Stay close to her.","Babe, the pirates always go for the fat slow one. Show them the fast dangerous one instead."],
       groundside_pickup:["Sweetie, there is a parcel on the ground with my name on it. Go and fetch it, and look good doing it."],
       crash_recovery:["Babe, one of my haulers came down hard. Bring back the recorders so I can find out whose fault it was. Not yours, obviously."],
@@ -230,7 +230,7 @@
       F('react_minefield','Loses a hauler to the old war minefields every season. Wants you to come home.'),
       F('react_ace','Has been robbed by the named pirate aces for years. Likes it that they are scared of you now.'),
       F('react_firstConvoy','Her hauler captains come into the office to talk about you. Calls escort work the best money she spends.'),
-      F('react_firstSpill','Has the depot crew open scooped cargo pods like birthday presents. One held a crate of very angry fish.')]},
+      F('react_firstSpill','Has the depot crew open recovered cargo cases like birthday presents. One held a crate of very angry fish.')]},
     jackals:{who:'Cassian Erivan-Snade',facts:[
       F('met','Red Jackal Combine contact. Elegant, indirect, never says steal when he can say change of ownership.'),
       F('lore1','Collects quiet things. Paintings, mostly. Occasionally people.'),

@@ -369,7 +369,7 @@ class CampaignController {
       {id:'lightTouch',name:'Light Touch',text:'Complete 3 Lattice Surveys without waking the lattice.',v:s.latticeQuiet||0,goal:3},
       {id:'shepherd',name:'Shepherd',text:'See 3 convoy freighters safely through.',v:s.convoysSafe||0,goal:3},
       {id:'nothingToDeclare',name:'Nothing to Declare',text:'Finish 3 Customs Runs without being scanned.',v:s.customsClean||0,goal:3},
-      {id:'everyLastPod',name:'Every Last Pod',text:'Bring home at least 9 in 10 pods from a Cargo Spill.',v:s.spillTidy||0,goal:1}
+      {id:'everyLastPod',name:'Every Last Case',text:'Deliver at least 9 in 10 cases from a Cargo Spill.',v:s.spillTidy||0,goal:1}
     ]
   }
   checkAchievements(){
@@ -1980,7 +1980,7 @@ class CampaignController {
         'Asteroid clearance is no longer always quiet. Whoever is hiding in the field may come out once you start shooting.',
         'Black Contracts. A tenth set piece, the Last Convoy.',
         'Customs runs. The Red Jackal Combine now has a job of its own: carry cargo through a Customs scanner picket, crossing each ring in a dark gap between its turning arms. Get scanned and the interceptors follow.',
-        'Cargo spills. So do the Free Traders: scoop up the cargo pods a hauler dumped by flying through them, before pirate scavengers take them.',
+        'Cargo spills. So do the Free Traders. Pick up the cases a crippled hauler spilled, three at a time, and fly them back to her before pirate scavengers take them.',
         'Your contacts now talk about the job in hand more often, and their files on the Networks page record more of what they have told you.',
         'The operator guide (the ? tab) has the detail.'],
       actions:[{type:'panel',panel:'guide',label:'OPEN OPERATOR GUIDE'}]})
@@ -1992,7 +1992,7 @@ class CampaignController {
     this.enqueueMail({id:'bulletin_v2100',from:'VOX Operator Records',subject:'Operator bulletin: two network jobs',category:'system',priority:'normal',
       body:['Two networks have new work of their own on the board.',
         'Customs runs. The Red Jackal Combine now has a job of its own: carry cargo through a Customs scanner picket, crossing each ring in a dark gap between its turning arms. Get scanned and the interceptors follow.',
-        'Cargo spills. So do the Free Traders: scoop up the cargo pods a hauler dumped by flying through them, before pirate scavengers take them.',
+        'Cargo spills. So do the Free Traders. Pick up the cases a crippled hauler spilled, three at a time, and fly them back to her before pirate scavengers take them.',
         'The operator guide (the ? tab) has the detail.'],
       actions:[{type:'panel',panel:'guide',label:'OPEN OPERATOR GUIDE'}]})
   }
@@ -2820,7 +2820,7 @@ class CampaignController {
       ['Elite contracts',n(st.contracts.elite)],['Agent missions',`${agent} / ${agentT}`],
       ['Credits earned',`CR ${n(st.creditsEarned)}`],['Bounties earned',`CR ${n(st.bountyEarned)}`],['Insurance paid',`CR ${n(st.insurancePaid)}`],['Drones lost',n(st.dronesLost)],['Projectiles shot down',n(st.shotDown)],
       ['Fighters destroyed',n(k.fighters)],['Ground armour destroyed',n(this.armourKills())],['Walker knees broken',n(k.knees)],['Generators destroyed',n(k.generators)],
-      ['Reactors destroyed',n(k.reactors)],['Aces destroyed',n(k.aces)],['Shield tenders destroyed',n(k.tenders)],['Ghost constructs destroyed',n((k.ghosts||0)+(k.jammers||0))],['Minelayers destroyed',n(k.minelayers)],['Mines shot',n(st.minesShot)],['Convoys seen through',n(st.convoysSafe)],['Clean customs runs',n(st.customsClean)],['Cargo pods recovered',n(st.spillPods)],['Field ambushes survived',n(st.asteroidAmbushes)],['Quiet lattice surveys',n(st.latticeQuiet)],['Stranded crews located',n(st.landBeacons)],['Moons destroyed',n(k.moons)],['Route encounters survived',n(st.routeEncounters)],['Diversions answered',n(st.diversionsInvestigated)],
+      ['Reactors destroyed',n(k.reactors)],['Aces destroyed',n(k.aces)],['Shield tenders destroyed',n(k.tenders)],['Ghost constructs destroyed',n((k.ghosts||0)+(k.jammers||0))],['Minelayers destroyed',n(k.minelayers)],['Mines shot',n(st.minesShot)],['Convoys seen through',n(st.convoysSafe)],['Clean customs runs',n(st.customsClean)],['Cargo cases delivered',n(st.spillPods)],['Field ambushes survived',n(st.asteroidAmbushes)],['Quiet lattice surveys',n(st.latticeQuiet)],['Stranded crews located',n(st.landBeacons)],['Moons destroyed',n(k.moons)],['Route encounters survived',n(st.routeEncounters)],['Diversions answered',n(st.diversionsInvestigated)],
       ['Black contracts',`${n(st.blackDone)}${this.state.mailFlags?.blackThreat?` · threat ${this.state.mailFlags.blackThreat}`:''}`],
       ['Veteran bonus',this.veteranBonus()>0?`+${Math.round(this.veteranBonus()*100)}% pay`:'from level 21']];
     const got=this.state.achievements||{},ach=this.achievementDefs();
