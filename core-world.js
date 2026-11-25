@@ -20,7 +20,11 @@ class World {
  // v2270: after the Node 42 scan the drone sits 15 units short of the monolith. Climbing
  // out at flight speed carried it straight through the monolith, so there it lifts
  // straight up instead, and the stars streak past as usual.
- if(mode==='surfaceExit'){if(forest?.active&&forest.isMonolithDestination?.())return 0;return lerp(FLIGHT_SPEED,148,surfaceExitZoomProgress())}
+ if(mode==='surfaceExit'){if(forest?.active&&forest.isMonolithDestination?.())return 0;
+   // v2540: leaving the forest, the forward run dies away as the nose comes up, so the
+   // drone climbs out of the clearing rather than into the treeline ahead of it.
+   if(mission.surfaceExitScene==='forest'&&surfaceExitZoomProgress()<=0)return FLIGHT_SPEED*.35*Math.pow(1-surfaceExitPitchProgress(),2);
+   return lerp(mission.surfaceExitScene==='forest'?0:FLIGHT_SPEED,148,surfaceExitZoomProgress())}
  if(stationDelivery?.active&&phase==='stationInterior')return stationDelivery.forwardSpeed();
  if(jackalDelivery?.active&&phase==='jackalCity')return jackalDelivery.forwardSpeed();
  if(forest?.active&&phase==='forest')return forest.forwardSpeed();

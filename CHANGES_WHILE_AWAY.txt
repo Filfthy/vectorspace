@@ -3296,3 +3296,15 @@ v2530 Cargo Spill reworked for a small drone
       12). Scavengers now really fly for the loose cases and take them
       unless you shoot them. Briefings, Corvella's notes, the codex, the
       achievement (Every Last Case) and the stats now say cases.
+
+v2540 DEV side mission tester, steeper forest take-off
+      The DEV tab has a new Side mission tester. Pick any of the
+      fourteen side missions (escape pod, distress beacon, derelict,
+      smuggler cache, minefield, dormant lattice, lattice survey, fight
+      in progress, civilian under attack, xeno migration, convoy escort,
+      customs picket, minelayer crew, cargo spill) and launch it on its
+      own. It starts straight away on a short delivery run, with the
+      same cheat box and no campaign rewards.
+      Leaving the forest, the nose now comes up hard at once and the
+      climb is front loaded, and the drone stops running forward as it
+      pitches up, so it climbs out instead of flying into the treeline.

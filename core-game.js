@@ -376,10 +376,13 @@ class Game {
 
    // Stage 1: climb and pitch essentially vertical at normal flight speed. The
    // starting pose belongs to the scene that just completed (plain/forest/etc.).
-   viewPitch=lerp(mission.surfaceExitStartPitch,EXIT_VERTICAL_PITCH,pitchT);
+   // v2540 (Dave: the forest take-off flew into the trees). Out of the forest the nose comes
+   // up hard at once and the climb is front-loaded, while forwardSpeed() bleeds off the run.
+   const steep=mission.surfaceExitScene==='forest',pk=steep?1-Math.pow(1-pitchT,2.8):pitchT;
+   viewPitch=lerp(mission.surfaceExitStartPitch,EXIT_VERTICAL_PITCH,pk);
    const exitYaw=mission.surfaceExitScene==='osd'?mission.surfaceExitStartYaw:0;
    viewYaw=lerp(mission.surfaceExitStartYaw,exitYaw,ease(clamp((pitchT-.45)/.55,0,1)));viewRoll=moveToward(viewRoll,0,dt*5.0);
-   shipY=lerp(mission.surfaceExitStartY,mission.surfaceExitStartY+7.2,pitchT);shipX=moveToward(shipX,mission.surfaceExitTargetX,dt*3.8);
+   shipY=lerp(mission.surfaceExitStartY,mission.surfaceExitStartY+7.2,pk);shipX=moveToward(shipX,mission.surfaceExitTargetX,dt*3.8);
    if(pitchT>=.999){viewPitch=EXIT_VERTICAL_PITCH;viewYaw=exitYaw;viewRoll=0}
 
    // Stage 2: hold vertical and only now accelerate straight into the stars.
