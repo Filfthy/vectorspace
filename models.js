@@ -755,3 +755,72 @@ const osdDeliveryHatchRecessMesh={
 osdTwinTowerFortressMesh.id='osdTwinTowerFortress';
 osdTwinTowerFortressMesh.family='osdFacility';
 globalThis.AgentXOSDFacility={twinTowerFortress:osdTwinTowerFortressMesh,deliveryHatchRecess:osdDeliveryHatchRecessMesh};
+
+// v2360 (Dave: the OSD compound looked a bit crap). The OSD Citadel: a hardened site dug in
+// behind a sloped earth bank, built from curves rather than boxes. A sloped octagonal command
+// block under a dome, two domed towers, a tall lattice comms mast, and a receiving bay standing
+// proud of the bank at the front right, with the real delivery hatch cut through its face.
+// Faces -z (towards the arriving drone). Parts are coloured by edge (mesh.edgeColors): the
+// bank is the colour of the ground, the buildings OSD cyan, domes, mast and emblem white.
+// The radar dish, beacon, approach lights and searchlights are drawn live by
+// environment-bunker.js (drawOsdFacility) from the anchor points kept on the mesh.
+const osdCitadelMesh=(()=>{
+  const m=gaBuilder(true),line=(pts,closed)=>gaLine(m,pts,closed),PI=Math.PI;
+  // Rounded rectangle ring, anticlockwise from +x,+z, k+1 points per corner.
+  const rr=(hx,hz,r,y,cx=0,cz=0,k=4)=>{const p=[];for(const[qx,qz,a0]of[[1,1,0],[-1,1,90],[-1,-1,180],[1,-1,270]])for(let i=0;i<=k;i++){const a=(a0+90*i/k)*PI/180;p.push([cx+qx*(hx-r)+Math.cos(a)*r,y,cz+qz*(hz-r)+Math.sin(a)*r])}return p};
+  const ring=(cx,cz,r,y,n,rot=0)=>m.ringXZ(cx,y,cz,r,r,n,rot);
+  const dome=(cx,cz,r,y0,h,n,rings=4)=>Array.from({length:rings+1},(_,i)=>{const a=(i/rings)*PI/2*.94;return ring(cx,cz,r*Math.cos(a),y0+h*Math.sin(a),n)});
+  // Earth bank: outer slope, flat top, steep inner face.
+  m.mark('bank',()=>m.loft([rr(2.08,1.66,.55,0),rr(1.93,1.51,.46,.46),rr(1.82,1.40,.38,.46),rr(1.80,1.38,.36,0)],false,false));
+  // Command block: sloped octagon with a window band (a real ring, so its edge is a mesh edge).
+  const CX=-.42,CZ=.22;
+  m.mark('body',()=>{
+    m.loft([ring(CX,CZ,1.0,0,8,PI/8),ring(CX,CZ,.86,.72,8,PI/8),ring(CX,CZ,.84,.86,8,PI/8),ring(CX,CZ,.74,1.3,8,PI/8)],false,true);
+    // Domed towers on cylinders, left rear and right rear.
+    for(const[x,z,h]of[[-1.32,1.0,1.4],[1.18,.98,1.65]])m.loft([ring(x,z,.36,0,10),ring(x,z,.36,h*.55,10),ring(x,z,.33,h*.62,10),ring(x,z,.33,h,10)],false,false);
+  });
+  m.mark('dome',()=>{
+    m.loft(dome(CX,CZ,.54,1.3,.52,12),false,true);
+    m.loft(dome(-1.32,1.0,.36,1.4,.34,10),false,true);
+    m.loft(dome(1.18,.98,.33,1.65,.28,10),false,true);
+  });
+  // Receiving bay standing proud of the bank, front right. Its front wall is four blocks
+  // around a real opening, so the hatch is a hole and not a painted rectangle.
+  const hx0=.99,hx1=1.57,hy0=.06,hy1=.64,zf=-2.05,zw=-1.95,zb=-1.66;
+  m.mark('bay',()=>{
+    const blk=(x0,x1,y0,y1,z0,z1)=>m.box([(x0+x1)/2,(y0+y1)/2,(z0+z1)/2],[x1-x0,y1-y0,z1-z0]);
+    blk(.84,hx0,0,1.0,zf,zw);blk(hx1,1.72,0,1.0,zf,zw);blk(hx0,hx1,0,hy0,zf,zw);blk(hx0,hx1,hy1,1.0,zf,zw);
+    blk(.84,.92,0,.86,zw,zb);blk(1.64,1.72,0,.86,zw,zb);blk(.84,1.72,.78,.86,zw,zb);blk(.84,1.72,0,.86,zb-.06,zb);
+  });
+  // Lattice comms mast behind the bay: three legs tapering to the top, a ring every step
+  // and zig-zag bracing, all plain lines (no faces, so it hides nothing).
+  const MX=1.38,MZ=-.62,MH=3.6,leg=k=>[0,1,2].map(i=>{const a=i*2*PI/3+PI/2,r=.2*(1-k)+.035*k;return[MX+Math.cos(a)*r,MH*k,MZ+Math.sin(a)*r]});
+  m.mark('mast',()=>{
+    const N=9;for(let i=0;i<3;i++)line(Array.from({length:N+1},(_,j)=>leg(j/N)[i]));
+    for(let j=1;j<=N;j++)line(leg(j/N),true);
+    for(let j=0;j<N;j++)for(let i=0;i<3;i++)line([leg(j/N)[i],leg((j+1)/N)[(i+1)%3]]);
+    line([[MX,MH,MZ],[MX,MH+.45,MZ]]);
+    // Dish pedestal on the right tower's dome.
+    line([[1.18,1.9,.98],[1.18,2.06,.98]]);
+  });
+  // The OSD emblem from the old gatehouse, on the bay's parapet above the hatch.
+  const old=osdTwinTowerFortressMesh,lv=old.v.slice(142,183),le=old.e.filter(e=>e[0]>=142&&e[0]<=182&&e[1]>=142&&e[1]<=182);
+  m.mark('logo',()=>{const b=m.v.length;for(const v of lv)m.v.push([(hx0+hx1)/2+v[0]*.62,.82+(v[1]-.91)*.62,zf-.006]);for(const e of le)m.e.push([b+e[0]-142,b+e[1]-142])});
+  const col={bank:C.o,body:C.c,dome:C.w,bay:C.c,mast:C.w,logo:C.w},ranges=Object.entries(m.marks);
+  const colOf=i=>{for(const[k,[a,b]]of ranges)if(i>=a&&i<b)return col[k];return C.c};
+  return{name:'OSD Citadel',v:m.v,e:m.e,faces:m.faces,edgeColors:m.e.map(e=>colOf(e[0])),
+    deliveryHatch:{x:(hx0+hx1)/2,y:(hy0+hy1)/2,z:zf-.004,width:hx1-hx0,height:hy1-hy0,innerZ:zb+.04},
+    anchors:{beacon:[MX,MH+.45,MZ],dish:[1.18,2.06,.98],searchlights:[[-1.32,1.74,1.0],[CX,1.82,CZ]],
+      lights:[0,1].flatMap(s=>Array.from({length:9},(_,i)=>[(hx0+hx1)/2+(s?.42:-.42),.01,zf-.25-i*.38]))}}
+})();
+// The rotating dish, drawn on its own each frame: a shallow bowl opening up the +y axis
+// (tilted and turned by the caller) with a feed horn on a tripod.
+const osdCitadelDishMesh=(()=>{
+  const m=gaBuilder(true),rings=[.12,.42,.72,1].map(t=>m.ringXZ(0,.2*t*t,0,.62*t,.62*t,12));
+  m.loft(rings,true,false);
+  for(const a of[0,2.09,4.19])gaLine(m,[[Math.cos(a)*.5,.13,Math.sin(a)*.5],[0,.42,0]]);
+  gaLine(m,[[0,.42,0],[0,.5,0]]);
+  return{name:'OSD Citadel dish',v:m.v,e:m.e,faces:m.faces}
+})();
+globalThis.AgentXOSDFacility.citadel=osdCitadelMesh;
+globalThis.AgentXOSDFacility.citadelDish=osdCitadelDishMesh;

@@ -889,6 +889,7 @@ const bunkerRaid={
   drawOsdFacility(){
     const f=this.osdFacility,visual=this.content.osdDelivery.facility.visual;if(!f?.mesh)return;const z=f.worldZ-travel,d=camPoint([f.x,f.y+f.s*.75,z])[2];if(d<=.25||d>visual.visibleFar)return;
     const obj={type:'osdTwinTowerFortress',x:f.x,y:f.y,z,s:f.s,rot:f.rot};
+    if(f.mesh.anchors){this.drawOsdCitadel(f,obj,z);return}
     // The authored roof feature used three crossing strokes at vertices 136..141,
     // which reads as a church cross at distance. Keep only the vertical mast 136-137.
     let facilityMesh=f.mesh._straightAntennaMesh;
@@ -908,6 +909,29 @@ const bunkerRaid={
       f.mesh._osdLogoMesh=logo;
     }
     if(logo?.e?.length)drawMesh(obj,logo,C.w,.98)
+  },
+  // v2360 the OSD Citadel and its live parts: the radar dish turning on the right tower,
+  // the red beacon on the mast, approach lights chasing in towards the hatch, and two
+  // searchlights sweeping the sky.
+  drawOsdCitadel(f,obj,z){
+    const t=(typeof time==='number'?time:performance.now()/1000),A=f.mesh.anchors,s=f.s;
+    const W3=p=>[f.x+p[0]*s,f.y+p[1]*s,z+p[2]*s];
+    drawMesh(obj,f.mesh,C.c,.94);
+    const dish=globalThis.AgentXOSDFacility?.citadelDish,dp=W3(A.dish);
+    if(dish)drawMesh({type:'osdCitadelDish',x:dp[0],y:dp[1],z:dp[2],s:s*.55,rot:[.75,t*.45,0]},dish,C.w,.94);
+    // Searchlights: long faint beams from the dome tops, slowly sweeping and crossing.
+    A.searchlights.forEach((p,i)=>{
+      const a=t*(.32+.07*i)+i*2.4,dir=[Math.sin(a)*.55,1,Math.cos(a)*.55+.25],b=W3(p),e=[b[0]+dir[0]*s*5,b[1]+dir[1]*s*5,b[2]+dir[2]*s*5];
+      const pb=proj(b),pe=proj(e);if(pb&&pe)line(pb.x,pb.y,pe.x,pe.y,C.c,1,.22)
+    });
+    // Approach lights: two rows on the ground in front of the hatch, a pulse running in.
+    const n=A.lights.length/2;
+    A.lights.forEach((p,i)=>{
+      const k=i%n,pulse=((t*1.6-(n-1-k)*.16)%1+1)%1,on=pulse<.22,q=proj(W3(p));if(!q)return;
+      const r=clamp(q.k*.05,1.2,4)*(on?1.6:1);line(q.x-r,q.y,q.x+r,q.y,on?C.w:C.y,1,on?.95:.45);line(q.x,q.y-r*.6,q.x,q.y+r*.6,on?C.w:C.y,1,on?.95:.45)
+    });
+    // Beacon: a slow red blink at the top of the mast.
+    if((t%1.6)<.5){const q=proj(W3(A.beacon));if(q){const r=clamp(q.k*.06,1.5,5);line(q.x-r,q.y,q.x+r,q.y,C.r,1.3,.95);line(q.x,q.y-r,q.x,q.y+r,C.r,1.3,.95)}}
   },
   drawOsdHatchRecess(){
     const f=this.osdFacility,hatch=this.osdHatchWorld,inner=this.osdHatchInnerWorld;if(!f||!hatch||!inner)return;

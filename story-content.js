@@ -207,7 +207,7 @@ const sourceTrace = {
       rollLevelRate:.8,shipYLevelRate:2
     },
     facility:{
-      model:'twinTowerFortress',scale:22,routeLength:520,targetWorldZ:520,lateralMin:42,lateralSpan:18,
+      model:'citadel',scale:22,routeLength:520,targetWorldZ:520,lateralMin:42,lateralSpan:18,
       ...globalThis.AgentXEnvironments.get('rocky_osd_plains'),rockClumps:12,entryRadius:24,deliveryFrontOffset:24,
       sceneryReservation:{footprintMargin:12,approachLength:150,approachHalfWidth:28},
       visual:{visibleFar:680,crossbarEdges:[[138,139],[140,141]],logoVertexStart:142,logoVertexEnd:182}

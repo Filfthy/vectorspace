@@ -3063,3 +3063,19 @@ v2350 Vox said as a word, full star field on the OSD descent, rolling OSD world
       delivery is unchanged. Its rocks are yellow, apart from the orange
       ground.
 
+v2360 The OSD compound is rebuilt as the OSD Citadel
+      You thought the old twin-tower fort looked a bit crap: a cluster
+      of plain yellow boxes, the same yellow as the new rocks. It is
+      replaced by a hardened site dug in behind a sloped earth bank
+      (in the ground's own orange). Inside: a sloped octagonal command
+      block under a big dome, two domed towers, a radar dish turning
+      on the right-hand tower, and a tall white lattice comms mast with
+      a blinking red beacon, which you can see from the landing point.
+      Two searchlights sweep the sky. The buildings are OSD cyan, the
+      domes, mast and emblem white. The receiving bay stands proud of
+      the bank at the front right with the real hatch cut through its
+      face and the OSD emblem above it, and two rows of approach lights
+      chase in towards the hatch. The delivery, hatch, tractor beam and
+      departure work exactly as before (flown through to the end).
+      The old model stays in models.js, unused.
+
