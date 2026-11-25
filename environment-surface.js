@@ -265,15 +265,16 @@ class SurfaceDestinationApproachController {
   // volcanic fissures follow the slopes.
   setupHills(ax,az){
     this.hills=null;
-    if(this.terrain!=='plains'||this.destination==='osd')return;
+    if(this.terrain!=='plains')return;
     // v2330: the swamp approach rolls too, lower and over a much wider band, so the land
     // either side has contour and the low ground can lie wet (buildMarsh, below).
-    const swamp=this.scenery==='swamp',band=swamp?[84,30]:[34,18],pad=band[0]+band[1]+4;
+    // v2350: the OSD world rolls too (wide band, taller), level around the whole compound.
+    const swamp=this.scenery==='swamp',osd=this.destination==='osd',band=swamp?[84,30]:(osd?[70,30]:[34,18]),pad=band[0]+band[1]+4;
     const bx=this.targetX,bz=this.targetWorldZ,dx=bx-ax,dz=bz-az,len=Math.hypot(dx,dz)||1;
     // Each entry: level within r0, full hills from r1.
     const obj=[];for(const p of this.survey||[])obj.push([p.x+(p.off||0),p.worldZ,14,40]);if(this.beacon)obj.push([this.beacon.x,this.beacon.worldZ,14,40]);
     for(const t of this.trees)if(t.feature==='crater'){const r0=1.5*t.s*Math.max(t.mx||1,t.mz||1)+2;obj.push([t.x,t.worldZ,r0,r0+14])}
-    this.hills={ax,az,bx,bz,dx,dz,len,len2:len*len,obj,road:this.road||null,endFlat:this.destination==='bunker'?55:40,band,amp:swamp?1.6:1,
+    this.hills={ax,az,bx,bz,dx,dz,len,len2:len*len,obj,road:this.road||null,endFlat:osd?this.osdFlatRadius():(this.destination==='bunker'?55:40),band,amp:swamp?1.6:(osd?1.5:1),
       minX:Math.min(ax,bx)-pad,maxX:Math.max(ax,bx)+pad,minZ:Math.min(az,bz)-pad,maxZ:Math.max(az,bz)+pad,memo:new Map()};
     // Scenery stands on the slopes (once, however often this runs).
     for(const t of this.trees){t.baseY??=t.y;t.hy=this.hillAt(t.x,t.worldZ);t.y=t.baseY+Math.max(0,t.hy-.25)}
@@ -286,6 +287,9 @@ class SurfaceDestinationApproachController {
   // the swamp nears, so the land gets wetter until the last stretch is nearly all marsh.
   // Every marsh plant is scenery the drone flies through (noHit).
   wetLevel(wz){return .6+2.8*Math.pow(clamp(wz/Math.max(1,this.targetWorldZ),0,1),1.4)}
+  // The OSD compound and its approach corridor sit on level ground: flat out to the far
+  // corner of its reserved footprint from the target, plus a margin.
+  osdFlatRadius(){let r=60;for(const z of this.stage?.reservedSceneryZones||[])if(z?.type==='box')r=Math.max(r,Math.hypot(Math.abs((z.centerX||0)-this.targetX)+(z.halfWidth||0),Math.abs((z.centerZ||0)-this.targetWorldZ)+(z.halfDepth||0))+12);return r}
   isWet(x,wz){return this.hillAt(x,wz)<this.wetLevel(wz)}
   buildMarsh(){
     if(this.marsh||!this.hills)return;
@@ -441,7 +445,8 @@ class SurfaceDestinationApproachController {
       const mx=1.05+this.rand()*1.25,my=.45+this.rand()*.62,mz=.95+this.rand()*1.1;
       const bury=.12+this.rand()*.18;
       const y=this.groundY-(this.meshBaseY(mesh)+bury)*scale*my;
-      const col=world==='arid'&&landingWorldColour()===C.o?C.y:C.o;
+      // v2350: rocks on the OSD world are yellow so they stand apart from its orange ground.
+      const col=(world==='arid'||this.destination==='osd')&&landingWorldColour()===C.o?C.y:C.o;
       const obj={kind:'rock',mesh,x,y,worldZ:wz,s:scale,rot:[(this.rand()-.5)*.28,this.rand()*Math.PI*2,(this.rand()-.5)*.24],col,mx,my,mz,hit:false};
       this.trees.push(obj)
     };

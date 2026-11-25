@@ -114,9 +114,13 @@ class SceneRenderer {
  }
  if(mode==='approach'){
    const e=planetDescentZoomProgress(),span=STAR_DEPTH*2,advance=starTravel%span,cx=W*.5,cy=viewH*.48;
+   // v2350: the star box wraps sideways and vertically around where the camera looks, not
+   // around a fixed world axis. Before, a descent that began turned well to one side (the
+   // OSD world after the bunker) looked past the edge of the box and had stars on one half.
+   const ox=Math.sin(viewYaw)*STAR_DEPTH*.5,wrap=(v,c,p)=>v-p*Math.round((v-c)/p);
    for(const s of stars){
      let z=s.z-advance;while(z<-STAR_DEPTH)z+=span;while(z>STAR_DEPTH)z-=span;
-     const p=proj([s.x+shipX,s.y,z]);if(!p||p.y>viewH+24)continue;
+     const p=proj([wrap(s.x,ox,STAR_SPAN)+shipX,wrap(s.y,shipY,240),z]);if(!p||p.y>viewH+24)continue;
      const dx=p.x-cx,dy=p.y-cy,n=Math.hypot(dx,dy)||1;
      const len=lerp(1.2,50,e*e)*clamp(1-Math.abs(z)/STAR_DEPTH,.16,1);
      ctx.strokeStyle=C.w;ctx.globalAlpha=s.b*clamp(.30+e*.68,.18,1);ctx.lineWidth=VECTOR_LINE_WIDTH;

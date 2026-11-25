@@ -3047,3 +3047,19 @@ v2340 Swamp flyers you can actually see
       size and with more in each flock, and two or three gliders,
       bigger and much nearer, crossing the view ahead.
 
+v2350 Vox said as a word, full star field on the OSD descent, rolling OSD world
+      Sonia now says VOX as a word that rhymes with fox, not spelled out.
+      The voice checker has a rule for it, and the four lines that say
+      it are rendered again into "voices unprocessed" for you to
+      normalise into voices/: Scan complete (return the data to Vox),
+      Proceed to the Vox communications centre, Welcome to the Vox
+      training simulator, and the training complete line.
+      The planet descent stars no longer leave half the screen empty.
+      The star box now follows where the camera looks, so a descent
+      that starts turned well to one side (as the OSD world after the
+      bunker can) is full of stars on both sides.
+      The OSD world rolls like the other plains, with taller hills over
+      a wider band, and stays level around the whole compound so the
+      delivery is unchanged. Its rocks are yellow, apart from the orange
+      ground.
+

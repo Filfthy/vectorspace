@@ -40,7 +40,7 @@ ENTRY = re.compile(r"(\w+):'((?:[^'\\]|\\.)*)'")
 
 # How Sonia should say words she gets wrong. The game's written text keeps its spelling;
 # only the wording sent to the voice changes. "xeno" is said "zeeno".
-SAY_AS = [(r'\bxeno', 'zeeno'), (r'\bXeno', 'Zeeno'), (r'\bOSD\b', 'O S Dee')]
+SAY_AS = [(r'\bxeno', 'zeeno'), (r'\bXeno', 'Zeeno'), (r'\bOSD\b', 'O S Dee'), (r'\bVOX\b', 'Vox')]
 
 
 def say_as(text):
