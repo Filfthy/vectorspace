@@ -3138,3 +3138,12 @@ v2400 Exit fight, no phantom shots, busier critters, smoother OSD delivery
       screen. The compound no longer vanishes while part of it is still
       on screen as you turn away, and stays in view through the climb.
 
+v2410 Shoot the surface guns from inside the tunnel, and no slow exit
+      I misread the problem in v2400 and added a pointless flight round
+      the ground after the bunker. That is gone: you come out and climb
+      away straight off, as before.
+      The real fix: on the way back out through the tunnel, the surviving
+      surface guns you can see through the exit are live targets. Each
+      one sits exactly where it is drawn through the opening, can be hit
+      only where it actually shows through it, and stays destroyed.
+

@@ -111,6 +111,7 @@ class WeaponController {
        if(d<r&&d<bd){best=g;bp=p;bd=d;isBolt=false;hitPart='cap'}
      }else if(g.type==='landgun'){
        if(g.wallMount&&!bunkerRaid.wallGunSupportVisible(g))continue;
+       if(g.portalOnly&&!bunkerRaid.portalGunTargetable(g))continue;   // v2410: surface guns seen through the bunker exit
        const centre=g.wallMount?bunkerRaid.pivotWorld(g):[g.x,g.y+.38*g.s,g.z],p=proj(centre);if(!p)continue;
        const d=Math.hypot(a.x-p.x,a.y-p.y),r=clamp((g.wallMount?1.22:1.45)*g.s*p.k,16,82);
        if(d<r&&d<bd){best=g;bp=p;bd=d;isBolt=false;hitPart='body'}

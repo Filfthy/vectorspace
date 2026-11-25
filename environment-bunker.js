@@ -383,6 +383,7 @@ const bunkerRaid={
     return{v,e,faces}
   },
   draw(g){
+    if(g.portalOnly&&!this._portalDraw)return;   // drawn only through the exit (drawReturnSurfaceGuns)
     const mesh=this.compositeMesh(g),obj={x:g.x,y:g.y,z:g.z,s:1,rot:[0,0,0],hitFx:g.hitFx||0};
     drawMesh(obj,mesh,objectHitColor(g,C.r))
   },
@@ -505,14 +506,34 @@ const bunkerRaid={
     g.yaw=Math.atan2(dx,dz);g.pitch=clamp(-Math.atan2(dy,hh),-.72,.30);return g
   },
   drawReturnSurfaceGuns(doorDepth=0,outwardTravel=0){
+    const emplacement=this.content.surfaceAssault.guns.emplacement;
+    // On the way back out the live portal guns are drawn (destroyed ones are gone).
+    if(this.raidState==='return'&&this.portalGuns?.length){
+      const visible=this.portalGuns.filter(g=>!g.dead&&g.z>emplacement.returnVisibleNear&&g.z<emplacement.returnVisibleFar).sort((a,b)=>b.z-a.z);
+      this._portalDraw=true;try{for(const g of visible)this.draw(g)}finally{this._portalDraw=false}
+      return
+    }
     if(!this.surfaceGuns.length)return;
     const visible=[];
     for(const src of this.surfaceGuns){
       const outside=Math.max(0,entryBunkerWorldZ-src.worldZ),z=doorDepth+outside-outwardTravel;
-      const emplacement=this.content.surfaceAssault.guns.emplacement;
       if(z>emplacement.returnVisibleNear&&z<emplacement.returnVisibleFar)visible.push(this.returnSurfaceGunPose(src,z))
     }
     visible.sort((a,b)=>b.z-a.z);for(const g of visible)this.draw(g)
+  },
+  updatePortalGuns(){
+    if(!this.portalGuns?.length)return;const p=this.tunnelProgress();
+    for(const g of this.portalGuns){
+      if(g.dead)continue;const outside=Math.max(0,entryBunkerWorldZ-g.src.worldZ),pose=this.returnSurfaceGunPose(g.src,p+outside);
+      g.x=pose.x;g.y=pose.y;g.z=pose.z;g.worldZ=travel+pose.z;g.yaw=pose.yaw;g.pitch=pose.pitch
+    }
+  },
+  // A portal gun can be hit only while the exit is drawn and the gun shows through it.
+  portalGunTargetable(g){
+    const render=this.content.bunker.recoveryRoom.render,emp=this.content.surfaceAssault.guns.emplacement;
+    if(this.raidState!=='return'||!this._returnPortal||this.tunnelProgress()>render.visibleDepth)return false;
+    if(!(g.z>emp.returnVisibleNear&&g.z<emp.returnVisibleFar))return false;
+    const c=proj([g.x,g.y+.38*g.s,g.z]);return !!c&&this.pointInsideTunnelPortal(c,this._returnPortal)
   },
   update(dt){
     if(!this.active)return;
@@ -524,12 +545,6 @@ const bunkerRaid={
     // hand over to the established breach autopilot instead of ending the DEV run.
     // Keep reinforcement pressure gradual. A sudden jump from 30 to 36 near the
     // bunker spawned a visible knot of emplacements and made the distribution lumpy.
-    // v2400 the fight back out past the surviving guns, then the usual exit climb.
-    if(this.raidState==='surfaceClear'&&this.clearRun&&mode==='play'){
-      const run=this.clearRun;run.t+=dt;
-      const left=groundTargets.some(g=>g.type==='landgun'&&!g.dead&&!g.dying&&g.worldZ>travel-4);
-      if(travel>run.endZ||run.t>14||(!left&&run.t>1.5)){this.clearRun=null;groundTargets.length=0;bolts.length=0;this.devExitPending=true;beginSurfaceExit({continueMission:true});return}
-    }
     const gunContent=this.content.surfaceAssault.guns,pop=gunContent.population;
     this.desired=bunkerDist<pop.nearDistance?pop.near:bunkerDist<pop.midDistance?pop.mid:pop.far;
     if(!this.bunkerReached&&bunkerDist<gunContent.stopSpawningDistance){this.desired=0;this.spawnCooldown=999}
@@ -697,6 +712,12 @@ const bunkerRaid={
     mode='play';phase='bunkerReturn';modeT=phaseT=0;this.raidState='return';
     this.returnStartLocal=this.pickupStopLocal;this.returnStartTravel=travel;
     this.remapTunnelDefencesForReturn();
+    // v2410 (Dave: the land guns are clearly visible outside while in the tunnel but can't
+    // be shot). The surviving surface battery seen through the exit is now a set of live
+    // targets, posed each frame exactly where it is drawn through the opening. They can be
+    // hit only where they are actually seen through it, and a destroyed gun is gone for good.
+    this.portalGuns=this.surfaceGuns.map(src=>({type:'landgun',landGunTest:true,portalOnly:true,src,x:src.x,y:src.y,z:999,worldZ:travel+999,s:src.s,hp:src.hp,hitFx:0,yaw:0,pitch:0,rot:[0,0,0],col:C.r,mesh:landGunDevPlinthMesh,dead:false,shot:false,passed:false,fireCD:999}));
+    groundTargets.push(...this.portalGuns);this.updatePortalGuns();
     const c=this.path(this.pickupStopLocal);shipX=c.x;shipY=c.y;viewYaw=viewPitch=viewRoll=0;inputX=inputY=aimX=aimY=0;
     const message=this.content.presentation.messages.returnThroughBunker;say(message.text,message.hold)
   },
@@ -705,22 +726,6 @@ const bunkerRaid={
     surfaceBunkerActive=false;groundTargets.length=0;bolts.length=0;hazards.length=0;shots.length=0;playerMissiles.length=0;
     inputX=inputY=aimX=aimY=0;viewYaw=viewPitch=viewRoll=0;travel=0;
     const message=this.content.presentation.messages.clearOfBunker;say(message.text,message.hold);
-    // v2400 (Dave: can't shoot the land guns while exiting). The surviving surface battery
-    // seen through the exit used to be decoration, cleared the moment the drone came out.
-    // Now they are live guns again on a short flight out under the player's control: they
-    // track and fire as on the way in and can be destroyed. The exit climb starts once
-    // the drone is past the last of them (or after a time limit).
-    const emp=this.content.surfaceAssault.guns.emplacement,live=this.surfaceGuns.filter(g=>!g.dead).map(src=>{
-      const out=Math.max(0,entryBunkerWorldZ-src.worldZ),worldZ=out+4,x=entryBunkerX-(src.x-entryBunkerX);
-      return{type:'landgun',landGunTest:true,returnGun:true,worldZ,x,y:src.y,z:worldZ,s:src.s,hp:src.hp,hitFx:0,yaw:Math.PI,pitch:0,rot:[0,0,0],col:C.r,mesh:landGunDevPlinthMesh,
-        fireCD:1.2+Math.random()*1.6,dead:false,shot:false,passed:false}
-    }).filter(g=>g.worldZ<170);
-    this.clearRun=null;
-    if(live.length){
-      groundTargets.push(...live);shipX=entryBunkerX;this.teslaPylons=[];   // the inbound Tesla field is behind the bunker now
-      this.clearRun={t:0,endZ:Math.max(...live.map(g=>g.worldZ))+18};
-      mode='play';phase='surface';
-    }
   },
   beginOsdSpace(){
     this.raidState='osdSpace';this.osdState='planetHold';this.osdT=0;this.devExitPending=false;this.bunkerMode=false;
@@ -1242,6 +1247,7 @@ const bunkerRaid={
     if(p>render.visibleDepth){this.drawDeliveryRoomInterior();return}
     const z=Math.max(render.returnPortalNear,p),c=this.tunnelCenter(z),sz=this.sectionSize(0);
     const portal=[proj([c.x-sz.w,c.y-sz.h,z]),proj([c.x+sz.w,c.y-sz.h,z]),proj([c.x+sz.w,c.y+sz.h,z]),proj([c.x-sz.w,c.y+sz.h,z])];
+    this._returnPortal=portal.every(Boolean)?portal:null;
     if(portal.every(Boolean))renderer.clipPoly(portal,()=>{renderer.drawStars();renderer.drawSurface();this.drawReturnTeslaPylons(p,0);this.drawReturnSurfaceGuns(p,0)});
     this.drawDeliveryRoomInterior(this.content.bunker.wallGuns.supportPortalNear,Math.max(render.returnPortalNear,p));
     if(portal.every(Boolean))for(let k=0;k<4;k++){const A=portal[k],B=portal[(k+1)%4];line(A.x,A.y,B.x,B.y,C.g,1.4,.98)}
@@ -1283,14 +1289,13 @@ const bunkerRaid={
       return
     }
     if(mode==='play'&&phase==='bunkerReturn'){
-      this.updateTunnelDefences(dt);tunnelPlayerClamp();
+      this.updateTunnelDefences(dt);tunnelPlayerClamp();this.updatePortalGuns();
       if(this.tunnelProgress()<=this.content.bunker.recoveryRoom.surfaceClear.returnExitThreshold)this.beginSurfaceClear()
     }
   },
   hudRight(){
     if(!this.active)return'';
     const hud=this.content.presentation.hud;
-    if(this.raidState==='surfaceClear'&&this.clearRun){const n=groundTargets.filter(g=>g.type==='landgun'&&!g.dead&&!g.dying).length;return n?`GUNS ${n}`:'CLEAR'}
     if(this.raidState==='osdSpace')return hud.osdPlanet;
     if(this.raidState==='osdDescent')return hud.osdDescent;
     if(this.raidState==='osdDelivery'){
