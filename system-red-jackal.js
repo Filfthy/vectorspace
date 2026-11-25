@@ -792,6 +792,46 @@ class RedJackalDeliveryController {
       return
     }
   }
+  // v2430 (Dave: work out which buildings are actually clearly visible). Walk the visible
+  // buildings nearest first over a coarse screen grid. Each one's projected box is checked
+  // against the cells nearer buildings already cover, then marks the core of its own box as
+  // covered. Only a building with a good share still in view, and big enough on screen for
+  // window lines to read, is drawn with the full window detail; the rest keep the cheaper sets.
+  markClearlyVisibleBuildings(vis){
+    const GX=48,GY=27,cw=W/GX,ch=viewH/GY,grid=this._visGrid||(this._visGrid=new Uint8Array(GX*GY));grid.fill(0);
+    const order=vis.slice().sort((a,b)=>a._cityDrawDepth-b._cityDrawDepth);
+    for(const b of order){
+      b._clear=false;const z=b.worldZ-travel,hw=b.w*.5,hd=b.d*.5,y0=this.groundY,y1=this.groundY+b.h;
+      let x0=Infinity,x1=-Infinity,yt=Infinity,yb=-Infinity,ok=true;
+      for(const dx of[-hw,hw])for(const dz of[-hd,hd])for(const y of[y0,y1]){const p=proj([b.x+dx,y,z+dz]);if(!p){ok=false;continue}x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);yt=Math.min(yt,p.y);yb=Math.max(yb,p.y)}
+      if(!ok||!(x1>x0))continue;
+      const c0=clamp(Math.floor(x0/cw),0,GX-1),c1=clamp(Math.floor(x1/cw),0,GX-1),r0=clamp(Math.floor(yt/ch),0,GY-1),r1=clamp(Math.floor(yb/ch),0,GY-1);
+      let open=0,all=0;for(let r=r0;r<=r1;r++)for(let c=c0;c<=c1;c++){all++;if(!grid[r*GX+c])open++}
+      b._clear=all>0&&open/all>.4&&(yb-yt)>viewH*.16&&(x1-x0)>W*.035;
+      // Cover only the solid core of the box (setbacks and spires make the top half unreliable).
+      const k0=clamp(Math.floor((x0+(x1-x0)*.12)/cw),0,GX-1),k1=clamp(Math.floor((x1-(x1-x0)*.12)/cw),0,GX-1),q0=clamp(Math.floor((yt+(yb-yt)*.35)/ch),0,GY-1);
+      for(let r=q0;r<=r1;r++)for(let c=k0;c<=k1;c++)grid[r*GX+c]=1
+    }
+  }
+  citySideGrid(mesh){
+    const v=mesh.v.map(q=>q.slice()),edges=[];
+    if(mesh.id==='penthouseflat'||mesh.id==='penthousehatchtower')return{v,edges};
+    const add=(a,b,sign)=>{v.push(a,b);edges.push({e:[v.length-2,v.length-1],sign})};
+    for(const face of mesh.faces||[]){
+      if(face.length<4)continue;const vs=face.map(i=>mesh.v[i]);
+      const a=vs[0],b=vs[1],c=vs[2],ab=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],ac=[c[0]-a[0],c[1]-a[1],c[2]-a[2]];
+      const nx=ab[1]*ac[2]-ab[2]*ac[1],ny=ab[2]*ac[0]-ab[0]*ac[2],nz=ab[0]*ac[1]-ab[1]*ac[0],l=Math.hypot(nx,ny,nz)||1;
+      if(Math.abs(nx)/l<.92)continue;
+      let y0=Infinity,y1=-Infinity,z0=Infinity,z1=-Infinity,x=0;for(const q of vs){y0=Math.min(y0,q[1]);y1=Math.max(y1,q[1]);z0=Math.min(z0,q[2]);z1=Math.max(z1,q[2]);x+=q[0]}
+      x/=vs.length;if(y1-y0<1.2||z1-z0<.7)continue;
+      // Which way the wall faces, from the mesh centre rather than winding order.
+      let cx=0;for(const q of mesh.v)cx+=q[0];cx/=mesh.v.length;const sign=x>=cx?1:-1,px=x+sign*.012;
+      const top=y1-.28,bot=y0+.32,fl=.62;
+      for(let y=bot;y<=top+.001;y+=fl)add([px,y,z0+.1],[px,y,z1-.1],sign);
+      const cols=Math.max(2,Math.round((z1-z0)/.42));for(let k=1;k<cols;k++){const z=z0+(z1-z0)*k/cols;add([px,bot,z],[px,top,z],sign)}
+    }
+    return{v,edges}
+  }
   cityMeshInfo(mesh,side=1,reverse=false){
     let root=this.cityMeshCache.get(mesh);if(!root){root={};this.cityMeshCache.set(mesh,root)}
     const key=(side<0?'left':'right')+(reverse?':rear':':front');if(root[key])return root[key];
@@ -811,6 +851,11 @@ class RedJackalDeliveryController {
       if(farFacade)return'farFacade';if(outer)return'outer';if(nearFacade||inner)return'nearDetail';return'freeDetail'
     };
     const nearEdges=[],midEdges=[],farEdges=[];
+    // v2430 (Dave: the buildings are featureless). The authored window detail is on the end
+    // faces; the long side walls that line the avenue were bare. Each side wall gets a curtain
+    // wall grid (a line at every floor and a few mullions), standing a hair proud of the wall.
+    // Near range only, and only on the wall facing the drone, so the hidden-line cost is small.
+    const sideGrid=root.sideGrid||(root.sideGrid=this.citySideGrid(mesh)),wantSign=side>0?-1:1,gridEdges=sideGrid.edges.filter(g=>g.sign===wantSign).map(g=>g.e);
     for(const ed of mesh.e){const cls=edgeClass(ed),len=edgeLen(ed);if(cls!=='farFacade'&&cls!=='outer')nearEdges.push(ed);if(cls==='structure'||cls==='freeDetail'||(cls==='nearDetail'&&len>.66))midEdges.push(ed);if(cls==='structure'||cls==='freeDetail')farEdges.push(ed)}
     const usefulFaces=[];
     for(const face of faces){if(face.length<3)continue;const vs=face.map(i=>mesh.v[i]);let cx=0,cy=0,cz=0;for(const v of vs){cx+=v[0];cy+=v[1];cz+=v[2]}cx/=vs.length;cy/=vs.length;cz/=vs.length;
@@ -827,8 +872,8 @@ class RedJackalDeliveryController {
     // closed structural surfaces, so keep all of them as occluders near/mid range.
     const fullShellOcclusion=mesh.id==='skybridgetower'||mesh.id==='penthouseflat';
     const occlusionFaces=fullShellOcclusion?faces:usefulFaces;
-    const make=(edges,faceList)=>({name:mesh.name,id:mesh.id,v:mesh.v,e:edges,faces:faceList});
-    return root[key]={minY,maxY,minX,maxX,minZ,maxZ,near:make(nearEdges,occlusionFaces),mid:make(midEdges,occlusionFaces),far:make(farEdges,[])}
+    const make=(edges,faceList)=>({name:mesh.name,id:mesh.id,v:sideGrid.v,e:edges,faces:faceList});
+    return root[key]={minY,maxY,minX,maxX,minZ,maxZ,detail:make(nearEdges.concat(gridEdges),occlusionFaces),near:make(nearEdges,occlusionFaces),mid:make(midEdges,occlusionFaces),far:make(farEdges,[])}
   }
   buildingVisible(b,z){
     const p=proj([b.x,this.groundY+b.h*.5,z]);if(!p)return false;
@@ -902,7 +947,8 @@ class RedJackalDeliveryController {
       // buildings that were previously only ever seen from the centre of the road.
       const side=shipX<b.x?1:-1,reverse=Math.cos(viewYaw)<0;
       const info=this.cityMeshInfo(b.mesh,side,reverse),obj={type:'cityBuilding',x:b.x,y:this.groundY-info.minY*s,z,s,rot:[0,0,0]};
-      if(depth<82)drawMesh(obj,info.near,b.col,.94);
+      if(b._clear)drawMesh(obj,info.detail,b.col,.94);
+      else if(depth<82)drawMesh(obj,info.near,b.col,.94);
       else if(depth<155)drawMesh(obj,info.mid,b.col,.94);
       else if(b.mesh.id==='skybridgetower'&&depth<225)drawMesh(obj,info.mid,b.col,.94);
       else this.drawCityFarWire(obj,info.far,b.col,.94,depth);
@@ -1080,6 +1126,7 @@ class RedJackalDeliveryController {
       const z=v.worldZ-travel,d=camPoint([v.x,v.y,z])[2];
       if(d>.25&&d<125)scene.push({depth:d,draw:()=>this.drawCivilianCarFast(v,z)})
     }
+    this.markClearlyVisibleBuildings(vis);
     scene.sort((a,b)=>b.depth-a.depth);
     for(const item of scene)item.draw();
 

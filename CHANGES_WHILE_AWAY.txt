@@ -3162,3 +3162,18 @@ v2420 Missing Manifest: a fuller wreck and a curved freight depot
       bells, and the roof carries round tanks, a radar dome, a pipe run,
       radiator fins and the mast and dishes.
 
+v2430 City buildings: windows where you can actually see them
+      The authored window detail was only on the buildings' end faces.
+      The long side walls that line the avenue, which is most of what
+      you see flying down a street, were bare. Each side wall now has a
+      curtain-wall grid: a line at every floor and a few mullions.
+      Which buildings get it is worked out each frame. The visible
+      buildings are walked nearest first over a coarse screen grid: each
+      one checks how much of its outline nearer buildings already cover,
+      then marks its own solid core as covered. Only a building with a
+      good share still in view, and big enough on screen for the lines
+      to read, is drawn with the full window detail, at any distance.
+      Buildings hidden behind others stay on the cheaper outline. In a
+      test frame about 10 of 137 visible buildings qualified, and the
+      frame cost was about the same as with no extra windows.
+
