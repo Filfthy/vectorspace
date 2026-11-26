@@ -3598,3 +3598,9 @@ v2950 Montage (promo only): opens on "Vector Space" in the title lettering
 v2960 Montage (promo only): the convoy escort shot (0:35) is replaced by
       Meridian Farm under pirate attack. A hunter circling the drone made
       the view swing back and forth round it, so the ship looked to dance.
+v2970 Montage (promo only): the factory shot (0:47) opens facing an
+      unshielded red generator and its walkers, flown in from 80 units and
+      shot at, instead of empty ground with the drone sunk into a hill.
+      Armour-field staging now sets the drone clear of the new ground,
+      and the pilot steers round walkers in its path instead of flying
+      through them.

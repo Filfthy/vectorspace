@@ -68,10 +68,16 @@ function stageRocks(n=6){
 function stageGround(dist=32){
   const G=groundAssault,live=G.units.filter(u=>!u.dead&&u.state==='alive');if(!live.length)return;
   let u=live[0],bd=1e9;for(const x of live){const d=G.planarToShip(x);if(d<bd){bd=d;u=x}}
-  const h=Math.atan2(u.x-shipX,u.wz-travel);shipX=u.x-Math.sin(h)*dist;travel=u.wz-Math.cos(h)*dist;viewYaw=h;G.lastTravel=travel;gT=u
+  const h=Math.atan2(u.x-shipX,u.wz-travel);shipX=u.x-Math.sin(h)*dist;travel=u.wz-Math.cos(h)*dist;viewYaw=h;G.lastTravel=travel;gT=u;G.alt=Math.max(G.alt||0,2.6);viewPitch=0   // and clear of the new ground
 }
 // A station job: the station hangs ahead and to one side, the attackers between it and us.
 function stageStation(at=[24,-3,200]){const w=cameraPointToWorld(at);stationDelivery.station={x:w[0],y:w[1],z:w[2]};stageFighters()}
+// The factory: face an unshielded red generator and its guards, 45 units out.
+function stageFactory(dist=80){
+  const G=groundAssault,gen=G.units.filter(u=>u.kind==='generator'&&!u.dead&&u.state==='alive'&&!G.shielded?.(u)).sort((a,b)=>G.planarToShip(a)-G.planarToShip(b))[0];
+  if(!gen)return stageGround();
+  const h=Math.atan2(gen.x-shipX,gen.wz-travel)+.25;shipX=gen.x-Math.sin(h)*dist;travel=gen.wz-Math.cos(h)*dist;viewYaw=Math.atan2(gen.x-shipX,gen.wz-travel);viewPitch=0;viewRoll=0;G.lastTravel=travel;gT=gen;G.alt=Math.max(G.alt||0,2.6)
+}
 // Shield pylons on a deep-core surface: line up on the nearest one ahead.
 function stagePylons(dist=60){
   const P=groundTargets.filter(g=>g.doorPylon&&!g.dead&&!g.capDead);if(!P.length)return;
@@ -153,7 +159,7 @@ function ground(dt){
   const G=groundAssault,live=u=>u&&!u.dead&&u.state==='alive';
   if(G.leadIn)return true;
   const err=u=>wrapAngle(Math.atan2(u.x-shipX,u.wz-travel)-viewYaw);
-  if(gT&&(!live(gT)||!G.units.includes(gT)||Math.abs(err(gT))>1.3||G.planarToShip(gT)<10))gT=null;
+  if(gT&&(!live(gT)||!G.units.includes(gT)||Math.abs(err(gT))>1.3||G.planarToShip(gT)<12))gT=null;
   if(!gT){let bs=1e9;for(const u of G.units){if(!live(u)||(G.variant==='factory'&&G.shielded?.(u)))continue;const d=G.planarToShip(u),e=Math.abs(err(u));const sc=d+90*e+(d<22?120:0);if(sc<bs){bs=sc;gT=u}}}
   const u=gT;if(!u)return false;
   const e=err(u),d=G.planarToShip(u);let pt=null,r=14;
@@ -161,6 +167,9 @@ function ground(dt){
     if(u.knees&&u.knees.some(k=>!k.broken)){const i=u.knees.findIndex(k=>!k.broken);pt=proj(G.worldPoint(u,u.poseKnees[i]));if(pt)r=clamp(u.K.legs[i].t*1.25*u.s*pt.k,12,70)}
     else{const sp=u.K.spheres[0];pt=proj(G.worldPoint(u,G.bodyTransform(u)([sp[0],sp[1],sp[2]])));if(pt)r=clamp(sp[3]*u.s*pt.k,13,160)}}
   if(pt&&d<160)aimAt(pt,r*.9,dt);else{steer(clamp(e*2,-1,1),0,dt);trigger(false)}
+  // Never fly through a walker: any unit close in the path pushes the steering aside.
+  for(const o of G.units){if(o.dead)continue;const dd=G.planarToShip(o),ee=err(o),ahead=dd*Math.cos(ee),lat=dd*Math.sin(ee),R=(o.K?.radius||1.5)*(o.s||1)+2.2;
+    if(ahead>0&&ahead<16&&Math.abs(lat)<R){inputX=clamp(inputX-Math.sign(lat||1)*(1-Math.abs(lat)/R)*(1-ahead/16)*(dt||1/30)*5,-1,1)}}
   return true
 }
 // Customs rings: through the dark gap between two scanner arms (the self-test steering).
@@ -282,7 +291,7 @@ const SHOTS=[
   {t:38.48,setup(){launch('station_defence','trade',{stage:'station_defence_recovery',edit:m=>{m.modules[0].relayVariant='hab'}})},pilot:player,stage:()=>stageStation(),warm:5},
   {t:40.73,setup(){launch('customs_run','jackals',{stage:'route_diversion'})},pilot:player,warm:6},
   {t:42.58,...fightJob('rogue',{weapon:'jackalsCrown'}),warm:4},
-  {t:46.88,setup(){launch('factory_strike','security',{stage:'factory_assault',world:C.o})},pilot:player,stage:()=>stageGround(),warm:9},
+  {t:46.88,setup(){launch('factory_strike','security',{stage:'factory_assault',world:C.o})},pilot:player,stage:()=>stageFactory(),warm:9},
   {t:51.18,setup(){launch('dune_armour_clearance','jackals',{stage:'dune_assault',world:C.y,weapon:'jackalsCrown'})},pilot:player,stage:()=>stageGround(),warm:14},
   {t:54.03,setup(){launch('deep_core','security',{stage:'deep_core_surface',world:C.o,jump:'trench'})},pilot:player,warm:5},
   {t:57.32,setup(){launch('cargo_spill','trade',{stage:'route_diversion'})},pilot:player,stage:()=>stageFighters(),warm:12},
