@@ -276,7 +276,9 @@ class CorridorEnvironmentController {
     this.resetRelayCalibration();
     for(let i=0;i<5;i++)this.spawnRecorderPacket(true);
     this.dataSpawnT=.10+Math.random()*.18;
-    audio?.hackChirp?.start?.()
+    audio?.hackChirp?.start?.();
+    // v2700 (Dave: no voice line when recalibrating the terminal).
+    if(audio.hasVoice?.('recalibratingTerminal'))audio.playVoice('recalibratingTerminal',{once:false,priority:true})
   }
   updateRecorderDownload(dt){
     this.dataT+=dt;
@@ -300,7 +302,7 @@ class CorridorEnvironmentController {
     }
     this.relayCalibrateProgress=ease(clamp(this.dataT/3.05,0,1));
     if(this.dataDraining&&!this.dataPackets.length&&!this.dataComplete){
-      this.dataComplete=true;audio?.hackChirp?.stop?.();SoundFX.relayCalibrated?.();this.terminalState='consoleHold';this.finishT=0
+      this.dataComplete=true;audio?.hackChirp?.stop?.();SoundFX.relayCalibrated?.();if(audio.hasVoice?.('terminalRecalibrated'))audio.playVoice('terminalRecalibrated',{once:false,priority:true});this.terminalState='consoleHold';this.finishT=0
     }
   }
   autopilotActive(){

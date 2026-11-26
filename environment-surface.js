@@ -225,6 +225,31 @@ function critterPose(m,K,ph,amp){
   })
 }
 const _critterTopo={};
+// v2700 (Dave: the swamp rays were odd shapes floating in the air). The swamp glider is now
+// a solid wireframe manta: a lofted wing disc, cephalic fins and a whip tail. mantaPose
+// emits the same points in the same order for any pose, so the topology is built once and
+// pose() rewrites the points: the wings beat in a wave that runs out to the tips, and the
+// whole body banks into its turn. Half span 1, nose toward +z.
+function mantaPose(m,beat,bank){
+  const cb=Math.cos(bank),sb=Math.sin(bank);m.T=p=>[p[0]*cb-p[1]*sb,p[0]*sb+p[1]*cb,p[2]];
+  // Span stations: |x|, centre of chord, half chord, half thickness.
+  const ST=[[0,.02,.5,.13],[.3,-.04,.43,.09],[.58,-.17,.3,.055],[.82,-.32,.17,.03],[1,-.5,.04,.012]];
+  const lift=u=>.3*Math.pow(u,1.5)*Math.sin(beat-u*1.1);
+  const ring=(sx,[u,zc,c,t])=>{const x=sx*u,y=lift(u);return Array.from({length:6},(_,i)=>{const a=i*Math.PI/3;return[x,y+Math.sin(a)*t*(a<Math.PI?1:.6),zc+Math.cos(a)*c]})};
+  const rings=[];for(let i=ST.length-1;i>0;i--)rings.push(ring(-1,ST[i]));for(let i=0;i<ST.length;i++)rings.push(ring(1,ST[i]));
+  m.loft(rings,true,true);
+  // Cephalic fins either side of the mouth, curling down and in.
+  for(const sx of[-1,1])m.beam([sx*.15,.0,.46],[sx*.13,-.05,.68],.06,.035,.45);
+  // The tail, a thin whip that trails a little behind the beat.
+  const tail=[];for(let k=0;k<=4;k++){const q=k/4;tail.push([Math.sin(beat-1.6-q*2)*.05*q,-.02+Math.sin(beat-1.2-q*2)*.08*q,-.46-q*1.05])}
+  gaLine(m,tail);m.T=null
+}
+const mantaMesh=(()=>{
+  const top=gaBuilder(true);mantaPose(top,0,0);
+  const mesh={name:'Swamp Manta',v:top.v.map(p=>p.slice()),e:top.e,faces:top.faces,
+    pose(beat,bank){const q=gaBuilder(false);mantaPose(q,beat,bank);for(let i=0;i<mesh.v.length;i++){const a=mesh.v[i],b=q.v[i];a[0]=b[0];a[1]=b[1];a[2]=b[2]}}};
+  return mesh
+})();
 function critterMechMesh(c){
   if(c.mesh)return c.mesh;const kind=c.rabbit?'rabbit':'mouse',K=CRITTER_KINDS[kind];
   let T=_critterTopo[kind];if(!T){const b=gaBuilder(true);critterPose(b,K,0,0);T=_critterTopo[kind]={e:b.e,faces:b.faces,n:b.v.length}}
@@ -1013,12 +1038,10 @@ class SurfaceDestinationApproachController {
     for(const g of this.gliders){
       const a=g.a+t*g.w,cx=g.cx+Math.sin(a)*g.r,cz=g.cz+Math.cos(a)*g.r,hd=a+(g.w>0?Math.PI/2:-Math.PI/2),fx=Math.sin(hd),fz=Math.cos(hd),rx=fz,rz=-fx;
       const c=camPoint([cx,g.y,cz-travel]);if(c[2]<14||c[2]>460)continue;
-      const S=g.span,flap=Math.sin(t*1.1+g.ph)*.9,P=(f,r,y)=>{const q=camPoint([cx+fx*f+rx*r,g.y+y,cz+fz*f+rz*r-travel]);return q[2]>1?projectCam(q):null};
-      const pts=[P(S*.55,0,0),P(-S*.05,S,flap),P(-S*.38,S*.2,flap*.15),P(-S*.5,0,0),P(-S*.38,-S*.2,flap*.15),P(-S*.05,-S,flap),P(S*.55,0,0)],tail=[P(-S*.5,0,0),P(-S*1.5,0,-.2)];
-      ctx.globalAlpha=clamp(1.25-c[2]/460,.35,.85);ctx.beginPath();let pen=false;
-      for(const p of pts){if(!p){pen=false;continue}if(pen)ctx.lineTo(p.x,p.y);else{ctx.moveTo(p.x,p.y);pen=true}}
-      if(tail[0]&&tail[1]){ctx.moveTo(tail[0].x,tail[0].y);ctx.lineTo(tail[1].x,tail[1].y)}
-      ctx.stroke()
+      // v2700: a solid manta, wings beating slowly and banked into the circle it rides.
+      const bob=Math.sin(t*1.1+g.ph-.6)*.35;
+      mantaMesh.pose(t*1.1+g.ph,(g.w>0?1:-1)*.32);
+      drawMesh({x:cx,y:g.y+bob,z:cz-travel,s:g.span,rot:[0,hd,0]},mantaMesh,C.m,clamp(1.25-c[2]/460,.35,.9))
     }
     ctx.restore()
   }

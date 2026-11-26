@@ -3408,3 +3408,14 @@ v2690 Enemy health bar: it drew one dash per hull point, so a 150 hull
       empties first, then the next, and the last row left turns yellow.
       Hulls of 12 or less keep one dash per point, as before. The lock
       brackets wrap the whole block.
+v2700 Swamp mantas: the big magenta gliders over the swamp were a flat
+      outline with a stick tail, so from most angles they looked like odd
+      bent shapes hanging in the air. Each one is now a solid wireframe
+      manta with a lofted wing disc, two head fins and a whip tail. The
+      wings beat in a slow wave out to the tips and it banks into its turn.
+      Relay console voice: recalibrating the terminal had no voice line.
+      It now says "Recalibrating terminal." when the beam starts and
+      "Terminal recalibrated." when it ends, before Mission complete.
+      Both are rendered in Sonia in "voices unprocessed"
+      (recalibratingterminal.mp3, terminalrecalibrated.mp3) and play once
+      normalised into voices/.
