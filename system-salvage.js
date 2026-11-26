@@ -166,9 +166,13 @@ const salvageRecovery={
   },
   wreckagePresentation(){return this.stage?.wreckagePresentation||{}},
   wreckageSearchFlow(){return this.stage?.wreckageSearchFlow||{}},
+  // v2800 (Dave: no voice after running normalize). Contracts are saved when offered, so one
+  // offered before the wreck lines existed has no voice keys. Find the line from its text.
+  wreckVoiceForText(text){return({"search the attackers' wreckage for anything useful":'searchWreckageForAttackRecords','search the wrecks for control records':'searchWrecksForControlRecords',
+    'nothing useful in this one':'nothingUsefulInThisOne','attack records recovered':'attackRecordsRecovered','control records recovered':'controlRecordsRecovered'})[String(text||'').toLowerCase()]||null},
   announceWreckSearch(){
     const presentation=this.wreckagePresentation();
-    const voice=this.stage?.searchPromptVoice||presentation.searchPromptVoice,text=this.stage?.searchPromptText||presentation.searchPromptText;
+    const voice=this.stage?.searchPromptVoice||presentation.searchPromptVoice||this.wreckVoiceForText(this.stage?.searchPromptText||presentation.searchPromptText),text=this.stage?.searchPromptText||presentation.searchPromptText;
     SoundFX.objectiveComplete();
     // v2780: the line is spoken when there is one and always shown on screen too, so a
     // line not yet recorded never leaves the search silent and blank.
@@ -177,9 +181,10 @@ const salvageRecovery={
   },
   announceWreckResult(found){
     const presentation=this.wreckagePresentation();
-    const voice=found?(this.stage?.foundVoice||presentation.foundVoice):(this.stage?.missVoice||presentation.missVoice);
+    let voice=found?(this.stage?.foundVoice||presentation.foundVoice):(this.stage?.missVoice||presentation.missVoice);
     const text=found?(this.stage?.foundText||presentation.foundText):(this.stage?.missText||presentation.missText);
     if(found)SoundFX.objectiveComplete();
+    voice=voice||this.wreckVoiceForText(text);
     if(voice)audio.playVoice(voice,{once:false,priority:true});
     if(text)say(String(text).toUpperCase(),.90)
   },

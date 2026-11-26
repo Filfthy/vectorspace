@@ -3482,3 +3482,8 @@ v2790 Service stations get their own names and colours instead of all
         Tanktown       orange, fuel tanks and radiators
         Meridian Farm  cyan, greenhouse cylinders
       Longer names are lettered smaller so they stay on the sign board.
+v2800 Wreck search voices on older contracts: contracts are saved when
+      they are offered, so a station defence offered before v2780 had no
+      voice lines even once the recordings were in voices/. The search
+      now finds the right line from its on-screen text when a contract
+      has none. The normalised voice files from today are added too.
