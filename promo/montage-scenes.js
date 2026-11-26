@@ -11,7 +11,7 @@ D.drawTitles=()=>{};
 // ---------- Resetting between shots ----------
 const realLanding=window.landingWorldColour,realComplete=scenarioFlow.completeCurrentStage.bind(scenarioFlow);
 function resetGame(){
-  scenarioFlow.completeCurrentStage=realComplete;window.landingWorldColour=realLanding;
+  scenarioFlow.completeCurrentStage=realComplete;window.landingWorldColour=realLanding;D.allowDeath=false;try{if(deathDebriefTimer){clearTimeout(deathDebriefTimer);deathDebriefTimer=0}}catch(_){}
   try{if(campaign.currentMission)campaign.currentMission=null;campaign.pendingMission=null;campaign.currentStageIndex=0}catch(_){}
   for(const k of['forest','surfaceDestination','groundAssault','asteroidField','stationDelivery','stationHack','xenoNest','tacoBeaconDelivery','routeDiversion','courier','carrierIntercept','asteroidWreckRun','salvageRecovery'])
     try{const o=globalThis[k]??eval(k);(o?.reset||o?.stop||o?.stopForJump)?.call(o)}catch(_){}
@@ -46,7 +46,7 @@ function warm(shot,secs){const n=Math.round(secs*30);for(let i=0;i<n;i++){if(i>n
 
 // On camera the drone takes hits for real (the shield bar drops, rebuilds, the low-shield
 // warnings come), but a hit never takes the last shield point, so no shot ends in a loss.
-{const realDamage=game.damage.bind(game);game.damage=function(msg){if(shield<=1)return;return realDamage(msg)}}
+{const realDamage=game.damage.bind(game);game.damage=function(msg){if(shield<=1&&!D.allowDeath)return;return realDamage(msg)}}
 
 // No ghost jammers in the montage (Dave): their display static reads as a fault in a short
 // cut with no context. Every ghost is a lance here; the game itself is unchanged.
@@ -250,6 +250,9 @@ function barDodge(){
 // fight sooner when it is about to hit.
 function player(dt){
   frameNo++;lockT+=dt||1/30;
+  // Ghosts that scatter on their timer keep their damage and their health bar, which in a
+  // short cut looks like a kill that did not count: here they are light enough to kill.
+  for(const f of fighters)if(f.ghost&&!f.dead&&f.hp>4)f.hp=4;
   if(routeDiversion?.active&&routeDiversion.state==='customs')return customs(dt);
   if(phase==='forest'&&forest?.active)return corridorRun(dt);
   if(groundAssault?.active&&ground(dt))return;
@@ -302,7 +305,10 @@ const SHOTS=[
   {t:64.77,setup(){launch('asteroids','jackals',{stage:'asteroids'})},pilot:player,stage:()=>stageRocks(),warm:8},
   {t:68.47,setup(){launch('deep_core','jackals',{stage:'deep_core_surface',world:C.o,jump:'reactor',weapon:'ripper'})},pilot:player,warm:.3},
   {t:71.27,setup(){launch('deep_core','helix',{stage:'deep_core_surface',world:C.c})},pilot:player,stage:()=>stagePylons(),warm:10},
-  {t:77.12,...fightJob('ghost',{weapon:'jackalsCrown'}),warm:8},
+  // The drone is lost at the end of the tutti: the game's destruction static runs into the hush.
+  {t:77.12,...fightJob('ghost',{weapon:'jackalsCrown'}),warm:8,pilot:dt=>{
+    if(mode==='dead')return;player(dt);
+    if(D.clock>=78.3){D.allowDeath=true;shield=0;game.damage('HULL BREACH');try{if(deathDebriefTimer){clearTimeout(deathDebriefTimer);deathDebriefTimer=0}}catch(_){}}}},
   // The hush: fewer, longer, tenser shots
   {t:79.60,setup(){launch('secure_terminal_intrusion','security',{stage:'station_minefield_approach'})},pilot:player,warm:4},
   {t:88.50,setup(){launch('nest_clearance','helix',{stage:'xeno_nest'})},pilot:player,warm:22},
