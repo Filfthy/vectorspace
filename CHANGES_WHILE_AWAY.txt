@@ -3427,3 +3427,7 @@ v2720 Swamp relay outpost: on the approach its console screen and the
       white delivery plinth showed through the swamp plants in front of
       it. Both were painted after the whole sorted scene. They are now
       drawn as part of the outpost itself, so nearer trunks cover them.
+v2730 Birds behind hills: the swamp bird flocks, the swamp mantas and the
+      flocks on green and blue worlds were drawn after the land, so they
+      showed through any rise in front of them. Each flock and manta is
+      now depth sorted in with the hill strips, so the land hides them.

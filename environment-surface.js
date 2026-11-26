@@ -1017,24 +1017,26 @@ class SurfaceDestinationApproachController {
       this.gliders.push({cx:X*.6+side*(45+this.rand()*40),cz:T*(.3+.25*n+.15*this.rand()),r:30+this.rand()*25,y:this.groundY+18+this.rand()*10,w:(.1+this.rand()*.05)*(this.rand()<.5?-1:1),a:this.rand()*6.28,ph:this.rand()*6,span:7+this.rand()*3})
     }
   }
-  drawSwampFlyers(){
+  // v2730 (Dave: could see birds through the land). Given the object scene, each flock and
+  // manta is sorted in with the hill strips so a rise in front hides it. Without one (the
+  // self-test) they draw at once as before.
+  drawSwampFlyers(scene){
     if(!this.skimmers?.length&&!this.gliders?.length)return;const t=this.navPulse||0,dt=Math.min(.05,this._flyT==null?0:Math.max(0,t-this._flyT));this._flyT=t;
-    ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;
-    ctx.strokeStyle=C.w;
+    const out=(z,fn)=>{const run=()=>{ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;fn();ctx.restore()};if(scene)scene.push({z,draw:run});else run()};
     for(const f of this.skimmers){
       const u=((t+f.ph)*f.speed)%(2*f.len),s=u<f.len?u:2*f.len-u,dir=u<f.len?1:-1;
       const cx=f.x0+f.dx*s,cz=f.z0+f.dz*s;
       if(Math.hypot(cx-shipX,cz-travel)<18)f.spook=Math.min(1,f.spook+dt*3);else f.spook=Math.max(0,f.spook-dt*.25);
       const sp=ease(f.spook),gy=this.groundY+(this.hills?this.hillAt(cx,cz):0)+f.h+sp*5,c=camPoint([cx,gy,cz-travel]);if(c[2]<3||c[2]>280)continue;
-      ctx.globalAlpha=clamp(1.2-c[2]/280,.4,.95);ctx.beginPath();
+      out(c[2]-1,()=>{
+      ctx.strokeStyle=C.w;ctx.globalAlpha=clamp(1.2-c[2]/280,.4,.95);ctx.beginPath();
       for(const b of f.birds){
         const spread=1+sp*3.2,q=camPoint([cx+b.dx*spread+Math.sin(t*2.1+b.ph)*.5,gy+b.dy+sp*b.ph*.5+Math.sin(t*3+b.ph)*.2,cz+b.dz*spread+dir*Math.cos(t*1.7+b.ph)*.4-travel]);
         if(q[2]<2)continue;const p=projectCam(q);if(!p)continue;
         const k=clamp(p.k*.45,2.6,11),flap=Math.sin(t*(16+sp*8)+b.ph)*.6;ctx.moveTo(p.x-k,p.y-k*flap);ctx.lineTo(p.x,p.y+k*.15);ctx.lineTo(p.x+k,p.y-k*flap)
       }
-      ctx.stroke()
+      ctx.stroke()})
     }
-    ctx.strokeStyle=C.m;
     for(const g of this.gliders){
       const a=g.a+t*g.w,cx=g.cx+Math.sin(a)*g.r,cz=g.cz+Math.cos(a)*g.r,hd=a+(g.w>0?Math.PI/2:-Math.PI/2),fx=Math.sin(hd),fz=Math.cos(hd),rx=fz,rz=-fx;
       const c=camPoint([cx,g.y,cz-travel]);if(c[2]<14||c[2]>460)continue;
@@ -1042,10 +1044,9 @@ class SurfaceDestinationApproachController {
       // v2710 (Dave: the movement was barely perceptible): a full, quicker wing beat that
       // lifts the body on each downstroke, a faster circuit and a steeper bank.
       const beat=t*2.4+g.ph,bob=-Math.sin(beat-.9)*g.span*.13;
-      mantaMesh.pose(beat,(g.w>0?1:-1)*.5);
-      drawMesh({x:cx,y:g.y+bob,z:cz-travel,s:g.span,rot:[0,hd,0]},mantaMesh,C.m,clamp(1.25-c[2]/460,.35,.9))
+      out(c[2],()=>{mantaMesh.pose(beat,(g.w>0?1:-1)*.5);
+        drawMesh({x:cx,y:g.y+bob,z:cz-travel,s:g.span,rot:[0,hd,0]},mantaMesh,C.m,clamp(1.25-c[2]/460,.35,.9))})
     }
-    ctx.restore()
   }
   // v2370 (Dave: occasional critters like rabbits or mice). A few small animals on the
   // OSD world's plains, scenery only: they nibble, hop about, and bolt away from the drone
@@ -1092,18 +1093,17 @@ class SurfaceDestinationApproachController {
       scene.push({z:q[2],draw:()=>drawMesh({type:'critterMech',x:c.x,y:gy+hop*.4,z:c.wz-travel,s:c.s,rot:[0,c.h+Math.PI,0]},M,C.w,.9)})
     }
   }
-  drawFlocks(){
-    this.drawSwampFlyers();
+  drawFlocks(scene){
+    this.drawSwampFlyers(scene);
     if(!this.flocks?.length)return;const t=this.navPulse||0;
-    ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.strokeStyle=C.w;
+    const out=(z,fn)=>{const run=()=>{ctx.save();ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.strokeStyle=C.w;fn();ctx.restore()};if(scene)scene.push({z,draw:run});else run()};
     for(const f of this.flocks){
       const a=f.a+t*f.w,cx=f.cx+Math.sin(a)*f.r,cz=f.cz+Math.cos(a)*f.r,c=camPoint([cx,f.y,cz-travel]);if(c[2]<6||c[2]>340)continue;
-      ctx.globalAlpha=clamp(1.1-c[2]/340,.25,.75);ctx.beginPath();
+      out(c[2],()=>{ctx.globalAlpha=clamp(1.1-c[2]/340,.25,.75);ctx.beginPath();
       for(const b of f.birds){const q=camPoint([cx+b.dx+Math.sin(t*.7+b.ph)*.8,f.y+b.dy+Math.sin(t*1.3+b.ph)*.4,cz+b.dz-travel]);if(q[2]<4)continue;const p=projectCam(q);if(!p)continue;
         const s=clamp(p.k*.35,1.5,7),flap=Math.sin(t*9+b.ph)*.7;ctx.moveTo(p.x-s,p.y-s*flap);ctx.lineTo(p.x,p.y);ctx.lineTo(p.x+s,p.y-s*flap)}
-      ctx.stroke()
+      ctx.stroke()})
     }
-    ctx.restore()
   }
   // v1550: a road runs in to the city across the plains, with a little ground traffic on
   // it in both directions (the city's own hover cars, vans and haulers, drawn the same
@@ -1227,9 +1227,9 @@ class SurfaceDestinationApproachController {
     ctx.restore()
   }
   draw(){
-    this.drawGround();this.drawRoad();if(!this.hills)this.drawFissures();const scene=[];this.appendEnvironmentObjects(scene);this.appendMarsh(scene);this.appendCritters(scene);
+    this.drawGround();this.drawRoad();if(!this.hills)this.drawFissures();const scene=[];this.appendEnvironmentObjects(scene);this.appendMarsh(scene);this.appendCritters(scene);this.drawFlocks(scene);
     if(this.destination==='osd'&&bunkerRaid?.active)bunkerRaid.appendOsdSurfaceObjects(scene);
-    this.drawObjectScene(scene);this.drawFlocks();this.drawWeather();this.drawNavigation()
+    this.drawObjectScene(scene);this.drawWeather();this.drawNavigation()
   }
   // v1380: weather on the plains. Ice worlds can blow a blizzard and arid worlds a dust
   // storm: a haze thickening towards the horizon (tilted with the view as the drone banks),
