@@ -3475,3 +3475,10 @@ v2780 Service station variations: generic relay jobs (station defence and
         searchthewreckageforattackrecords.mp3, attackrecordsrecovered.mp3,
         nothingusefulinthisone.mp3, searchthewrecksforcontrolrecords.mp3,
         controlrecordsrecovered.mp3
+v2790 Service stations get their own names and colours instead of all
+      being green "Relay" stations:
+        Relay 10       green, container spine (unchanged)
+        Drifters Rest  magenta, hab ring and solar wings
+        Tanktown       orange, fuel tanks and radiators
+        Meridian Farm  cyan, greenhouse cylinders
+      Longer names are lettered smaller so they stay on the sign board.

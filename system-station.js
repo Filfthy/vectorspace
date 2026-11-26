@@ -8,11 +8,14 @@
 // is a fuel depot of paired spheres on a truss with radiator fins, and Relay 23 grows food
 // in three ribbed greenhouse cylinders. Local axes: +z up the mast, the aft spine runs -x.
 const RELAY_VARIANTS={
-  relay10:{name:'RELAY 10',sub:'FUEL FREIGHT FOOD'},
-  hab:{name:'RELAY 4',sub:'BUNKS FOOD REPAIRS'},
-  fuel:{name:'RELAY 17',sub:'FUEL TANKS WATER'},
-  farm:{name:'RELAY 23',sub:'FRESH FOOD FUEL'}
+  relay10:{name:'RELAY 10',sub:'FUEL FREIGHT FOOD',col:'g'},
+  // v2790 (Dave: all the same colour and all called Relay something): each has its own
+  // name and its own colour.
+  hab:{name:'DRIFTERS REST',sub:'BUNKS FOOD REPAIRS',col:'m'},
+  fuel:{name:'TANKTOWN',sub:'FUEL TANKS WATER',col:'o'},
+  farm:{name:'MERIDIAN FARM',sub:'FRESH FOOD FUEL',col:'c'}
 };
+function stationStencilUnits(text){const chars=String(text).toUpperCase().split('');let u=0;for(const ch of chars)u+=(STATION_STENCIL[ch]||STATION_STENCIL['0']).w+.16;return Math.max(.1,u-.16)}
 const relayVariantMeshCache={};
 function relayVariantMesh(key){
   if(key==='relay10'||!RELAY_VARIANTS[key])return relayTruckStopMesh;
@@ -1018,8 +1021,9 @@ class StationDeliveryController {
     const sg=this.mesh?.sign;
     if(sg){
       const V=RELAY_VARIANTS[this.relayVariant]||RELAY_VARIANTS.relay10;
-      this.drawStationStencil(V.name,[sg.x,0,sg.z+sg.h*.34],[0,-1,0],[0,0,-1],sg.h*.26,C.w,.95,'center',[1,0,0]);
-      this.drawStationStencil(V.sub,[sg.x,0,sg.z-sg.h*.12],[0,-1,0],[0,0,-1],sg.h*.10,C.c,.9,'center',[1,0,0]);
+      // Longer names are lettered smaller so they stay on the board.
+      this.drawStationStencil(V.name,[sg.x,0,sg.z+sg.h*.34],[0,-1,0],[0,0,-1],Math.min(sg.h*.26,sg.w*.86/stationStencilUnits(V.name)),C.w,.95,'center',[1,0,0]);
+      this.drawStationStencil(V.sub,[sg.x,0,sg.z-sg.h*.12],[0,-1,0],[0,0,-1],Math.min(sg.h*.10,sg.w*.86/stationStencilUnits(V.sub)),C.c,.9,'center',[1,0,0]);
     }
     // The mast sign carries the station identity; the outcrop stays plain.
 
@@ -1249,7 +1253,7 @@ class StationDeliveryController {
     if(centre[2]>.18){
       if(this.stationStyle==='relay')this.drawParkedTraffic('far');
       const exteriorType=this.stationStyle==='crossroads'?'crossroadsOutpost':this.stationStyle==='vox'?'voxCommsStation':'relayTruckStop';
-      const exteriorCol=this.stationStyle==='vox'?C.c:C.g;
+      const exteriorCol=this.stationStyle==='vox'?C.c:this.stationStyle==='relay'?(C[RELAY_VARIANTS[this.relayVariant]?.col]||C.g):C.g;
       if(this.stationStyle==='relay')this.animateRelayDish();
       drawMesh({type:exteriorType,x:this.station.x,y:this.station.y,z:this.station.z,s:this.scale,rot:this.rot},this.mesh,exteriorCol,.94);
       if(this.stationStyle==='relay')this.drawRelayBeacon();
