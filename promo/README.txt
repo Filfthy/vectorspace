@@ -124,9 +124,13 @@ before the cut, then staged so the action fills the frame (fighters 20 to
 
 Open it with ?promo=montage:
   ?promo=montage&play          live with the music (&from=79.6 starts at the hush)
-  ?promo=montage&dpr=1.5       for rendering: PromoDirector.renderRange('montage',1.62,136.3)
-  bash promo/make-video.sh promo/out/montage music/violent/diesirae.ogg promo/out/vector-space-montage.mp4 1.62
-  (the track opens with 1.6 s of silence: the video starts on the first drum stroke)
+  ?promo=montage&dpr=1.5       for rendering: PromoDirector.renderRange('montage',0,141.3)
+  It closes on empty space with "Coming soon", held five seconds past the last note.
+  The track opens with 1.6 s of silence: the title "Vector Space" goes there on black,
+  with Sonia saying it (promo/vectorspace-title.mp3 at 0.4 s), then the first drum
+  stroke cuts into the action. Mix her line into the song, then make the video:
+  ffmpeg -i music/violent/diesirae.ogg -i promo/vectorspace-title.mp3 -filter_complex "[1]volume=1.6,adelay=400|400[v];[0][v]amix=inputs=2:normalize=0:duration=first,apad=whole_dur=141.3" promo/out/montage-audio.wav
+  bash promo/make-video.sh promo/out/montage promo/out/montage-audio.wav promo/out/vector-space-montage.mp4
 
 Files
   montage-song.js     the track and its two sections

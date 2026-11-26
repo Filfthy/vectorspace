@@ -219,6 +219,9 @@ function corridorRun(dt){
   if(next){const of=next.obstacle||{};
     if(of.kind==='fallen'){if(nz<22)ty=-.75}
     else{const r=(of.radius||.85)+1.6;if(next._montageSide||Math.abs(want-next.x)<r){const pc=p?p.x:shipX;next._montageSide=next._montageSide||(pc>=next.x?1:-1);want=next.x+next._montageSide*r}}}   // the side is chosen once and kept
+  // Spit coming in and no tree close ahead: take it down, as a player would.
+  const bt=boltTarget();
+  if(bt&&(!next||nz>18)){aimAt(bt.p,bt.r,dt);return}
   const tx=clamp((want-shipX)*1.1,-1,1);
   steer(tx,clamp(ty,-.8,.4),dt,4.5);
   const a=aimScreen();let on=false;
@@ -271,8 +274,8 @@ const SHOTS=[
   {t:17.24,setup(){launch('ice_field_armour','security',{stage:'dune_assault',world:C.c})},pilot:player,stage:()=>stageGround(),warm:10},
   {t:20.04,setup(){launch('taco_run','quickbite',{stage:'taco_asteroid_delivery'})},pilot:player,stage:()=>stageFighters(),warm:6},
   {t:22.99,...fightJob('ghost'),warm:6},
-  {t:29.80,setup(){launch('penthouse_delivery','jackals',{stage:'urban_penthouse_delivery',world:C.m})},pilot:player,warm:5},   // the traffic run
-  {t:34.83,setup(){launch('convoy_escort','security',{stage:'route_diversion'})},pilot:player,stage:()=>stageFighters(),warm:9},
+  {t:29.80,setup(){launch('penthouse_delivery','jackals',{stage:'urban_penthouse_delivery'})},pilot:player,warm:5},   // the traffic run
+  {t:34.83,setup(){launch('convoy_escort','security',{stage:'route_diversion'})},pilot:player,warm:9},
   {t:38.48,setup(){launch('station_defence','trade',{stage:'station_defence_recovery',edit:m=>{m.modules[0].relayVariant='hab'}})},pilot:player,stage:()=>stageStation(),warm:5},
   {t:40.73,setup(){launch('customs_run','jackals',{stage:'route_diversion'})},pilot:player,warm:6},
   {t:42.58,...fightJob('rogue',{weapon:'jackalsCrown'}),warm:4},
@@ -307,12 +310,27 @@ SHOTS.forEach((s,i)=>{
     stage(){sp=null;lockKind=null;curHost=null;try{s.stage?.()}catch(e){D.log.push(`${shot.name} staging failed: ${e.message}`)}},
     setup(){try{s.setup();warm(shot,s.warm||3)}catch(e){D.log.push(`${shot.name} setup failed: ${e.message}`)}},
     pilot(dt){s.pilot?.(dt)},
-    overlay(t){
-      // Fade in from black at the start and out at the end.
-      const a=Math.max(clamp(1-(t-PROMO_SONG.start)/.25,0,1),clamp((t-(PROMO_SONG.end-4))/3.6,0,1));
-      if(a>0){ctx.save();ctx.globalAlpha=a;ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);ctx.restore()}
+    // The title on black until the first drum stroke, then a hard cut into the action. It is
+    // drawn after the whole game frame (the guns and pack boxes come after the HUD), with the
+    // glow layer off so nothing of the game shows through.
+    after(dt,t){
+      if(t<PROMO_SONG.first){card();D.vtext('Vector Space',W*.5,viewH*.47,Math.round(W/11),C.g,clamp((t-.15)/.3,0,1));bloomCanvas.style.display='none'}
+      else if(bloomCanvas.style.display==='none')bloomCanvas.style.display=''
     }};
   D.scenes.push(shot)
 });
+// A black card over the whole canvas, in screen pixels whatever transform is set.
+function card(){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore()}
+// The close: empty space, the stars drifting slowly, and "Coming soon", held past the last note.
+D.scenes.push({name:'close',t0:PROMO_SONG.end,seed:9999,
+  setup(){resetGame();mode='play';phase='space';viewYaw=viewPitch=viewRoll=0;inputX=inputY=0},
+  pilot(dt){viewYaw+=(dt||1/30)*.012;inputX=inputY=0},
+  after(dt,t){
+    bloomCanvas.style.display='none';
+    const u=t-PROMO_SONG.end,V=PROMO_SONG.videoEnd;
+    card();renderer.drawStars();
+    D.vtext('Coming soon',W*.5,viewH*.47,Math.round(W/13),C.g,clamp((u-.5)/.9,0,1));
+    const out=clamp((t-(V-1.3))/1.2,0,1);if(out>0){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=out;ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore()}
+  }});
 D.montageShots=SHOTS;
 })();

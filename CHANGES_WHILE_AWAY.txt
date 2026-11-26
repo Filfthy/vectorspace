@@ -3586,3 +3586,12 @@ v2930 Space dust: the dust that streams past as a speed cue was dense and
 v2940 Space dust back as it was in the game (96 motes at four times
       cruise). The calmer, thinner dust that stops at the hive observation
       point now applies only to the montage promo (?promo=montage).
+v2950 Montage (promo only): opens on "Vector Space" in the title lettering
+      on black with Sonia saying it (promo/vectorspace-title.mp3), and the
+      first drum stroke cuts into the action. Closes on empty space with
+      "Coming soon", held five seconds past the last note. The city
+      traffic run is on an ordinary world (no purple planet), the convoy
+      fighters fly where the game puts them (teleported ones slid
+      backwards), and in the swamp the pilot shoots down incoming spit
+      when the lane ahead is clear. Live playback plays the title line
+      and runs on past the song for the close.

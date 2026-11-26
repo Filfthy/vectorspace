@@ -28,12 +28,19 @@ button.addEventListener('click',async()=>{
   song.currentTime=from;
   try{await song.play()}catch(err){console.error('promo song would not play',err)}
   const DT=1/D.FPS;
+  // A spoken line laid over the song (the montage title), started when the song reaches it.
+  let endedAt=0;
+  const vo=PROMO_SONG.voice?new Audio(PROMO_SONG.voice.src):null;let voDone=!vo||from>PROMO_SONG.voice.at;
   const tick=()=>{
+    if(!voDone&&song.currentTime>=PROMO_SONG.voice.at){voDone=true;vo.play().catch(()=>{})}
     fullscreenGate.classList.add('hidden');
-    // Run the frames the music has moved past; draw only the last one.
-    const k=Math.floor((song.currentTime-D.clock)/DT+1e-6);
+    // Run the frames the music has moved past; draw only the last one. A video that runs on
+    // past the song (videoEnd) keeps time from the moment the song ended.
+    if(song.ended&&!endedAt)endedAt=performance.now();
+    const now=endedAt?song.duration+(performance.now()-endedAt)/1000:song.currentTime;
+    const k=Math.floor((now-D.clock)/DT+1e-6);
     for(let i=0;i<k;i++)D.step(i===k-1);
-    if(!song.ended)D.realRAF(tick)
+    if(!song.ended||now<(PROMO_SONG.videoEnd||0))D.realRAF(tick)
   };
   D.realRAF(tick)
 });
