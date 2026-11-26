@@ -48,6 +48,10 @@ function warm(shot,secs){const n=Math.round(secs*30);for(let i=0;i<n;i++){if(i>n
 // warnings come), but a hit never takes the last shield point, so no shot ends in a loss.
 {const realDamage=game.damage.bind(game);game.damage=function(msg){if(shield<=1)return;return realDamage(msg)}}
 
+// No ghost jammers in the montage (Dave): their display static reads as a fault in a short
+// cut with no context. Every ghost is a lance here; the game itself is unchanged.
+{const G=globalThis.AgentXGhosts;if(G){const kf=G.kindFor.bind(G);G.kindFor=function(){const k=kf();return k==='jammer'?'lance':k};G.jammed=()=>false}}
+
 // ---------- Staging: bring the action in front of the camera at the cut ----------
 const SPOTS=[[-2,.5,20],[4,-1.5,27],[-1,2.5,34],[-7,-2,42],[8,2,50]];
 function stageFighters(n=3,hp=7){
