@@ -3397,3 +3397,8 @@ v2670 Taco Beacon order box at the asteroid base delivery bay: the bay drew
       turns yellow) the emblem goes orange so it still reads. Only the Taco
       Beacon delivery stage gets it: other food runs keep their plain
       crossed box and other cargo keeps its case.
+v2680 Taco Beacon pickup: the hatch's octagon frame was redrawn on top of
+      everything, so close up its lines cut across the order box and its
+      emblem. Once the box is out of the hatch the hatch is drawn first and
+      the box covers it. While the box is still inside, the hatch frame
+      stays on top as before.

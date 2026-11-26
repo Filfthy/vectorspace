@@ -284,6 +284,14 @@ class TacoBeaconDeliveryController{
     const r=v3add(v3scale(r0,ca),v3scale(t0,-sa)),t=v3add(v3scale(t0,ca),v3scale(r0,sa));
     return[Math.atan2(n[2],t[2]),-Math.asin(clamp(r[2],-1,1)),Math.atan2(r[1],r[0])]
   }
+  // v2680 (Dave: hatch lines across the box). The hatch redraws its frame on top, which is
+  // right while the box is still inside, but once the box is out in front of the pod the
+  // hatch is drawn first so the box covers it.
+  foodOutOfHatch(){
+    if(this.kind!=='station'||!this.host)return false;const s=this.packageState();if(!s?.from||!s?.to)return false;
+    const p=[lerp(s.from[0],s.to[0],s.q),lerp(s.from[1],s.to[1],s.q),lerp(s.from[2],s.to[2],s.q)],k=lerp(this.host.s*.15,.58,s.q);
+    const front=this.localToWorld(this.host,[3.05,.86,-1.05]);return v3dot(v3sub(p,front),this.stationNormal())>=k*.58
+  }
   drawTractorAndFood(){
     const s=this.packageState();if(!s?.from||!s?.to)return;
     const p=[lerp(s.from[0],s.to[0],s.q),lerp(s.from[1],s.to[1],s.q),lerp(s.from[2],s.to[2],s.q)],cp=proj(p),a=proj(s.from),b=proj(s.to);
@@ -345,7 +353,7 @@ class TacoBeaconDeliveryController{
   }
   appendScene(scene){
     if(!this.active||this.state==='complete')return;
-    if(this.kind==='station'&&this.host){const d=this.hostDepth(this.host,tacoBeaconStationMissionMesh);if(d!=null)scene.push({z:d,draw:()=>{drawMesh(this.host,tacoBeaconStationMissionMesh,C.c,.96);this.drawStationTerminal();this.drawTractorAndFood();this.drawStationHatch();this.drawDataTransfer()}});return}
+    if(this.kind==='station'&&this.host){const d=this.hostDepth(this.host,tacoBeaconStationMissionMesh);if(d!=null)scene.push({z:d,draw:()=>{drawMesh(this.host,tacoBeaconStationMissionMesh,C.c,.96);this.drawStationTerminal();if(this.foodOutOfHatch()){this.drawStationHatch();this.drawTractorAndFood()}else{this.drawTractorAndFood();this.drawStationHatch()}this.drawDataTransfer()}});return}
     // Asteroid delivery reuses the canonical courier mine/base scene; no second Taco-specific base is drawn.
   }
   markerTarget(){
