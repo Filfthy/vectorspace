@@ -3360,3 +3360,9 @@ v2610 Contracts board: with the story lead banners showing, the
       under the contract list, worst at bigger text sizes. The board now
       keeps a row for them below the banners. The Mail tab had the same
       problem with its filter bar and is fixed the same way.
+
+v2620 Convoy Escort: a new freighter model in place of the stack of boxes.
+      A rounded command module with a bridge blister and mast, an open
+      truss spine carrying container racks and domed pressure tanks in
+      clamp rings, and a drive section with radiator vanes, a dorsal fin
+      and three engine bells. The Cargo Spill hauler shares the model.

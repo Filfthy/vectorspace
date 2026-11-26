@@ -686,6 +686,48 @@ const reactorCoreMesh=(()=>{
   return mesh
 })();
 
+// v2620 (Dave: the convoy freighter is just a cardboard box). A long-haul freighter about
+// 1.6 x 1.2 x 8.8 units, bow toward +z: a rounded command module with a bridge blister,
+// an open truss spine carrying container racks and domed pressure tanks held in clamp
+// rings, then a drive section with radiator vanes and three engine bells. Closed solids,
+// so hidden lines drop out. Also the Cargo Spill hauler.
+const longHaulFreighterMesh=(()=>{
+  const m=gaBuilder(true),PI=Math.PI;
+  const ell=(cx,cy,z,rx,ry,n=8,rot=PI/8)=>Array.from({length:n},(_,i)=>{const t=rot+2*PI*i/n;return[cx+Math.cos(t)*rx,cy+Math.sin(t)*ry,z]});
+  // Command module: a blunt rounded bow on a short neck.
+  m.loft([[0,.36,.30,2.25],[.24,.28,.24,2.5],[.40,.44,.36,2.62],[.47,.48,.42,3.0],[.47,.46,.40,3.45],[.38,.36,.32,3.8],[.2,.18,.18,4.02]].map(([_,rx,ry,z])=>ell(0,0,z,rx,ry)),true,true);
+  // Bridge blister on top, with a band of windows round its face.
+  m.loft([[.04,.04,2.95],[.2,.12,3.08],[.22,.13,3.35],[.15,.09,3.6],[.04,.03,3.7]].map(([rx,ry,z])=>ell(0,.43,z,rx,ry,8,0)),true,true);
+  gaLine(m,[[-.16,.47,3.5],[-.05,.5,3.56],[.05,.5,3.56],[.16,.47,3.5]]);
+  gaLine(m,[[0,.55,3.15],[0,.95,3.1]]);gaLine(m,[[-.12,.88,3.1],[.12,.88,3.1]]);
+  // Hull plating seams on the command module.
+  gaLine(m,ell(0,0,3.22,.475,.47,12,0),true);
+  // Spine: an open square truss, four longerons with zig-zag bracing.
+  const z0=-2.65,z1=2.3,c=.13;
+  for(const[x,y]of[[-c,-c],[c,-c],[c,c],[-c,c]])m.beam([x,y,z0],[x,y,z1],.05,.05);
+  for(const[a,b]of[[[-c,c],[c,c]],[[c,c],[c,-c]],[[c,-c],[-c,-c]],[[-c,-c],[-c,c]]]){const pts=[];
+    for(let k=0;k<=12;k++){const z=z0+(z1-z0)*k/12,p=k%2?b:a;pts.push([p[0],p[1],z])}gaLine(m,pts)}
+  // Cargo: container racks and pressure tanks, alternating along the spine.
+  const clamp=z=>{m.loft([ell(0,0,z-.04,.58,.58,8,PI/8),ell(0,0,z+.04,.58,.58,8,PI/8)],true,true)};
+  const containers=(zc)=>{for(const[x,y]of[[-.26,-.26],[.26,-.26],[.26,.26],[-.26,.26]]){
+      m.box([x,y,zc],[.46,.46,.8]);gaLine(m,[[x+(x>0?.231:-.231),y-.15,zc-.24],[x+(x>0?.231:-.231),y+.15,zc-.24]]);gaLine(m,[[x+(x>0?.231:-.231),y-.15,zc+.24],[x+(x>0?.231:-.231),y+.15,zc+.24]])}
+    clamp(zc-.44);clamp(zc+.44)};
+  const tanks=(zc)=>{for(let i=0;i<3;i++){const a=PI/2+i*2*PI/3,x=Math.cos(a)*.33,y=Math.sin(a)*.33;
+      m.loft([[-.44,.06],[-.4,.16],[-.33,.24],[.33,.24],[.4,.16],[.44,.06]].map(([dz,r])=>ell(x,y,zc+dz,r,r,8,0)),true,true)}
+    clamp(zc)};
+  containers(1.6);tanks(.5);containers(-.6);tanks(-1.7);
+  // Drive section: a broad housing, radiator vanes either side, three engine bells.
+  m.loft([[.3,.3,-2.55],[.46,.42,-2.7],[.52,.46,-3.1],[.5,.44,-3.6],[.42,.38,-3.85]].map(([rx,ry,z])=>ell(0,0,z,rx,ry)),true,true);
+  for(const s of[-1,1]){m.box([s*.86,0,-3.05],[.66,.025,.62]);m.beam([s*.5,0,-3.05],[s*.56,0,-3.05],.08,.08);
+    for(const dz of[-.18,0,.18])gaLine(m,[[s*.56,.014,-3.05+dz],[s*1.18,.014,-3.05+dz]])}
+  for(const[x,y]of[[0,.18],[-.22,-.13],[.22,-.13]])
+    m.loft([[.1,-3.84],[.09,-3.95],[.13,-4.1],[.18,-4.3]].map(([r,z])=>ell(x,y,z,r,r,8,0)),true,false);
+  // Dorsal fin over the drive, carrying the running lights.
+  m.loft([[[-.02,.42,-2.75],[.02,.42,-2.75],[.02,.42,-3.75],[-.02,.42,-3.75]],[[-.02,.78,-3.25],[.02,.78,-3.25],[.02,.78,-3.7],[-.02,.78,-3.7]]],true,true);
+  return{name:'Long-haul freighter',v:m.v,e:m.e,faces:m.faces}
+})();
+
+
 
 // v2460 (Dave: it is meant to be a wasp nest). The hive is a hanging paper nest: a long
 // teardrop built from overlapping scalloped layers, each band's lower lip flaring out over

@@ -463,22 +463,8 @@ const routeDiversion={
     this.record({id:safe?'escorted':'lost',...o,repFaction:m?.blackContract?null:(m?.faction||'trade')});
     fighters.length=0;bolts.length=0;this.convoy=null;this.end()
   },
-  // A long-haul freighter: spine, six cargo pods, bridge and engine block, all closed
-  // boxes so hidden lines drop out. About 1.3 x 1 x 8 units before scaling.
-  FREIGHTER_MESH:(()=>{
-    const v=[],faces=[];
-    const box=(cx,cy,cz,sx,sy,sz)=>{const b=v.length;for(const[x,y,z]of[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]])v.push([cx+x*sx,cy+y*sy,cz+z*sz]);
-      for(const f of[[0,1,2,3],[7,6,5,4],[0,4,5,1],[1,5,6,2],[2,6,7,3],[3,7,4,0]])faces.push(f.map(i=>b+i))};
-    box(0,0,0,.14,.14,3.3);                                    // spine
-    for(const z of[-2.1,-.9,.3,1.5])for(const x of[-.4,.4])box(x,0,z,.25,.3,.5);  // cargo pods
-    box(0,.42,3.0,.3,.2,.3);box(0,.05,2.95,.2,.18,.55);         // bridge on its neck
-    box(0,.62,3.0,.03,.22,.12);                                 // mast
-    box(0,0,-3.45,.32,.28,.25);                                 // engine block
-    for(const x of[-.18,.18])box(x,0,-3.85,.09,.09,.15);        // nozzles
-    box(0,.34,-3.35,.03,.3,.28);                                // tail fin
-    const seen=new Set(),e=[];for(const f of faces)for(let i=0;i<f.length;i++){const a=f[i],b=f[(i+1)%f.length],key=a<b?a+':'+b:b+':'+a;if(!seen.has(key)){seen.add(key);e.push([a,b])}}
-    return{v,faces,e}
-  })(),
+  // v2620: the freighter is longHaulFreighterMesh in models.js (loaded after this file).
+  get FREIGHTER_MESH(){return longHaulFreighterMesh},
   // ---- Cargo spill (v2080) ----
   startSpillScavengers(){
     const S=AgentXCargoSpill,stage=this.stage,k=campaign.contractToughnessScale(S.risk),n=S.scavengerCount();
