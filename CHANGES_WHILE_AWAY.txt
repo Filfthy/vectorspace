@@ -3495,3 +3495,22 @@ v2810 Selling from the stores: every spare item in the Drone bay stores
       hardware is never sold, and the standard Pulse Laser is always
       there, so the drone can never be left without a weapon. Selling
       is locked while the drone is deployed.
+v2820 Standing 100 rewards: the first time a network reaches standing
+      100, its contact registers a grade 5 piece to you, with a letter in
+      Mail. Frames go to the hangar, items to the stores. All are
+      faction-registered: free, never sold, and always recovered if the
+      drone is destroyed (reward frames too, with no insurance claim).
+        OSD (Kudo)           OSD-5 Aegis frame: 13 shields, 2 consumable
+                             slots, 3 internals, enemy hit intent -8%
+        Free Traders         Compact Charter internal: every fitted
+        (Corvella)           consumable refills to a full pack at each
+                             new mission stage
+        Red Jackals          Jackal's Crown weapon: 7 damage, triple to
+        (Cassian)            armour, 3 shots per burst, quicker than the
+                             Ripper
+        Helix (Navira)       Helix-5 Chimera frame: 11 shields, 2
+                             consumable slots, 4 internals, shield
+                             rebuild 20% faster
+        QuickBite (Nyxo)     Express Lane internal: +1 consumable slot,
+                             and a charge to every pack at each new stage
+      Any network already at 100 sends its reward on the next startup.

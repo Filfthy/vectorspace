@@ -44,6 +44,7 @@ class CampaignController {
     this.topUpLoadout(false);
     if(!this.state.frameLoadouts[this.state.drone])this.rememberCurrentFrameLoadout();
     this.ensureContractBoard();
+    this.checkStandingRewards();   // v2820: any standing 100 reward missed before now
     this.ensureWelcomeMail();
     this.evaluateMailTriggers();
   }
@@ -395,12 +396,13 @@ class CampaignController {
   // Hot Box (QuickBite reward): each new stage tops up every fitted consumable by one charge.
   onStageAdvance(){
     if(!this.currentMission||!(this.internalSum('stageRefill')>0))return;
-    let added=0;
+    let added=0;const n=this.internalSum('stageRefill');
     for(let i=0;i<this.activeSlotCount();i++){
       const item=this.items[this.activeLoadout[i]];if(!item)continue;
-      const pack=this.packSize(item);if(this.activeCharges[i]<pack){this.activeCharges[i]++;added++}
+      const pack=this.packSize(item),k=Math.min(n,pack-this.activeCharges[i]);if(k>0){this.activeCharges[i]+=k;added+=k}
     }
-    if(added){this.syncDeployedKit();this.updateGearHud();callout('HOT BOX · STORES TOPPED UP',.6)}
+    const src=this.fittedInternalItems().filter(it=>it.stageRefill>0).sort((a,b)=>b.stageRefill-a.stageRefill)[0];
+    if(added){this.syncDeployedKit();this.updateGearHud();callout(`${String(src?.hud||'STORES')} · STORES TOPPED UP`,.6)}
   }
   onPlayerHit(){this.fx.streak=0;this.missionHits=(this.missionHits||0)+1}
   onBoltShotDown(bolt){
@@ -494,7 +496,7 @@ class CampaignController {
   keepUniqueHardware(ids){
     const kept=[];const rest=(ids||[]).filter(id=>{if(!this.items[id]?.unique)return true;this.addStock(id,1);kept.push(this.items[id].name);return false});
     // v570: the insurance screen names what came back, so a lost frame does not read as lost rewards.
-    this.pendingRecoveredUniques=kept;return rest
+    this.pendingRecoveredUniques=[...new Set([...(this.pendingRecoveredUniques||[]),...kept])];return rest
   }
   addStock(id,n=1){if(id&&n>0&&this.items[id]&&!this.items[id].free)this.state.inventory[id]=(this.state.inventory[id]||0)+n}
   takeStock(id,n){const have=this.state.inventory[id]||0,take=Math.max(0,Math.min(have,n));this.state.inventory[id]=have-take;return take}
@@ -716,7 +718,7 @@ class CampaignController {
     const internals=(k.internals||[]).filter(id=>this.items[id]),weapon=k.weapon&&k.weapon!=='laser1'&&this.items[k.weapon]?k.weapon:null;
     if(k.dead){
       const frameId=this.frames[k.frame]?k.frame:'AX-1',lost=(k.loadout||[]).filter((id,i)=>id&&(k.charges?.[i]||0)>0);
-      if(frameId!=='AX-1'){this.state.ownedFrames=this.state.ownedFrames.filter(id=>id!==frameId);if(!this.state.ownedFrames.includes('AX-1'))this.state.ownedFrames.unshift('AX-1');if(this.state.drone===frameId)this.state.drone='AX-1'}
+      this.noteRecoveredFrame(frameId);if(!this.frameAlwaysKept(frameId)){this.state.ownedFrames=this.state.ownedFrames.filter(id=>id!==frameId);if(!this.state.ownedFrames.includes('AX-1'))this.state.ownedFrames.unshift('AX-1');if(this.state.drone===frameId)this.state.drone='AX-1'}
       this.state.pendingInsurance={title:'Contract interrupted',reason:'Drone destroyed',destroyedFrameId:frameId,frameExcess:this.frameReplacementExcess(frameId),lostConsumables:lost,insuredItems:this.keepUniqueHardware([...internals,...(weapon?[weapon]:[])]),returnPanel:'missions',resolved:{}};
     }else{
       (k.loadout||[]).forEach((id,i)=>{if(id&&this.items[id])this.addStock(id,Math.max(0,k.charges?.[i]|0))});
@@ -806,7 +808,10 @@ class CampaignController {
     const excess=Math.max(0,Number(base)||0)*this.insuranceExcessRate();
     return Math.round(excess*(1-this.trainingInsuranceDiscount()))
   }
-  frameReplacementExcess(frameId=this.state.drone){const f=this.frames[frameId]||this.frames['AX-1'];return f.id==='AX-1'?0:this.insuredLiability(f.price)}
+  frameReplacementExcess(frameId=this.state.drone){const f=this.frames[frameId]||this.frames['AX-1'];return this.frameAlwaysKept(f.id)?0:this.insuredLiability(f.price)}
+  // v2820: the AX-1 and faction-registered reward frames are never lost with the drone.
+  frameAlwaysKept(id){return id==='AX-1'||!!this.frames[id]?.unique}
+  noteRecoveredFrame(id){if(id!=='AX-1'&&this.frames[id]?.unique)(this.pendingRecoveredUniques=this.pendingRecoveredUniques||[]).push(this.frames[id].name)}
   contractPayMultiplier(risk=1){
     let m=1;
     if(this.hasSkill('negotiator'))m+=.10;
@@ -2883,7 +2888,7 @@ class CampaignController {
     const c=frame?.consumables||1,i=frame?.internals||1;
     return `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M5 30 24 8l19 22-19-7Z"/><path d="M11 30h26M24 23v14"/><text x="5" y="44">${c}/${i}</text></svg>`
   }
-  marketProducts(){const order={frame:0,weapon:1,consumable:2,internal:3};return [...Object.values(this.frames).filter(f=>f.id!=='AX-1').map(f=>({...f,productType:'frame'})),...this.shop.map(it=>({...it,productType:it.slot}))].sort((a,b)=>a.tier-b.tier+(a.tier===b.tier?((order[a.productType]??9)-(order[b.productType]??9)||a.price-b.price):0))}
+  marketProducts(){const order={frame:0,weapon:1,consumable:2,internal:3};return [...Object.values(this.frames).filter(f=>f.id!=='AX-1'&&!f.unique).map(f=>({...f,productType:'frame'})),...this.shop.map(it=>({...it,productType:it.slot}))].sort((a,b)=>a.tier-b.tier+(a.tier===b.tier?((order[a.productType]??9)-(order[b.productType]??9)||a.price-b.price):0))}
   // v2310 (Dave: the market was awkward). One filter row (kind tabs with counts, and
   // "Available to me" or "Everything"), short two-line rows grouped under grade headers,
   // and the detail panel leads with what the item does and ends with the purchase box.
@@ -3270,9 +3275,46 @@ class CampaignController {
     if(typeof requestFlightPointerLock==='function')requestFlightPointerLock(true);
     missionTransit.start(m);
   }
+  // v2820 (Dave: a grade 5 reward for 100% standing with any network, and mail any that were
+  // missed on startup). The first time a network reaches 100 its contact registers a grade 5
+  // piece to you: a frame goes to the hangar, an item to the stores, with a letter in Mail.
+  checkStandingRewards(){
+    const R={
+      security:{id:'OSD-5A',from:'Kudo Shang · Orbital Security Directorate',subject:'Registered to you: OSD-5 Aegis',body:[
+        'X. Your record with the Directorate is now the best on file. That is not flattery. I checked.',
+        'The OSD-5 Aegis is a command frame. We do not build many and we do not sell any. One is now registered to you. It is in your hangar.',
+        'Thirteen shields and a fire-control suite that makes you a harder target. If you lose it, it comes back. The Directorate looks after its own.']},
+      trade:{id:'compactCharter',from:'Corvella Pallis · Free Traders Compact',subject:'Babe. The Charter.',body:[
+        'Sweetie, the whole Compact trusts you now. Do you know how rare that is? I have been in this business twenty years and they still check my receipts.',
+        'So I had the Charter made out in your name. Fit it and every pack you carry is full again at each new stage of a job. Never run dry on my account.',
+        'It is in your stores. It is not for sale, it is not for sharing, and if you lose it I will simply get you another. Kisses.']},
+      jackals:{id:'jackalsCrown',from:'Cassian Erivan-Snade · Red Jackal Combine',subject:'A crown, for services rendered',body:[
+        'X. The Combine does not hand out trust. It is earned slowly and lost quickly. You have earned all of it.',
+        "The Jackal's Crown is the Ripper finished properly. Heavier shots, the same appetite for armour, and a quicker cycle. It is in your stores.",
+        'It is registered to you and to nobody else. Should it be lost, it will find its way back. Discretion is assumed.']},
+      helix:{id:'HLX-5C',from:'Navira Derris · Helix Industrial Group',subject:'Chimera: one unit, assigned to you',body:[
+        'X. Your standing with Helix is now complete. I did not know that was possible either, so I have filed a note about it.',
+        'The Helix-5 Chimera is an experimental frame with a field bus we cannot yet explain. Four internal bays and shields that rebuild a fifth faster. It is in your hangar.',
+        'It is registered to you and will be recovered if your drone is destroyed. Please do not take it apart. We already tried.']},
+      quickbite:{id:'expressLane',from:'Nyxo Malloc · QuickBite',subject:'YOU ARE EMPLOYEE OF FOREVER',body:[
+        'X!!! QuickBite loves you one hundred per cent. Corporate made me measure it. It is one hundred.',
+        'Here is the Express Lane. Extra consumable slot AND your packs get a charge every new stage, like a free refill but for explosions. It is in your stores.',
+        'It is yours forever and cannot be sold, returned or eaten. If your drone explodes we send it back. That is our promise. Please rate us five stars.']}
+    };
+    const flags=this.state.mailFlags;flags.standingRewards=flags.standingRewards||{};let any=false;
+    for(const[fid,r]of Object.entries(R)){
+      const f=this.factions[fid];if(!f||(Number(f.rep)||0)<100||flags.standingRewards[fid])continue;
+      const p=this.frames[r.id]||this.items[r.id];if(!p)continue;
+      flags.standingRewards[fid]=true;this.grantHardware(r.id);any=true;
+      this.enqueueMail({id:`standing100_${fid}`,from:r.from,subject:r.subject,category:'gift',priority:'high',
+        body:[...r.body,`${p.name}: ${p.bonusText||p.note}`],actions:[{type:'panel',panel:'workshop',label:'OPEN DRONE BAY'}]});
+    }
+    if(any)this.save();return any
+  }
   applyRep(factionId,delta){
     const f=this.factions[factionId];if(!f)return;
     const before=f.rep,oldLabel=this.repLabel(before);f.rep=clamp(f.rep+delta,-100,100);const newLabel=this.repLabel(f.rep);
+    if(f.rep>=100)this.checkStandingRewards();
     if(oldLabel!==newLabel){
       const direction=f.rep>before?'improved':'dropped';
       this.enqueueMail({id:`rep_${f.id}_${this.state.completed}_${f.rep}_${Date.now().toString(36)}`,from:`${f.name} · Network Office`,subject:`Standing ${direction}: ${newLabel}`,category:'network',priority:'normal',body:[`Your standing with ${f.name} has ${direction}.`,`Current status: ${newLabel} (${f.rep>0?'+':''}${f.rep}).`,...[globalThis.AgentXContactNotes?.tierLine?.(f.id,newLabel,f.rep>before)].filter(Boolean)]})
@@ -3363,7 +3405,7 @@ class CampaignController {
     this.maybeQueueVoxWire();
     this.checkAchievements();
     if(droneLost){
-      if(lostFrameId!=='AX-1'){this.state.ownedFrames=this.state.ownedFrames.filter(id=>id!==lostFrameId);if(!this.state.ownedFrames.includes('AX-1'))this.state.ownedFrames.unshift('AX-1');this.state.drone='AX-1'}
+      this.noteRecoveredFrame(lostFrameId);if(!this.frameAlwaysKept(lostFrameId)){this.state.ownedFrames=this.state.ownedFrames.filter(id=>id!==lostFrameId);if(!this.state.ownedFrames.includes('AX-1'))this.state.ownedFrames.unshift('AX-1');this.state.drone='AX-1'}
       this.clearActiveLoadout();this.currentMission=null;this.currentStageIndex=0;this.returnRestock=null;this.normalizeLoadout();this.updateGearHud();
       if(!m.private)this.replaceContract(m.id);
       this.evaluateMailTriggers();paused=true;document.body.classList.add('paused');
@@ -3396,7 +3438,8 @@ class CampaignController {
     asteroidField.stop();this.state.failed++;{const st=this.stats();st.contracts.failed++;if(/destroy/i.test(reason))st.dronesLost++}const civilian=this.templateCivilianSettlement(m);if(this.factions[m.faction])this.applyRep(m.faction,-2-(civilian?.failureRepPenalty||0));this.queueContractFailureMail(m,'failed',reason);this.queueStoryRetryMail(m,'failed');
     // AX-1 is always supplied free. A destroyed premium frame must be claimed at
     // the same excess rate as permanent hardware or the operator falls back to AX-1.
-    if(destroyedFrameId!=='AX-1'){
+    this.noteRecoveredFrame(destroyedFrameId);
+    if(!this.frameAlwaysKept(destroyedFrameId)){
       this.state.ownedFrames=this.state.ownedFrames.filter(id=>id!==destroyedFrameId);
       if(!this.state.ownedFrames.includes('AX-1'))this.state.ownedFrames.unshift('AX-1');
       this.state.drone='AX-1';
@@ -3436,7 +3479,7 @@ class CampaignController {
     audio.music.setMode('calm');this.open=true;campaignShell.classList.add('open');campaignResumeBtn.style.display='none';this.updateGearHud();this.renderHeader();this.setPanel('debrief');
     const rate=this.insuranceExcessRate(),trainingDiscount=this.trainingInsuranceDiscount(),destroyedFrame=this.frames[d.destroyedFrameId]||this.frames['AX-1'];
     const claims=(d.insuredItems||[]).map((id,index)=>({index,type:'item',id,item:this.items[id],excess:this.insuredLiability(this.items[id]?.price||0),status:null})).filter(c=>c.item);
-    if(destroyedFrame.id!=='AX-1')claims.unshift({index:-1,type:'frame',id:destroyedFrame.id,item:destroyedFrame,excess:d.frameExcess,status:null});
+    if(!this.frameAlwaysKept(destroyedFrame.id))claims.unshift({index:-1,type:'frame',id:destroyedFrame.id,item:destroyedFrame,excess:d.frameExcess,status:null});
     // Claims already settled before a reload keep their outcome (no double charge).
     const done=(d.resolved&&typeof d.resolved==='object')?d.resolved:{};for(const c of claims)if(done[c.index])c.status=done[c.index];
     const lostNames=(d.lostConsumables||[]).map(id=>this.items[id]?.name||id);

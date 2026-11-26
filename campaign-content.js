@@ -96,6 +96,14 @@ globalThis.AgentXCampaignContent={
       {hud:'RIPPER',icon:'pulseLaser',family:'rail',damage:5,burstFixed:3,intervalMult:1.9,aimMult:.9,boltTolMult:.8,structureDamage:3,gunStyle:'R',sound:'railShot'});
     unique('fieldLattice','Field Lattice','internal','helix','Helix experimental field mesh. Every fighter you destroy restores 1 shield.',{hud:'LATTICE',icon:'shieldRecharger',killShield:1});
     unique('hotBox','Hot Box','internal','quickbite','QuickBite insulated stores pod. Each new mission stage adds one charge to every fitted consumable.',{hud:'HOT BOX',icon:'nanitePatch',stageRefill:1});
+    // v2820 (Dave: a grade 5 reward for 100% standing with any network). Sent by the contact
+    // the first time standing reaches 100. Faction-registered like the capstones: never sold,
+    // always recovered, and free. Two of the five are frames (in the frames table below).
+    const standing=(id,name,slot,faction,note,extra)=>add({...gear(id,name,400000,slot,5,note,extra),unique:true,faction,standingReward:true,kind:`${slotLabel[slot]} · Standing 100 reward`});
+    standing('compactCharter','Compact Charter','internal','trade','Free Traders charter seal. Every fitted consumable refills to a full pack at each new mission stage.',{hud:'CHARTER',icon:'nanitePatch',stageRefill:99});
+    standing('jackalsCrown',"Jackal's Crown",'weapon','jackals','Red Jackal crown cannon. 7 damage per shot, triple damage to armour and structures. Three shots per burst, quicker than the Ripper.',
+      {hud:'CROWN',icon:'pulseLaser',family:'rail',damage:7,burstFixed:3,intervalMult:1.6,aimMult:.95,boltTolMult:.85,structureDamage:3,gunStyle:'R',sound:'railShot'});
+    standing('expressLane','Express Lane','internal','quickbite','QuickBite express pod. Adds one consumable slot, and each new mission stage adds a charge to every fitted consumable.',{hud:'EXPRESS',icon:'shieldExtender',consumableSlotBonus:1,stageRefill:1});
     // Retired ids kept only so old saves can be refunded on load.
     target.retiredItems={flightStabilizer2:5200,flightStabilizer3:20800,flightStabilizer4:83200,flightStabilizer5:332800};
     target.shop=Object.values(target.items).filter(it=>!it.free&&!it.unique);
@@ -118,6 +126,8 @@ globalThis.AgentXCampaignContent={
 
       'AX-5A':{id:'AX-5A',name:'AX-5A Apex',tier:5,price:1080000,shields:11,consumables:3,internals:3,aimMult:1.05,boltTolMult:1.25,note:'Partition balanced endgame frame with no obvious weak system.',bonusText:'Aim tolerance +5%. Incoming projectiles 25% easier to shoot down.'},
       'AX-5C':{id:'AX-5C',name:'AX-5C Citadel',tier:5,price:1160000,shields:12,consumables:2,internals:4,regenMult:.88,note:'Partition systems fortress with four internal bays.',bonusText:'Shield rebuild 12% faster.'},
+      'OSD-5A':{id:'OSD-5A',name:'OSD-5 Aegis',tier:5,price:1200000,shields:13,consumables:2,internals:3,enemyHitMult:.92,unique:true,standingReward:true,faction:'security',factionName:'Orbital Security Directorate',note:'Orbital Security Directorate command frame. Registered to you at standing 100. Never sold, always recovered.',bonusText:'Enemy hit intent -8%.'},
+      'HLX-5C':{id:'HLX-5C',name:'Helix-5 Chimera',tier:5,price:1200000,shields:11,consumables:2,internals:4,regenMult:.8,unique:true,standingReward:true,faction:'helix',factionName:'Helix Industrial Group',note:'Helix experimental frame with a living field bus. Registered to you at standing 100. Never sold, always recovered.',bonusText:'Shield rebuild 20% faster.'},
       'FTC-5N':{id:'FTC-5N',name:'FTC-5 Nomad',tier:5,price:1280000,shields:10,consumables:3,internals:3,packBonus:1,lockMult:.6,faction:'trade',repReq:60,minLevel:14,note:'Free Traders premium long-range combat courier derivative.',bonusText:'+1 charge in every pack. Faster lock.',factionName:'Free Traders Compact'}
     };
     target.marketTierView='accessible';
