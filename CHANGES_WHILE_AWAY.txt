@@ -3445,3 +3445,7 @@ v2750 Crossroads override voice: the override had no voice line. Sonia
       unprocessed" (overridingblockadeorder.mp3,
       blockadeorderrescinded.mp3). Until they are normalised into voices/
       it falls back to "Data transfer complete" at the end.
+v2760 Silent Node voice: Sonia now says "Wiping node." when the wipe
+      starts and "Node wiped." when it ends. Rendered in "voices
+      unprocessed" (wipingnode.mp3, nodewiped.mp3). Until they are
+      normalised into voices/ it falls back to "Data transfer complete".
