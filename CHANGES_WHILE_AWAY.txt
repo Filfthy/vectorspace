@@ -3366,3 +3366,10 @@ v2620 Convoy Escort: a new freighter model in place of the stack of boxes.
       truss spine carrying container racks and domed pressure tanks in
       clamp rings, and a drive section with radiator vanes, a dorsal fin
       and three engine bells. The Cargo Spill hauler shares the model.
+
+v2630 Relay 10 (the Relay Truck Stop station): seam lines where its parts
+      meet. The station is built from separate solids pushed into each
+      other, and nothing marked where one passed into another, so struts,
+      arms and blocks looked unjoined. A new helper, addMeshJoinLines, finds
+      every place a face of one part crosses a face of another and adds the
+      seam as an edge, once at load (242 seams on this station).
