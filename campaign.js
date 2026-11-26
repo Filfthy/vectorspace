@@ -3290,7 +3290,7 @@ class CampaignController {
         'It is in your stores. It is not for sale, it is not for sharing, and if you lose it I will simply get you another. Kisses.']},
       jackals:{id:'jackalsCrown',from:'Cassian Erivan-Snade · Red Jackal Combine',subject:'A crown, for services rendered',body:[
         'X. The Combine does not hand out trust. It is earned slowly and lost quickly. You have earned all of it.',
-        "The Jackal's Crown is the Ripper finished properly. Heavier shots, the same appetite for armour, and a quicker cycle. It is in your stores.",
+        "The Jackal's Crown is the Ripper finished properly. Heavier shots, the same appetite for armour, a quicker cycle, and every hit leaps to the next fighter along. It is in your stores.",
         'It is registered to you and to nobody else. Should it be lost, it will find its way back. Discretion is assumed.']},
       helix:{id:'HLX-5C',from:'Navira Derris · Helix Industrial Group',subject:'Chimera: one unit, assigned to you',body:[
         'X. Your standing with Helix is now complete. I did not know that was possible either, so I have filed a note about it.',

@@ -218,8 +218,36 @@ class WeaponController {
  if(best.type==='fighter'){
    if(xenoNest.active&&best.hiveNest)xenoNest.onFighterHit(best);
    else{routeDiversion?.onPlayerHitFighter?.(best);registerFighterHit(best,a,bp)}
+   this.chainArcFrom(best,bp);
  }
  if(best.hp<=0)queueObjectDestruction(best,bp);else SoundFX.hit()
+}
+// v2830 (Dave: add the chain arc to the Crown). A weapon with chainArc jumps from the
+// fighter it hits to the nearest other fighter on screen and deals that much damage, drawn
+// as a short jagged bolt in Jackal red.
+  chainArcFrom(src,bp){
+ const dmg=Number(campaign.weaponItem?.()?.chainArc)||0;if(!dmg||!bp)return;
+ const reach=Math.max(220,W*.24);let best=null,bpos=null,bd=reach;
+ for(const f of fighters){
+   if(f===src||f.dead||f.dying||f.t<0||f.hp<=0)continue;
+   if(f.ghost&&!AgentXGhosts.solid(f))continue;
+   const p=proj([f.x,f.y,f.z]);if(!p)continue;
+   const d=Math.hypot(p.x-bp.x,p.y-bp.y);if(d<bd){bd=d;best=f;bpos=p}
+ }
+ if(!best)return;
+ best.hp-=oneShotLasers?best.hp:dmg;best.hitFx=HIT_FX_TOTAL;
+ if(xenoNest.active&&best.hiveNest)xenoNest.onFighterHit(best);
+ else{routeDiversion?.onPlayerHitFighter?.(best);registerFighterHit(best,bp,bpos)}
+ // The bolt: a few jagged segments, red with a white core, that fade in a quarter second.
+ const n=7,dx=bpos.x-bp.x,dy=bpos.y-bp.y,len=Math.hypot(dx,dy)||1,px=-dy/len,py=dx/len;let x0=bp.x,y0=bp.y;
+ for(let i=1;i<=n;i++){
+   const u=i/n,j=i<n?(Math.random()-.5)*Math.min(26,len*.18):0,x1=bp.x+dx*u+px*j,y1=bp.y+dy*u+py*j;
+   fragments.push({x1:x0,y1:y0,x2:x1,y2:y1,vx:0,vy:0,t:.26,col:C.r});
+   fragments.push({x1:x0,y1:y0,x2:x1,y2:y1,vx:0,vy:0,t:.16,col:C.w});
+   x0=x1;y0=y1
+ }
+ spark(bpos.x,bpos.y,C.r,6);
+ if(best.hp<=0)queueObjectDestruction(best,bpos)
 }
   gunGeometry(target=aimScreen()){
  const tx=clamp((target.x-W*.5)/(W*.5),-1,1);

@@ -101,8 +101,8 @@ globalThis.AgentXCampaignContent={
     // always recovered, and free. Two of the five are frames (in the frames table below).
     const standing=(id,name,slot,faction,note,extra)=>add({...gear(id,name,400000,slot,5,note,extra),unique:true,faction,standingReward:true,kind:`${slotLabel[slot]} · Standing 100 reward`});
     standing('compactCharter','Compact Charter','internal','trade','Free Traders charter seal. Every fitted consumable refills to a full pack at each new mission stage.',{hud:'CHARTER',icon:'nanitePatch',stageRefill:99});
-    standing('jackalsCrown',"Jackal's Crown",'weapon','jackals','Red Jackal crown cannon. 7 damage per shot, triple damage to armour and structures. Three shots per burst, quicker than the Ripper.',
-      {hud:'CROWN',icon:'pulseLaser',family:'rail',damage:7,burstFixed:3,intervalMult:1.6,aimMult:.95,boltTolMult:.85,structureDamage:3,gunStyle:'R',sound:'railShot'});
+    standing('jackalsCrown',"Jackal's Crown",'weapon','jackals','Red Jackal crown cannon. 7 damage per shot, triple damage to armour and structures. Three shots per burst, quicker than the Ripper. Each hit on a fighter arcs to the nearest other fighter for 3 damage.',
+      {hud:'CROWN',icon:'pulseLaser',family:'rail',damage:7,burstFixed:3,intervalMult:1.6,aimMult:.95,boltTolMult:.85,structureDamage:3,gunStyle:'R',sound:'railShot',chainArc:3});
     standing('expressLane','Express Lane','internal','quickbite','QuickBite express pod. Adds one consumable slot, and each new mission stage adds a charge to every fitted consumable.',{hud:'EXPRESS',icon:'shieldExtender',consumableSlotBonus:1,stageRefill:1});
     // Retired ids kept only so old saves can be refunded on load.
     target.retiredItems={flightStabilizer2:5200,flightStabilizer3:20800,flightStabilizer4:83200,flightStabilizer5:332800};
