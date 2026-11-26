@@ -3373,3 +3373,10 @@ v2630 Relay 10 (the Relay Truck Stop station): seam lines where its parts
       arms and blocks looked unjoined. A new helper, addMeshJoinLines, finds
       every place a face of one part crosses a face of another and adds the
       seam as an edge, once at load (242 seams on this station).
+
+v2640 HUD: the top-left place label showed raw run-together names such as
+      STATIONPADDEPARTURE. It is now a table of place names by mode or
+      phase (Relay 10 pad: PAD 03 DELIVERY, then STATION DEPARTURE; also
+      SECURITY CHECKPOINT, OSD FACILITY, TUNNEL EXIT, WITHDRAWING), and
+      anything not in the table is split into words, so a raw name can no
+      longer reach the screen. Existing labels are unchanged.
