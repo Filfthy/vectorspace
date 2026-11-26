@@ -52,7 +52,7 @@
       description:'Criminals are flying stolen remnant drones against a relay. Destroy them, search the wrecks for whoever is giving the orders, and upload what you find through the station terminal.',
       modules:(n,hp)=>[{type:'station_defence_recovery',label:'Defend the Relay',stationModel:'relay',approachDistance:275,encounterChance:1,target:n,fighterHp:hp,difficulty:5,profile:'hijacked',
         startMessage:'Defend the relay',wreckageSearch:true,useCombatWrecks:true,stationAnchor:true,wreckageCount:6,inspectSeconds:1.7,markerGrowRange:110,captureRadius:26,
-        searchPromptText:'Search the wrecks for control records',missText:'Nothing useful in this one',foundText:'Control records recovered',foundHud:'Control records recovered',foundHold:1.15,
+        searchPromptText:'Search the wrecks for control records',searchPromptVoice:'searchWrecksForControlRecords',missVoice:'nothingUsefulInThisOne',foundVoice:'controlRecordsRecovered',missText:'Nothing useful in this one',foundText:'Control records recovered',foundHud:'Control records recovered',foundHold:1.15,
         wreckageSearchFlow:{firstResultAlwaysMiss:true},wreckagePresentation:{searchingText:'SEARCHING WRECKAGE',searchingHold:.58,markerLabel:'WRECKAGE',contactsPrefix:'WRECKAGE CONTACTS'},
         externalDataTerminal:true,terminalCaptureRadius:30,terminalStandOff:13,transferSeconds:3.2}],
       stages:['Defend the Relay','Search the Wrecks','Upload the Records']},

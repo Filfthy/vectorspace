@@ -388,7 +388,7 @@ const relay10={
       pay:8500,xp:700,difficulty:3,implemented:true,
       description:'Relay 10 is under immediate attack by rogue Partition War-pattern military drones. Defend the station, search the destroyed attackers for recoverable routing data, then upload anything useful through the station terminal before returning to base.',
       modules:[{
-        type:'station_defence_recovery',label:'Defend Station, Search Wreckage and Upload Data',stationModel:'relay',approachDistance:275,
+        type:'station_defence_recovery',label:'Defend Station, Search Wreckage and Upload Data',stationModel:'relay',relayVariant:'relay10',approachDistance:275,
         encounterChance:1,target:6,fighterHp:13,difficulty:3,profile:'rogue',startMessage:'Defend the station',
         wreckageSearch:true,useCombatWrecks:true,stationAnchor:true,wreckageCount:6,inspectSeconds:1.70,markerGrowRange:110,captureRadius:26,
         searchPromptText:'Search the drone wreckage for anything useful',missText:'No useful data recovered',foundText:'Partial routing record recovered',

@@ -1,4 +1,71 @@
 'use strict';
+
+// v2780 (Dave: tired of Relay 10, a few variations on service stations). Generic relay jobs
+// now fly to one of four service stations. They share Relay 10's working core (hub, pads,
+// door, terminal wall, mast, dish and sign) so every approach, landing and upload works
+// exactly as before. Only the aft section beyond the hub changes: Relay 10 keeps its
+// container spine and tank farm, Relay 4 has a spinning-hab ring and solar wings, Relay 17
+// is a fuel depot of paired spheres on a truss with radiator fins, and Relay 23 grows food
+// in three ribbed greenhouse cylinders. Local axes: +z up the mast, the aft spine runs -x.
+const RELAY_VARIANTS={
+  relay10:{name:'RELAY 10',sub:'FUEL FREIGHT FOOD'},
+  hab:{name:'RELAY 4',sub:'BUNKS FOOD REPAIRS'},
+  fuel:{name:'RELAY 17',sub:'FUEL TANKS WATER'},
+  farm:{name:'RELAY 23',sub:'FRESH FOOD FUEL'}
+};
+const relayVariantMeshCache={};
+function relayVariantMesh(key){
+  if(key==='relay10'||!RELAY_VARIANTS[key])return relayTruckStopMesh;
+  if(relayVariantMeshCache[key])return relayVariantMeshCache[key];
+  // The core: everything except the aft container spine, gantry and tank farm (319..550).
+  const B=relayTruckStopBase,drop=i=>i>=319&&i<=550,map=new Map(),v=[];
+  B.v.forEach((p,i)=>{if(!drop(i)){map.set(i,v.length);v.push(p.slice())}});
+  // The dish keeps its own vertex range, which sits below the dropped block.
+  const e=B.e.filter(([a,b])=>!drop(a)&&!drop(b)).map(([a,b])=>[map.get(a),map.get(b)]);
+  const faces=B.faces.filter(f=>f.every(i=>!drop(i))).map(f=>f.map(i=>map.get(i)));
+  const m=gaBuilder(true),PI=Math.PI;
+  const ringX=(x,cy,cz,r,n,rot=0)=>Array.from({length:n},(_,i)=>{const a=rot+2*PI*i/n;return[x,cy+Math.cos(a)*r,cz+Math.sin(a)*r]});
+  const sphere=(c,R,n=10)=>m.loft(Array.from({length:7},(_,i)=>{const u=i/6,z=c[2]-R*Math.cos(PI*u),r=Math.max(.02,R*Math.sin(PI*u));return m.ringXY(c[0],c[1],z,r,n)}),true,true);
+  if(key==='hab'){
+    m.loft([ringX(-.45,0,0,.22,8),ringX(-3.5,0,0,.22,8)]);                       // axle
+    m.loft([ringX(-2.4,0,0,.4,8),ringX(-2.8,0,0,.4,8)]);                         // hub collar
+    const R=1.6,r=.2,N=18,rings=[];                                               // hab ring
+    for(let k=0;k<=N;k++){const a=2*PI*k/N,d=[0,Math.cos(a),Math.sin(a)];rings.push(Array.from({length:6},(_,j)=>{const b=2*PI*j/6;return[-2.6+Math.sin(b)*r,d[1]*(R+Math.cos(b)*r),d[2]*(R+Math.cos(b)*r)]}))}
+    m.loft(rings,false,false);
+    for(let k=0;k<4;k++){const a=PI/4+k*PI/2;m.beam([-2.6,Math.cos(a)*.4,Math.sin(a)*.4],[-2.6,Math.cos(a)*(R-.18),Math.sin(a)*(R-.18)],.09,.09)}
+    // Solar wings stand square to the spine, so they show broad on the approach as well.
+    for(const sy of[-1,1]){m.beam([-3.3,sy*.2,0],[-3.3,sy*1.3,0],.08,.08);m.box([-3.3,sy*2.45,0],[.04,2.3,1.0]);
+      for(let k=0;k<5;k++){const y=sy*(1.3+k*.46+.23);gaLine(m,[[-3.275,y,-.5],[-3.275,y,.5]])}gaLine(m,[[-3.275,sy*1.3,0],[-3.275,sy*3.6,0]])}
+    m.loft([ringX(-3.5,0,0,.3,8),ringX(-3.9,0,0,.05,8)],false,true);             // end antenna cone
+    gaLine(m,[[-3.9,0,0],[-4.6,0,0]])
+  }else if(key==='fuel'){
+    for(const[y,z]of[[-.25,-.25],[.25,-.25],[.25,.25],[-.25,.25]])m.beam([-.45,y,z],[-6.3,y,z],.06,.06);
+    for(let k=0;k<9;k++){const x0=-.6-k*.62,x1=x0-.62,s=k%2?1:-1;gaLine(m,[[x0,-.25,s*.25],[x1,-.25,-s*.25]]);gaLine(m,[[x0,.25,-s*.25],[x1,.25,s*.25]])}
+    for(const x of[-2.7,-4.0,-5.3])for(const sy of[-1,1]){sphere([x,sy*.98,0],.56);m.beam([x,sy*.25,0],[x,sy*.45,0],.12,.12)}
+    for(const sz of[-1,1]){m.box([-6.75,0,sz*1.35],[1.0,.03,1.9]);for(let k=0;k<4;k++){const x=-6.3-k*.3;gaLine(m,[[x,.02,sz*.45],[x,.02,sz*2.25]])}}
+    m.box([-6.35,0,0],[.2,.62,.62])
+  }else if(key==='farm'){
+    m.loft([ringX(-.45,0,0,.16,8),ringX(-6.7,0,0,.16,8)]);
+    const tubes=[[0,.95],[.84,-.48],[-.84,-.48]];
+    for(const[y,z]of tubes){
+      const rr=.42,xs=[-2.3,-3.25,-4.2,-5.15,-6.1],rings=xs.map(x=>ringX(x,y,z,rr,12));
+      rings.unshift(ringX(-2.08,y,z,rr*.55,12));rings.push(ringX(-6.32,y,z,rr*.55,12));m.loft(rings,true,true);
+      for(const x of[-2.5,-5.9])m.beam([x,y*.2,z*.2],[x,y*.62,z*.62],.07,.07)
+    }
+    m.loft([ringX(-6.7,0,0,.5,10),ringX(-6.95,0,0,.5,10)]);                       // docking ring at the stern
+    m.loft([ringX(-6.95,0,0,.3,10),ringX(-7.05,0,0,.3,10)])
+  }
+  const o=v.length;for(const p of m.v)v.push(p);for(const[a,b]of m.e)e.push([a+o,b+o]);for(const f of m.faces)faces.push(f.map(i=>i+o));
+  const mesh={name:'Relay '+key,v,e,faces,dish:relayTruckStopMesh.dish,beacon:relayTruckStopMesh.beacon,sign:relayTruckStopMesh.sign};
+  if(typeof addMeshJoinLines==='function')addMeshJoinLines(mesh);
+  return relayVariantMeshCache[key]=mesh
+}
+let lastRelayVariant='relay10';
+function pickRelayVariant(stage){
+  if(stage?.relayVariant&&RELAY_VARIANTS[stage.relayVariant])return stage.relayVariant;
+  const keys=Object.keys(RELAY_VARIANTS).filter(k=>k!==lastRelayVariant);
+  return keys[Math.floor(Math.random()*keys.length)]
+}
 class StationDeliveryController {
   constructor(){this.reset()}
   reset(){
@@ -98,6 +165,9 @@ class StationDeliveryController {
       // installation rotation. Put the station below the player's initial flight
       // plane so Pad 03 is approached from ABOVE, never from its underside.
       this.station={x:34,y:-22,z:d};
+      // v2780: generic relay jobs pick a service station; named Relay 10 runs keep it.
+      this.relayVariant=stationModel==='relay'?pickRelayVariant(stage):'relay10';lastRelayVariant=this.relayVariant;
+      this.mesh=relayVariantMesh(this.relayVariant)
     }
   }
   preparePadApproach(stage){
@@ -947,8 +1017,9 @@ class StationDeliveryController {
     // Big roadside sign on the mast, facing the approach.
     const sg=this.mesh?.sign;
     if(sg){
-      this.drawStationStencil('RELAY 10',[sg.x,0,sg.z+sg.h*.34],[0,-1,0],[0,0,-1],sg.h*.26,C.w,.95,'center',[1,0,0]);
-      this.drawStationStencil('FUEL FREIGHT FOOD',[sg.x,0,sg.z-sg.h*.12],[0,-1,0],[0,0,-1],sg.h*.10,C.c,.9,'center',[1,0,0]);
+      const V=RELAY_VARIANTS[this.relayVariant]||RELAY_VARIANTS.relay10;
+      this.drawStationStencil(V.name,[sg.x,0,sg.z+sg.h*.34],[0,-1,0],[0,0,-1],sg.h*.26,C.w,.95,'center',[1,0,0]);
+      this.drawStationStencil(V.sub,[sg.x,0,sg.z-sg.h*.12],[0,-1,0],[0,0,-1],sg.h*.10,C.c,.9,'center',[1,0,0]);
     }
     // The mast sign carries the station identity; the outcrop stays plain.
 

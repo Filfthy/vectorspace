@@ -1654,7 +1654,8 @@
         encounterChance:1,target:{base:3,perRisk:1,min:5,max:11,round:true},fighterHp:13,difficulty:'$risk',
         profile:{choices:['pirate','rogue','hijacked'],weights:[45,35,20]},startMessage:'Defend the station',
         wreckageSearch:true,useCombatWrecks:true,stationAnchor:true,wreckageCount:6,inspectSeconds:1.70,markerGrowRange:110,captureRadius:26,
-        searchPromptText:'Search the attackers\' wreckage for anything useful',missText:'Nothing useful in this one',foundText:'Attack records recovered',
+        searchPromptText:'Search the attackers\' wreckage for anything useful',searchPromptVoice:'searchWreckageForAttackRecords',missVoice:'nothingUsefulInThisOne',foundVoice:'attackRecordsRecovered',
+        missText:'Nothing useful in this one',foundText:'Attack records recovered',
         foundHud:'Attack records recovered',foundHold:1.15,wreckageSearchFlow:{firstResultAlwaysMiss:true},
         wreckagePresentation:{searchingText:'SEARCHING WRECKAGE',searchingHold:.58,markerLabel:'WRECKAGE',contactsPrefix:'WRECKAGE CONTACTS'},
         externalDataTerminal:true,terminalCaptureRadius:30,terminalStandOff:13,transferSeconds:3.2}}

@@ -170,8 +170,10 @@ const salvageRecovery={
     const presentation=this.wreckagePresentation();
     const voice=this.stage?.searchPromptVoice||presentation.searchPromptVoice,text=this.stage?.searchPromptText||presentation.searchPromptText;
     SoundFX.objectiveComplete();
+    // v2780: the line is spoken when there is one and always shown on screen too, so a
+    // line not yet recorded never leaves the search silent and blank.
     if(voice)audio.playVoice(voice,{once:false,priority:true});
-    else if(text)say(String(text).toUpperCase(),.95)
+    if(text)say(String(text).toUpperCase(),.95)
   },
   announceWreckResult(found){
     const presentation=this.wreckagePresentation();
@@ -179,7 +181,7 @@ const salvageRecovery={
     const text=found?(this.stage?.foundText||presentation.foundText):(this.stage?.missText||presentation.missText);
     if(found)SoundFX.objectiveComplete();
     if(voice)audio.playVoice(voice,{once:false,priority:true});
-    else if(text)say(String(text).toUpperCase(),.90)
+    if(text)say(String(text).toUpperCase(),.90)
   },
   beginSearch(){
     if(!this.active)this.prepare(campaign.currentStage()||{});

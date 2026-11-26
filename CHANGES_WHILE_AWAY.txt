@@ -3456,3 +3456,22 @@ v2770 Cacti on yellow worlds: yellow (arid) worlds used dead pines and
       prickly pears of flat pads. All ribbed wireframes in green. Both
       the plains approach and the dune armour assault use them. Orange
       arid worlds keep their pines.
+v2780 Service station variations: generic relay jobs (station defence and
+      the like) no longer always fly to Relay 10. Each picks one of four
+      service stations, never the same one twice running. All share
+      Relay 10's hub, pads, door, terminal, mast and dish, so landing and
+      uploads work as before. Only the aft section and the sign change:
+        Relay 10  container spine and tank farm (FUEL FREIGHT FOOD)
+        Relay 4   spinning hab ring on spokes, solar wings (BUNKS FOOD REPAIRS)
+        Relay 17  fuel depot, paired tanks on a truss, radiators (FUEL TANKS WATER)
+        Relay 23  three ribbed greenhouse cylinders (FRESH FOOD FUEL)
+      Jobs whose mail names Relay 10 still go there. The sign font gained
+      4, 7, B, C, K, M, N and W.
+      Wreckage search voice: station defence searches now have Sonia lines
+      for the prompt, "Scan complete. Nothing useful in this one." and
+      "Scan complete. Attack records recovered." (control records for
+      Stolen Remnants). The text now always shows on screen as well.
+      Renders are in "voices unprocessed":
+        searchthewreckageforattackrecords.mp3, attackrecordsrecovered.mp3,
+        nothingusefulinthisone.mp3, searchthewrecksforcontrolrecords.mp3,
+        controlrecordsrecovered.mp3
