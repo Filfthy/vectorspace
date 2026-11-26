@@ -25,10 +25,13 @@ class AudioMixer {
   }
   static ensure(){return this.state||this.load()}
   static save(){try{localStorage.setItem(this.storageKey,JSON.stringify(this.ensure()))}catch(_){}}
-  static isEnabled(channel){const s=this.ensure();return !!s.enabled.master&&!!s.enabled[channel]}
+  // v2840 (Dave: music playing from a test tab). ?mute in the address silences every
+  // channel for testing, without touching the player's saved sound settings.
+  static testMute=typeof location!=='undefined'&&/[?&]mute(&|=|$)/.test(location.search);
+  static isEnabled(channel){const s=this.ensure();return !this.testMute&&!!s.enabled.master&&!!s.enabled[channel]}
   static channelVolume(channel){
     const s=this.ensure();
-    if(!s.enabled.master||!s.enabled[channel])return 0;
+    if(this.testMute||!s.enabled.master||!s.enabled[channel])return 0;
     const duck=channel==='fx'?this.fxDuckGain:1;
     return clamp(s.volume.master*s.volume[channel]*duck,0,1)
   }

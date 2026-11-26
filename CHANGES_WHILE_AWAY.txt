@@ -3518,3 +3518,6 @@ v2830 Jackal's Crown chain arc: every Crown hit on a fighter jumps to the
       nearest other fighter on screen for 3 damage, drawn as a short
       jagged bolt in Jackal red. It can finish off a damaged fighter.
       The Ripper and other weapons do not arc.
+v2840 Test mute: adding ?mute to the address now really silences the game
+      (music, effects and voices) without changing your saved sound
+      settings. It never worked before, so test tabs could play music.
