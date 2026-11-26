@@ -186,7 +186,7 @@ const STAR_DEPTH=190,STAR_SPAN=430;
 // Near-space dust is an arcade velocity cue, not Newtonian debris.
 // The drone has a conceptual cruise direction that rapidly damps toward its nose.
 // Dust lives in camera-local flight space, so old sideways drift dies quickly.
-const SPACE_MOTE_COUNT=96;
+const SPACE_MOTE_COUNT=64;   // v2930 (Dave: too much debris): was 96
 let spaceMotes=[];
 
 let spaceRight=[1,0,0],spaceUp=[0,1,0],spaceForward=[0,0,1],spaceOrientationReady=false;
@@ -303,7 +303,11 @@ function updateSpaceMotion(dt){
  // newly spawned motes immediately use the new nose direction. Old-heading motes
  // therefore sweep across the view for a fraction of a second after a turn, then
  // naturally expire and the field settles onto the new heading.
- const dustSpeed=OPEN_SPACE_CRUISE*4.0;
+ // v2930 (Dave: debris flew past fast even with the drone barely moving): a calmer
+ // stream, and none at all while the drone is held still (the hive observation turn,
+ // hold and detonation).
+ const held=typeof xenoNest!=='undefined'&&xenoNest.active&&(xenoNest.state==='observationTurn'||xenoNest.state==='observationHold'||xenoNest.state==='detonation');
+ const dustSpeed=held?0:OPEN_SPACE_CRUISE*2.6;
  for(const m of spaceMotes){
    m.x-=m.dx*dustSpeed*dt;
    m.y-=m.dy*dustSpeed*dt;

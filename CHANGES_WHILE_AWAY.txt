@@ -3575,3 +3575,11 @@ v2910 Montage (promo only): no ghost jammers, so no display static in the
 v2920 Montage (promo only): the xeno queen in her chamber at 1:02,
       spitting from every wall while the drone fires on her (her real
       hull, and she survives the shot), in place of a plain xeno fight.
+v2930 Space dust: the dust that streams past as a speed cue was dense and
+      fast (four times cruise) even when the drone was barely moving or
+      held still. It is now a third thinner, streams at 2.6 times cruise,
+      and stops altogether while the drone is held at the hive's
+      observation point (the turn, the hold and the detonation).
+      Montage (promo only): the slow drift past Meridian Farm near the end
+      is replaced by the run out of the nest to the observation point
+      through the hostile swarm, leading straight into the finale.

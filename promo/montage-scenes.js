@@ -294,7 +294,8 @@ const SHOTS=[
   {t:97.00,setup(){launch('lattice_survey','helix',{stage:'route_diversion'})},pilot:player,warm:14},
   {t:105.0,setup(){launch('forest_cabin_delivery','trade',{stage:'forest_corridor'})},pilot:player,warm:5},
   {t:113.0,setup(){launch('wreck_recovery','trade',{stage:'asteroid_wreck_recovery'})},pilot:player,warm:4},
-  {t:121.0,setup(){launch('station_defence','helix',{stage:'station_defence_recovery',edit:m=>{const s=m.modules[0];s.relayVariant='farm'}})},pilot:dt=>{fighters.length=0;bolts.length=0;player(dt)},warm:1,stage:()=>stageStation([-10,-6,120])},
+  // Out of the nest to the observation point with the swarm turned hostile, into the finale.
+  {t:121.0,setup(){launch('nest_clearance','helix',{stage:'xeno_nest'});xenoNest.beginObservationRun()},pilot:player,warm:1.5},
   // The finale: the xeno hive torn apart by its own swarm, watched from the observation point.
   // As in the game: out of the nest mouth, the run to the observation point with the swarm
   // turned hostile, the autopilot turn to face the hive, then the hold as it is torn apart.
