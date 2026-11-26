@@ -43,7 +43,14 @@ function buildTacoBeaconStationMissionMesh(){
     faces.push([opening[i],opening[n],back[n],back[i]])
   }
   faces.push([...back].reverse());
-  return{name:tacoBeaconStationMesh.name,v,e,faces,...(edgeColors?{edgeColors}: {})}
+  // v2650 (Dave: more colour, make the logo yellow). The Sputnik sign on the mast is
+  // line work on its own plane (z .82, above y 4.25): the emblem above y 5.08 is yellow,
+  // the lettering under it orange. The rest of the station keeps its cyan.
+  const sign=i=>Math.abs(v[i][2]-.82)<.005&&v[i][1]>4.25,colours=e.map(([a,b],k)=>sign(a)&&sign(b)?(Math.min(v[a][1],v[b][1])>5.08?C.y:C.o):(edgeColors?.[k]??null));
+  const mesh={name:tacoBeaconStationMesh.name,v,e,faces,edgeColors:colours};
+  // v2650 (Dave: missing join lines): seams where the station's parts run into each other.
+  addMeshJoinLines(mesh);
+  return mesh
 }
 const tacoBeaconStationMissionMesh=buildTacoBeaconStationMissionMesh();
 

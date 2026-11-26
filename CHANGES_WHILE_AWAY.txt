@@ -3380,3 +3380,9 @@ v2640 HUD: the top-left place label showed raw run-together names such as
       SECURITY CHECKPOINT, OSD FACILITY, TUNNEL EXIT, WITHDRAWING), and
       anything not in the table is split into words, so a raw name can no
       longer reach the screen. Existing labels are unchanged.
+
+v2650 Taco Beacon station: seam lines where its parts meet (190, from the
+      same join-line helper as Relay 10), so the pods, arms, top block and
+      lower tank now read as joined to the hub. The Sputnik sign on the
+      mast is coloured: the emblem yellow, the TACO BEACON lettering orange.
+      The rest of the station stays cyan.
