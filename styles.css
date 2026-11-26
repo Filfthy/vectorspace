@@ -743,6 +743,9 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .mailToggle{margin-left:auto}
 .mailToggle.active{color:var(--y)!important;border-color:var(--y)!important}
 #mailGrid{height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr)}
+/* v2610: with the story lead banners on top there are three rows, so the filter bar keeps its
+   height and only the list and detail shrink (the filters were hidden under the list at big text). */
+#missionBoard:has(>.storyLeads),#mailGrid:has(>.storyLeads){grid-template-rows:auto auto minmax(0,1fr)}
 .mailLayout{display:grid;grid-template-columns:minmax(300px,.78fr) minmax(0,1.22fr);gap:12px;height:100%;min-height:0;min-width:0;align-items:stretch}
 .mailScrollHost{height:100%;min-height:0;min-width:0;overflow:hidden}
 .mailList,.mailDetail{height:100%;box-sizing:border-box}
