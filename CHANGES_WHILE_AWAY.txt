@@ -3487,3 +3487,11 @@ v2800 Wreck search voices on older contracts: contracts are saved when
       voice lines even once the recordings were in voices/. The search
       now finds the right line from its on-screen text when a contract
       has none. The normalised voice files from today are added too.
+v2810 Selling from the stores: every spare item in the Drone bay stores
+      has a SELL ONE line under it. Click once and it asks, click again
+      within three seconds to sell one unit. It pays only 10% of the
+      market price: it is for clearing space, not making money. Fitted
+      gear is not in the stores so it cannot be sold, faction-registered
+      hardware is never sold, and the standard Pulse Laser is always
+      there, so the drone can never be left without a weapon. Selling
+      is locked while the drone is deployed.

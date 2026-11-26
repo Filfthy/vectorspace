@@ -571,6 +571,28 @@ class CampaignController {
     if(item.slot==='consumable')this.topUpLoadout(false);
     this.save();this.renderHeader();this.renderShop();this.renderWorkshop();this.renderProgressionSandbox();this.renderMail();return true
   }
+  // v2810 (Dave: a way to sell old gear from the stores, but never your last weapon). Only
+  // spare stock in the stores can be sold, one unit at a time, at 10% of the market price:
+  // it is for clearing space, not a way to make money.
+  // Fitted gear is not in the stores, the Mk I pulse laser is free and always fitted when
+  // nothing else is, and faction-registered hardware is never sold, so the drone can never
+  // be left without a weapon.
+  sellPrice(item){return item&&!item.free&&!item.unique?Math.max(10,Math.floor((Number(item.price)||0)*.1/10)*10):0}
+  sellRefusal(id){
+    const item=this.items[id];if(!item)return 'That item is not in your stores.';
+    if(this.equipmentLocked())return 'Your drone is deployed. Selling is locked until it returns.';
+    if(item.free)return `The ${item.name} is standard issue and cannot be sold.`;
+    if(item.unique)return `${item.name} is faction-registered hardware. It is never sold.`;
+    if(!(this.state.inventory[id]>0))return `No spare ${item.name} in stores. Fitted gear cannot be sold.`;
+    return null
+  }
+  sellItem(id){
+    const no=this.sellRefusal(id);if(no){this.hubNotice(no);return false}
+    const item=this.items[id],price=this.sellPrice(item);
+    this.state.inventory[id]--;this.state.money+=price;
+    this.save();this.renderHeader();this.renderShop();this.renderWorkshop();this.renderProgressionSandbox();
+    this.hubNotice(`Sold one ${item.name} for CR ${price.toLocaleString()}.`,'info');return true
+  }
   buyFrame(id){
     const frame=this.frames[id],access=this.productAccess(frame);if(!frame||id==='AX-1'||!access.ok||this.state.ownedFrames.includes(id)||this.state.money<frame.price)return false;
     this.state.money-=frame.price;this.state.ownedFrames.push(id);if(!this.state.frameLoadouts[id])this.state.frameLoadouts[id]=this.blankFrameProfile();this.save();this.renderHeader();this.renderShop();this.renderWorkshop();this.renderProgressionSandbox();return true
@@ -3065,7 +3087,17 @@ class CampaignController {
         b.innerHTML=`<span class="bayItemIcon">${this.itemIcon(it.id)}</span><span class="bayItemName">${it.name}</span><span class="bayItemCount">×${n}</span><span class="bayItemNote">${it.note}</span><span class="bayItemAct">${g==='consumable'?(fitted?'TOP UP PACK':`FIT PACK OF ${this.packSize(it)}`):(g==='weapon'?'FIT WEAPON':'FIT')}</span>`;
         b.addEventListener('click',()=>this.tryEquip(it.id));
         b.addEventListener('pointerenter',()=>compare(it));b.addEventListener('pointerleave',clearCompare);
-        host.appendChild(b)
+        // v2810: a sell line under each spare item. The first click asks, the second sells.
+        const wrap=document.createElement('div');wrap.className='bayItemWrap';wrap.dataset.item=it.id;wrap.appendChild(b);
+        if(!it.unique){
+          const price=this.sellPrice(it),sell=document.createElement('button');sell.type='button';sell.className='baySell';sell.disabled=locked;
+          const idle=`SELL ONE · CR ${price.toLocaleString()}`;sell.textContent=idle;let armed=false,timer=null;
+          sell.addEventListener('click',()=>{
+            if(!armed){armed=true;sell.classList.add('armed');sell.textContent=`CLICK AGAIN TO SELL · CR ${price.toLocaleString()}`;clearTimeout(timer);timer=setTimeout(()=>{armed=false;sell.classList.remove('armed');sell.textContent=idle},3000);return}
+            clearTimeout(timer);this.sellItem(it.id)});
+          wrap.appendChild(sell)
+        }
+        host.appendChild(wrap)
       }
     }
     leftColumn.appendChild(inv);

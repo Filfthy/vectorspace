@@ -878,6 +878,10 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .bayItemNote{grid-column:2/4;color:var(--x);font-size:var(--type-compact);line-height:var(--line-compact);white-space:normal}
 .bayItemAct{grid-column:2/4;color:var(--tc,var(--g));font-size:var(--type-label);letter-spacing:var(--track-label)}
 .bayEmpty{color:var(--x);font-size:var(--type-meta);padding:4px 0}
+.bayItemWrap{display:flex;flex-direction:column;gap:3px}.bayItemWrap .bayItem{flex:1}
+.baySell{height:auto!important;padding:3px 8px!important;font-size:var(--type-label);letter-spacing:var(--track-label);color:var(--x)!important;border-color:#264!important;text-align:left}
+.baySell:hover:not(:disabled){color:var(--y)!important;border-color:var(--y)!important}
+.baySell.armed{color:var(--r)!important;border-color:var(--r)!important}
 
 /* ---- Market rows: stack lines, never overlap ---- */
 .catalogRow{grid-template-rows:auto auto auto auto!important;align-content:start!important;row-gap:4px!important;line-height:var(--line-compact)!important}
