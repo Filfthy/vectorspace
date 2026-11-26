@@ -3583,3 +3583,6 @@ v2930 Space dust: the dust that streams past as a speed cue was dense and
       Montage (promo only): the slow drift past Meridian Farm near the end
       is replaced by the run out of the nest to the observation point
       through the hostile swarm, leading straight into the finale.
+v2940 Space dust back as it was in the game (96 motes at four times
+      cruise). The calmer, thinner dust that stops at the hive observation
+      point now applies only to the montage promo (?promo=montage).
