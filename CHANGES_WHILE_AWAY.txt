@@ -3402,3 +3402,9 @@ v2680 Taco Beacon pickup: the hatch's octagon frame was redrawn on top of
       emblem. Once the box is out of the hatch the hatch is drawn first and
       the box covers it. While the box is still inside, the hatch frame
       stays on top as before.
+v2690 Enemy health bar: it drew one dash per hull point, so a 150 hull
+      pirate's bar ran half way across the screen. It is now a fixed width
+      block of up to three rows of 12, like armour plating. The top row
+      empties first, then the next, and the last row left turns yellow.
+      Hulls of 12 or less keep one dash per point, as before. The lock
+      brackets wrap the whole block.

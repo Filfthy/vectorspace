@@ -1657,24 +1657,31 @@ function fighterHealthTarget(){
 }
 function drawFighterAimHealth(){
  const t=fighterHealthTarget();if(!t)return;
- const f=t.f,max=Math.max(1,Math.round(f.maxHp||1)),hp=clamp(Math.round(f.hp||0),0,max);
- const segW=5,gap=2,total=max*segW+(max-1)*gap;
+ const f=t.f,max=Math.max(1,Math.round(f.maxHp||1)),hp=clamp(f.hp||0,0,max);
+ // v2690 (Dave: the health bar is ridiculous, maybe 2 or 3 layers). One dash per hull point
+ // made a 150 hull pirate's bar half the screen wide. Now it is a fixed width block of up
+ // to three rows of 12 like armour plating: the top row empties first, then the next. A
+ // light hull (12 or less) keeps one dash per point. The last row left turns yellow.
+ const PER=12,rows=max<=PER?1:max<=40?2:3,cols=rows===1?max:PER,pips=rows*cols,share=max/pips;
+ const alive=hp<=0?0:Math.ceil(hp/share-1e-6),segW=5,gap=2,rowGap=5,total=cols*segW+(cols-1)*gap,height=(rows-1)*rowGap;
  let x0=t.p.x-total*.5,y=t.edge?t.p.y-11:t.p.y-clamp(t.r*.72+15,25,58);
- x0=clamp(x0,8,Math.max(8,W-total-8));y=clamp(y,10,viewH-10);
- // A deliberately tiny vector readout: no name, range or tactical data.
- for(let i=0;i<max;i++){
-   const x=x0+i*(segW+gap),alive=i<hp,col=alive?C.c:C.g,a=alive?.95:.20;
-   line(x,y,x+segW,y,col,1.35,a)
- }
+ x0=clamp(x0,8,Math.max(8,W-total-8));y=clamp(y,10+height,viewH-10);
+ const lastLayer=rows>1&&alive<=cols;
+ // Row 0 is the bottom (the last layer); pips fill bottom row first, left to right.
+ for(let r=0;r<rows;r++){const ry=y-r*rowGap;
+   for(let i=0;i<cols;i++){
+     const on=r*cols+i<alive,x=x0+i*(segW+gap),col=on?(lastLayer?C.y:C.c):C.g,a=on?.95:.20;
+     line(x,ry,x+segW,ry,col,1.35,a)
+   }}
  const acquiring=spaceLockHeld&&spaceLockAcquireId===f.id&&f.id!==spaceLockId;
  if(acquiring){
    const p=clamp(spaceLockAcquireT/(.48*(campaign.lockTimeMultiplier?.()||1)),0,1);
    line(x0,y+5,x0+total*p,y+5,C.y,1.0,.90)
  }
  if(f.id===spaceLockId){
-   const pad=5;
-   line(x0-pad,y-3,x0-pad,y+5,C.c,1,.92);line(x0-pad,y-3,x0,y-3,C.c,1,.92);
-   line(x0+total+pad,y-3,x0+total+pad,y+5,C.c,1,.92);line(x0+total,y-3,x0+total+pad,y-3,C.c,1,.92)
+   const pad=5,top=y-height-3;
+   line(x0-pad,top,x0-pad,y+5,C.c,1,.92);line(x0-pad,top,x0,top,C.c,1,.92);
+   line(x0+total+pad,top,x0+total+pad,y+5,C.c,1,.92);line(x0+total,top,x0+total+pad,top,C.c,1,.92)
  }
 }
 
