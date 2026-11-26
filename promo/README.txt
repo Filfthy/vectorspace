@@ -100,3 +100,37 @@ Files
                      TeaserScenes.studio({kind:'camel'}) films one animal alone.
   stampede.mp3       the song
 
+
+
+VECTOR SPACE ACTION MONTAGE
+===========================
+
+A 2:16 release montage cut to Verdi's Dies irae (the game's own track,
+music/violent/diesirae.ogg). Action only, no title cards, with the game's
+HUD on: it is the game being played. Every shot is a real job launched in
+the game, taken to the right stage and flown a few seconds by a pilot
+before the cut, then staged so the action fills the frame (fighters 20 to
+50 units ahead, walkers about 32 away, rocks close, stations off to one side).
+
+  0:00-1:19  the tutti: one shot per bass drum stroke, then quick cuts:
+             dogfights (Jackal's Crown, Ripper, pirates, xenos, hijacked
+             drones, ghosts, rogues), dune and ice armour, deep core
+             pylons, the swamp corridor, Taco Beacon pirates, a crystal
+             world, a convoy escort, Drifters Rest and Tanktown under
+             attack, customs rings, the factory assault, a cargo spill
+  1:19-2:16  the hush: longer shots: the Crossroads minefield, the xeno
+             nest, the lattice survey, the swamp plains, a wreck in the
+             asteroids, Meridian Farm, a last walker on the dunes, fade out
+
+Open it with ?promo=montage:
+  ?promo=montage&play          live with the music (&from=79.6 starts at the hush)
+  ?promo=montage&dpr=1.5       for rendering: PromoDirector.renderRange('montage',0,136.3)
+  bash promo/make-video.sh promo/out/montage music/violent/diesirae.ogg promo/out/vector-space-montage.mp4
+
+Files
+  montage-song.js     the track and its two sections
+  montage-scenes.js   the shot list (cut times), the staging and the pilots
+
+The music is a 1959 recording (Serafin, Rome Opera). It is public domain in
+Europe but may still be protected in the US, so a video platform may claim
+or mute it.

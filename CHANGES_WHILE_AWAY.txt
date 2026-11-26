@@ -3521,3 +3521,8 @@ v2830 Jackal's Crown chain arc: every Crown hit on a fighter jumps to the
 v2840 Test mute: adding ?mute to the address now really silences the game
       (music, effects and voices) without changing your saved sound
       settings. It never worked before, so test tabs could play music.
+v2850 Action montage (promo only, the game is unchanged): ?promo=montage
+      plays a 2:16 cut of real game action with the HUD on, to the game's
+      Dies irae. See promo/README.txt. The promo director now mutes the
+      game in memory only, so watching a promo never turns off your
+      saved sound settings.

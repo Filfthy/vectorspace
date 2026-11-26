@@ -10,7 +10,7 @@ if(Promo.Q.get('view'))return;
 const SONG=PROMO_SONG,FPS=+Promo.Q.get('fps')||30,DT=1/FPS;
 const secT=n=>SONG.sections.find(s=>s.name===n).t;
 // The teaser has its own section names; its scenes read them from PROMO_SONG.
-const T=SONG.teaser?{end:SONG.end,...Object.fromEntries(SONG.sections.map(s=>[s.name,s.t]))}:{solo:secT('solo'),breakdown:secT('breakdown'),verse3:secT('verse 3'),outro:secT('outro'),riff:secT('riff'),verse2:secT('verse 2'),end:SONG.end+2.6};
+const T=(SONG.teaser||SONG.montage)?{end:SONG.end,...Object.fromEntries(SONG.sections.map(s=>[s.name,s.t]))}:{solo:secT('solo'),breakdown:secT('breakdown'),verse3:secT('verse 3'),outro:secT('outro'),riff:secT('riff'),verse2:secT('verse 2'),end:SONG.end+2.6};
 
 // ---- Repeatable randomness and time ----
 let seedState=1;
@@ -20,7 +20,8 @@ const D=Promo.D={clock:0,gclock:0,frame:0,scene:null,log:[],T,FPS,realRAF:realRA
   seed(n){seedState=n>>>0;Math.random=rand},
   // The game keeps its own animation clocks off performance.now; drive it from the frame clock.
   takeControl(){performance.now=()=>1e6+D.gclock*1000;window.requestAnimationFrame=()=>0;
-    AudioMixer.setEnabled('master',false);audio.playVoice=()=>{};audio.voicePlaying=false;
+    // Silence the game in memory only, so the player's saved sound settings are untouched.
+    AudioMixer.testMute=true;for(const d of audio.music?.decks||[])d.pause();audio.playVoice=()=>{};audio.voicePlaying=false;
     Object.defineProperty(document,'fullscreenElement',{get:()=>document.documentElement,configurable:true});document.dispatchEvent(new Event('fullscreenchange'));fullscreenGate.classList.add('hidden');
     invulnerable=true},
   release(){performance.now=realNow;Math.random=realRandom;window.requestAnimationFrame=realRAF;realRAF(render)}
@@ -28,8 +29,10 @@ const D=Promo.D={clock:0,gclock:0,frame:0,scene:null,log:[],T,FPS,realRAF:realRA
 
 // ---- Promo-only presentation: no text HUD or reticle; titles and overlays drawn here ----
 const gameTopHud=window.topHud,gameReticle=window.reticle;
-window.topHud=function(){D.scene?.overlay?.(D.songT());drawTitles(D.songT())};
-window.reticle=function(){};
+// The montage keeps the game's own HUD and gunsight: it is the game being played.
+if(SONG.montage)window.topHud=function(){gameTopHud.apply(this,arguments);D.scene?.overlay?.(D.songT())};
+else{window.topHud=function(){D.scene?.overlay?.(D.songT());drawTitles(D.songT())};
+window.reticle=function(){}}
 D.songT=()=>D.clock;   // the video starts at song time 0
 
 // ---- Christmas dressing: snow on every tree's upper slopes ----
