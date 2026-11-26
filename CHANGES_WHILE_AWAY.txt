@@ -3534,3 +3534,11 @@ v2860 Montage (promo only): every shot is now flown like a player. One
       half, flew dead straight without firing. Live playback (&play) now
       draws at the screen's own pixel ratio, so lines are sharp on a
       scaled display instead of grainy.
+v2870 Montage pilot plays rationally (promo only): shoots down incoming
+      projectiles first, then the hostiles in front, rocks only on a
+      clearance job's marked targets, pylon tops on deep-core surfaces,
+      walkers on armour fields. It never shoots mines and steers round
+      them, holds fire sneaking into the xeno nest, threads the dark gaps
+      of customs rings, and with nothing to shoot steers for the nav
+      marker the HUD shows. It steers the gunsight itself onto a target,
+      not the screen centre.
