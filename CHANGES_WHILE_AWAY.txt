@@ -3449,3 +3449,10 @@ v2760 Silent Node voice: Sonia now says "Wiping node." when the wipe
       starts and "Node wiped." when it ends. Rendered in "voices
       unprocessed" (wipingnode.mp3, nodewiped.mp3). Until they are
       normalised into voices/ it falls back to "Data transfer complete".
+v2770 Cacti on yellow worlds: yellow (arid) worlds used dead pines and
+      green young pines. They now grow cacti instead, with a few dead
+      pines among them and no green pines: tall saguaros with two arms,
+      young one-armed saguaros, squat barrel cacti, organ-pipe clumps and
+      prickly pears of flat pads. All ribbed wireframes in green. Both
+      the plains approach and the dune armour assault use them. Orange
+      arid worlds keep their pines.

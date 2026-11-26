@@ -218,6 +218,42 @@ function forestSceneryMesh(id){return forestSceneryMeshes[id]||null}
 // This avoids forest test stages depending on an implicit global lexical binding.
 globalThis.AgentXForestScenery={meshes:forestSceneryMeshes,list:forestSceneryMeshList,get:forestSceneryMesh};
 
+// v2770 (Dave: yellow worlds should have cacti rather than conifers). Desert scenery built
+// in code: ribbed columns (eight ribs, so the long edges read as the flutes of a cactus)
+// swept along paths for the saguaro arms, a squat barrel, an organ-pipe clump and a
+// prickly pear of flat pads. Same registry and ids style as the pines, base near y -1.6.
+const cactusSceneryMeshes=(()=>{
+  const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],mul=(a,k)=>[a[0]*k,a[1]*k,a[2]*k];
+  const nrm=a=>{const l=Math.hypot(a[0],a[1],a[2])||1;return[a[0]/l,a[1]/l,a[2]/l]},crs=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+  // A ribbed tube through pts with a radius per point, rounded over at the far end.
+  const tube=(m,pts,rad,n=8,dome=true,flat=1)=>{
+    const rings=[];let ref=[0,0,1];
+    for(let k=0;k<pts.length;k++){
+      const t=nrm(sub(pts[Math.min(k+1,pts.length-1)],pts[Math.max(k-1,0)]));let u=crs(t,ref);if(Math.hypot(...u)<.1)u=crs(t,[1,0,0]);u=nrm(u);const w=nrm(crs(u,t));
+      rings.push(Array.from({length:n},(_,i)=>{const a=i*2*Math.PI/n;return add(pts[k],add(mul(u,Math.cos(a)*rad[k]),mul(w,Math.sin(a)*rad[k]*flat)))}))
+    }
+    if(dome){const k=pts.length-1,t=nrm(sub(pts[k],pts[k-1]));let u=crs(t,ref);if(Math.hypot(...u)<.1)u=crs(t,[1,0,0]);u=nrm(u);const w=nrm(crs(u,t));
+      for(const[f,h]of[[.72,.45],[.32,.8]])rings.push(Array.from({length:n},(_,i)=>{const a=i*2*Math.PI/n;return add(add(pts[k],mul(t,rad[k]*h)),add(mul(u,Math.cos(a)*rad[k]*f),mul(w,Math.sin(a)*rad[k]*f*flat)))}))}
+    m.loft(rings,true,true)
+  };
+  const build=fn=>{const m=gaBuilder(true);fn(m);return{v:m.v,e:m.e,faces:m.faces,singleColorKey:'g'}};
+  const arm=(m,sx,y,out,up,r)=>tube(m,[[sx*.1,y,0],[sx*out*.7,y+.02,0],[sx*out,y+.16,0],[sx*out,y+.16+up*.5,0],[sx*out,y+.16+up,0]],[r*.85,r,r,r,r]);
+  return{
+    cactusSaguaro:{name:'Cactus Saguaro',...build(m=>{tube(m,[[0,-1.62,0],[0,-.6,0],[0,.6,0],[0,1.42,0]],[.24,.24,.23,.22]);arm(m,1,-.25,.56,.95,.15);arm(m,-1,.18,.5,.78,.14)})},
+    cactusSaguaroOne:{name:'Cactus Saguaro Young',...build(m=>{tube(m,[[0,-1.62,0],[0,-.2,0],[0,.88,0]],[.21,.2,.19]);arm(m,1,-.55,.44,.66,.13)})},
+    cactusBarrel:{name:'Cactus Barrel',...build(m=>{tube(m,[[0,-1.62,0],[0,-1.5,0],[0,-1.2,0],[0,-.95,0]],[.34,.44,.43,.36],12)})},
+    cactusOrgan:{name:'Cactus Organ Pipe',...build(m=>{
+      for(const[x,z,h,r]of[[0,0,1.15,.15],[.3,.12,.55,.13],[-.27,.16,.75,.13],[.1,-.3,.3,.12],[-.18,-.24,.95,.13]])
+        tube(m,[[x*.3,-1.62,z*.3],[x,-1.3,z],[x*1.08,-.4+h*.5,z*1.08],[x*1.1,-.4+h,z*1.1]],[r*.8,r,r,r*.95])})},
+    cactusPear:{name:'Cactus Prickly Pear',...build(m=>{
+      // Flat oval pads, each standing on the one below at a slight angle.
+      const pad=(c,ang,tilt,s)=>{const d=[Math.sin(tilt)*Math.cos(ang),Math.cos(tilt),Math.sin(tilt)*Math.sin(ang)],p0=sub(c,mul(d,s*.5)),p1=add(c,mul(d,s*.5));
+        tube(m,[p0,add(p0,mul(d,s*.25)),c,add(c,mul(d,s*.25)),p1],[s*.08,s*.3,s*.38,s*.3,s*.08],8,false,.22)};
+      pad([0,-1.25,0],0,.08,.8);pad([.24,-.66,.02],.2,.45,.62);pad([-.22,-.74,-.03],3.1,.5,.58);pad([.42,-.2,.05],.1,.25,.48);pad([-.06,-.3,.12],1.6,.15,.5)})}
+  }
+})();
+Object.assign(forestSceneryMeshes,cactusSceneryMeshes);
+
 const alienSwampSceneryMeshes={
   // Swamp reeds must read as complete connected blade shapes, not a bundle of
   // detached triangles. Keep them simple and coherent so every visible segment

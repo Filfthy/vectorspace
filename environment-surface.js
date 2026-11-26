@@ -484,7 +484,7 @@ class SurfaceDestinationApproachController {
     this.worldKind=world;noteSurfaceWorld(world);
     const ids=swamp
       ?['swampReedTall','swampReedFan','swampReedWide','swampReedSpike','alienBulbPlantConnected','alienUmbrellaPlantConnected','alienEggPodFat','alienEggClusterFat']
-      :(world==='volcanic'?['pineDeadSparse']:world==='ice'?['pineTall','pineYoung','pineDeadSparse','pineDeadSparse']:(world==='arid'?['pineDeadSparse','pineDeadSparse','pineYoung']:['pineTall','pineBroad','pineYoung','pineDeadSparse']));
+      :(world==='volcanic'?['pineDeadSparse']:world==='ice'?['pineTall','pineYoung','pineDeadSparse','pineDeadSparse']:(world==='arid'?(landingWorldColour()===C.y?['cactusSaguaro','cactusSaguaro','cactusSaguaroOne','cactusBarrel','cactusOrgan','cactusPear','pineDeadSparse','pineDeadSparse']:['pineDeadSparse','pineDeadSparse','pineYoung']):['pineTall','pineBroad','pineYoung','pineDeadSparse']));
     const addTree=(id,x,wz,scale)=>{
       const fallback=swamp?(typeof alienSwampSceneryMesh==='function'?alienSwampSceneryMesh(id):null):(typeof forestSceneryMesh==='function'?forestSceneryMesh(id):null);
       const baseMesh=registry?.get?.(id)||fallback;if(!baseMesh)return;

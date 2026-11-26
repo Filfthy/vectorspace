@@ -655,7 +655,7 @@ class GroundAssaultController{
     // crystal spires, or rocks among dead pines on arid worlds).
     const world=typeof surfaceWorldKind==='function'?surfaceWorldKind():'temperate',mix=world==='wet'?0:(typeof SURFACE_WORLD_MIX!=='undefined'?(SURFACE_WORLD_MIX[world]||0):0); // no reed meshes on dunes
     if(typeof noteSurfaceWorld==='function')noteSurfaceWorld(world);
-    const reg=globalThis.AgentXForestScenery,ids=world==='volcanic'?['pineDeadSparse']:world==='ice'?['pineTall','pineYoung','pineDeadSparse','pineDeadSparse']:(world==='arid'?['pineDeadSparse','pineDeadSparse','pineYoung']:['pineTall','pineBroad','pineYoung','pineDeadSparse']);
+    const reg=globalThis.AgentXForestScenery,ids=world==='volcanic'?['pineDeadSparse']:world==='ice'?['pineTall','pineYoung','pineDeadSparse','pineDeadSparse']:(world==='arid'?(landingWorldColour()===C.y?['cactusSaguaro','cactusSaguaro','cactusSaguaroOne','cactusBarrel','cactusOrgan','cactusPear','pineDeadSparse','pineDeadSparse']:['pineDeadSparse','pineDeadSparse','pineYoung']):['pineTall','pineBroad','pineYoung','pineDeadSparse']);
     let rockLo=1e9;for(const v of asteroidMesh.v)rockLo=Math.min(rockLo,v[1]);
     const addFeature=(x,wz,s)=>{
       if(world==='volcanic'&&typeof surfaceCinderConeMesh!=='undefined'){
