@@ -3572,3 +3572,6 @@ v2900 Promo save: the promo videos (?promo) now run on their own throwaway
       hostile, the turn to face the hive, the hold and the detonation.
 v2910 Montage (promo only): no ghost jammers, so no display static in the
       ghost shots. Every ghost there is a lance. The game is unchanged.
+v2920 Montage (promo only): the xeno queen in her chamber at 1:02,
+      spitting from every wall while the drone fires on her (her real
+      hull, and she survives the shot), in place of a plain xeno fight.

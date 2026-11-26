@@ -281,7 +281,9 @@ const SHOTS=[
   {t:54.03,setup(){launch('deep_core','security',{stage:'deep_core_surface',world:C.o,jump:'trench'})},pilot:player,warm:5},
   {t:57.32,setup(){launch('cargo_spill','trade',{stage:'route_diversion'})},pilot:player,stage:()=>stageFighters(),warm:12},
   {t:59.47,setup(){launch('station_defence','security',{stage:'station_defence_recovery',edit:m=>{m.modules[0].relayVariant='fuel'}})},pilot:player,stage:()=>stageStation(),warm:6},
-  {t:62.32,...fightJob('xeno',{weapon:'jackalsCrown'}),warm:5},
+  // The xeno queen in her chamber, spitting from every wall (her real hull, and a gun that
+  // cannot finish her in the shot).
+  {t:62.32,setup(){launch('nest_clearance','helix',{stage:'xeno_nest',weapon:'laser5'});xenoNest.beginCore();xenoNest.beginRegulatorChamber()},pilot:player,warm:2.5},
   {t:64.77,setup(){launch('asteroids','jackals',{stage:'asteroids'})},pilot:player,stage:()=>stageRocks(),warm:8},
   {t:68.47,setup(){launch('deep_core','jackals',{stage:'deep_core_surface',world:C.o,jump:'reactor',weapon:'ripper'})},pilot:player,warm:.3},
   {t:71.27,setup(){launch('deep_core','helix',{stage:'deep_core_surface',world:C.c})},pilot:player,stage:()=>stagePylons(),warm:10},
