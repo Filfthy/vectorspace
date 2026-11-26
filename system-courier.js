@@ -623,11 +623,11 @@ class CourierController {
     }
     draw();ctx.restore()
   }
-  drawWireBox(local,xOff,yOff,sx,sy,sz,col=C.gd,alpha=.78,progress=this.tunnelProgress()){
+  drawWireBox(local,xOff,yOff,sx,sy,sz,col=C.gd,alpha=.78,progress=this.tunnelProgress(),mesh=courierFixtureBoxMesh){
     const p=this.fixturePoint(local,xOff,yOff,progress);
     // Use the standard hidden-line mesh renderer, but only through the corridor's
     // actual line of sight. This fixes distant room crates appearing through walls.
-    this.withTunnelFixtureClip(local,progress,()=>drawMesh({x:p[0],y:p[1],z:p[2],s:.5,mx:sx,my:sy,mz:sz,rot:[0,0,0]},courierFixtureBoxMesh,col,alpha))
+    this.withTunnelFixtureClip(local,progress,()=>drawMesh({x:p[0],y:p[1],z:p[2],s:.5,mx:sx,my:sy,mz:sz,rot:[0,0,0]},mesh,col,alpha))
   }
   drawDeliveryBayFixtures(progress=this.tunnelProgress(),showCargo=true){
     const roomStart=this.tunnelLength-this.roomLength,backDistance=this.tunnelLength-progress;
@@ -707,16 +707,20 @@ class CourierController {
       }
     }
     const food=this.stage?.cargoStyle==='food',cargoCol=state.landed?C.y:C.c;
-    this.drawWireBox(state.local,state.x,state.y,food ? 1.08 : .92,food ? .16 : .30,food ? .78 : .70,cargoCol,.96,progress);
+    // v2670 (Dave: the taco box is still see through with the X when delivered). The Taco
+    // Beacon order is the same solid box with the emblem on its lid as at the pickup, so
+    // nothing is drawn over it and the box hides its own far side.
+    const taco=food&&this.stage?.type==='taco_asteroid_delivery'&&typeof tacoFoodBoxMesh!=='undefined';
+    this.drawWireBox(state.local,state.x,state.y,taco?1.1:food ? 1.08 : .92,food ? .16 : .30,taco?.8:food ? .78 : .70,cargoCol,.96,progress,taco?(state.landed?tacoFoodBoxLandedMesh:tacoFoodBoxMesh):courierFixtureBoxMesh);
     const c=this.path(state.local),z=state.local-progress+.01;
-    if(food){
+    if(food&&!taco){
       // QuickBite keeps the crossed lid so the same delivery choreography still
       // reads immediately as a food/pizza box when that faction owns the template.
       const hz=.39,hy=.09;
       const a=proj([c.x+state.x-.50,c.y+state.y+hy,z-hz]),b=proj([c.x+state.x+.50,c.y+state.y+hy,z+hz]);
       const d=proj([c.x+state.x+.50,c.y+state.y+hy,z-hz]),e=proj([c.x+state.x-.50,c.y+state.y+hy,z+hz]);
       if(a&&b)line(a.x,a.y,b.x,b.y,cargoCol,.82,.70);if(d&&e)line(d.x,d.y,e.x,e.y,cargoCol,.82,.70)
-    }else{
+    }else if(!food){
       // Other factions use a compact equipment/consignment case: one structural
       // centre seam instead of the food-box cross.
       const a=proj([c.x+state.x-.46,c.y+state.y+.17,z]),b=proj([c.x+state.x+.46,c.y+state.y+.17,z]);

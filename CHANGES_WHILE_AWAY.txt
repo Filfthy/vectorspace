@@ -3391,3 +3391,9 @@ v2660 Taco Beacon order box: the loose X on top, which showed through the
       yellow emblem on the lid, hidden by the box from behind. As it is
       tractored in, the lid turns to face the player, leant back so the
       front edge shows, with the emblem upright and a gentle sway.
+v2670 Taco Beacon order box at the asteroid base delivery bay: the bay drew
+      its own food box with the see-through X. A Taco Beacon delivery now
+      uses the same solid emblem box as the pickup, and once it lands (and
+      turns yellow) the emblem goes orange so it still reads. Only the Taco
+      Beacon delivery stage gets it: other food runs keep their plain
+      crossed box and other cargo keeps its case.

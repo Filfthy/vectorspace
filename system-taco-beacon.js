@@ -65,6 +65,8 @@ const tacoFoodBoxMesh=(()=>{
   for(const[a,b]of tacoBeaconStationMesh.e)if(emb(a)&&emb(b)){e.push([at(a),at(b)]);cols.push(C.y)}
   return{name:'Taco Beacon Box',v,e,faces:courierFixtureBoxMesh.faces,edgeColors:cols}
 })();
+// Once delivered the box turns yellow, so its emblem goes orange to stay readable.
+const tacoFoodBoxLandedMesh={...tacoFoodBoxMesh,name:'Taco Beacon Box (delivered)',edgeColors:tacoFoodBoxMesh.edgeColors.map(c=>c?C.o:null)};
 
 class TacoBeaconDeliveryController{
   constructor(){this.reset()}
