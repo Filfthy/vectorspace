@@ -3419,3 +3419,7 @@ v2700 Swamp mantas: the big magenta gliders over the swamp were a flat
       Both are rendered in Sonia in "voices unprocessed"
       (recalibratingterminal.mp3, terminalrecalibrated.mp3) and play once
       normalised into voices/.
+v2710 Swamp mantas move visibly: the wing beat is twice as quick (about
+      one beat every 2.6 seconds) and twice as deep, swinging from well
+      above the body to well below it. The body lifts on each downstroke,
+      they circle about twice as fast and bank more steeply into the turn.

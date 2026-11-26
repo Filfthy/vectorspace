@@ -234,7 +234,7 @@ function mantaPose(m,beat,bank){
   const cb=Math.cos(bank),sb=Math.sin(bank);m.T=p=>[p[0]*cb-p[1]*sb,p[0]*sb+p[1]*cb,p[2]];
   // Span stations: |x|, centre of chord, half chord, half thickness.
   const ST=[[0,.02,.5,.13],[.3,-.04,.43,.09],[.58,-.17,.3,.055],[.82,-.32,.17,.03],[1,-.5,.04,.012]];
-  const lift=u=>.3*Math.pow(u,1.5)*Math.sin(beat-u*1.1);
+  const lift=u=>.62*Math.pow(u,1.35)*Math.sin(beat-u*1.4);
   const ring=(sx,[u,zc,c,t])=>{const x=sx*u,y=lift(u);return Array.from({length:6},(_,i)=>{const a=i*Math.PI/3;return[x,y+Math.sin(a)*t*(a<Math.PI?1:.6),zc+Math.cos(a)*c]})};
   const rings=[];for(let i=ST.length-1;i>0;i--)rings.push(ring(-1,ST[i]));for(let i=0;i<ST.length;i++)rings.push(ring(1,ST[i]));
   m.loft(rings,true,true);
@@ -1014,7 +1014,7 @@ class SurfaceDestinationApproachController {
     }
     for(let n=0,N=2+(this.rand()<.5?1:0);n<N;n++){
       const side=n%2?-1:1;
-      this.gliders.push({cx:X*.6+side*(45+this.rand()*40),cz:T*(.3+.25*n+.15*this.rand()),r:30+this.rand()*25,y:this.groundY+18+this.rand()*10,w:(.045+this.rand()*.03)*(this.rand()<.5?-1:1),a:this.rand()*6.28,ph:this.rand()*6,span:7+this.rand()*3})
+      this.gliders.push({cx:X*.6+side*(45+this.rand()*40),cz:T*(.3+.25*n+.15*this.rand()),r:30+this.rand()*25,y:this.groundY+18+this.rand()*10,w:(.1+this.rand()*.05)*(this.rand()<.5?-1:1),a:this.rand()*6.28,ph:this.rand()*6,span:7+this.rand()*3})
     }
   }
   drawSwampFlyers(){
@@ -1039,8 +1039,10 @@ class SurfaceDestinationApproachController {
       const a=g.a+t*g.w,cx=g.cx+Math.sin(a)*g.r,cz=g.cz+Math.cos(a)*g.r,hd=a+(g.w>0?Math.PI/2:-Math.PI/2),fx=Math.sin(hd),fz=Math.cos(hd),rx=fz,rz=-fx;
       const c=camPoint([cx,g.y,cz-travel]);if(c[2]<14||c[2]>460)continue;
       // v2700: a solid manta, wings beating slowly and banked into the circle it rides.
-      const bob=Math.sin(t*1.1+g.ph-.6)*.35;
-      mantaMesh.pose(t*1.1+g.ph,(g.w>0?1:-1)*.32);
+      // v2710 (Dave: the movement was barely perceptible): a full, quicker wing beat that
+      // lifts the body on each downstroke, a faster circuit and a steeper bank.
+      const beat=t*2.4+g.ph,bob=-Math.sin(beat-.9)*g.span*.13;
+      mantaMesh.pose(beat,(g.w>0?1:-1)*.5);
       drawMesh({x:cx,y:g.y+bob,z:cz-travel,s:g.span,rot:[0,hd,0]},mantaMesh,C.m,clamp(1.25-c[2]/460,.35,.9))
     }
     ctx.restore()
