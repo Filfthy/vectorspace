@@ -3595,3 +3595,6 @@ v2950 Montage (promo only): opens on "Vector Space" in the title lettering
       backwards), and in the swamp the pilot shoots down incoming spit
       when the lane ahead is clear. Live playback plays the title line
       and runs on past the song for the close.
+v2960 Montage (promo only): the convoy escort shot (0:35) is replaced by
+      Meridian Farm under pirate attack. A hunter circling the drone made
+      the view swing back and forth round it, so the ship looked to dance.

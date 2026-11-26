@@ -275,7 +275,10 @@ const SHOTS=[
   {t:20.04,setup(){launch('taco_run','quickbite',{stage:'taco_asteroid_delivery'})},pilot:player,stage:()=>stageFighters(),warm:6},
   {t:22.99,...fightJob('ghost'),warm:6},
   {t:29.80,setup(){launch('penthouse_delivery','jackals',{stage:'urban_penthouse_delivery'})},pilot:player,warm:5},   // the traffic run
-  {t:34.83,setup(){launch('convoy_escort','security',{stage:'route_diversion'})},pilot:player,warm:9},
+  // Meridian Farm under attack: the station placed ahead, its attackers left where the game
+  // sends them (fighters moved by hand slide backwards).
+  {t:34.83,setup(){launch('station_defence','helix',{stage:'station_defence_recovery',edit:m=>{m.modules[0].relayVariant='farm'}})},pilot:player,warm:6,
+    stage:()=>{const w=cameraPointToWorld([22,-4,180]);stationDelivery.station={x:w[0],y:w[1],z:w[2]}}},
   {t:38.48,setup(){launch('station_defence','trade',{stage:'station_defence_recovery',edit:m=>{m.modules[0].relayVariant='hab'}})},pilot:player,stage:()=>stageStation(),warm:5},
   {t:40.73,setup(){launch('customs_run','jackals',{stage:'route_diversion'})},pilot:player,warm:6},
   {t:42.58,...fightJob('rogue',{weapon:'jackalsCrown'}),warm:4},
