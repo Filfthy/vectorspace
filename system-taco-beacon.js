@@ -53,6 +53,18 @@ function buildTacoBeaconStationMissionMesh(){
   return mesh
 }
 const tacoBeaconStationMissionMesh=buildTacoBeaconStationMissionMesh();
+// v2660 (Dave: the taco box had an X that showed through it, it should carry the logo).
+// The delivery box is a solid box with the station sign's yellow emblem laid flat on its
+// lid, so the box's own faces hide the emblem from below and it turns with the box.
+// Drawn with mx 1.1, my .18, mz .8, so the emblem is squeezed back by those to stay true.
+const tacoFoodBoxMesh=(()=>{
+  const sv=tacoBeaconStationMesh.v,emb=i=>Math.abs(sv[i][2]-.82)<.005&&sv[i][1]>5.08;
+  const v=courierFixtureBoxMesh.v.map(p=>p.slice()),e=courierFixtureBoxMesh.e.map(p=>p.slice()),cols=e.map(()=>null),map=new Map();
+  const ys=[];for(let i=0;i<sv.length;i++)if(emb(i))ys.push(sv[i][1]);const cy=(Math.min(...ys)+Math.max(...ys))/2,f=.9;
+  const at=i=>{if(!map.has(i)){map.set(i,v.length);v.push([sv[i][0]*f/1.1,1.004,(sv[i][1]-cy)*f/.8])}return map.get(i)};
+  for(const[a,b]of tacoBeaconStationMesh.e)if(emb(a)&&emb(b)){e.push([at(a),at(b)]);cols.push(C.y)}
+  return{name:'Taco Beacon Box',v,e,faces:courierFixtureBoxMesh.faces,edgeColors:cols}
+})();
 
 class TacoBeaconDeliveryController{
   constructor(){this.reset()}
@@ -262,6 +274,14 @@ class TacoBeaconDeliveryController{
     }
     return null
   }
+  // v2660: the box shows its lid to the player, leant back so its front edge shows too,
+  // with the emblem upright on screen and a gentle sway as it rides the beam.
+  boxFacingRot(){
+    const M=camera.camMatrix(),r0=[M[0],M[1],M[2]],u=[M[3],M[4],M[5]],f=[M[6],M[7],M[8]];
+    const n=v3norm(v3add(v3scale(f,-.85),v3scale(u,.5))),t0=v3norm(v3add(v3scale(u,.85),v3scale(f,.5))),a=Math.sin(this.t*.9)*.16,ca=Math.cos(a),sa=Math.sin(a);
+    const r=v3add(v3scale(r0,ca),v3scale(t0,-sa)),t=v3add(v3scale(t0,ca),v3scale(r0,sa));
+    return[Math.atan2(n[2],t[2]),-Math.asin(clamp(r[2],-1,1)),Math.atan2(r[1],r[0])]
+  }
   drawTractorAndFood(){
     const s=this.packageState();if(!s?.from||!s?.to)return;
     const p=[lerp(s.from[0],s.to[0],s.q),lerp(s.from[1],s.to[1],s.q),lerp(s.from[2],s.to[2],s.q)],cp=proj(p),a=proj(s.from),b=proj(s.to);
@@ -300,10 +320,7 @@ class TacoBeaconDeliveryController{
     if(!cp)return;
     const boxScale=(this.kind==='station'&&this.host)?lerp(this.host.s*.15,.58,s.q):.58;
     const drawBox=()=>{
-      drawMesh({x:p[0],y:p[1],z:p[2],s:boxScale,mx:1.10,my:.18,mz:.80,rot:[0,this.t*.22,0]},courierFixtureBoxMesh,C.c,.98);
-      const k=boxScale,pts=[[-.55,.13,-.42],[.55,.13,.42],[.55,.13,-.42],[-.55,.13,.42]].map(v=>proj([p[0]+v[0]*k,p[1]+v[1]*k,p[2]+v[2]*k]));
-      if(pts[0]&&pts[1])line(pts[0].x,pts[0].y,pts[1].x,pts[1].y,C.c,.82,.72);
-      if(pts[2]&&pts[3])line(pts[2].x,pts[2].y,pts[3].x,pts[3].y,C.c,.82,.72)
+      drawMesh({x:p[0],y:p[1],z:p[2],s:boxScale,mx:1.10,my:.18,mz:.80,rot:this.boxFacingRot()},tacoFoodBoxMesh,C.c,.98)
     };
     if(this.kind==='station'&&this.host){
       // While the food is still physically behind the pod skin, the station must

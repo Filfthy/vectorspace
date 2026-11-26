@@ -3386,3 +3386,8 @@ v2650 Taco Beacon station: seam lines where its parts meet (190, from the
       lower tank now read as joined to the hub. The Sputnik sign on the
       mast is coloured: the emblem yellow, the TACO BEACON lettering orange.
       The rest of the station stays cyan.
+v2660 Taco Beacon order box: the loose X on top, which showed through the
+      box, is gone. The box is now a solid lidded box with the station's
+      yellow emblem on the lid, hidden by the box from behind. As it is
+      tractored in, the lid turns to face the player, leant back so the
+      front edge shows, with the emblem upright and a gentle sway.
