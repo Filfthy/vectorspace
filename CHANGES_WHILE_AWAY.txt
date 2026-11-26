@@ -3526,3 +3526,11 @@ v2850 Action montage (promo only, the game is unchanged): ?promo=montage
       Dies irae. See promo/README.txt. The promo director now mutes the
       game in memory only, so watching a promo never turns off your
       saved sound settings.
+v2860 Montage (promo only): every shot is now flown like a player. One
+      pilot chases and shoots whatever is in reach (fighters, rocks,
+      walkers, pylon caps and gun emplacements, swamp spitters, mines)
+      and, with nothing in reach, weaves and banks, holding the path in
+      corridors. Before, a third of the shots, including the whole quiet
+      half, flew dead straight without firing. Live playback (&play) now
+      draws at the screen's own pixel ratio, so lines are sharp on a
+      scaled display instead of grainy.

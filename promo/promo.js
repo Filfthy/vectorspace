@@ -7,7 +7,8 @@
 const Q=new URLSearchParams(location.search);
 const CAP={w:+Q.get('w')||1920,h:+Q.get('h')||1080};
 // Render at one canvas pixel per CSS pixel; the pane is sized to the video (1920x1080).
-Object.defineProperty(window,'devicePixelRatio',{get:()=>+Q.get('dpr')||1,configurable:true});resize();
+// Live playback (&play) keeps the screen's own pixel ratio, so a scaled display stays sharp.
+if(Q.has('dpr')||!Q.has('play')){Object.defineProperty(window,'devicePixelRatio',{get:()=>+Q.get('dpr')||1,configurable:true});resize()}
 const capCanvas=document.createElement('canvas');capCanvas.width=CAP.w;capCanvas.height=CAP.h;
 const capCtx=capCanvas.getContext('2d',{alpha:false});
 // The game canvas plus the bloom layer, composited the way the page's CSS does it
