@@ -3423,3 +3423,7 @@ v2710 Swamp mantas move visibly: the wing beat is twice as quick (about
       one beat every 2.6 seconds) and twice as deep, swinging from well
       above the body to well below it. The body lifts on each downstroke,
       they circle about twice as fast and bank more steeply into the turn.
+v2720 Swamp relay outpost: on the approach its console screen and the
+      white delivery plinth showed through the swamp plants in front of
+      it. Both were painted after the whole sorted scene. They are now
+      drawn as part of the outpost itself, so nearer trunks cover them.

@@ -1344,17 +1344,20 @@ class CorridorEnvironmentController {
       if(centre[2]>.18&&centre[2]<165){
         let nearest=centre[2];
         for(const v of this.relayMesh.v||[]){const a=rotate([v[0]*obj.s,v[1]*obj.s,v[2]*obj.s],obj.rot),d=camPoint([a[0]+obj.x,a[1]+obj.y,a[2]+obj.z])[2];if(d>.18)nearest=Math.min(nearest,d)}
-        items.push({d:nearest,draw:()=>{drawMesh(obj,swampRelayOutpostBodyMesh,C.w,.96);drawSwampRelayCommsTower(obj)}})
+        // v2720 (Dave: could see the delivery platform through the swamp plants). The plinth
+        // repaint and the console screen used to be drawn after the whole sorted scene, so
+        // they showed through trunks standing in front of the outpost. They are now part of
+        // the outpost's own sorted draw, so nearer plants cover them.
+        items.push({d:nearest,draw:()=>{drawMesh(obj,swampRelayOutpostBodyMesh,C.w,.96);drawSwampRelayCommsTower(obj);
+          // The 02E delivery plinth is a solid cuboid. Repaint its exact authored faces
+          // after the rest of the facility so rear building/deck lines cannot show
+          // through its front or side faces.
+          drawMesh({type:'swampRelayDeliveryPlinthOccluder',x:obj.x,y:obj.y,z:obj.z,s:obj.s,rot:obj.rot},swampRelayDeliveryPlinthMesh,C.w,.96);
+          this.drawRelayConsoleScreen()}})
       }
     }
     items.sort((a,b)=>b.d-a.d);for(const item of items)item.draw();
-    // The 02E delivery plinth is a solid cuboid. Repaint its exact authored faces
-    // after the rest of the facility so rear building/deck lines cannot show
-    // through its front or side faces. Screen/cargo effects are layered afterwards.
-    if(this.isRelayDestination()&&this.relayOutpost){
-      drawMesh({type:'swampRelayDeliveryPlinthOccluder',x:this.relayOutpost.x,y:this.relayOutpost.y,z:this.relayOutpost.worldZ-travel,s:this.relayOutpost.s,rot:this.relayOutpost.rot},swampRelayDeliveryPlinthMesh,C.w,.96)
-    }
-    this.drawCabinCargo();this.drawRecorderData();this.drawRecorderMarker();this.drawRelayConsoleScreen();this.drawRelayCargo();this.drawRelayCalibration();
+    this.drawCabinCargo();this.drawRecorderData();this.drawRecorderMarker();this.drawRelayCargo();this.drawRelayCalibration();
     // Scanner rails are an emitted foreground effect from Agent X's drone. Draw
     // them after terrain and foliage so the lower portion remains visible all the
     // way to the bottom-centre of the play area. The actual surface contact marks
