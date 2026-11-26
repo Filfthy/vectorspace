@@ -3542,3 +3542,11 @@ v2870 Montage pilot plays rationally (promo only): shoots down incoming
       of customs rings, and with nothing to shoot steers for the nav
       marker the HUD shows. It steers the gunsight itself onto a target,
       not the screen centre.
+v2880 Montage (promo only): starts at 1.62 s, on the first drum stroke,
+      instead of 1.6 s of silence (live playback and the render, with
+      make-video.sh trimming the song to match). The reticle is steady:
+      the pilot keeps a target at least half a second unless a
+      projectile is about to hit, glides its aim between targets and no
+      longer holds the stick at full lock. The drone now takes hits on
+      camera (the shield drops and rebuilds) but is never destroyed: a
+      hit never takes the last shield point.

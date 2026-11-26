@@ -124,8 +124,9 @@ before the cut, then staged so the action fills the frame (fighters 20 to
 
 Open it with ?promo=montage:
   ?promo=montage&play          live with the music (&from=79.6 starts at the hush)
-  ?promo=montage&dpr=1.5       for rendering: PromoDirector.renderRange('montage',0,136.3)
-  bash promo/make-video.sh promo/out/montage music/violent/diesirae.ogg promo/out/vector-space-montage.mp4
+  ?promo=montage&dpr=1.5       for rendering: PromoDirector.renderRange('montage',1.62,136.3)
+  bash promo/make-video.sh promo/out/montage music/violent/diesirae.ogg promo/out/vector-space-montage.mp4 1.62
+  (the track opens with 1.6 s of silence: the video starts on the first drum stroke)
 
 Files
   montage-song.js     the track and its two sections

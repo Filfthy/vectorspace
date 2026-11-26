@@ -36,7 +36,11 @@ function launch(id,faction,{stage,edit,world,weapon='laser1',risk=4}={}){
 }
 // Fly a few seconds with the shot's pilot before the cut, then hold the stage where it is:
 // no job finishes or moves on while it is on camera.
-function warm(shot,secs){const n=Math.round(secs*30);for(let i=0;i<n;i++){if(i%4===0||i>n-4)D.readHud?.();shot.pilot?.(1/30);update(1/30)}scenarioFlow.completeCurrentStage=()=>{};shot.stage?.()}
+function warm(shot,secs){const n=Math.round(secs*30);for(let i=0;i<n;i++){if(i%4===0||i>n-4)D.readHud?.();shot.pilot?.(1/30);update(1/30)}scenarioFlow.completeCurrentStage=()=>{};shot.stage?.();invulnerable=false}
+
+// On camera the drone takes hits for real (the shield bar drops, rebuilds, the low-shield
+// warnings come), but a hit never takes the last shield point, so no shot ends in a loss.
+{const realDamage=game.damage.bind(game);game.damage=function(msg){if(shield<=1)return;return realDamage(msg)}}
 
 // ---------- Staging: bring the action in front of the camera at the cut ----------
 const SPOTS=[[-2,.5,20],[4,-1.5,27],[-1,2.5,34],[-7,-2,42],[8,2,50]];
@@ -80,21 +84,26 @@ D.readHud=()=>{frameNo++;try{last=1e6+D.gclock*1000;render(last)}catch(_){}};   
 function steer(tx,ty,dt,rate=2.6){const r=rate*(dt||1/30);inputX=clamp(inputX+clamp(tx-inputX,-r,r),-1,1);inputY=clamp(inputY+clamp(ty-inputY,-r,r),-1,1)}
 function trigger(on){if(on&&!fireHeld){fireHeld=true;beginLaserBurst()}if(fireHeld&&(++trigT>10||!on)){fireHeld=false;endLaserTrigger();trigT=0}}
 const toScreen=([x,y,z])=>{const q=camPoint([x,y,z]);return q[2]>.2?projectCam(q):{x:q[0]<0?-W:2*W,y:viewH*.48}};
-// Bring the gunsight (not the screen centre: it swings off centre in a bank) onto p.
+// Bring the gunsight (not the screen centre: it swings off centre in a bank) onto p. The
+// point the pilot steers for glides towards the target rather than jumping, so the sight
+// sweeps from target to target the way a hand on a mouse does.
+let sp=null,lockKind=null,lockT=0;
 function aimAt(p,radius,dt){
-  const a=aimScreen();
-  steer(clamp((p.x-a.x)/(W*.11),-1,1),clamp((p.y-a.y)/(viewH*.11),-1,1),dt,3.4);
+  const a=aimScreen(),k=Math.min(1,(dt||1/30)*5);
+  sp=sp?{x:sp.x+(p.x-sp.x)*k,y:sp.y+(p.y-sp.y)*k}:{x:a.x,y:a.y};
+  // A player rarely holds the stick at full lock: the sight stays within the middle of the
+  // screen and moves at a hand's pace.
+  steer(clamp(inputX+(sp.x-a.x)/(W*.5),-.7,.7),clamp(inputY+(sp.y-a.y)/(viewH*.5),-.7,.7),dt,1.8);
   // Fire when the sight is close, as a player does: some shots land, some just miss.
   trigger(Math.hypot(a.x-p.x,a.y-p.y)<Math.max(radius*1.5,30*W/1280))
 }
 const nestQuiet=()=>xenoNest?.active&&(xenoNest.state==='approach'||xenoNest.state==='observationRun');
 // Incoming projectiles: the nearest one heading in, if the sight can get to it.
-function shootBolts(dt){
+function boltTarget(){
   let best=null,bs=-1e9;
   for(const b of bolts){if(b.dead)continue;const p=boltScreenPoint(b);if(!p)continue;
-    const off=Math.hypot(p.x-W*.5,p.y-viewH*.48);if(off>W*.42)continue;const r=boltVisualRadius(b,p),sc=r*3-off*.4;if(sc>bs){bs=sc;best={p,r}}}
-  if(!best)return false;
-  aimAt(best.p,clamp(best.r*.9+12,34,82)*(campaign.boltToleranceMultiplier?.()||1)*.9,dt);return true
+    const off=Math.hypot(p.x-W*.5,p.y-viewH*.48);if(off>W*.42)continue;const r=boltVisualRadius(b,p),sc=r*3-off*.4;if(sc>bs){bs=sc;best={p,r,urgent:r>W*.035}}}
+  return best?{p:best.p,r:clamp(best.r*.9+12,34,82)*(campaign.boltToleranceMultiplier?.()||1)*.9,urgent:best.urgent,kind:'bolt'}:null
 }
 function hostiles(){
   if(nestQuiet())return[];
@@ -105,23 +114,27 @@ function hostiles(){
   if(phase==='asteroids'&&st==='asteroids'&&asteroidField.active&&!asteroidField.courierMode)
     return asteroids.filter(a=>a&&!a.dead&&!a.dying&&(!asteroidField.markedTargets||a.missionTarget===true));
   if(phase==='surface'&&groundTargets.length&&!groundAssault?.active)
-    return groundTargets.filter(g=>g.doorPylon&&!g.dead&&!g.capDead&&!g.capDying).map(g=>({x:g.x,y:towerCapY(g),z:g.worldZ-travel,s:g.s||1}));
+    return groundTargets.filter(g=>g.doorPylon&&!g.dead&&!g.capDead&&!g.capDying).map(g=>({src:g,x:g.x,y:towerCapY(g),z:g.worldZ-travel,s:g.s||1}));
   if(phase==='trench'||phase==='reactor'||phase==='escape')
-    return groundTargets.filter(g=>!g.dead&&!g.dying&&(g.type==='reactor'?g.active:g.type==='wallgun')).map(g=>({x:g.x,y:g.y+(g.yOff||0),z:g.worldZ-travel,s:g.s||1})).filter(o=>o.z>2&&o.z<120);
+    return groundTargets.filter(g=>!g.dead&&!g.dying&&(g.type==='reactor'?g.active:g.type==='wallgun')).map(g=>({src:g,x:g.x,y:g.y+(g.yOff||0),z:g.worldZ-travel,s:g.s||1})).filter(o=>o.z>2&&o.z<120);
   // Swamp spitters spit at the drone: shoot the ones on the path ahead.
   if(forest?.active&&forest.spitters)
-    return forest.spitters.filter(pl=>!pl.dead&&!pl.dying).map(pl=>forest.swampSpitterHeadWorld(pl)).map(h=>({x:h.x,y:h.y,z:h.z,s:1.4})).filter(o=>o.z>8&&o.z<80);
+    return forest.spitters.filter(pl=>!pl.dead&&!pl.dying).map(pl=>({pl,h:forest.swampSpitterHeadWorld(pl)})).map(({pl,h})=>({src:pl,x:h.x,y:h.y,z:h.z,s:1.4})).filter(o=>o.z>8&&o.z<80);
   return[]
 }
-function fight(dt){
-  const list=hostiles();let best=null,bd=1e9;
-  for(const x of list){const q=camPoint([x.x,x.y,x.z]),d=Math.hypot(q[0],q[1],q[2]);if(q[2]>2&&q[2]<180&&d<bd){bd=d;best={x,q}}}
-  if(!best){
-    // One behind or beside: turn round towards it, as a player checks behind them.
-    const any=list[0];if(!any)return false;const q=camPoint([any.x,any.y,any.z]);
-    steer(clamp(q[0]/(Math.abs(q[2])+8)*2+(q[2]<0?Math.sign(q[0]||1):0),-1,1),clamp(-q[1]/(Math.abs(q[2])+8)*2,-1,1),dt);trigger(false);return true}
-  const pp=projectCam(best.q);if(!pp)return false;
-  aimAt(pp,Math.max(16*W/1280,(best.x.s||1)*pp.k*.85),dt);return true
+// The hostile to fight: the one already being fought while it lives and stays in front,
+// else the nearest in front. With only one behind, a turn to bring it round.
+let curHost=null;
+function hostTarget(){
+  const list=hostiles();if(!list.length){curHost=null;return null}
+  const front=x=>{const q=camPoint([x.x,x.y,x.z]);return q[2]>2&&q[2]<180?q:null};
+  let x=null,q=null;
+  if(curHost){const same=list.find(o=>o===curHost||(o.src&&o.src===curHost.src));if(same){const f=front(same);if(f){x=same;q=f}}}
+  if(!x){let bd=1e9;for(const o of list){const f=front(o);if(!f)continue;const d=Math.hypot(f[0],f[1],f[2]);if(d<bd){bd=d;x=o;q=f}}}
+  if(!x){const o=list[0],c=camPoint([o.x,o.y,o.z]);curHost=null;
+    return{turn:[clamp(c[0]/(Math.abs(c[2])+8)*2+(c[2]<0?Math.sign(c[0]||1):0),-1,1),clamp(-c[1]/(Math.abs(c[2])+8)*2,-1,1)],kind:'host'}}
+  curHost=x;const pp=projectCam(q);if(!pp)return null;
+  return{p:pp,r:Math.max(16*W/1280,(x.s||1)*pp.k*.85),kind:'host'}
 }
 // Armour field: a live unit ahead, its knees first, else its hull.
 let gT=null;
@@ -174,13 +187,20 @@ function navigate(dt){
   else if(phase==='forest'&&forest?.active){const p=forest.pathAtWorld?.(travel+16);if(p)tx=clamp((p.x-shipX)*.3,-1,1)+sway*.5;ty=bob*.3}
   steer(clamp(tx+ax,-1,1),clamp(ty+ay,-1,1),dt,1.8);trigger(false)
 }
+// A target, once chosen, is held for at least half a second: a projectile only breaks off a
+// fight sooner when it is about to hit.
 function player(dt){
-  frameNo++;
+  frameNo++;lockT+=dt||1/30;
   if(routeDiversion?.active&&routeDiversion.state==='customs')return customs(dt);
   if(groundAssault?.active&&ground(dt))return;
-  if(!nestQuiet()&&shootBolts(dt))return;
-  if(fight(dt))return;
-  navigate(dt)
+  const bolt=nestQuiet()?null:boltTarget(),host=hostTarget();
+  let pick=null;
+  if(bolt&&(lockKind==='bolt'||lockT>.55||bolt.urgent||!host))pick=bolt;
+  else if(host)pick=host;
+  if(pick){if(pick.kind!==lockKind){lockKind=pick.kind;lockT=0}
+    if(pick.turn){steer(pick.turn[0],pick.turn[1],dt,2.2);trigger(false);sp=null;return}
+    aimAt(pick.p,pick.r,dt);return}
+  lockKind=null;sp=null;navigate(dt)
 }
 
 // ---------- The shots ----------
@@ -188,12 +208,12 @@ function player(dt){
 const fightJob=(profile,{weapon='laser1',target=60,hp=12,risk=5}={})=>({setup(){launch('fighters','security',{stage:'fighters',weapon,risk,edit:m=>{const f=m.modules.find(x=>x.type==='fighters');if(f){f.profile=profile;f.target=target;f.fighterHp=hp;f.encounterChance=1}}})},pilot:player,warm:3.5,stage:()=>stageFighters()});
 const SHOTS=[
   // The tutti: the five bass drum strokes, one shot each
-  {t:0,    ...fightJob('pirate',{weapon:'jackalsCrown'}),warm:4},
-  {t:1.70, setup(){launch('dune_armour_clearance','security',{stage:'dune_assault',world:C.y,weapon:'ripper'})},pilot:player,stage:()=>stageGround(),warm:9},
-  {t:2.50, setup(){launch('asteroids','trade',{stage:'asteroids'})},pilot:player,stage:()=>stageRocks(),warm:4},
-  {t:3.35, ...fightJob('xeno'),warm:4},
-  {t:4.15, setup(){launch('deep_core','security',{stage:'deep_core_surface',world:C.o})},pilot:player,stage:()=>stagePylons(),warm:7},
-  {t:4.95, ...fightJob('hijacked',{weapon:'jackalsCrown'}),warm:5},
+  {t:0,    ...fightJob('pirate',{weapon:'jackalsCrown'}),warm:4},   // opens on the first note (PROMO_SONG.start)
+  {t:2.50, setup(){launch('dune_armour_clearance','security',{stage:'dune_assault',world:C.y,weapon:'ripper'})},pilot:player,stage:()=>stageGround(),warm:9},
+  {t:3.35, setup(){launch('asteroids','trade',{stage:'asteroids'})},pilot:player,stage:()=>stageRocks(),warm:4},
+  {t:4.15, ...fightJob('xeno'),warm:4},
+  {t:4.95, setup(){launch('deep_core','security',{stage:'deep_core_surface',world:C.o})},pilot:player,stage:()=>stagePylons(),warm:7},
+  {t:5.85, ...fightJob('hijacked',{weapon:'jackalsCrown'}),warm:5},
   {t:8.20, setup(){launch('swamp_relay_delivery','trade',{stage:'forest_corridor'})},pilot:player,warm:6},
   {t:17.24,setup(){launch('ice_field_armour','security',{stage:'dune_assault',world:C.c})},pilot:player,stage:()=>stageGround(),warm:10},
   {t:20.04,setup(){launch('taco_run','quickbite',{stage:'taco_asteroid_delivery'})},pilot:player,stage:()=>stageFighters(),warm:6},
@@ -224,12 +244,12 @@ const SHOTS=[
 ];
 SHOTS.forEach((s,i)=>{
   const shot={name:`shot${i+1}`,t0:s.t,seed:9000+i,
-    stage(){try{s.stage?.()}catch(e){D.log.push(`${shot.name} staging failed: ${e.message}`)}},
+    stage(){sp=null;lockKind=null;curHost=null;try{s.stage?.()}catch(e){D.log.push(`${shot.name} staging failed: ${e.message}`)}},
     setup(){try{s.setup();warm(shot,s.warm||3)}catch(e){D.log.push(`${shot.name} setup failed: ${e.message}`)}},
     pilot(dt){s.pilot?.(dt)},
     overlay(t){
       // Fade in from black at the start and out at the end.
-      const a=Math.max(clamp(1-(t-0)/1.2,0,1),clamp((t-(PROMO_SONG.end-4))/3.6,0,1));
+      const a=Math.max(clamp(1-(t-PROMO_SONG.start)/.25,0,1),clamp((t-(PROMO_SONG.end-4))/3.6,0,1));
       if(a>0){ctx.save();ctx.globalAlpha=a;ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);ctx.restore()}
     }};
   D.scenes.push(shot)

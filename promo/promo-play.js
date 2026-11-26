@@ -22,7 +22,7 @@ button.addEventListener('click',async()=>{
   button.remove();
   try{await document.documentElement.requestFullscreen()}catch(_){}
   D.takeControl();
-  const from=Math.max(0,+Promo.Q.get('from')||0);
+  const from=Math.max(0,+Promo.Q.get('from')||PROMO_SONG.start||0);
   D.seek(from);
   await songReady;
   song.currentTime=from;
