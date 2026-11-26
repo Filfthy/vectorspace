@@ -545,7 +545,7 @@ class StationDeliveryController {
     const continuous=this.state==='hackReady';
     stationHack?.resetDataTransfer?.();
     if(continuous){
-      travel=this.deliveryStop;this.state='hack';stationHack?.startDataTransfer?.();audio?.hackChirp?.start?.();say(String(stage?.acquiredMessage||'SECURE TERMINAL ACQUIRED').toUpperCase(),.68)
+      travel=this.deliveryStop;this.state='hack';stationHack?.startDataTransfer?.();audio?.hackChirp?.start?.();say(String(stage?.acquiredMessage||'SECURE TERMINAL ACQUIRED').toUpperCase(),.68);this.playStageVoice(stage?.startVoice)
     }else{
       travel=1.05;this.state='hackApproach';shipX=0;shipY=0;viewYaw=viewPitch=viewRoll=0;inputX=inputY=aimX=aimY=0
     }
@@ -567,6 +567,9 @@ class StationDeliveryController {
     this.hackT=0;this.hackDuration=Math.max(2.5,Number(stage?.transferSeconds)||4.5);this.hackProgress=0;this.hackComplete=false;this.hackQuiet=false;this.alarmT=0;this.turnT=0;
     return true
   }
+  // v2750 (Dave: no voice line for the override): a stage can name its own start and finish
+  // lines. Plays only if the recording is in voices/, and says whether it did.
+  playStageVoice(key){if(!key||!audio.hasVoice?.(key))return false;audio.playVoice(key,{once:false,priority:true});return true}
   beginHackDeparture(stage=this.stage){
     if(!this.active)return false;
     audio?.hackChirp?.stop?.();
@@ -699,7 +702,7 @@ class StationDeliveryController {
       return
     }
     if(this.state==='hackApproach'){
-      if(travel>=this.deliveryStop-.03){travel=this.deliveryStop;this.state='hack';this.hackT=0;stationHack?.startDataTransfer?.();audio?.hackChirp?.start?.();say(String(this.stage?.acquiredMessage||'SECURE TERMINAL ACQUIRED').toUpperCase(),.68)}
+      if(travel>=this.deliveryStop-.03){travel=this.deliveryStop;this.state='hack';this.hackT=0;stationHack?.startDataTransfer?.();audio?.hackChirp?.start?.();say(String(this.stage?.acquiredMessage||'SECURE TERMINAL ACQUIRED').toUpperCase(),.68);this.playStageVoice(this.stage?.startVoice)}
       return
     }
     if(this.state==='secureApproach'){
@@ -742,7 +745,7 @@ class StationDeliveryController {
         // v2740: an authorised override (OSD rescinding its own order) finishes like a secure
         // transfer: no red screen, no alarm and no security alert.
         this.hackQuiet=!!this.stage?.quietOverride;
-        if(this.hackQuiet){audio?.hackChirp?.stop?.();SoundFX.relayCalibrated?.();audio.playVoice('dataTransferComplete',{once:false,priority:true})}
+        if(this.hackQuiet){audio?.hackChirp?.stop?.();SoundFX.relayCalibrated?.();if(!this.playStageVoice(this.stage?.completeVoice))audio.playVoice('dataTransferComplete',{once:false,priority:true})}
         else{audio?.hackChirp?.complete?.();SoundFX.terminalRed();audio.playVoice('terminalHacked',{once:false,priority:true})}
         this.state='hackAlarm';this.alarmT=0;say(String(this.stage?.completeMessage||'ACCESS COMPLETE · SECURITY ALERT').toUpperCase(),.95)
       }

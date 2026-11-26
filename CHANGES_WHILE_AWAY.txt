@@ -3439,3 +3439,9 @@ v2740 Calm after the override: the hub terminal and the withdrawal after
       screen, the alarm and "Terminal hacked. Security alert." The
       terminal stays cyan, chimes and says "Data transfer complete".
       Heists keep their alarm.
+v2750 Crossroads override voice: the override had no voice line. Sonia
+      now says "Overriding blockade order." when the transfer starts and
+      "Blockade order rescinded." when it ends. Rendered in "voices
+      unprocessed" (overridingblockadeorder.mp3,
+      blockadeorderrescinded.mp3). Until they are normalised into voices/
+      it falls back to "Data transfer complete" at the end.
