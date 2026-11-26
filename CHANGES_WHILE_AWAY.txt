@@ -3431,3 +3431,11 @@ v2730 Birds behind hills: the swamp bird flocks, the swamp mantas and the
       flocks on green and blue worlds were drawn after the land, so they
       showed through any rise in front of them. Each flock and manta is
       now depth sorted in with the hill strips, so the land hides them.
+v2740 Calm after the override: the hub terminal and the withdrawal after
+      it played the battle music, because OSD story missions default to
+      it. Nothing hostile is left at that point (the mines are switched
+      off), so every terminal hack and hack withdrawal now plays calm.
+      Crossroads Pickets and Silent Node also finish without the red
+      screen, the alarm and "Terminal hacked. Security alert." The
+      terminal stays cyan, chimes and says "Data transfer complete".
+      Heists keep their alarm.

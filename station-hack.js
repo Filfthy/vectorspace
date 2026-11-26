@@ -775,7 +775,7 @@ class StationHackController {
     if(!this.active||phase!=='stationInterior'||stationDelivery.interiorMode!=='hack')return;
     // Only the hostile Crossroads hack is an alarm/red state. Legitimate VOX
     // credential/data transfers stay in the established cyan/green secure palette.
-    const L=stationDelivery.hackInteriorLayout?.()||{terminalZ:30.0},alarm=stationDelivery.terminalPurpose==='hack'&&stationDelivery.hackComplete,col=alarm?C.r:C.c,screenZ=L.terminalZ-travel,left=-.68,right=.68,top=.52,bottom=-.50;
+    const L=stationDelivery.hackInteriorLayout?.()||{terminalZ:30.0},alarm=stationDelivery.terminalPurpose==='hack'&&stationDelivery.hackComplete&&!stationDelivery.hackQuiet,col=alarm?C.r:C.c,screenZ=L.terminalZ-travel,left=-.68,right=.68,top=.52,bottom=-.50;
     const corners=[[left,bottom,screenZ],[right,bottom,screenZ],[right,top,screenZ],[left,top,screenZ]],pp=corners.map(p=>proj(p));
     if(pp.every(Boolean)){fillPoly(pp);for(let i=0;i<4;i++)line(pp[i].x,pp[i].y,pp[(i+1)%4].x,pp[(i+1)%4].y,col,1,.98)}
     this.drawLineDisplay((x,y)=>proj([x,y,screenZ-.015]),{left,right,bottom,top,alarm,time:this.t});

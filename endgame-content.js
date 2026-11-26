@@ -43,7 +43,7 @@
       description:'A remnant relay node has mined its approach and is guarded by drones. Destroy the guards, thread the mines and wipe the node from its own terminal.',
       modules:(n,hp)=>[{type:'station_minefield_approach',label:'Guards and Minefield',difficulty:5,stationModel:'Crossroads Outpost',routeSeconds:26,mineCount:46,mineTriggerRadius:15.5,mineBlastRadius:22,
           combatBeforeApproach:true,target:n,fighterHp:hp,profile:'rogue',combatMessage:'Destroy the node guards',postCombatMessage:'Guards down. Proceed through the minefield'},
-        {type:'station_terminal_hack',label:'Wipe the Node',hackSeconds:5,acquiredMessage:'NODE TERMINAL ACQUIRED',completeMessage:'NODE WIPED',hackHudPrefix:'WIPE',completeHud:'NODE WIPED'},
+        {type:'station_terminal_hack',label:'Wipe the Node',quietOverride:true,hackSeconds:5,acquiredMessage:'NODE TERMINAL ACQUIRED',completeMessage:'NODE WIPED',hackHudPrefix:'WIPE',completeHud:'NODE WIPED'},
         {type:'station_hack_escape',label:'Withdraw',escapeDistance:280,escapeMessage:'Withdraw through the minefield'}],
       stages:['Destroy the Guards','Cross the Minefield','Wipe the Node','Withdraw']},
     // v980: two more set pieces in the rotation, using tonight's hijacked drones and the

@@ -278,7 +278,10 @@ class ScenarioFlowController {
     // v2570 (Dave: Blockade kept the battle music all the way to the depot and after). Story
     // chains default to the violent playlist, but a transit or a depot visit after the fight
     // is a quiet leg, so it is always calm whatever the mission's base mode.
-    const quietLeg=stage.type==='space_transit'||stage.type==='free_traders_depot_terminal'||stage.type==='helix_biolab_approach';
+    // v2740 (Dave: Crossroads went to battle music after the data transfer). The hub terminal
+    // and the withdrawal behind it have nothing hostile in them (the mines are switched off),
+    // so they are quiet legs too.
+    const quietLeg=stage.type==='space_transit'||stage.type==='free_traders_depot_terminal'||stage.type==='helix_biolab_approach'||stage.type==='station_terminal_hack'||stage.type==='station_hack_escape';
     audio.music.setMode(combatMusic?'violent':(quietLeg?'calm':(mission?.musicMode||campaign.currentMission?.musicMode||'calm')));
     if(stage.type==='asteroid_wreck_recovery'){
       asteroidWreckRun.begin(stage);return true

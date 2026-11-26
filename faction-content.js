@@ -64,7 +64,7 @@
       modules:[
         {type:'station_minefield_approach',label:'Picket Line and Minefield',difficulty:4,stationModel:'Crossroads Outpost',routeSeconds:24,mineCount:40,mineTriggerRadius:15.5,mineBlastRadius:22,
           combatBeforeApproach:true,target:8,fighterHp:12,profile:'rogue',combatMessage:'Destroy the OSD pickets',postCombatMessage:'Pickets down. Proceed through the minefield'},
-        {type:'station_terminal_hack',label:'Override the Blockade Order',hackSeconds:4.6,acquiredMessage:'HUB TERMINAL ACQUIRED',completeMessage:'BLOCKADE ORDER RESCINDED',hackHudPrefix:'OVERRIDE',completeHud:'ORDER RESCINDED'},
+        {type:'station_terminal_hack',label:'Override the Blockade Order',quietOverride:true,hackSeconds:4.6,acquiredMessage:'HUB TERMINAL ACQUIRED',completeMessage:'BLOCKADE ORDER RESCINDED',hackHudPrefix:'OVERRIDE',completeHud:'ORDER RESCINDED'},
         {type:'station_hack_escape',label:'Minefield Withdrawal',escapeDistance:260,escapeMessage:'Withdraw through the minefield'}
       ],
       stages:['Destroy the Pickets','Cross the Minefield','Override the Order','Withdraw'],

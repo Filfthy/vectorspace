@@ -549,7 +549,7 @@ class StationDeliveryController {
     }else{
       travel=1.05;this.state='hackApproach';shipX=0;shipY=0;viewYaw=viewPitch=viewRoll=0;inputX=inputY=aimX=aimY=0
     }
-    this.hackT=0;this.hackDuration=Math.max(2.5,Number(stage?.hackSeconds)||4.5);this.hackProgress=0;this.hackComplete=false;this.alarmT=0;this.turnT=0;
+    this.hackT=0;this.hackDuration=Math.max(2.5,Number(stage?.hackSeconds)||4.5);this.hackProgress=0;this.hackComplete=false;this.hackQuiet=false;this.alarmT=0;this.turnT=0;
     return true
   }
   beginSecureTransfer(stage=this.stage){
@@ -564,7 +564,7 @@ class StationDeliveryController {
     }else{
       travel=1.05;this.state='secureApproach';shipX=0;shipY=0;viewYaw=viewPitch=viewRoll=0;inputX=inputY=aimX=aimY=0
     }
-    this.hackT=0;this.hackDuration=Math.max(2.5,Number(stage?.transferSeconds)||4.5);this.hackProgress=0;this.hackComplete=false;this.alarmT=0;this.turnT=0;
+    this.hackT=0;this.hackDuration=Math.max(2.5,Number(stage?.transferSeconds)||4.5);this.hackProgress=0;this.hackComplete=false;this.hackQuiet=false;this.alarmT=0;this.turnT=0;
     return true
   }
   beginHackDeparture(stage=this.stage){
@@ -738,9 +738,12 @@ class StationDeliveryController {
       // Stop launching packets at 100%, let the final packet(s) physically reach
       // the terminal, then perform the completion/audio/alarm transition.
       if(stationHack?.dataTransferFinished?.()){
-        this.hackComplete=true;audio?.hackChirp?.complete?.();SoundFX.terminalRed();
-        stationHack?.deactivateMines?.();
-        audio.playVoice('terminalHacked',{once:false,priority:true});
+        this.hackComplete=true;stationHack?.deactivateMines?.();
+        // v2740: an authorised override (OSD rescinding its own order) finishes like a secure
+        // transfer: no red screen, no alarm and no security alert.
+        this.hackQuiet=!!this.stage?.quietOverride;
+        if(this.hackQuiet){audio?.hackChirp?.stop?.();SoundFX.relayCalibrated?.();audio.playVoice('dataTransferComplete',{once:false,priority:true})}
+        else{audio?.hackChirp?.complete?.();SoundFX.terminalRed();audio.playVoice('terminalHacked',{once:false,priority:true})}
         this.state='hackAlarm';this.alarmT=0;say(String(this.stage?.completeMessage||'ACCESS COMPLETE · SECURITY ALERT').toUpperCase(),.95)
       }
       return
@@ -1088,7 +1091,7 @@ class StationDeliveryController {
         ctx.save();ctx.beginPath();ctx.moveTo(mouth[0].x,mouth[0].y);for(let i=1;i<4;i++)ctx.lineTo(mouth[i].x,mouth[i].y);ctx.closePath();ctx.clip();
         const back=rect(L.roomHalfW,L.roomHalfH,L.roomEnd);panel(back,C.g);
         // Terminal and white cabinets are all on the same physical back-wall plane.
-        const screen=rect(.86,.63,L.terminalZ),alarm=this.terminalPurpose==='hack'&&this.hackComplete;panel(screen,alarm?C.r:C.c);
+        const screen=rect(.86,.63,L.terminalZ),alarm=this.terminalPurpose==='hack'&&this.hackComplete&&!this.hackQuiet;panel(screen,alarm?C.r:C.c);
         for(const fx of this.hackRoomFixtures()){
           const q=[worldPoint(fx.x0,fx.y0,fx.z),worldPoint(fx.x1,fx.y0,fx.z),worldPoint(fx.x1,fx.y1,fx.z),worldPoint(fx.x0,fx.y1,fx.z)];
           panel(q,fx.col)
