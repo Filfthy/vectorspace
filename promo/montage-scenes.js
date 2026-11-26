@@ -20,7 +20,7 @@ function resetGame(){
   inputX=inputY=aimX=aimY=0;paused=false;document.body.classList.remove('paused');if(campaign.isOpen())campaign.hideHub();invulnerable=true
 }
 // Launch a board job as a dev test with its modules edited, then run to the wanted stage.
-function launch(id,faction,{stage,edit,world,weapon='laser1',risk=4}={}){
+function launch(id,faction,{stage,edit,world,weapon='laser1',risk=4,jump=null}={}){
   resetGame();
   if(world)window.landingWorldColour=()=>world;
   const m=campaign.makeDevTemplatePreview(id,faction);if(!m)throw new Error('no template '+id);
@@ -32,11 +32,12 @@ function launch(id,faction,{stage,edit,world,weapon='laser1',risk=4}={}){
     for(let i=0;i<20;i++)update(1/30);
     if(campaign.currentStage()?.type!==stage)realComplete()}
   for(let i=0;i<400&&(mode==='missionTransit'||mode==='briefing');i++)update(1/30);
+  if(jump)mission.jumpTo(jump);
   campaign.activeWeapon=weapon
 }
 // Fly a few seconds with the shot's pilot before the cut, then hold the stage where it is:
 // no job finishes or moves on while it is on camera.
-function warm(shot,secs){const n=Math.round(secs*30);for(let i=0;i<n;i++){if(i%4===0||i>n-4)D.readHud?.();shot.pilot?.(1/30);update(1/30)}scenarioFlow.completeCurrentStage=()=>{};shot.stage?.();invulnerable=false}
+function warm(shot,secs){const n=Math.round(secs*30);for(let i=0;i<n;i++){if(i>n-4)D.readHud?.();shot.pilot?.(1/30);update(1/30)}scenarioFlow.completeCurrentStage=()=>{};shot.stage?.();invulnerable=false}
 
 // On camera the drone takes hits for real (the shield bar drops, rebuilds, the low-shield
 // warnings come), but a hit never takes the last shield point, so no shot ends in a loss.
@@ -66,7 +67,7 @@ function stageStation(at=[24,-3,200]){const w=cameraPointToWorld(at);stationDeli
 function stagePylons(dist=60){
   const P=groundTargets.filter(g=>g.doorPylon&&!g.dead&&!g.capDead);if(!P.length)return;
   let g=P[0],bd=1e9;for(const x of P){const d=Math.abs(x.worldZ-travel-dist)+Math.abs(x.x-shipX)*.5;if(d<bd){bd=d;g=x}}
-  travel=g.worldZ-dist;shipX=g.x;inputX=inputY=0;viewRoll=0
+  travel=g.worldZ-dist;shipX=g.x+(g.x>0?-5:5);inputX=inputY=0;viewRoll=0   // lined up beside its tower, not on it
 }
 
 // ---------- Pilots ----------
@@ -114,7 +115,7 @@ function hostiles(){
   if(phase==='asteroids'&&st==='asteroids'&&asteroidField.active&&!asteroidField.courierMode)
     return asteroids.filter(a=>a&&!a.dead&&!a.dying&&(!asteroidField.markedTargets||a.missionTarget===true));
   if(phase==='surface'&&groundTargets.length&&!groundAssault?.active)
-    return groundTargets.filter(g=>g.doorPylon&&!g.dead&&!g.capDead&&!g.capDying).map(g=>({src:g,x:g.x,y:towerCapY(g),z:g.worldZ-travel,s:g.s||1}));
+    return groundTargets.filter(g=>g.doorPylon&&!g.dead&&!g.capDead&&!g.capDying).map(g=>({src:g,cap:true,x:g.x,y:towerCapY(g),z:g.worldZ-travel,s:g.s||1}));
   if(phase==='trench'||phase==='reactor'||phase==='escape')
     return groundTargets.filter(g=>!g.dead&&!g.dying&&(g.type==='reactor'?g.active:g.type==='wallgun')).map(g=>({src:g,x:g.x,y:g.y+(g.yOff||0),z:g.worldZ-travel,s:g.s||1})).filter(o=>o.z>2&&o.z<120);
   // Swamp spitters spit at the drone: shoot the ones on the path ahead.
@@ -127,14 +128,15 @@ function hostiles(){
 let curHost=null;
 function hostTarget(){
   const list=hostiles();if(!list.length){curHost=null;return null}
-  const front=x=>{const q=camPoint([x.x,x.y,x.z]);return q[2]>2&&q[2]<180?q:null};
+  // A pylon top too close to shoot is let go (flying on at it means flying over its tower).
+  const front=x=>{const q=camPoint([x.x,x.y,x.z]);return q[2]>(x.cap?16:2)&&q[2]<180?q:null};
   let x=null,q=null;
   if(curHost){const same=list.find(o=>o===curHost||(o.src&&o.src===curHost.src));if(same){const f=front(same);if(f){x=same;q=f}}}
   if(!x){let bd=1e9;for(const o of list){const f=front(o);if(!f)continue;const d=Math.hypot(f[0],f[1],f[2]);if(d<bd){bd=d;x=o;q=f}}}
   if(!x){const o=list[0],c=camPoint([o.x,o.y,o.z]);curHost=null;
     return{turn:[clamp(c[0]/(Math.abs(c[2])+8)*2+(c[2]<0?Math.sign(c[0]||1):0),-1,1),clamp(-c[1]/(Math.abs(c[2])+8)*2,-1,1)],kind:'host'}}
   curHost=x;const pp=projectCam(q);if(!pp)return null;
-  return{p:pp,r:Math.max(16*W/1280,(x.s||1)*pp.k*.85),kind:'host'}
+  return{p:pp,r:x.cap?clamp(.68*x.s*pp.k,12,48)*1.4:Math.max(16*W/1280,(x.s||1)*pp.k*.85),kind:'host'}
 }
 // Armour field: a live unit ahead, its knees first, else its hull.
 let gT=null;
@@ -175,8 +177,17 @@ function navPoint(){
 // Mines: never shot. Any close to the line of flight push the steering away from them.
 function avoidMines(){
   let ax=0,ay=0;const mines=[...(stationHack?.active?stationHack.mines||[]:[]),...(routeDiversion?.active?routeDiversion.mines||[]:[]),...(globalThis.AgentXMinelayers?.mines||[])];
-  for(const m of mines){if(m.dead||m.dying||m.retired||m.exitScenery)continue;const q=camPoint([m.x,m.y,m.z]);if(q[2]<4||q[2]>70)continue;
-    const lat=Math.hypot(q[0],q[1]),clear=(m.s||1)*3+5;if(lat>clear)continue;const w=(1-lat/clear)*(1-q[2]/70)*1.6;ax-=Math.sign(q[0]||1)*w;ay+=Math.sign(q[1]||1)*w*.6}
+  const trig=(stationHack?.active?stationHack.triggerRadius:0)||8,clear=trig+5,ahead=120;
+  for(const m of mines){if(m.dead||m.dying||m.retired||m.exitScenery||m.deactivated)continue;const q=camPoint([m.x,m.y,m.z]);if(q[2]<-trig||q[2]>ahead)continue;
+    const lat=Math.hypot(q[0],q[1]);if(lat>clear)continue;const w=(1-lat/clear)*(1-Math.max(0,q[2])/ahead)*2.4;ax-=Math.sign(q[0]||1)*w;ay+=Math.sign(q[1]||1)*w*.8}
+  // Towers, guns and bunkers on a deep-core surface: flying straight over one is a collision.
+  if(phase==='surface'&&!groundAssault?.active)for(const g of groundTargets){if(g.dead)continue;const dz=g.worldZ-travel,dx=g.x-shipX;if(dz<.2||dz>24||Math.abs(dx)>3.2)continue;ax-=Math.sign(dx||1)*(1-Math.abs(dx)/3.2)*(1-dz/24)*3}
+  // Rocks in the flight line.
+  for(const a of asteroids){if(!a||a.dead||a.dying)continue;const q=camPoint([a.x,a.y,a.z]);if(q[2]<1||q[2]>45)continue;
+    const lat=Math.hypot(q[0],q[1]),clear=(a.s||1)*1.6+2.5;if(lat>clear)continue;const w=(1-lat/clear)*(1-q[2]/45)*2.6;ax-=Math.sign(q[0]||1)*w;ay+=Math.sign(q[1]||1)*w*.8}
+  // City traffic: civilians, never shot, flown round.
+  if(jackalDelivery?.active)for(const v of jackalDelivery.traffic||[]){if(v.dead)continue;const q=camPoint([v.x,v.y,v.worldZ-travel]);if(q[2]<3||q[2]>55)continue;
+    const lat=Math.hypot(q[0],q[1]*1.4),clear=3.2;if(lat>clear)continue;const w=(1-lat/clear)*(1-q[2]/55)*2.2;ax-=Math.sign(q[0]||1)*w;ay+=Math.sign(q[1]||1)*w*.5}
   return[ax,ay]
 }
 function navigate(dt){
@@ -187,20 +198,53 @@ function navigate(dt){
   else if(phase==='forest'&&forest?.active){const p=forest.pathAtWorld?.(travel+16);if(p)tx=clamp((p.x-shipX)*.3,-1,1)+sway*.5;ty=bob*.3}
   steer(clamp(tx+ax,-1,1),clamp(ty+ay,-1,1),dt,1.8);trigger(false)
 }
+// A corridor run (forest or swamp): the lane is the job. Hold the clear path, ease away from
+// obstacle trees ahead, and fire only when the sight comes across a spitter or a projectile,
+// never steering off the path to chase one.
+function corridorRun(dt){
+  wt+=dt||1/30;const k=(D.scene?.seed||1)%17;
+  const p=forest.pathAtWorld?.(travel+12);let want=p?p.x+.35*Math.sin(wt*.7+k):shipX,ty=.04*Math.sin(wt*.8+k);
+  // The next obstacle in the lane: a standing trunk is passed on the side nearer the middle
+  // of the path, a fallen one is hopped over.
+  let next=null,nz=1e9;for(const o of forest.obstacles||[]){if(o.passed)continue;const dz=o.worldZ-travel;if(dz>.1&&dz<48&&dz<nz){nz=dz;next=o}}
+  if(next){const of=next.obstacle||{};
+    if(of.kind==='fallen'){if(nz<22)ty=-.75}
+    else{const r=(of.radius||.85)+1.6;if(next._montageSide||Math.abs(want-next.x)<r){const pc=p?p.x:shipX;next._montageSide=next._montageSide||(pc>=next.x?1:-1);want=next.x+next._montageSide*r}}}   // the side is chosen once and kept
+  const tx=clamp((want-shipX)*1.1,-1,1);
+  steer(tx,clamp(ty,-.8,.4),dt,4.5);
+  const a=aimScreen();let on=false;
+  for(const x of hostiles()){const q=camPoint([x.x,x.y,x.z]);if(q[2]<4)continue;const pp=projectCam(q);if(pp&&Math.hypot(pp.x-a.x,pp.y-a.y)<Math.max(26*W/1280,(x.s||1)*pp.k*.8))on=true}
+  for(const b of bolts){if(b.dead)continue;const pp=boltScreenPoint(b);if(pp&&Math.hypot(pp.x-a.x,pp.y-a.y)<clamp(boltVisualRadius(b,pp)*.9+12,34,82)*.8)on=true}
+  trigger(on)
+}
+// Tunnel bars: pass over or under the next one (whichever side the drone is already on),
+// holding that line until it is behind. Returns the vertical steer, or null with no bar near.
+function barDodge(){
+  let next=null,nz=1e9;for(const h of hazards){if(h.dead||h.dying||h.passed||h.factoryBar)continue;if(h.z>.3&&h.z<34&&h.z<nz){nz=h.z;next=h}}
+  if(!next)return null;
+  const c=tunnelCenter(next.z),off=shipY-c.y;next._montageSide=next._montageSide||(off>=next.y?1:-1);
+  const want=next.y+next._montageSide*(next.clearance+.55);return clamp(-(want-off)*1.4,-1,1)
+}
 // A target, once chosen, is held for at least half a second: a projectile only breaks off a
 // fight sooner when it is about to hit.
 function player(dt){
   frameNo++;lockT+=dt||1/30;
   if(routeDiversion?.active&&routeDiversion.state==='customs')return customs(dt);
+  if(phase==='forest'&&forest?.active)return corridorRun(dt);
   if(groundAssault?.active&&ground(dt))return;
   const bolt=nestQuiet()?null:boltTarget(),host=hostTarget();
   let pick=null;
   if(bolt&&(lockKind==='bolt'||lockT>.55||bolt.urgent||!host))pick=bolt;
   else if(host)pick=host;
+  const dodge=(phase==='trench'||phase==='escape'||phase==='reactor')?barDodge():null;
   if(pick){if(pick.kind!==lockKind){lockKind=pick.kind;lockT=0}
-    if(pick.turn){steer(pick.turn[0],pick.turn[1],dt,2.2);trigger(false);sp=null;return}
-    aimAt(pick.p,pick.r,dt);return}
-  lockKind=null;sp=null;navigate(dt)
+    if(pick.turn){steer(pick.turn[0],pick.turn[1],dt,2.2);trigger(false);sp=null}
+    else aimAt(pick.p,pick.r,dt);
+    if(dodge!=null)steer(inputX,dodge,dt,4);   // a bar ahead comes first: the vertical line is the dodge
+    const[ax,ay]=avoidMines();if(ax||ay){inputX=clamp(inputX+ax*(dt||1/30)*5,-1,1);inputY=clamp(inputY+ay*(dt||1/30)*5,-1,1)}   // and nothing is flown into while fighting
+    return}
+  lockKind=null;sp=null;navigate(dt);
+  if(dodge!=null)steer(inputX,dodge,dt,4)
 }
 
 // ---------- The shots ----------
@@ -218,29 +262,30 @@ const SHOTS=[
   {t:17.24,setup(){launch('ice_field_armour','security',{stage:'dune_assault',world:C.c})},pilot:player,stage:()=>stageGround(),warm:10},
   {t:20.04,setup(){launch('taco_run','quickbite',{stage:'taco_asteroid_delivery'})},pilot:player,stage:()=>stageFighters(),warm:6},
   {t:22.99,...fightJob('ghost'),warm:6},
-  {t:29.80,setup(){launch('crystal_consignment','helix',{stage:'surface_destination_approach',world:C.m})},pilot:player,warm:3},
+  {t:29.80,setup(){launch('penthouse_delivery','jackals',{stage:'urban_penthouse_delivery',world:C.m})},pilot:player,warm:5},   // the traffic run
   {t:34.83,setup(){launch('convoy_escort','security',{stage:'route_diversion'})},pilot:player,stage:()=>stageFighters(),warm:9},
   {t:38.48,setup(){launch('station_defence','trade',{stage:'station_defence_recovery',edit:m=>{m.modules[0].relayVariant='hab'}})},pilot:player,stage:()=>stageStation(),warm:5},
   {t:40.73,setup(){launch('customs_run','jackals',{stage:'route_diversion'})},pilot:player,warm:6},
   {t:42.58,...fightJob('rogue',{weapon:'jackalsCrown'}),warm:4},
   {t:46.88,setup(){launch('factory_strike','security',{stage:'factory_assault',world:C.o})},pilot:player,stage:()=>stageGround(),warm:9},
   {t:51.18,setup(){launch('dune_armour_clearance','jackals',{stage:'dune_assault',world:C.y,weapon:'jackalsCrown'})},pilot:player,stage:()=>stageGround(),warm:14},
-  {t:54.03,...fightJob('pirate',{weapon:'ripper'}),warm:6},
+  {t:54.03,setup(){launch('deep_core','security',{stage:'deep_core_surface',world:C.o,jump:'trench'})},pilot:player,warm:5},
   {t:57.32,setup(){launch('cargo_spill','trade',{stage:'route_diversion'})},pilot:player,stage:()=>stageFighters(),warm:12},
   {t:59.47,setup(){launch('station_defence','security',{stage:'station_defence_recovery',edit:m=>{m.modules[0].relayVariant='fuel'}})},pilot:player,stage:()=>stageStation(),warm:6},
   {t:62.32,...fightJob('xeno',{weapon:'jackalsCrown'}),warm:5},
   {t:64.77,setup(){launch('asteroids','jackals',{stage:'asteroids'})},pilot:player,stage:()=>stageRocks(),warm:8},
-  {t:68.47,...fightJob('hijacked',{weapon:'ripper'}),warm:7},
+  {t:68.47,setup(){launch('deep_core','jackals',{stage:'deep_core_surface',world:C.o,jump:'reactor',weapon:'ripper'})},pilot:player,warm:.3},
   {t:71.27,setup(){launch('deep_core','helix',{stage:'deep_core_surface',world:C.c})},pilot:player,stage:()=>stagePylons(),warm:10},
   {t:77.12,...fightJob('ghost',{weapon:'jackalsCrown'}),warm:8},
   // The hush: fewer, longer, tenser shots
   {t:79.60,setup(){launch('secure_terminal_intrusion','security',{stage:'station_minefield_approach'})},pilot:player,warm:4},
   {t:88.50,setup(){launch('nest_clearance','helix',{stage:'xeno_nest'})},pilot:player,warm:22},
   {t:97.00,setup(){launch('lattice_survey','helix',{stage:'route_diversion'})},pilot:player,warm:14},
-  {t:105.0,setup(){launch('swamp_relay_delivery','security',{stage:'surface_destination_approach'})},pilot:player,warm:4},
+  {t:105.0,setup(){launch('forest_cabin_delivery','trade',{stage:'forest_corridor'})},pilot:player,warm:5},
   {t:113.0,setup(){launch('wreck_recovery','trade',{stage:'asteroid_wreck_recovery'})},pilot:player,warm:4},
   {t:121.0,setup(){launch('station_defence','helix',{stage:'station_defence_recovery',edit:m=>{const s=m.modules[0];s.relayVariant='farm'}})},pilot:dt=>{fighters.length=0;bolts.length=0;player(dt)},warm:1,stage:()=>stageStation([-10,-6,120])},
-  {t:129.0,setup(){launch('dune_armour_clearance','trade',{stage:'dune_assault',world:C.y})},pilot:player,warm:2,stage:()=>stageGround(40)}
+  // The finale: the xeno hive torn apart by its own swarm, watched from the observation point.
+  {t:125.6,setup(){launch('nest_clearance','helix',{stage:'xeno_nest'});xenoNest.beginObservationRun();xenoNest.beginObservationHold()},pilot:()=>{},warm:2.4}
 ];
 SHOTS.forEach((s,i)=>{
   const shot={name:`shot${i+1}`,t0:s.t,seed:9000+i,
