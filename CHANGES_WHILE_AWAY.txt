@@ -3616,3 +3616,7 @@ v2990 Montage (promo only): a one-second lead-in opens on the game's
       the render and exported, and promo/mix-montage-audio.py builds a
       second soundtrack with the game sounds under the music, for
       comparison.
+v3000 Destruction static fills the whole screen: its lines were spread
+      over the old play-area height (above the bottom control panel that
+      is long gone), so the bottom tenth of the screen stayed empty. In
+      the game and the montage.

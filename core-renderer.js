@@ -873,7 +873,9 @@ class SceneRenderer {
     ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.lineCap='butt';
     for(let i=0;i<count;i++){
       const band=(hash(i*7.1)*34)|0;
-      const y=Math.round((band+hash(i*5.3)*.82)/34*viewH);
+      // v3000 (Dave: the static stopped short of the bottom): spread over the whole screen
+      // height, not viewH (the play area above the old bottom control panel).
+      const y=Math.round((band+hash(i*5.3)*.82)/34*H);
       const x=Math.round(hash(i*11.7)*W);
       const longish=hash(i*19.9)>.84;
       const len=Math.round(longish?lerp(W*.045,W*.18,hash(i*23.1)):lerp(3,42,hash(i*17.3)));
@@ -885,7 +887,7 @@ class SceneRenderer {
     // signal collapse rather than ordinary particle debris.
     const tears=Math.max(0,Math.floor(7*(1-u)));
     for(let i=0;i<tears;i++){
-      const y=Math.round(hash(900+i*31)*viewH),x=Math.round(hash(950+i*17)*W*.68);
+      const y=Math.round(hash(900+i*31)*H),x=Math.round(hash(950+i*17)*W*.68);
       const len=Math.round(lerp(W*.10,W*.42,hash(990+i*13)));
       ctx.strokeStyle=(t<.12&&i===0)?C.r:C.g;ctx.beginPath();ctx.moveTo(x,y+.5);ctx.lineTo(Math.min(W,x+len),y+.5);ctx.stroke();
     }
