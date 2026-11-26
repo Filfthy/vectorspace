@@ -20,7 +20,12 @@ function resetGame(){
   inputX=inputY=aimX=aimY=0;paused=false;document.body.classList.remove('paused');if(campaign.isOpen())campaign.hideHub();invulnerable=true
 }
 // Launch a board job as a dev test with its modules edited, then run to the wanted stage.
-function launch(id,faction,{stage,edit,world,weapon='laser1',risk=4,jump=null}={}){
+// Top-grade kit on the promo save: the Apex frame, and the best guns in turn (shots that
+// name a weapon keep theirs).
+const KIT=['laser5','scatter5','rail5','laser4','scatter4','rail4'];
+try{const st=campaign.state;if(!st.ownedFrames.includes('AX-5A'))st.ownedFrames.push('AX-5A');st.frameLoadouts['AX-5A']=st.frameLoadouts['AX-5A']||campaign.blankFrameProfile();st.drone='AX-5A';st.xp=Math.max(st.xp||0,campaign.xpForLevel?.(20)||0)}catch(_){}
+function launch(id,faction,{stage,edit,world,weapon=null,risk=4,jump=null}={}){
+  weapon=weapon||KIT[((D.scene?.seed||9000)-9000)%KIT.length];   // fixed per shot, so every play and render match
   resetGame();
   if(world)window.landingWorldColour=()=>world;
   const m=campaign.makeDevTemplatePreview(id,faction);if(!m)throw new Error('no template '+id);
@@ -285,7 +290,10 @@ const SHOTS=[
   {t:113.0,setup(){launch('wreck_recovery','trade',{stage:'asteroid_wreck_recovery'})},pilot:player,warm:4},
   {t:121.0,setup(){launch('station_defence','helix',{stage:'station_defence_recovery',edit:m=>{const s=m.modules[0];s.relayVariant='farm'}})},pilot:dt=>{fighters.length=0;bolts.length=0;player(dt)},warm:1,stage:()=>stageStation([-10,-6,120])},
   // The finale: the xeno hive torn apart by its own swarm, watched from the observation point.
-  {t:125.6,setup(){launch('nest_clearance','helix',{stage:'xeno_nest'});xenoNest.beginObservationRun();xenoNest.beginObservationHold()},pilot:()=>{},warm:2.4}
+  // As in the game: out of the nest mouth, the run to the observation point with the swarm
+  // turned hostile, the autopilot turn to face the hive, then the hold as it is torn apart.
+  {t:125.6,setup(){launch('nest_clearance','helix',{stage:'xeno_nest'});xenoNest.beginObservationRun();
+    for(let i=0;i<60*30&&xenoNest.state==='observationRun';i++){player(1/30);update(1/30)}},pilot:()=>{},warm:2.4}
 ];
 SHOTS.forEach((s,i)=>{
   const shot={name:`shot${i+1}`,t0:s.t,seed:9000+i,

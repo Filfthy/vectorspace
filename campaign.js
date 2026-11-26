@@ -5,6 +5,9 @@ class CampaignController {
     // v1750: ?selftest runs on a throwaway save that starts empty (selftest.js). The real
     // campaign is never read or written in that mode.
     if(/[?&]selftest(&|=|$)/.test(location.search)){this.storageKey='agentXCampaignV1_selftest';try{localStorage.removeItem(this.storageKey)}catch(_){}}
+    // v2900: the promo videos launch test jobs as they play, so they also run on a throwaway
+    // save and never read or write the player's campaign.
+    if(/[?&]promo(&|=|$)/.test(location.search)){this.storageKey='agentXCampaignV1_promo';try{localStorage.removeItem(this.storageKey)}catch(_){}}
     this.currentMission=null;
     this.open=false;
     this.returnPauseState=false;

@@ -3562,3 +3562,11 @@ v2890 Montage (promo only): new shots: the base assault tunnel run, the
       tops are fired on at the game's own hit size and let go inside 16
       units. The warm-up before each cut no longer redraws the HUD, which
       made the cuts hitch in live playback.
+v2900 Promo save: the promo videos (?promo) now run on their own throwaway
+      save and never read or write your campaign. Before, watching one
+      launched test jobs on your real save. Montage: flown in the Apex
+      frame with top-grade guns (grade 4 and 5 pulse lasers, scatter
+      emitters and rail drivers, plus the Ripper and the Crown where
+      named) instead of the starter Mk I. The finale is now the game's
+      own sequence: the run out to the observation point with the swarm
+      hostile, the turn to face the hive, the hold and the detonation.
