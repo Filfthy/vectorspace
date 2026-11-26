@@ -3349,3 +3349,8 @@ v2590 No battle music coming back after a won fight
       pirates, the station perimeter drones), and those now go calm too.
       The self-test's side mission check now takes any case it picked
       up in passing back to the hauler, so the spill can end.
+
+v2600 Second Nest (Navira's "A young nest") now opens with a voice line,
+      "Collect the pheromone mask.", as the drone heads for the Helix
+      biolab. The raw render is in "voices unprocessed" as
+      collectthepheromonemask.mp3, waiting to be normalised into voices/.

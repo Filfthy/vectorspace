@@ -233,7 +233,7 @@
     {title:'Second Nest',risk:6,pay:26000,xp:1500,family:'xeno_nest',
       description:'Navira has prepared a fresh pheromone mask. Collect it from the biolab, follow the chemical trail to the young nest, penetrate it and destroy its queen.',
       modules:[
-        helixLab({label:'Collect Pheromone Mask',transferMode:'pickup',hatchLabel:'PHEROMONE PICKUP',hatchPrompt:'PROCEED TO PHEROMONE PICKUP',securedMessage:'PHEROMONE MASK SECURED'}),
+        helixLab({label:'Collect Pheromone Mask',transferMode:'pickup',hatchLabel:'PHEROMONE PICKUP',hatchPrompt:'PROCEED TO PHEROMONE PICKUP',securedMessage:'PHEROMONE MASK SECURED',voice:'helixCollectPheromoneMask'}),
         transit('Follow the Trail','HEADING TO SECOND NEST','TO XENO NEST'),
         {type:'xeno_nest',label:'Destroy the Second Nest'}
       ],
