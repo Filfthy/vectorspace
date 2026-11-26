@@ -22,11 +22,12 @@ button.addEventListener('click',async()=>{
   button.remove();
   try{await document.documentElement.requestFullscreen()}catch(_){}
   D.takeControl();
-  const from=Math.max(0,+Promo.Q.get('from')||PROMO_SONG.start||0);
+  const from=Promo.Q.has('from')?+Promo.Q.get('from'):(PROMO_SONG.start||0);
   D.seek(from);
   await songReady;
-  song.currentTime=from;
-  try{await song.play()}catch(err){console.error('promo song would not play',err)}
+  // A lead-in (from below 0) runs on a plain clock and starts the song when it reaches 0.
+  const t0=performance.now();let songOn=from>=0;
+  if(songOn){song.currentTime=from;try{await song.play()}catch(err){console.error('promo song would not play',err)}}
   const DT=1/D.FPS;
   // A spoken line laid over the song (the montage title), started when the song reaches it.
   let endedAt=0;
@@ -36,11 +37,12 @@ button.addEventListener('click',async()=>{
     fullscreenGate.classList.add('hidden');
     // Run the frames the music has moved past; draw only the last one. A video that runs on
     // past the song (videoEnd) keeps time from the moment the song ended.
-    if(song.ended&&!endedAt)endedAt=performance.now();
-    const now=endedAt?song.duration+(performance.now()-endedAt)/1000:song.currentTime;
+    if(!songOn){const lead=from+(performance.now()-t0)/1000;if(lead>=0){songOn=true;song.currentTime=0;song.play().catch(()=>{})}}
+    if(songOn&&song.ended&&!endedAt)endedAt=performance.now();
+    const now=!songOn?from+(performance.now()-t0)/1000:(endedAt?song.duration+(performance.now()-endedAt)/1000:song.currentTime);
     const k=Math.floor((now-D.clock)/DT+1e-6);
     for(let i=0;i<k;i++)D.step(i===k-1);
-    if(!song.ended||now<(PROMO_SONG.videoEnd||0))D.realRAF(tick)
+    if(!songOn||!song.ended||now<(PROMO_SONG.videoEnd||0))D.realRAF(tick)
   };
   D.realRAF(tick)
 });

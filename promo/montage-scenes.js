@@ -52,6 +52,27 @@ function warm(shot,secs){const n=Math.round(secs*30);for(let i=0;i<n;i++){if(i>n
 // cut with no context. Every ghost is a lance here; the game itself is unchanged.
 {const G=globalThis.AgentXGhosts;if(G){const kf=G.kindFor.bind(G);G.kindFor=function(){const k=kf();return k==='jammer'?'lance':k};G.jammed=()=>false}}
 
+// ---------- Game sounds for the soundtrack ----------
+// Every effect the game plays is logged with its song time (D.sfxLog) so a soundtrack can mix
+// them in afterwards; D.exportSfx() saves each effect as a WAV (base64 text) through the
+// capture server. Nothing is logged while a shot sets itself up off camera.
+D.sfxLog=[];D.logSfx=true;
+{const sp=SoundFX.play.bind(SoundFX),d=AudioMixer.defaults,vol=n=>d.volume.master*d.volume.fx*(d.trims[n]??1);
+  SoundFX.play=function(name,volume=1,trimName=name){if(D.logSfx)D.sfxLog.push({t:+D.clock.toFixed(3),name,v:+(volume*vol(trimName)).toFixed(3)});return sp(name,volume,trimName)};
+  SoundFX.disconnect=function(){if(!D.logSfx)return;const v=vol('disconnect');D.sfxLog.push({t:+D.clock.toFixed(3),name:'disconnectStatic',v},{t:+(D.clock+.21).toFixed(3),name:'disconnectBlip',v})}}
+D.exportSfx=async()=>{
+  const ctx=new (window.AudioContext||window.webkitAudioContext)(),out=[];
+  for(const[name,def]of Object.entries(SoundFX.definitions)){
+    const b=SoundFX.makeBuffer(ctx,def),ch=b.getChannelData(0),n=ch.length,buf=new ArrayBuffer(44+n*2),dv=new DataView(buf);
+    const w=(o,str)=>{for(let i=0;i<str.length;i++)dv.setUint8(o+i,str.charCodeAt(i))};
+    w(0,'RIFF');dv.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);
+    dv.setUint32(24,b.sampleRate,true);dv.setUint32(28,b.sampleRate*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);w(36,'data');dv.setUint32(40,n*2,true);
+    for(let i=0;i<n;i++)dv.setInt16(44+i*2,Math.max(-1,Math.min(1,ch[i]))*32767,true);
+    let bin='';const u=new Uint8Array(buf);for(let i=0;i<u.length;i+=8192)bin+=String.fromCharCode.apply(null,u.subarray(i,i+8192));
+    await Promo.saveText('sfx',name+'.txt',btoa(bin));out.push(name)}
+  return out
+};
+
 // ---------- Staging: bring the action in front of the camera at the cut ----------
 const SPOTS=[[-2,.5,20],[4,-1.5,27],[-1,2.5,34],[-7,-2,42],[8,2,50]];
 function stageFighters(n=3,hp=7){
@@ -326,13 +347,16 @@ const SHOTS=[
 SHOTS.forEach((s,i)=>{
   const shot={name:`shot${i+1}`,t0:s.t,seed:9000+i,
     stage(){sp=null;lockKind=null;curHost=null;try{s.stage?.()}catch(e){D.log.push(`${shot.name} staging failed: ${e.message}`)}},
-    setup(){try{s.setup();warm(shot,s.warm||3)}catch(e){D.log.push(`${shot.name} setup failed: ${e.message}`)}},
+    setup(){D.logSfx=false;try{s.setup();warm(shot,s.warm||3)}catch(e){D.log.push(`${shot.name} setup failed: ${e.message}`)}D.logSfx=true},
     pilot(dt){s.pilot?.(dt)},
     // The title on black until the first drum stroke, then a hard cut into the action. It is
     // drawn after the whole game frame (the guns and pack boxes come after the HUD), with the
     // glow layer off so nothing of the game shows through.
     after(dt,t){
-      if(t<PROMO_SONG.first){card();D.vtext('Vector Space',W*.5,viewH*.47,Math.round(W/11),C.g,clamp((t-.15)/.3,0,1));bloomCanvas.style.display='none'}
+      if(t<PROMO_SONG.first){card();
+        // The lead-in: the drone's feed coming on, the destruction static clearing to the title.
+        if(t<.1)renderer.drawDeathStatic(t-PROMO_SONG.start);
+        D.vtext('Vector Space',W*.5,viewH*.47,Math.round(W/11),C.g,clamp((t-.05)/.35,0,1));bloomCanvas.style.display='none'}
       else if(bloomCanvas.style.display==='none')bloomCanvas.style.display=''
     }};
   D.scenes.push(shot)

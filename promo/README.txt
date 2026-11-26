@@ -124,13 +124,18 @@ before the cut, then staged so the action fills the frame (fighters 20 to
 
 Open it with ?promo=montage:
   ?promo=montage&play          live with the music (&from=79.6 starts at the hush)
-  ?promo=montage&dpr=1.5       for rendering: PromoDirector.renderRange('montage',0,141.3)
-  It closes on empty space with "Coming soon", held five seconds past the last note.
-  The track opens with 1.6 s of silence: the title "Vector Space" goes there on black,
-  with Sonia saying it (promo/vectorspace-title.mp3 at 0.4 s), then the first drum
-  stroke cuts into the action. Mix her line into the song, then make the video:
-  ffmpeg -i music/violent/diesirae.ogg -i promo/vectorspace-title.mp3 -filter_complex "[1]volume=1.6,adelay=400|400[v];[0][v]amix=inputs=2:normalize=0:duration=first,apad=whole_dur=141.3" promo/out/montage-audio.wav
+  ?promo=montage&dpr=1.5       for rendering: PromoDirector.exportSfx(), then
+                               PromoDirector.renderRange('montage',-1,141.3) and
+                               Promo.saveText('sfx','log.json',JSON.stringify(PromoDirector.sfxLog))
+  It opens with a one-second lead-in before the song: the game's destruction static
+  with its crackle and blip, clearing to "Vector Space" as Sonia says it
+  (promo/vectorspace-title.mp3), then the first drum stroke cuts into the action. It
+  closes on empty space with "Coming soon", held five seconds past the last note.
+  python promo/mix-montage-audio.py     builds promo/out/montage-audio.wav (music, Sonia,
+                                        the crackles) and montage-audio-sfx.wav (plus
+                                        every game sound, logged during the render)
   bash promo/make-video.sh promo/out/montage promo/out/montage-audio.wav promo/out/vector-space-montage.mp4
+  bash promo/make-video.sh promo/out/montage promo/out/montage-audio-sfx.wav promo/out/vector-space-montage-game-sounds.mp4
 
 Files
   montage-song.js     the track and its two sections

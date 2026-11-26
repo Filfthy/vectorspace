@@ -3609,3 +3609,10 @@ v2980 Montage (promo only): ghost constructs are light enough to kill on
       health bar, which in a short cut looked like a kill that did not
       count. The drone is destroyed at the end of the loud section
       (1:18): the game's destruction static runs into the cut to the hush.
+v2990 Montage (promo only): a one-second lead-in opens on the game's
+      destruction static with its crackle and blip, clearing to "Vector
+      Space" as Sonia says it (take 4). The same crackle and blip play at
+      the drone's destruction at 1:18. Every game sound is logged during
+      the render and exported, and promo/mix-montage-audio.py builds a
+      second soundtrack with the game sounds under the music, for
+      comparison.

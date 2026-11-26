@@ -142,7 +142,7 @@ D.step=(draw=true)=>{
   D.clock+=DT;D.frame++
 };
 // Jump straight to a song time by simulating from the start of that time's scene (no drawing).
-D.seek=t=>{D.scene=null;const s=D.sceneAt(t);D.clock=s.t0;D.gclock=0;D.frame=Math.round(D.clock*FPS);while(D.clock<t-1e-6)D.step(false)};
+D.seek=t=>{D.scene=null;const s=D.sceneAt(t);D.clock=Math.min(s.t0,t);D.gclock=0;D.frame=Math.round(D.clock*FPS);while(D.clock<t-1e-6)D.step(false)};   // t before the first scene: a lead-in
 D.trace=()=>`${D.clock.toFixed(2)} ${mode}/${phase} ${forest?.active?forest.terminalState:''} st=${campaign.currentStage?.()?.type||''} travel=${Math.round(travel)}`;
 // Render frames [t0,t1) to promo/out/<folder>/f00000.jpg (frame numbers are absolute).
 D.renderRange=async(folder,t0,t1,every=1)=>{
@@ -152,7 +152,7 @@ D.renderRange=async(folder,t0,t1,every=1)=>{
   const inflight=[];D.stop=false;
   while(D.clock<t1-1e-6&&!D.stop){
     const f=D.frame,draw=(f%every)===0;D.step(true);
-    if(draw){inflight.push(Promo.save(folder,`f${String(f).padStart(5,'0')}.jpg`));n++}
+    if(draw){inflight.push(Promo.save(folder,`f${String(f+(SONG.frameOffset||0)).padStart(5,'0')}.jpg`));n++}
     while(inflight.length>8)await inflight.shift()
   }
   await Promise.all(inflight);
