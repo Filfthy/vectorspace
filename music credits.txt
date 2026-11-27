@@ -22,3 +22,12 @@ Night on Bland Mountain
 Skimore College. Musopen CC0
 
 Valkyries US Marines Band
+
+Violent playlist additions (all via Wikimedia Commons)
+Holst, Uranus: Performance United States Air Force Band. Public domain.
+Beethoven, Symphony No. 5, I. Allegro con brio: Public domain.
+Mozart, Symphony No. 40, IV. Finale. Allegro assai: Musopen Symphony. Public domain.
+Beethoven, Moonlight Sonata, Presto: Public domain.
+Vivaldi, Summer RV 315 III. Presto, and Winter RV 297 I. Allegro non molto: The Modena Chamber Orchestra. PDM-owner.
+Smetana, Three Dances from the Bartered Bride, III. Dance of the Comedians: Transcription Lt. Col. Jack Kline, performance United States Marine Band. Public domain.
+Game copies in music/violent were levelled for play with tools/prepare-music.py (quiet passages lifted, -14 LUFS).

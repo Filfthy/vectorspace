@@ -5,7 +5,7 @@ class AudioMixer {
     enabled:{master:true,music:true,fx:true,speech:true},
     volume:{master:1,music:1,fx:1,speech:1},
     trims:{laser:1,hit:1,explosion:1,damageTaken:1,projectileDestroyed:1,objectiveComplete:1,zoom:.45,disconnect:1,uiClick:1,swampSpit:1,relayCalibrated:1,droneApproval:1},
-    trackTrims:{mozart:1,pachelbel:1,satie:1,mars:1,baldmountain:1,diesirae:1,valkyries:1}
+    trackTrims:{mozart:1,pachelbel:1,satie:1,mars:1,baldmountain:1,diesirae:1,valkyries:1,uranus:1,beethoven5:1,mozart40:1,moonlight:1,summer:1,winter:1,comedians:1}
   });
   static state=null;
   static fxDuckGain=1;
@@ -680,7 +680,14 @@ class MusicManager {
       {id:'mars',title:'Holst · Mars, the Bringer of War',src:'./music/violent/mars.ogg'},
       {id:'baldmountain',title:'Mussorgsky · Night on Bald Mountain',src:'./music/violent/baldmountain.ogg'},
       {id:'diesirae',title:'Verdi · Dies irae',src:'./music/violent/diesirae.ogg'},
-      {id:'valkyries',title:'Wagner · Ride of the Valkyries',src:'./music/violent/valkyries.ogg'}
+      {id:'valkyries',title:'Wagner · Ride of the Valkyries',src:'./music/violent/valkyries.ogg'},
+      {id:'uranus',title:'Holst · Uranus, the Magician',src:'./music/violent/uranus.ogg'},
+      {id:'beethoven5',title:'Beethoven · Symphony No. 5: I. Allegro con brio',src:'./music/violent/beethoven5.ogg'},
+      {id:'mozart40',title:'Mozart · Symphony No. 40: IV. Allegro assai',src:'./music/violent/mozart40.ogg'},
+      {id:'moonlight',title:'Beethoven · Moonlight Sonata: III. Presto agitato',src:'./music/violent/moonlight.ogg'},
+      {id:'summer',title:'Vivaldi · Summer: III. Presto',src:'./music/violent/summer.ogg'},
+      {id:'winter',title:'Vivaldi · Winter: I. Allegro non molto',src:'./music/violent/winter.ogg'},
+      {id:'comedians',title:'Smetana · Dance of the Comedians',src:'./music/violent/comedians.ogg'}
     ]
   };
   static allTracks(){return [...this.tracks.calm,...this.tracks.violent]}

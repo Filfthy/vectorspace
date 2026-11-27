@@ -3620,3 +3620,10 @@ v3000 Destruction static fills the whole screen: its lines were spread
       over the old play-area height (above the bottom control panel that
       is long gone), so the bottom tenth of the screen stayed empty. In
       the game and the montage.
+v3001 Seven trial tracks on the violent playlist: Holst Uranus, Beethoven 5
+      (first movement), Mozart 40 (finale), the Moonlight Sonata presto,
+      Vivaldi Summer presto and Winter allegro, and Smetana's Dance of the
+      Comedians, all public domain via Wikimedia Commons and credited in
+      the About box. tools/prepare-music.py levels them for play: quiet
+      passages lifted by up to 18 dB, all at -14 LUFS, peaks under -1.5
+      dBFS. Each has its own level slider in the track mixer.
