@@ -66,7 +66,7 @@
             blackBoxLocal:[0,-.13,-2.64],recorderStopLocal:[0,-.15,-2.10],recorderStopRadius:.65,transferSeconds:3.0,turnSeconds:1.75,interiorAutopilotSpeed:12.5,
             exitLocal:[0,-.15,.92],exitRevealRadius:54,exitCaptureRadius:3.5},
           returnTransit:{duration:3.15,message:'RETURNING TO FREE TRADERS FREIGHT DEPOT',hud:'TO FREIGHT DEPOT'}},
-        {type:'free_traders_depot_terminal',label:'Deliver the Routing Core',difficulty:1,scale:26,spawnDistance:475,spawnX:-36,spawnY:-12,pitch:-.085,yaw:.58,roll:.05,startMessage:'Deliver the routing core',
+        {type:'free_traders_depot_terminal',label:'Deliver the Routing Core',difficulty:1,scale:26,spawnDistance:475,spawnX:-36,spawnY:-12,pitch:-.085,yaw:.58,roll:.05,startMessage:'Deliver the routing core',transferMessage:'Handing over the routing core',transferHud:'CORE HANDOFF',receivedHud:'CORE RECEIVED',
           depotRevealRadius:205,terminalStageDistance:82,terminalCaptureRadius:86,terminalStandOff:15.5,transferSeconds:3.1,turnSeconds:1.75,clearDistance:52}],
       stages:['Cross the Field','Destroy the Guards','Enter the Ship','Pull the Routing Core','Return to the Depot','Deliver the Core']},
     // v1560: a remnant node behind a ghost lattice (ghosts.js). Fewer, weaker hulls than a

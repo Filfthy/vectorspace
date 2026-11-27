@@ -42,6 +42,7 @@ class CampaignController {
     for(const f of Object.values(this.factions))f.rep=this.state.reputation[f.id]??0;
     this.currentStageIndex=0;
     this.migrateProgressionV300();
+    this.pruneContactOffers();
     if(this.state.deployedKit){this.recoverOrphanedKit();this.restoreFrameLoadout(this.state.drone,false);this.save()}
     this.normalizeLoadout();
     this.topUpLoadout(false);
@@ -936,7 +937,13 @@ class CampaignController {
       ?requestedFaction
       :this.pickFaction(template.allowedFactions,template.factionWeights);
     const risk=this.templateRisk(template),pack=template.presentation?.[faction]||{},defaults=template.defaults||{},encounter=this.templateEncounterChoice(template,faction),brief=this.templateChoice(pack.briefs,null);
-    const destination=String(brief?.destination||this.templateChoice(pack.destinations,defaults.destination||'Contract Destination')||defaults.destination||'Contract Destination'),cargo=this.templateChoice(pack.cargo,defaults.cargo||'sealed cargo'),targetGroup=String(brief?.target||defaults.target||'hostile group'),motive=String(brief?.motive||''),situation=String(brief?.situation||''),targetProfile=String(brief?.profile||'standard'),title=this.templateChoice(brief?.titles||pack.titles,template.id||'Contract');
+    // v3005 (Dave: OSD still took me to Free Traders for cargo delivery). OSD work that ends
+    // at a depot handoff ends at the OSD picket station instead.
+    // v3005 (Dave: randomly sent to either for OSD space work): the picket station or the
+    // battlecruiser Resolute, an even chance.
+    const osdPicket=faction==='security'&&(template.sections||[]).some(s=>s?.type==='free_traders_depot_terminal');
+    const osdFacility=osdPicket?(Math.random()<.5?'osdCruiser':'osd'):null;
+    const destination=osdPicket?(osdFacility==='osdCruiser'?'the OSD battlecruiser Resolute':'the OSD picket station'):String(brief?.destination||this.templateChoice(pack.destinations,defaults.destination||'Contract Destination')||defaults.destination||'Contract Destination'),cargo=this.templateChoice(pack.cargo,defaults.cargo||'sealed cargo'),targetGroup=String(brief?.target||defaults.target||'hostile group'),motive=String(brief?.motive||''),situation=String(brief?.situation||''),targetProfile=String(brief?.profile||'standard'),title=this.templateChoice(brief?.titles||pack.titles,template.id||'Contract');
     const textVars={...defaults,cargo,destination,target:targetGroup,motive,situation,profile:targetProfile,faction:this.factions[faction]?.name||faction,risk};
     const description=this.formatTemplateText(this.templateChoice(brief?.descriptions||pack.descriptions,'Complete the assigned contract.'),textVars);
     const sectionVars={...defaults,risk,cargo,destination,target:targetGroup,motive,situation,profile:targetProfile,faction};
@@ -961,6 +968,21 @@ class CampaignController {
       if(pack.cargoStyle)module.cargoStyle=pack.cargoStyle;
       return[module]
     });
+    // v3003 (Dave: you pick up cargo, you should end at a cargo hatch, and data pickups in
+    // the city for secure handover too). What is collected decides how it travels: logs,
+    // reports and records are downloaded at the city pickup and uploaded at the depot
+    // terminal. Anything else (or anything said to be in a case, bag, box or crate) is a
+    // physical case that goes in through the depot's cargo intake hatch.
+    const cargoKind=/\b(logs?|reports?|records)\b/i.test(cargo||'')&&!/\b(case|bag|box|crate)\b/i.test(cargo||'')?'data':'cargo';
+    for(const m of modules){
+      if(osdPicket&&m.type==='free_traders_depot_terminal')m.facility=osdFacility;
+      if(osdPicket&&m.type==='space_transit'&&/FREIGHT DEPOT/.test(String(m.hud||'')+String(m.message||'')))Object.assign(m,osdFacility==='osdCruiser'?{message:'HEADING TO THE RESOLUTE',hud:'TO RESOLUTE'}:{message:'HEADING TO OSD PICKET',hud:'TO OSD PICKET'});
+      if(m.type==='urban_ground_pickup')m.cargoKind=cargoKind;
+      if(m.type==='free_traders_depot_terminal'&&m.transferHud==='CARGO HANDOFF'){
+        m.cargoKind=cargoKind;
+        if(cargoKind==='data')Object.assign(m,{startMessage:'Upload the data at the depot terminal',transferMessage:`Uploading ${cargo}`,transferHud:'DATA UPLOAD',receivedHud:'DATA RECEIVED',completeVoice:'dataTransferComplete'});
+      }
+    }
     const reward=template.reward||{},roundPay=Math.max(1,Math.round(Number(reward.roundPay)||50)),fighterModule=modules.find(x=>x.type==='fighters'||x.type==='customs_drones'),asteroidModule=modules.find(x=>x.type==='asteroids');
     const fighterWork=fighterModule?Math.max(0,Number(fighterModule.target)||0)*(1.45+Math.max(0,Number(fighterModule.fighterHp)||12)*.36):0;
     const asteroidWork=asteroidModule?Math.max(0,Number(asteroidModule.target)||0):0;
@@ -1441,7 +1463,7 @@ class CampaignController {
       ...(compact?{templateId:message.templateId,vars:(message.vars&&typeof message.vars==='object')?message.vars:{}}:{from:message.from||'VOX SYSTEM',subject:message.subject||'Message',body:Array.isArray(message.body)?message.body:[String(message.body||'')]}),
       category:message.category||'general',priority:this.mailPriority(message),
       read:!!message.read,action:message.action||null,actions:Array.isArray(message.actions)?message.actions:null,reward:message.reward||null,claimed:!!message.claimed,
-      ...(message.contract?{contract:message.contract,contractDone:!!message.contractDone}:{})
+      ...(message.contract?{contract:message.contract,contractDone:!!message.contractDone,arrivedAt:Number(this.state.completed)||0}:{})
     };
     this.state.mail.push(entry);
     this.noteMailVoice(entry.priority);
@@ -2334,6 +2356,30 @@ class CampaignController {
   // v890: personal favours. Once a network's capstone is done, its contact sends one of
   // their own board jobs every five to eight contracts, at 1.6x pay and 1.3x XP, with an
   // opening line in voice. One open favour per contact; completing it clears the slot.
+  // v3006 (Dave: I'm accumulating far too many contact actions. I never need to use the job
+  // board). Personal offers (contact favours and Mara's VOX contracts) arrived faster than
+  // anyone could fly them and never went away. Now at most MAX_CONTACT_OFFERS are open at a
+  // time (no new one is sent while the cap is full), and one left untaken for OFFER_LAPSE_JOBS
+  // jobs lapses. Story offers and Black Contracts are not touched, and neither is an offer
+  // that is prepared or in flight.
+  get MAX_CONTACT_OFFERS(){return 2}
+  get OFFER_LAPSE_JOBS(){return 8}
+  openContactOffers(){
+    return (this.state.mail||[]).filter(m=>m.contract?.voxContract&&!m.contract.blackContract&&!m.contractDone&&!m.lapsed&&m.action?.type==='vox')
+  }
+  pruneContactOffers(){
+    const done=Number(this.state.completed)||0,busy=id=>this.currentMission?.voxMailId===id||this.pendingMission?.voxMailId===id;
+    const open=this.openContactOffers().sort((a,b)=>b.seq-a.seq);let changed=false;
+    open.forEach((m,i)=>{
+      if(!Number.isFinite(m.arrivedAt)){m.arrivedAt=done;changed=true}
+      if(busy(m.id))return;
+      if(i<this.MAX_CONTACT_OFFERS&&done-m.arrivedAt<this.OFFER_LAPSE_JOBS)return;
+      m.lapsed=true;m.action=null;m.read=true;changed=true;
+      if(Array.isArray(m.body))m.body.push('This offer has lapsed. The client found someone else.');
+      const f=m.contract.favourFaction;if(f&&this.state.mailFlags){this.state.mailFlags[`${f}FavourOpen`]=false;this.state.mailFlags[`${f}FavourNextAt`]=done+5+((Math.random()*4)|0)}
+    });
+    if(changed){this.save();this.updateMailBadge?.()}
+  }
   maybeQueueFavour(m){
     const C=globalThis.AgentXFactionContent,F=globalThis.AgentXFactionLore?.FAVOURS;if(!C||!F)return;
     const flags=this.state.mailFlags,done=Number(this.state.completed)||0;
@@ -2347,6 +2393,7 @@ class CampaignController {
     }
   }
   queueFavourMail(chain){
+    if(this.openContactOffers().length>=this.MAX_CONTACT_OFFERS)return false;
     const f=chain.faction,templates=this.eligibleMissionTemplates().filter(t=>(t.allowedFactions||[]).includes(f)&&t.presentation?.[f]&&!t.board?.major);
     if(!templates.length)return false;
     const c=this.makeTemplateContract(templates[(Math.random()*templates.length)|0],0,{faction:f});if(!c)return false;
@@ -2360,6 +2407,7 @@ class CampaignController {
     return true
   }
   queueVoxContractMail(){
+    if(this.openContactOffers().length>=this.MAX_CONTACT_OFFERS)return false;
     const template=this.pickMissionTemplate([],{remainingSlots:1});if(!template)return false;
     const c=this.makeTemplateContract(template,0);if(!c)return false;
     const flags=this.state.mailFlags,n=flags.voxSeq=(flags.voxSeq||0)+1;
@@ -3259,9 +3307,22 @@ class CampaignController {
     this.showDebrief({success,heading:success?'DEV TEST COMPLETE':(abandoned?'DEV TEST ABANDONED':'DEV TEST ENDED'),title:m.title,pay:0,xp:0,liability:0,reason:note,returnPanel:'dev'});
     return true
   }
+  // v3006 (Dave: it still went to the Free Traders depot). OSD contracts made before v3005,
+  // waiting on the board or in a favour mail, still carry the depot route. Give them an OSD
+  // destination when they launch, as a new contract would get (picket or Resolute at random).
+  routeOldOsdDelivery(m){
+    if(!m||m.faction!=='security'||!m.templateId||!Array.isArray(m.modules))return;
+    const dep=m.modules.find(s=>s?.type==='free_traders_depot_terminal');if(!dep||dep.facility)return;
+    const cruiser=Math.random()<.5,dest=cruiser?'the OSD battlecruiser Resolute':'the OSD picket station';
+    dep.facility=cruiser?'osdCruiser':'osd';
+    for(const s of m.modules)if(s?.type==='space_transit'&&/FREIGHT DEPOT/.test(String(s.hud||'')+String(s.message||'')))Object.assign(s,cruiser?{message:'HEADING TO THE RESOLUTE',hud:'TO RESOLUTE'}:{message:'HEADING TO OSD PICKET',hud:'TO OSD PICKET'});
+    if(typeof m.description==='string')m.description=m.description.split(String(m.destination||'the Compact freight depot')).join(dest);
+    m.destination=dest
+  }
   launchMission(id){
     const m=this.pendingMission?.id===id?this.pendingMission:this.missions.find(x=>x.id===id);if(!m||!m.implemented||this.currentMission)return;
     if(m.devGroundTest){this.launchDevGroundTest(m);return}
+    this.routeOldOsdDelivery(m);
     this.missionHits=0;this.missionBounty=null;
     this.achievementsAtLaunch=new Set(Object.keys(this.state.achievements||{}));   // v1730: the debrief lists what this job earned
     this.currentMission=m;this.pendingMission=null;this.currentStageIndex=0;this.deployLoadout();this.open=false;campaignShell.classList.remove('open');this.updateGearHud();
@@ -3404,6 +3465,7 @@ class CampaignController {
     this.tickMarket();
     if(m.private)this.handleStoryCompletion(m);
     this.maybeQueueVoxFollowUp(m);
+    this.pruneContactOffers();
     this.maybeQueueFavour(m);
     this.maybeQueueVoxWire();
     this.checkAchievements();

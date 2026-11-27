@@ -335,3 +335,48 @@ Spoken text:
 
 Expected filename:
     scancompletereturnthedatatovox.mp3
+
+PLAINS SIDE TASKS (v3006)
+-------------------------
+
+Spoken text:
+    Reset the relay masts.
+
+Expected filename:
+    resettherelaymasts.mp3
+
+Spoken text:
+    Relay back online.
+
+Expected filename:
+    relaybackonline.mp3
+
+Spoken text:
+    Fly the survey points.
+
+Expected filename:
+    flythesurveypoints.mp3
+
+Spoken text:
+    Survey point logged.
+
+Expected filename:
+    surveypointlogged.mp3
+
+Spoken text:
+    Find the crash sites.
+
+Expected filename:
+    findthecrashsites.mp3
+
+Spoken text:
+    Recorder recovered.
+
+Expected filename:
+    recorderrecovered.mp3
+
+Spoken text:
+    Core sample taken.
+
+Expected filename:
+    coresampletaken.mp3

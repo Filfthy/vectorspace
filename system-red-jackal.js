@@ -2,6 +2,7 @@
 class RedJackalDeliveryController {
   constructor(){this.reset()}
   reset(){
+    if(this.pickupChirp&&typeof audio!=='undefined')audio?.hackChirp?.stop?.();this.pickupChirp=false;   // v3003: a data pickup cut short
     this.active=false;this.stage=null;this.state='idle';this.buildings=[];this.traffic=[];this.seed=0x4a41434b;
     // v210: city rendering caches are mission-local and rebuilt only when a new
     // city is generated. The detailed building meshes are static, so measuring
@@ -35,7 +36,10 @@ class RedJackalDeliveryController {
     this.pickupWorldZ=clamp(Number(stage?.pickupWorldZ)||365,240,this.cityLength-55);
     this.pickupSide=Number(stage?.pickupSide)<0?-1:1;
     this.pickupX=this.pickupSide*3.12;this.pickupY=this.groundY+.82;
-    this.pickupStopWorldZ=this.pickupWorldZ-1.55;this.targetWorldZ=this.pickupWorldZ
+    this.pickupStopWorldZ=this.pickupWorldZ-1.55;this.targetWorldZ=this.pickupWorldZ;
+    // v3003 (Dave: data pickups in the city for secure data handover too). A data pickup
+    // downloads from a terminal on the collection room table instead of lifting a parcel.
+    this.pickupData=stage?.cargoKind==='data';this.pickupPackets=[];this.pickupPacketT=0;this.pickupChirp=false
   }
   manualCityState(){return this.state==='city'||this.state==='cityPickup'||this.state==='cityOutbound'}
   customsActive(){return this.active&&this.state==='customs'}
@@ -662,7 +666,8 @@ class RedJackalDeliveryController {
     if(this.state==='pickupHold'){
       for(const v of this.traffic)if(!v.dead)v.worldZ+=v.speed*dt;
       this.pickupT+=dt;this.hatchOpen=1;this.pickupCargoProgress=ease(clamp((this.pickupT-.45)/2.65,0,1));
-      if(!this.pickupSecured&&this.pickupCargoProgress>=.999){this.pickupSecured=true;say('CARGO SECURED',.72)}
+      if(this.pickupData)this.updatePickupPackets(dt);
+      if(!this.pickupSecured&&this.pickupCargoProgress>=.999){this.pickupSecured=true;if(this.pickupData)audio?.hackChirp?.stop?.();say(this.pickupData?'DATA SECURED':'CARGO SECURED',.72)}
       if(this.pickupT>=3.85)this.beginPickupTurn();return
     }
     if(this.state==='pickupTurn'){
@@ -1092,7 +1097,25 @@ class RedJackalDeliveryController {
     }
     drawMesh({type:'jackalCargo',x:state.x,y:state.y,z:state.z,s:.5,mx:1.02,my:.20,mz:.70,rot:[0,0,0]},courierFixtureBoxMesh,state.landed?C.y:C.c,.98)
   }
+  updatePickupPackets(dt){
+    const P=this.pickupPackets;if(!P)return;
+    if(this.pickupT>.45&&!this.pickupChirp){this.pickupChirp=true;audio?.hackChirp?.start?.()}
+    for(let i=P.length-1;i>=0;i--){P[i].u+=P[i].speed*dt;if(P[i].u>=1)P.splice(i,1)}
+    if(this.pickupT>.45&&this.pickupCargoProgress<.97){this.pickupPacketT-=dt;while(this.pickupPacketT<=0&&P.length<18){P.push(...stationHack.makeDataPacketGroup(false));this.pickupPacketT+=.14+Math.random()*.34}}
+  }
+  drawPickupData(){
+    // The terminal stands on the collection table, its screen facing the door. While the
+    // download runs, the shared secure-transfer ramp carries packets from it to the drone.
+    const r=this.roomSpec();if(!r)return;const z=r.tableZ-travel,left=r.x-.62,right=r.x+.62,bottom=r.tableY+.10,top=r.tableY+.98;
+    const corners=[[left,bottom],[right,bottom],[right,top],[left,top]].map(([x,y])=>proj([x,y,z]));
+    if(corners.every(Boolean)){ctx.fillStyle='#000';fillPoly(corners);for(let i=0;i<4;i++)line(corners[i].x,corners[i].y,corners[(i+1)%4].x,corners[(i+1)%4].y,C.c,1,.9)}
+    stationHack.drawLineDisplay((x,y)=>proj([x,y,z-.02]),{left:left+.08,right:right-.08,bottom:bottom+.08,top:top-.08,alarm:false,time:this.pickupT});
+    if(this.state==='pickupHold'&&!this.pickupSecured&&this.pickupPackets?.length){
+      const c=camPoint([r.x,(bottom+top)*.5,z-.03]);if(c&&c[2]>.2)stationHack.drawDataRamp(c,[0,-.62,.82],this.pickupPackets,{sourceHalf:.34,targetHalf:.88})
+    }
+  }
   drawPickupBay(){
+    if(this.cityPurpose==='pickup'&&this.pickupData){this.drawPickupData();return}
     if(this.cityPurpose!=='pickup'||this.pickupSecured)return;
     const r=this.roomSpec();if(!r)return;
     const q=this.state==='pickupHold'?this.pickupCargoProgress:0;
@@ -1173,7 +1196,7 @@ class RedJackalDeliveryController {
     if(this.state==='cityPickup')return`PICKUP ${Math.ceil(this.remaining())}`;
     if(this.state==='pickupApproach')return'PICKUP APPROACH';
     if(this.state==='pickupEntry')return'ENTERING PICKUP';
-    if(this.state==='pickupHold')return'COLLECTING CARGO';
+    if(this.state==='pickupHold')return this.pickupData?'DOWNLOADING DATA':'COLLECTING CARGO';
     if(this.state==='pickupTurn')return'TURNING';
     if(this.state==='pickupExit')return'LEAVING PICKUP';
     if(this.state==='outboundMerge')return'REJOINING CITY ROAD';

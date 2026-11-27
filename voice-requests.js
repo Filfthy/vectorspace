@@ -61,7 +61,15 @@ globalThis.AgentXVoiceRequests={
   monolithScanComplete:'Scan complete. Return the data to VOX.',
   // v2460: leaving the xeno nest after the regulator falls.
   xenoformsHostile:'Warning. The xenoforms have turned hostile.',
-  xenoDestroyQueen:'Destroy the xeno queen.'
+  xenoDestroyQueen:'Destroy the xeno queen.',
+  // v3006: the plains side tasks (relay masts, survey points, crash sites, core samples).
+  resetTheRelayMasts:'Reset the relay masts.',
+  relayBackOnline:'Relay back online.',
+  flyTheSurveyPoints:'Fly the survey points.',
+  surveyPointLogged:'Survey point logged.',
+  findTheCrashSites:'Find the crash sites.',
+  recorderRecovered:'Recorder recovered.',
+  coreSampleTaken:'Core sample taken.'
 };
 // Expected filename: the spoken text in lower case with spaces and punctuation removed.
 globalThis.AgentXVoiceRequestFile=text=>String(text).toLowerCase().replace(/[^a-z0-9]/g,'')+'.mp3';

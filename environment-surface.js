@@ -55,6 +55,16 @@ const SURVEY_TEXT=Object.freeze({
   core:{intro:(n,d)=>`TAKE ${n} CORE SAMPLES · DIVE LOW ACROSS EACH CRATER · THEN THE ${d}`,got:(g,t)=>`CORE SAMPLE ${g} OF ${t} TAKEN`,done:'ALL CORES TAKEN · PROCEED TO DESTINATION',nag:n=>`CORES MISSING · ${n} CRATER${n>1?'S':''} LEFT`,nav:'CORE SITE',hud:'CORES'},
   relay:{intro:(n,d)=>`RESET THE ${n} RELAY MASTS · THEN THE ${d}`,got:(g,t)=>`RELAY ${g} OF ${t} BACK ONLINE`,done:'ALL RELAYS ONLINE · PROCEED TO DESTINATION',nag:n=>`RELAYS DOWN · ${n} LEFT`,nav:'RELAY MAST',hud:'RELAYS'}
 });
+// v3006 (Dave: no voice lines for go to the masts or go to city). Spoken lines for the
+// side tasks: the task when it is given, each mast or point as it is done, and the
+// destination's own 'proceed to' line once the last is done. A line plays only if its
+// recording is in voices/ (see voice-requests.js); the text callouts are unchanged.
+const SURVEY_VOICE=Object.freeze({
+  survey:{intro:'flyTheSurveyPoints',got:'surveyPointLogged'},
+  crash:{intro:'findTheCrashSites',got:'recorderRecovered'},
+  core:{intro:'coreSamplesDiveLow',got:'coreSampleTaken'},
+  relay:{intro:'resetTheRelayMasts',got:'relayBackOnline'}
+});
 // A relay mast: a tapering four-legged lattice tower with cross bracing and an antenna.
 // Lines only, so it hides nothing behind it.
 const surfaceRelayMastMesh=(()=>{
@@ -328,7 +338,10 @@ class SurfaceDestinationApproachController {
     // v2330: the swamp approach rolls too, lower and over a much wider band, so the land
     // either side has contour and the low ground can lie wet (buildMarsh, below).
     // v2350: the OSD world rolls too (wide band, taller), level around the whole compound.
-    const swamp=this.scenery==='swamp',osd=this.destination==='osd',band=swamp?[84,30]:(osd?[70,30]:[34,18]),pad=band[0]+band[1]+4;
+    // v3004 (Dave: just a tiny strip where it has contour): the plains roll over the same wide
+    // band as the swamp (was 34 either side of the line, then flat), so the field the drone
+    // roams has contour, not only the strip along the route.
+    const swamp=this.scenery==='swamp',osd=this.destination==='osd',band=swamp?[84,30]:(osd?[70,30]:[80,30]),pad=band[0]+band[1]+4;
     const bx=this.targetX,bz=this.targetWorldZ,dx=bx-ax,dz=bz-az,len=Math.hypot(dx,dz)||1;
     // Each entry: level within r0, full hills from r1.
     const obj=[];for(const p of this.survey||[])obj.push([p.x+(p.off||0),p.worldZ,14,40]);if(this.beacon)obj.push([this.beacon.x,this.beacon.worldZ,14,40]);
@@ -589,6 +602,17 @@ class SurfaceDestinationApproachController {
       const centreX=side*(78+this.rand()*48),centreWZ=this.routeLength-12+i*18+this.rand()*42;
       addClump(centreX,centreWZ,rockMode?(4+Math.floor(this.rand()*3)):(6+Math.floor(this.rand()*4)),rockMode?(18+this.rand()*16):(12+this.rand()*10),rockMode?(22+this.rand()*24):(18+this.rand()*20),rockMode?(1.08+this.rand()*.44):(.96+this.rand()*.24),false)
     }
+    // v3004 (Dave: just a tiny strip where it has contour or any trees). The clumps above
+    // line the route, so the field either side, where relay masts, survey points and crash
+    // sites send the drone, was bare. Fill it: about two clumps in three cells of 36 by 44,
+    // jittered, out to 140 either side of the destination line. The straight run to the
+    // destination and its own reserved ground stay clear.
+    if(!swamp)for(let wz=-40;wz<this.routeLength+60;wz+=44)for(let gx=-140;gx<=140;gx+=36){
+      if(this.rand()<.34)continue;
+      const cx=this.targetX+gx+(this.rand()-.5)*26,cz=wz+(this.rand()-.5)*34;
+      if(Math.abs(cx-this.targetX)<16||Math.hypot(cx-this.targetX,cz-this.targetWorldZ)<70||this.sceneryReserved(cx,cz,14))continue;
+      addClump(cx,cz,rockMode?(2+Math.floor(this.rand()*3)):(3+Math.floor(this.rand()*4)),rockMode?(10+this.rand()*8):(7+this.rand()*5),rockMode?(10+this.rand()*10):(8+this.rand()*7),rockMode?(1.02+this.rand()*.46):(.9+this.rand()*.3),true)
+    }
     this.addMoonCraters()
   }
   // v1140 SURVEY RUN: optional survey markers on the plains (stage.surveyPoints, 2-4).
@@ -685,11 +709,13 @@ class SurfaceDestinationApproachController {
     ctx.restore()
   }
   surveyLeft(){return (this.survey||[]).filter(p=>!p.done)}
+  playVoiceIf(key,priority){if(key&&audio?.hasVoice?.(key))audio.playVoice(key,{once:false,priority})}
+  proceedVoiceKey(){return{city:'proceedToCity',forest:'proceedToForest',swamp:'proceedToSwamp',osd:'proceedToOsdCompound'}[this.destination]||'proceedToCity'}
   surveyNext(){return this.surveyLeft().sort((a,b)=>Math.hypot(a.x-shipX,a.worldZ-travel)-Math.hypot(b.x-shipX,b.worldZ-travel))[0]||null}
   updateSurvey(dt){
     if(!this.survey?.length)return;
     const intro=this.surveyIntro;if(intro){intro.wait-=dt;if(intro.wait<=0||(typeof callout==='function'&&callout(intro.text,2.6))){
-      if(intro.wait>0&&this.surveyMode==='core'&&audio?.hasVoice?.('coreSamplesDiveLow'))audio.playVoice('coreSamplesDiveLow',{once:false,priority:true});
+      this.playVoiceIf(SURVEY_VOICE[this.surveyMode||'survey']?.intro,true);
       this.surveyIntro=null}}
     this.surveyNagT=Math.max(0,this.surveyNagT-dt);
     for(const p of this.survey){
@@ -702,7 +728,9 @@ class SurfaceDestinationApproachController {
       p.done=true;const total=this.survey.length,got=total-this.surveyLeft().length;
       const T=SURVEY_TEXT[this.surveyMode||'survey'];
       if(typeof callout==='function')callout(got<total?T.got(got,total):T.done,1.8);
-      SoundFX.objectiveComplete?.()
+      SoundFX.objectiveComplete?.();
+      // Every one gets its line, the last too; then the destination's line queues after it.
+      this.playVoiceIf(SURVEY_VOICE[this.surveyMode||'survey']?.got,false);if(got>=total)this.playVoiceIf(this.proceedVoiceKey(),false)
     }}
   }
   buildSkyline(){
@@ -808,7 +836,7 @@ class SurfaceDestinationApproachController {
       this.chatter=(lines&&m&&!m.training&&!m.devGroundTest&&this.scenery!=='rocks'&&this.scenery!=='swamp'&&!this.survey?.length&&Math.random()<.7)?{text:lines[Math.floor(Math.random()*lines.length)],wait:7,delay:4.5}:null}
     if(this.survey?.length)this.surveyIntro={text:SURVEY_TEXT[this.surveyMode||'survey'].intro(this.survey.length,this.destination==='forest'?'FOREST':'CITY'),wait:6};
     else if(this.destination==='swamp'){say('PROCEED TO SWAMP',.85);if(audio.hasVoice?.('proceedToSwamp'))audio.playVoice('proceedToSwamp',{once:false,priority:true})}
-    else if(this.destination==='osd')say('PROCEED TO OSD FACILITY',.85);
+    else if(this.destination==='osd'){say('PROCEED TO OSD FACILITY',.85);this.playVoiceIf('proceedToOsdCompound',true)}
     else audio.playVoice(this.destination==='forest'?'proceedToForest':'proceedToCity',{once:false,priority:true});
     this.chooseWeather()
   }

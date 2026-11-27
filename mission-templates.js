@@ -1732,7 +1732,7 @@
           blackBoxLocal:[0,-.13,-2.64],recorderStopLocal:[0,-.15,-2.10],recorderStopRadius:.65,transferSeconds:3.0,turnSeconds:1.75,interiorAutopilotSpeed:12.5,
           exitLocal:[0,-.15,.92],exitRevealRadius:54,exitCaptureRadius:3.5},
         returnTransit:{duration:3.15,message:'RETURNING TO FREE TRADERS FREIGHT DEPOT',hud:'TO FREIGHT DEPOT'}}},
-      {type:'free_traders_depot_terminal',label:'Deliver the Records',params:{difficulty:1,scale:26,spawnDistance:475,spawnX:-36,spawnY:-12,pitch:-.085,yaw:.58,roll:.05,startMessage:'Deliver the recovered records',depotRevealRadius:205,terminalStageDistance:82,terminalCaptureRadius:86,terminalStandOff:15.5,transferSeconds:3.1,turnSeconds:1.75,clearDistance:52}}
+      {type:'free_traders_depot_terminal',label:'Deliver the Records',params:{difficulty:1,scale:26,spawnDistance:475,spawnX:-36,spawnY:-12,pitch:-.085,yaw:.58,roll:.05,startMessage:'Deliver the recovered records',transferMessage:'Transmitting the recovered records',depotRevealRadius:205,terminalStageDistance:82,terminalCaptureRadius:86,terminalStandOff:15.5,transferSeconds:3.1,turnSeconds:1.75,clearDistance:52}}
     ],
     presentation:{
       trade:{
@@ -1919,7 +1919,7 @@
       {type:'urban_exit',label:'City Exit',params:{difficulty:'$risk'}},
       {type:'planet_launch',label:'Planet Launch',params:{difficulty:'$risk'}},
       {type:'space_transit',label:'Depot Transit',params:{difficulty:'$risk',duration:3.3,message:'HEADING TO FREIGHT DEPOT',hud:'TO FREIGHT DEPOT',playZoomSound:true}},
-      {type:'free_traders_depot_terminal',label:'Depot Handoff',params:{difficulty:1,scale:26,spawnDistance:475,spawnX:-36,spawnY:-12,pitch:-.085,yaw:.58,roll:.05,startMessage:'Hand the cargo over at the depot terminal',transferHud:'CARGO HANDOFF',receivedHud:'CARGO RECEIVED',completeVoice:'deliveryComplete',depotRevealRadius:205,terminalStageDistance:82,terminalCaptureRadius:86,terminalStandOff:15.5,transferSeconds:3.1,turnSeconds:1.75,clearDistance:52}}
+      {type:'free_traders_depot_terminal',label:'Depot Handoff',params:{difficulty:1,scale:26,spawnDistance:475,spawnX:-36,spawnY:-12,pitch:-.085,yaw:.58,roll:.05,startMessage:'Deliver the cargo to the intake hatch',transferMessage:'Handing over the cargo',transferHud:'CARGO HANDOFF',receivedHud:'CARGO RECEIVED',completeVoice:'deliveryComplete',depotRevealRadius:205,terminalStageDistance:82,terminalCaptureRadius:86,terminalStandOff:15.5,transferSeconds:3.1,turnSeconds:1.75,clearDistance:52}}
     ],
     presentation:{
       trade:{
@@ -2609,7 +2609,7 @@
         ],
         completionSubjects:['Recorders recovered','Crash sites closed'],
         completionBodies:['Every recorder is in OSD hands. We know what brought the patrol down now. Payment: CR {credits}. Standing: +{rep}.'],
-        failureMail:{contactId:'kudo_shang',subjects:['Recorders lost'],bodies:['The recorders did not reach the depot. Someone else will read them first. That is unacceptable.']},
+        failureMail:{contactId:'kudo_shang',subjects:['Recorders lost'],bodies:['The recorders never reached us. Someone else will read them first. That is unacceptable.']},
         abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left the crash sites unrecovered. The patrol deserved better.']},
         personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.18,subjects:['Re: the downed patrol'],bodies:['The recorders showed the patrol held formation to the ground. I thought you should know.']}
       },

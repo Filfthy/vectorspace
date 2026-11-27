@@ -189,7 +189,7 @@ body.cheating canvas{cursor:var(--cursor-vector)}
 .opArc.done{color:var(--w)}
 .opTicks{display:flex;align-items:center;gap:4px}
 .opTicks .tick{display:inline-block;width:8px;height:8px;border:1px solid var(--gd)}
-.opTicks .tick.on{border-color:var(--y);background:var(--y)}
+.opTicks .tick.on{border-color:var(--y);background:linear-gradient(45deg,transparent 43%,var(--y) 43% 57%,transparent 57%),linear-gradient(-45deg,transparent 43%,var(--y) 43% 57%,transparent 57%)}   /* v3006: no solid fills: an X, not a filled box */
 .opTicks em{font-style:normal;color:var(--c);margin-left:6px;min-width:24px;text-align:right}
 .opStats{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;font-size:var(--type-meta)}
 .opStats div{display:flex;justify-content:space-between;color:var(--g)}
@@ -844,7 +844,7 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .bayHead h3{margin:0 0 4px}
 .bayFrames{display:flex;gap:6px;flex-wrap:wrap}
 .bayFrames button{height:26px;padding:2px 8px;font-size:var(--type-meta);color:var(--tc,var(--g));border-color:var(--tc,var(--g))}
-.bayFrames button.active{background:var(--tc,var(--g));color:#000;opacity:1}
+.bayFrames button.active{background:#000;color:var(--tc,var(--g));opacity:1}
 .bayStats{display:grid;grid-template-columns:1fr;border:1px solid var(--gd);margin:10px 0 12px}
 .bayStat{display:grid;grid-template-columns:150px 1fr auto;gap:8px;padding:4px 8px;border-bottom:1px solid #063;font-size:var(--type-meta);align-items:baseline}
 .bayStat:last-child{border-bottom:0}
@@ -865,7 +865,7 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .baySlotSub{grid-column:2;grid-row:3;font-size:var(--type-compact);color:var(--x);line-height:var(--line-compact)}
 .packPips{grid-column:1/3;display:flex;gap:3px;margin-top:3px}
 .packPips i{flex:1;height:4px;border:1px solid var(--tc,var(--g))}
-.packPips i.on{background:var(--tc,var(--g))}
+.packPips i{opacity:.35}.packPips i.on{opacity:1;background:linear-gradient(var(--tc,var(--g)),var(--tc,var(--g))) center/100% 1px no-repeat}   /* v3006: a line, not a fill */
 .bayRestock{margin-top:12px;display:flex;flex-direction:column;gap:4px;font-size:var(--type-meta)}
 .restockToggle{color:var(--g);display:flex;gap:8px;align-items:center;letter-spacing:var(--track-label)}
 .restockNote{color:var(--y)}.restockNote.off{color:var(--x)}
@@ -906,14 +906,15 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .skillCardHead b{color:var(--w);font-weight:400;font-size:var(--type-body)}
 .skillCardIcon{width:26px;height:26px;color:var(--g)}.skillCardIcon svg{width:26px;height:26px}
 .skillCard.owned .skillCardIcon{color:var(--c)}.skillCard.maxed .skillCardIcon{color:var(--y)}
-.rankPips{display:flex;gap:3px}.rankPips i{width:9px;height:9px;border:1px solid var(--g)}.rankPips i.on{background:var(--c);border-color:var(--c)}
+.rankPips{display:flex;gap:3px}.rankPips i{width:9px;height:9px;border:1px solid var(--g)}.rankPips i.on{border-color:var(--c);background:linear-gradient(45deg,transparent 43%,var(--c) 43% 57%,transparent 57%),linear-gradient(-45deg,transparent 43%,var(--c) 43% 57%,transparent 57%)}
 .skillCard p{margin:0;color:var(--x);font-size:var(--type-meta);line-height:var(--line-compact)}
 .skillCard p.have{color:var(--c)}
 .skillCard p em{font-style:normal;color:var(--y)}
 .skillCard button{margin-top:auto;height:28px;font-size:var(--type-meta)}
 @media (max-width:1100px){.skillColumns{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .baySlot.static,.bayFrames button.active{pointer-events:none}
-.bayFrames button.active{background:var(--tc,var(--g))!important;color:#000!important;border-color:var(--tc,var(--g))!important}
+/* v3006 (Dave: no solid fills anywhere in this game): the selected frame is a double outline */
+.bayFrames button.active{background:#000!important;color:var(--tc,var(--g))!important;border-color:var(--tc,var(--g))!important;box-shadow:inset 0 0 0 2px #000,inset 0 0 0 3px var(--tc,var(--g))!important}
 /* Vector glyphs are taller than the CSS line box at 9px: give market rows real leading. */
 .catalogRowSub{line-height:15px!important}
 .catalogRowBlurb{line-height:17px!important;margin-top:2px}
@@ -1034,7 +1035,7 @@ body:not(.playing) canvas,body.paused canvas,body.cheating canvas{cursor:var(--c
 .marketDetail[class*="tier"] .itemIconFrame{border-color:var(--tc)!important}
 .marketDetail[class*="tier"] .shopItemIcon{color:var(--tc)!important}
 .tierFilters button[class*="tier"]{border-color:var(--tc)!important}
-.tierFilters button[class*="tier"].active{background:var(--tc)!important;color:#000!important}
+.tierFilters button[class*="tier"].active{background:#000!important;color:var(--tc)!important;border-color:var(--tc)!important;box-shadow:inset 0 0 0 2px #000,inset 0 0 0 3px var(--tc)!important}
 
 /* v2250: shelf and orders. ORDER tags and reasons read in yellow, not as locked grey. */
 .catalogRowFacts .order,.shopAccess.order{color:var(--y)}

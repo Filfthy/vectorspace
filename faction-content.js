@@ -126,7 +126,7 @@
       modules:[
         {type:'fighters',label:'Break the Blockade',target:12,fighterHp:12,profile:'pirate',difficulty:5,startMessage:'PIRATE BLOCKADE'},
         transit('Depot Transit','HEADING TO FREIGHT DEPOT','TO FREIGHT DEPOT'),
-        depot({label:'Upload Beacon Codes',startMessage:'Upload the clean beacon codes'})
+        depot({label:'Upload Beacon Codes',startMessage:'Upload the clean beacon codes',transferMessage:'Uploading the clean beacon codes'})
       ],
       stages:['Break the Blockade','Head to the Depot','Upload Beacon Codes'],
       offerSubject:'They are squeezing my depot',
@@ -146,7 +146,7 @@
             blackBoxLocal:[0,-.13,-2.64],recorderStopLocal:[0,-.15,-2.10],recorderStopRadius:.65,transferSeconds:3.0,turnSeconds:1.75,interiorAutopilotSpeed:12.5,
             exitLocal:[0,-.15,.92],exitRevealRadius:54,exitCaptureRadius:3.5},
           returnTransit:{duration:3.15,message:'RETURNING TO FREE TRADERS FREIGHT DEPOT',hud:'TO FREIGHT DEPOT'}},
-        depot({label:'Deliver Spoofer Data',startMessage:'Deliver the spoofer data'})
+        depot({label:'Deliver Spoofer Data',startMessage:'Deliver the spoofer data',transferMessage:'Transmitting the spoofer data'})
       ],
       stages:['Cross the Asteroid Field','Destroy the Pirate Crew','Reach the Freighter','Enter the Freighter','Download Spoofer Data','Exit the Freighter','Return to the Depot','Deliver the Data'],
       offerSubject:'I want my ship back',
@@ -360,7 +360,7 @@
   epilogue({faction:'trade',short:'Compact',contactName:'Corvella Pallis',clientName:'Free Traders Compact',from:CORVELLA,label:'OPEN FREE TRADERS CONTRACT',
     title:'Nobody Owns Me',family:'asteroid_wreck_recovery',risk:7,pay:48000,xp:2400,titleReward:"Corvella's Favourite",musicMode:'calm',
     description:'The company that built Corvella kept its records on a ship that was never scrapped. It is drifting in an asteroid field with her original ownership file aboard. Pull the recorder and deliver it to the Compact depot.',
-    modules:[wreckRun('The Records Ship'),depot({label:'Deliver the Ownership File',startMessage:'Deliver the ownership file'})],
+    modules:[wreckRun('The Records Ship'),depot({label:'Deliver the Ownership File',startMessage:'Deliver the ownership file',transferMessage:'Transmitting the ownership file'})],
     stages:['Cross the Field','Destroy the Salvagers','Reach the Records Ship','Enter the Ship','Pull the Ownership File','Exit the Ship','Return to the Depot','Deliver the File'],
     offerSubject:'The really personal one',
     offer:['Sweetie, this is the personal one. The really personal one.','The company that built me kept every record on a ship that was supposed to be scrapped. It was not. It is drifting in a rock field, and my original ownership file is on board.','I want that file, babe. Pull the recorder and bring it to the depot, and then nobody can ever say they own me again.'],
@@ -379,7 +379,7 @@
       {type:'urban_exit',label:'City Exit',difficulty:5},
       {type:'planet_launch',label:'Planet Launch',difficulty:5},
       transit('Depot Transit','HEADING TO FREIGHT DEPOT','TO FREIGHT DEPOT'),
-      depot({label:'Hand Over the Ledger',startMessage:'Hand the ledger over at the depot terminal',transferHud:'CARGO HANDOFF',receivedHud:'CARGO RECEIVED',completeVoice:'deliveryComplete'})],
+      depot({label:'Hand Over the Ledger',startMessage:'Deliver the ledger to the intake hatch',transferMessage:'Handing over the ledger',transferHud:'CARGO HANDOFF',receivedHud:'CARGO RECEIVED',completeVoice:'deliveryComplete'})],
     stages:['Descend','Reach the City','Collect the Ledger','Leave the City','Launch','Transit to the Depot','Hand Over the Ledger'],
     offerSubject:'A family matter, again',
     offer:['X. A family matter, as I once called it. The Snade side of my inheritance has found a ledger belonging to the Erivan side, and they intend to read it aloud.','It sits in a ground-floor strongroom in the city. Collect it, leave without fuss, and see it to the Compact depot, where a friend will hold it for me.','Discretion is assumed. Speed is appreciated.'],

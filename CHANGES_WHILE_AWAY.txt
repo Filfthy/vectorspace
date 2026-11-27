@@ -3634,3 +3634,55 @@ v3002 Guns count against asteroids: a hit takes the fitted weapon's damage
       before. Any ship on screen in front can now be locked, however far
       away (the lock stopped at 105 units, though the lasers hit beyond),
       and the aimed ship's health readout follows the same rule.
+v3003 Pickups and the depot match what you carry. Logs, reports and
+      records are data: downloaded from a terminal in the city collection
+      room and uploaded at the depot terminal. Anything else is a physical
+      case: tractored aboard in the city, then delivered through a new
+      cargo intake hatch under the depot terminal, whose doors slide open,
+      take the case and close. The depot no longer announces "TRANSMITTING
+      FLIGHT RECORDER DATA" for every job: each says what it hands over
+      (cargo, ledger, routing core, beacon codes, spoofer data, records,
+      ownership file). The story recorder upload keeps its line.
+v3004 Plains approaches fill the whole field, not a strip along the route.
+      The rolling hills now spread about 80 either side of the line to the
+      destination (was 34, then flat), as the swamp already did, and the
+      field out to 140 either side gets scattered clumps of the world's
+      trees or rocks, so flying out to relay masts, survey points or crash
+      sites crosses real ground. The straight run to the destination and
+      its reserved ground stay clear, and the landing stays level.
+v3005 OSD deliveries no longer end at the Free Traders depot. Each OSD job
+      that ends with a depot handoff now goes, at random, to the OSD picket
+      station (an armoured fortress hull with pointed ends, a launch bay,
+      the OSD emblem, a command tower and mast, two roof turrets and two
+      docked patrol drones) or the OSD battlecruiser Resolute (a long
+      armoured hull with a bridge aft, three spine turrets, a pointed bow
+      and engine bells). Both carry the depot's terminal and cargo intake
+      hatch on their face, so delivery works exactly the same, with "PICKET
+      CONTROL" or "RESOLUTE CONTROL" clearing you in. The brief, the transit
+      and the HUD name the right destination.
+v3006 Spoken lines for the plains side tasks. When a job has relay masts,
+      survey points, crash sites or core samples, the task is now spoken
+      as it is given ("Reset the relay masts."), each one as it is done
+      ("Relay back online."), and once the last is done the destination's
+      own line plays ("Proceed to the city. Follow City Nav."), which was
+      skipped before whenever a job had side tasks. The OSD compound run
+      now plays its recorded "Proceed to the OSD compound." too. Seven new
+      Sonia renders are in voices unprocessed and listed in
+      VOICE_REQUESTS.txt; each plays once it is normalised into voices/.
+      The last one done says its line too, then the destination's line
+      follows it in the queue rather than cutting in.
+      OSD contracts made before v3005 (still on the board or in a favour
+      mail) are given an OSD destination when launched, so they no longer
+      end at the Free Traders depot either.
+      No solid fills anywhere: the selected frame and tier filter buttons
+      are a double outline in their colour (were filled with black text),
+      operator record ticks and rank pips are an X, and consumable pack
+      pips are a line through the bar, the empty ones dimmed.
+      Fewer contact offers. Personal favours and Mara's VOX contracts came
+      faster than they could be flown and never went away, so the board
+      was never needed. Now at most two are open at once (no new one while
+      both slots are full), and one left untaken for eight jobs lapses
+      ("This offer has lapsed. The client found someone else."). An
+      existing backlog is trimmed to the two newest on load. Story offers,
+      Black Contracts and an offer already prepared or in flight are never
+      touched.
