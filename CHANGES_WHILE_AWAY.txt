@@ -3627,3 +3627,10 @@ v3001 Seven trial tracks on the violent playlist: Holst Uranus, Beethoven 5
       the About box. tools/prepare-music.py levels them for play: quiet
       passages lifted by up to 18 dB, all at -14 LUFS, peaks under -1.5
       dBFS. Each has its own level slider in the track mixer.
+v3002 Guns count against asteroids: a hit takes the fitted weapon's damage
+      per pulse (with overcharge and skills), not a flat 1, so a Mk V
+      laser breaks an 8-point rock in 3 hits and a Rail Mk V in 1. The
+      Pulse Laser Mk I is unchanged. Rock toughness and numbers are as
+      before. Any ship on screen in front can now be locked, however far
+      away (the lock stopped at 105 units, though the lasers hit beyond),
+      and the aimed ship's health readout follows the same rule.

@@ -922,7 +922,10 @@ function lockCandidateAtAim(a){
  for(const f of fighters){
    if(f.dead||f.dying||f.t<0)continue;
    if(f.ghost&&!AgentXGhosts.solid(f))continue;   // v1470: nothing to lock while scattered
-   const q=fighterCam(f);if(!q||q[2]<=3||q[2]>105)continue;
+   // v3002 (Dave: if you can hit a ship you should be able to target it). No depth limit:
+   // anything on screen in front can be locked, as the lasers can hit it. Nearer ships
+   // still win a tie through the score below.
+   const q=fighterCam(f);if(!q||q[2]<=3)continue;
    const p=projectCam(q);if(!p||p.x<0||p.x>W||p.y<0||p.y>viewH)continue;
    const r=clamp(f.s*p.k,15,86),d=Math.hypot(a.x-p.x,a.y-p.y),limit=cone+r*.45;
    if(d>limit)continue;
@@ -1629,7 +1632,7 @@ function aimingConeTarget(){
  let best=null,bestScore=1e9;
  for(const f of fighters){
    if(f.dead||f.dying||f.t<0)continue;
-   const q=fighterCam(f);if(!q||q[2]<=2.5||q[2]>105)continue;
+   const q=fighterCam(f);if(!q||q[2]<=2.5)continue;   // v3002: no depth limit, as for the lock
    const p=projectCam(q);if(!p||p.x<0||p.x>W||p.y<0||p.y>viewH)continue;
    const r=clamp(f.s*p.k,15,86),d=Math.hypot(a.x-p.x,a.y-p.y),limit=cone+r*.35;
    if(d>limit)continue;

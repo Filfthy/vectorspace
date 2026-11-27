@@ -723,7 +723,10 @@ class AsteroidFieldController {
   }
   hit(a,p){
     if(!a||a.dead||a.dying||this.state!=='active')return;
-    a.hp--;a.hitFx=HIT_FX_TOTAL;spark(p.x,p.y,C.c,5);
+    // v3002 (Dave: rocks at high risk could not be broken in time, whatever gun was fitted).
+    // A hit takes the fitted weapon's damage per pulse, with overcharge and skills, as a
+    // fighter does. Never less than 1, so the Scatter Mk II is no worse than the Pulse Laser.
+    a.hp-=Math.max(1,campaign.laserDamageAgainst?.(a)||1);a.hitFx=HIT_FX_TOTAL;spark(p.x,p.y,C.c,5);
     if(a.hp<=0){
       // Brief lethal flash, but the rock remains physically in motion until the
       // explosion. At asteroid-field speed a stationary 0.18 s delay is obvious.
