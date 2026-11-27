@@ -26,8 +26,15 @@ Valkyries US Marines Band
 Violent playlist additions (all via Wikimedia Commons)
 Holst, Uranus: Performance United States Air Force Band. Public domain.
 Beethoven, Symphony No. 5, I. Allegro con brio: Public domain.
-Mozart, Symphony No. 40, IV. Finale. Allegro assai: Musopen Symphony. Public domain.
-Beethoven, Moonlight Sonata, Presto: Public domain.
+Mozart, Symphony No. 40, I. Molto allegro: Musopen Symphony. Public domain.
 Vivaldi, Summer RV 315 III. Presto, and Winter RV 297 I. Allegro non molto: The Modena Chamber Orchestra. PDM-owner.
 Smetana, Three Dances from the Bartered Bride, III. Dance of the Comedians: Transcription Lt. Col. Jack Kline, performance United States Marine Band. Public domain.
 Game copies in music/violent were levelled for play with tools/prepare-music.py (quiet passages lifted, -14 LUFS).
+
+
+Calm playlist additions
+Grieg, Peer Gynt Suite No. 1, I. Morning Mood: Musopen Symphony, https://musopen.org/music/777-peer-gynt-suite-no-1-op-46/ . Public domain, via Wikimedia Commons.
+Tchaikovsky, Waltz of the Flowers: arrangement Lawrence Odom, performance United States Air Force Band, Concert Band, recording United States Air Force. Public domain, via Wikimedia Commons. Game copy starts at 1:24, after the harp cadenza.
+Handel, Sarabande: Track: Sarabande, Music by https://www.fiftysounds.com (licence https://www.fiftysounds.com/music-license.html, attribution required).
+Saint-Saens, The Carnival of the Animals, VII. Aquarium: the Al Goldstein collection in the Pandora Music repository at ibiblio.org, via Wikimedia Commons. CC BY-SA 2.0 https://creativecommons.org/licenses/by-sa/2.0 . The levelled game copy is shared under the same licence.
+Game copies in music/calm were levelled with tools/prepare-music.py.

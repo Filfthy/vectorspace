@@ -125,6 +125,10 @@ function drawHudMarkerLabel(text,x,y,r,col,font='400 10px Consolas,monospace'){
 
 class OptionsController {
   constructor(){
+    // v3007 (Dave: track mixer doesn't work). The sound-effect and music-track mixers moved
+    // to the DEV tab (campaignDevPanel), outside optionsPanel, so nothing in them was bound.
+    // Every control's data attribute is unique on the page, so look across the whole page.
+    this.root=document;
     this.wasPaused=true;
     this.channelNames=['master','music','fx','speech'];
     this.effectNames=['laser','hit','explosion','damageTaken','projectileDestroyed','zoom','disconnect','uiClick'];
@@ -135,31 +139,31 @@ class OptionsController {
   }
   isOpen(){return optionsModal.classList.contains('open')}
   bind(){
-    optionsPanelRoot.querySelectorAll('[data-mixer-toggle]').forEach(btn=>btn.addEventListener('click',()=>{
+    this.root.querySelectorAll('[data-mixer-toggle]').forEach(btn=>btn.addEventListener('click',()=>{
       const name=btn.dataset.mixerToggle,s=AudioMixer.ensure();
       AudioMixer.setEnabled(name,!s.enabled[name]);
       audio.applyMixer();this.render()
     }));
-    optionsPanelRoot.querySelectorAll('[data-mixer-slider]').forEach(input=>input.addEventListener('input',()=>{
+    this.root.querySelectorAll('[data-mixer-slider]').forEach(input=>input.addEventListener('input',()=>{
       AudioMixer.setVolume(input.dataset.mixerSlider,Number(input.value)/100);
       audio.applyMixer();this.render(false)
     }));
-    optionsPanelRoot.querySelectorAll('[data-sfx-slider]').forEach(input=>input.addEventListener('input',()=>{
+    this.root.querySelectorAll('[data-sfx-slider]').forEach(input=>input.addEventListener('input',()=>{
       AudioMixer.setTrim(input.dataset.sfxSlider,Number(input.value)/100);this.render(false)
     }));
-    optionsPanelRoot.querySelectorAll('[data-sfx-play]').forEach(btn=>btn.addEventListener('click',()=>this.preview(btn.dataset.sfxPlay)));
-    optionsPanelRoot.querySelectorAll('[data-track-level]').forEach(input=>input.addEventListener('input',()=>{
+    this.root.querySelectorAll('[data-sfx-play]').forEach(btn=>btn.addEventListener('click',()=>this.preview(btn.dataset.sfxPlay)));
+    this.root.querySelectorAll('[data-track-level]').forEach(input=>input.addEventListener('input',()=>{
       const id=input.dataset.trackLevel;
       AudioMixer.setTrackTrim(id,Number(input.value)/100);
       audio.music.applyMixer();this.renderTrackLevel(id,false)
     }));
-    optionsPanelRoot.querySelectorAll('[data-track-position]').forEach(input=>input.addEventListener('input',()=>{
+    this.root.querySelectorAll('[data-track-position]').forEach(input=>input.addEventListener('input',()=>{
       const id=input.dataset.trackPosition,f=clamp(Number(input.value)/1000,0,1);
       this.trackPositions[id]=f;
       audio.music.seekPreview(id,f);
       this.renderTrackTime(id)
     }));
-    optionsPanelRoot.querySelectorAll('[data-track-play]').forEach(btn=>btn.addEventListener('click',()=>{
+    this.root.querySelectorAll('[data-track-play]').forEach(btn=>btn.addEventListener('click',()=>{
       const id=btn.dataset.trackPlay;
       if(audio.music.previewing&&audio.music.previewTrackId===id)audio.music.stopPreview(true);
       else audio.music.startPreview(id,this.trackPositions[id]||0);
@@ -185,7 +189,7 @@ class OptionsController {
       const d=music.previewDeck.duration,t=music.previewDeck.currentTime;
       if(Number.isFinite(d)&&d>0){
         const f=clamp(t/d,0,1);this.trackPositions[id]=f;
-        const input=optionsPanelRoot.querySelector(`[data-track-position="${id}"]`);
+        const input=this.root.querySelector(`[data-track-position="${id}"]`);
         if(input)input.value=String(Math.round(f*1000));
       }
       this.renderTrackTime(id)
@@ -194,12 +198,12 @@ class OptionsController {
   }
   renderTrackLevel(id,setSlider=true){
     const trim=AudioMixer.musicTrackTrim(id);
-    const input=optionsPanelRoot.querySelector(`[data-track-level="${id}"]`),out=optionsPanelRoot.querySelector(`[data-track-level-value="${id}"]`);
+    const input=this.root.querySelector(`[data-track-level="${id}"]`),out=this.root.querySelector(`[data-track-level-value="${id}"]`);
     if(input&&setSlider)input.value=String(Math.round(trim*100));
     if(out)out.textContent=`${Math.round(trim*100)}%`
   }
   renderTrackTime(id){
-    const music=audio.music,out=optionsPanelRoot.querySelector(`[data-track-time="${id}"]`);
+    const music=audio.music,out=this.root.querySelector(`[data-track-time="${id}"]`);
     if(!out)return;
     let duration=music.trackDurations[id];
     let current=(this.trackPositions[id]||0)*(Number.isFinite(duration)?duration:0);
@@ -210,7 +214,7 @@ class OptionsController {
     out.textContent=`${this.formatTime(current)} / ${this.formatTime(duration)}`
   }
   renderTrackButtons(){
-    optionsPanelRoot.querySelectorAll('[data-track-play]').forEach(btn=>{
+    this.root.querySelectorAll('[data-track-play]').forEach(btn=>{
       const active=audio.music.previewing&&audio.music.previewTrackId===btn.dataset.trackPlay&&!audio.music.previewDeck.paused;
       btn.textContent=active?'Stop':'Play';btn.classList.toggle('active',active)
     })
@@ -218,23 +222,23 @@ class OptionsController {
   render(setSliders=true){
     const s=AudioMixer.ensure();
     for(const name of this.channelNames){
-      const btn=optionsPanelRoot.querySelector(`[data-mixer-toggle="${name}"]`);
-      const input=optionsPanelRoot.querySelector(`[data-mixer-slider="${name}"]`);
-      const out=optionsPanelRoot.querySelector(`[data-mixer-value="${name}"]`);
+      const btn=this.root.querySelector(`[data-mixer-toggle="${name}"]`);
+      const input=this.root.querySelector(`[data-mixer-slider="${name}"]`);
+      const out=this.root.querySelector(`[data-mixer-value="${name}"]`);
       if(btn){btn.textContent=s.enabled[name]?'On':'Off';btn.classList.toggle('off',!s.enabled[name])}
       if(input&&setSliders)input.value=String(Math.round(s.volume[name]*100));
       if(out)out.textContent=`${Math.round(s.volume[name]*100)}%`
     }
     for(const name of this.effectNames){
-      const input=optionsPanelRoot.querySelector(`[data-sfx-slider="${name}"]`);
-      const out=optionsPanelRoot.querySelector(`[data-sfx-value="${name}"]`);
+      const input=this.root.querySelector(`[data-sfx-slider="${name}"]`);
+      const out=this.root.querySelector(`[data-sfx-value="${name}"]`);
       if(input&&setSliders)input.value=String(Math.round(s.trims[name]*100));
       if(out)out.textContent=`${Math.round(s.trims[name]*100)}%`
     }
     for(const id of this.trackNames){
       this.renderTrackLevel(id,setSliders);
       if(setSliders){
-        const pos=optionsPanelRoot.querySelector(`[data-track-position="${id}"]`);
+        const pos=this.root.querySelector(`[data-track-position="${id}"]`);
         if(pos)pos.value=String(Math.round((this.trackPositions[id]||0)*1000))
       }
       this.renderTrackTime(id)

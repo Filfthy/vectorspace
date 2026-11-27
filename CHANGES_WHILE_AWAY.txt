@@ -3686,3 +3686,24 @@ v3006 Spoken lines for the plains side tasks. When a job has relay masts,
       existing backlog is trimmed to the two newest on load. Story offers,
       Black Contracts and an offer already prepared or in flight are never
       touched.
+v3007 Mozart 40 on the violent playlist is now the famous first movement
+      (I. Molto allegro, Musopen Symphony, public domain via Wikimedia
+      Commons) instead of the finale, levelled the same way as the other
+      new tracks. Title, mixer row and credits updated.
+      The DEV tab's track mixer and sound-effect mixer work again. They had
+      moved out of the Options panel, and their controls were only wired
+      up inside it, so Play, level and position did nothing. Position
+      seeking needs a server that allows range requests (GitHub Pages
+      does, python's http.server does not).
+      The Moonlight Sonata presto is off the violent playlist (it did not
+      work as game music): removed from the track list, the mixer and the
+      credits, and its levelled copy deleted. The original download stays
+      in music/violent audition.
+      Four trial tracks on the calm playlist, levelled like the violent
+      ones: Grieg's Morning Mood (Musopen, public domain), Tchaikovsky's
+      Waltz of the Flowers (US Air Force Band, public domain, cut to start
+      at 1:24 on the waltz's opening bars, after the harp cadenza),
+      Handel's Sarabande (FiftySounds, attribution required) and
+      Saint-Saens' Aquarium (CC BY-SA 2.0, Pandora Music repository via
+      Wikimedia Commons). Credited in the About box and music credits.txt.
+      tools/prepare-music.py takes an optional start time for such cuts.
