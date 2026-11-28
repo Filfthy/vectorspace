@@ -42,7 +42,9 @@ ENTRY = re.compile(r"(\w+):'((?:[^'\\]|\\.)*)'")
 # only the wording sent to the voice changes. "xeno" is said "zeeno".
 SAY_AS = [(r'\bxeno', 'zeeno'), (r'\bXeno', 'Zeeno'), (r'\bOSD\b', 'O S Dee'), (r'\bVOX\b', 'Vox'),
           # v3006: Sonia reads relay as the verb (reLAY). Ree-lay was take 2 of the test.
-          (r'\brelay', 'ree-lay'), (r'\bRelay', 'Ree-lay')]
+          (r'\brelay', 'ree-lay'), (r'\bRelay', 'Ree-lay'),
+          # v3022 (Dave: says mesa like messer, not maysa).
+          (r'\bmesa', 'maysa'), (r'\bMesa', 'Maysa')]
 
 
 def say_as(text):

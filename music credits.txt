@@ -36,4 +36,5 @@ Grieg, Peer Gynt Suite No. 1, I. Morning Mood: Musopen Symphony, https://musopen
 Tchaikovsky, Waltz of the Flowers: arrangement Lawrence Odom, performance United States Air Force Band, Concert Band, recording United States Air Force. Public domain, via Wikimedia Commons. Game copy starts at 1:24, after the harp cadenza.
 Handel, Sarabande: Track: Sarabande, Music by https://www.fiftysounds.com (licence https://www.fiftysounds.com/music-license.html, attribution required).
 Saint-Saens, The Carnival of the Animals, VII. Aquarium: the Al Goldstein collection in the Pandora Music repository at ibiblio.org, via Wikimedia Commons. CC BY-SA 2.0 https://creativecommons.org/licenses/by-sa/2.0 . The levelled game copy is shared under the same licence.
+Tarrega, Recuerdos de la Alhambra: Carlo Alberto Boni, via Wikimedia Commons, https://commons.wikimedia.org/wiki/File:Recuerdos_de_la_Alhambra.ogg . CC BY-SA 3.0 https://creativecommons.org/licenses/by-sa/3.0
 Game copies in music/calm were levelled with tools/prepare-music.py.

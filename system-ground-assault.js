@@ -869,7 +869,8 @@ class GroundAssaultController{
       }
     }
     if(this.variant==='factory'){this.updateFactory(dt);if(mode!=='play')return}
-    else if(this.state==='hunt'&&this.groups.every(g=>g.cleared)){this.state='clear';this.clearT=0;say('DUNES CLEAR',1.2)}
+    // v3020: a crash field is clear only with every recorder in (system-crash-field.js), not every guard down.
+    else if(this.state==='hunt'&&this.variant!=='crash'&&this.groups.every(g=>g.cleared)){this.state='clear';this.clearT=0;say('DUNES CLEAR',1.2)}
     if(this.state==='clear'){
       this.clearT+=dt;
       if(this.clearT>2.6&&mode==='play'){this.state='departing';this.devExitPending=true;beginSurfaceExit({scene:'dunes'})}

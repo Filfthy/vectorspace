@@ -931,6 +931,7 @@ class CampaignController {
   }
   makeTemplateContract(template,slot=0,options={}){
     if(!template)return null;
+    if(typeof template.forSetting==='function')template=template.forSetting(this.pickTemplateSetting(template,options?.setting));   // v3016
     const allowed=Array.isArray(template.allowedFactions)?template.allowedFactions.filter(id=>this.factions[id]):[];
     const requestedFaction=String(options?.faction||'');
     const faction=(requestedFaction&&this.factions[requestedFaction]&&(!allowed.length||allowed.includes(requestedFaction))&&template.presentation?.[requestedFaction])
@@ -993,7 +994,7 @@ class CampaignController {
     const routeEncounter=options?.noRouteEncounter?null:(globalThis.AgentXEncounters?.apply(this,{template,faction,risk,modules})||null);
     return{
       id:`proc_${Date.now().toString(36)}_${serial}_${((Math.random()*0xffffff)|0).toString(36)}`,
-      faction,title,kind:'procedural',family:template.family||template.id,templateId:template.id,templateVersion:template.version||1,
+      faction,title,kind:'procedural',family:template.family||template.id,templateId:template.id,templateVersion:template.version||1,...(template.setting?{setting:template.setting}:{}),
       cargo,destination,cargoStyle:pack.cargoStyle||'',targetGroup,motive,situation,targetProfile,musicMode:template.musicMode||null,...(template.volcanic?{volcanicWorld:true}:(template.volcanic===false?{volcanicWorld:false}:{})),
       planetaryRequirements,
       risk,minLevel:template.minLevel||1,minRep:-100,pay,xp,difficulty,implemented:true,intelStyle:template.intelStyle||'hiddenGroup',scenarioVersion:11,boardSchemaVersion:this.contractBoardSchemaVersion(),
@@ -1003,6 +1004,14 @@ class CampaignController {
     }
   }
   contractBoardSchemaVersion(){return 3}
+  // v3016: a ground job's setting (forest, swamp, canyon), by weight, among those the level allows.
+  pickTemplateSetting(template,wanted){
+    const w=template.settingWeights||{},min=template.settingMinLevel||{},lvl=this.levelForXP();
+    if(wanted&&w[wanted]!=null)return wanted;
+    const keys=Object.keys(w).filter(k=>lvl>=(Number(min[k])||1));if(!keys.length)return Object.keys(w)[0];
+    let t=Math.random()*keys.reduce((n,k)=>n+(Number(w[k])||0),0);for(const k of keys){t-=Number(w[k])||0;if(t<=0)return k}return keys[keys.length-1]
+  }
+  settingWords(key){const S=globalThis.AgentXMissionData?.groundSettings?.[key];return S?{place:S.place,site:S.site,siteA:S.siteA}:{}}
   boardRules(){return globalThis.AgentXMissionData?.boardRules||{}}
   eligibleMissionTemplates(){
     const lvl=this.levelForXP(),templates=Object.values(globalThis.AgentXMissionData?.templates||{});
@@ -1321,7 +1330,7 @@ class CampaignController {
       const subjects=Array.isArray(pack.completionSubjects)?pack.completionSubjects:[],bodies=Array.isArray(pack.completionBodies)?pack.completionBodies:[];
       const subject=subjects.length?subjects[Math.abs(Number(vars.subjectVariant)||0)%subjects.length]:`Contract complete: ${vars.title||'Contract'}`;
       const bodyTemplate=bodies.length?bodies[Math.abs(Number(vars.bodyVariant)||0)%bodies.length]:'Contract completion confirmed. Payment: CR {credits}. Standing: +{rep}.';
-      const textVars={cargo:vars.cargo||'',destination:vars.destination||'',target:vars.target||'',motive:vars.motive||'',situation:vars.situation||'',credits:Number(vars.credits||0).toLocaleString(),rep:Math.max(0,Number(vars.repGain)||0),faction:f?.name||vars.faction||''};
+      const textVars={...this.settingWords(vars.setting),cargo:vars.cargo||'',destination:vars.destination||'',target:vars.target||'',motive:vars.motive||'',situation:vars.situation||'',credits:Number(vars.credits||0).toLocaleString(),rep:Math.max(0,Number(vars.repGain)||0),faction:f?.name||vars.faction||''};
       const body=[this.formatTemplateText(bodyTemplate,textVars)],encounter=String(vars.encounter||'');
       const encounterPool=Array.isArray(pack.encounterAcknowledgements?.[encounter])?pack.encounterAcknowledgements[encounter]:[];
       if(encounterPool.length){
@@ -1336,7 +1345,7 @@ class CampaignController {
       const subjects=Array.isArray(reaction.subjects)?reaction.subjects:[],bodies=Array.isArray(reaction.bodies)?reaction.bodies:[];
       const subject=subjects.length?subjects[Math.abs(Number(vars.subjectVariant)||0)%subjects.length]:(outcome==='abandoned'?'CONTRACT ABANDONED':'MISSION FAILED');
       const bodyTemplate=bodies.length?bodies[Math.abs(Number(vars.bodyVariant)||0)%bodies.length]:(outcome==='abandoned'?'You abandoned the contract. Do not repeat that performance.':'The contract failed. Your performance was unacceptable.');
-      const textVars={cargo:vars.cargo||'',destination:vars.destination||'',target:vars.target||'',motive:vars.motive||'',situation:vars.situation||'',reason:vars.reason||'',faction:f?.name||vars.faction||'',incidents:Math.max(0,Number(vars.civilianIncidents)||0),assaults:Math.max(0,Number(vars.civilianAssaults)||0),collisions:Math.max(0,Number(vars.civilianCollisions)||0)};
+      const textVars={...this.settingWords(vars.setting),cargo:vars.cargo||'',destination:vars.destination||'',target:vars.target||'',motive:vars.motive||'',situation:vars.situation||'',reason:vars.reason||'',faction:f?.name||vars.faction||'',incidents:Math.max(0,Number(vars.civilianIncidents)||0),assaults:Math.max(0,Number(vars.civilianAssaults)||0),collisions:Math.max(0,Number(vars.civilianCollisions)||0)};
       const body=this.formatTemplateText(bodyTemplate,textVars),mailBody=[body],civil=reaction===pack.abandonMail?(pack.civilianTrafficMail?.abandonAddenda||[]):(pack.civilianTrafficMail?.failureAddenda||[]);
       if(textVars.incidents>0&&Array.isArray(civil)&&civil.length)mailBody.push(this.formatTemplateText(civil[Math.abs(Number(vars.civilianVariant)||0)%civil.length],textVars));
       const from=contact?`${contact.name} · ${contact.role}, ${f?.name||''}`.replace(/, $/,''):`${f?.name||'Client Network'} · Contract Liaison`;
@@ -1348,7 +1357,7 @@ class CampaignController {
       const subjects=assault?(reaction.assaultSubjects||reaction.subjects||[]):(reaction.incidentSubjects||reaction.subjects||[]),bodies=assault?(reaction.assaultBodies||reaction.bodies||[]):(reaction.incidentBodies||reaction.bodies||[]);
       const subject=subjects.length?subjects[Math.abs(Number(vars.subjectVariant)||0)%subjects.length]:(assault?'CIVILIAN TRAFFIC ASSAULT':'CIVILIAN TRAFFIC INCIDENT');
       const bodyTemplate=bodies.length?bodies[Math.abs(Number(vars.bodyVariant)||0)%bodies.length]:'Civilian traffic was involved during the contract. The settlement has been reduced.';
-      const textVars={cargo:vars.cargo||'',destination:vars.destination||'',credits:Number(vars.credits||0).toLocaleString(),fullCredits:Number(vars.fullCredits||0).toLocaleString(),incidents,assaults,collisions,incidentWord:incidents===1?'incident':'incidents',assaultWord:assaults===1?'assault':'assaults',collisionWord:collisions===1?'collision':'collisions',faction:f?.name||vars.faction||''};
+      const textVars={...this.settingWords(vars.setting),cargo:vars.cargo||'',destination:vars.destination||'',credits:Number(vars.credits||0).toLocaleString(),fullCredits:Number(vars.fullCredits||0).toLocaleString(),incidents,assaults,collisions,incidentWord:incidents===1?'incident':'incidents',assaultWord:assaults===1?'assault':'assaults',collisionWord:collisions===1?'collision':'collisions',faction:f?.name||vars.faction||''};
       const body=this.formatTemplateText(bodyTemplate,textVars),from=contact?`${contact.name} · ${contact.role}, ${f?.name||''}`.replace(/, $/,''):`${f?.name||'Client Network'} · Contract Liaison`;
       return{from,subject,body:[body]}
     }
@@ -1357,7 +1366,7 @@ class CampaignController {
       const encounterFollowups=Array.isArray(personal.encounterBodies?.[encounter])?personal.encounterBodies[encounter]:[];
       const followups=encounterFollowups.length?encounterFollowups:(Array.isArray(personal.bodies)?personal.bodies:(Array.isArray(pack.personalFollowups)?pack.personalFollowups:[])),subjects=Array.isArray(personal.subjects)?personal.subjects:[];
       const bodyTemplate=followups.length?followups[Math.abs(Number(vars.bodyVariant)||0)%followups.length]:'Good work, X.',subject=subjects.length?subjects[Math.abs(Number(vars.subjectVariant)||0)%subjects.length]:`Re: ${vars.title||'Contract'}`;
-      const body=this.formatTemplateText(bodyTemplate,{cargo:vars.cargo||'',destination:vars.destination||'',target:vars.target||'',motive:vars.motive||'',situation:vars.situation||'',credits:Number(vars.credits||0).toLocaleString(),rep:Math.max(0,Number(vars.repGain)||0),faction:f?.name||vars.faction||''});
+      const body=this.formatTemplateText(bodyTemplate,{...this.settingWords(vars.setting),cargo:vars.cargo||'',destination:vars.destination||'',target:vars.target||'',motive:vars.motive||'',situation:vars.situation||'',credits:Number(vars.credits||0).toLocaleString(),rep:Math.max(0,Number(vars.repGain)||0),faction:f?.name||vars.faction||''});
       const from=contact?`${contact.name} · ${contact.role}, ${f?.name||''}`.replace(/, $/,''):`${f?.name||'Client Network'} · Contract Liaison`;
       return{from,subject,body:[body]}
     }
@@ -2198,7 +2207,7 @@ class CampaignController {
       const encounter=this.missionEncounterTag(m),completionSeed=this.hashText(`${m.id}|template-complete`),subjectCount=Math.max(1,pack.completionSubjects?.length||0),bodyCount=Math.max(1,pack.completionBodies?.length||0),encounterCount=Math.max(1,pack.encounterAcknowledgements?.[encounter]?.length||0);
       this.enqueueMail({
         id:`complete_${this.state.completed}_${m.id}`,templateId:'mission_template_complete_v1',
-        vars:{missionTemplateId:m.templateId,faction:m.faction,title:m.title,cargo:m.cargo||'',destination:m.destination||'',target:m.targetGroup||'',motive:m.motive||'',situation:m.situation||'',credits:m.pay,repGain,encounter,subjectVariant:completionSeed%subjectCount,bodyVariant:Math.floor(completionSeed/7)%bodyCount,encounterVariant:Math.floor(completionSeed/13)%encounterCount},
+        vars:{missionTemplateId:m.templateId,setting:m.setting||'',faction:m.faction,title:m.title,cargo:m.cargo||'',destination:m.destination||'',target:m.targetGroup||'',motive:m.motive||'',situation:m.situation||'',credits:m.pay,repGain,encounter,subjectVariant:completionSeed%subjectCount,bodyVariant:Math.floor(completionSeed/7)%bodyCount,encounterVariant:Math.floor(completionSeed/13)%encounterCount},
         category:'faction',priority:encounter?'normal':'low'
       });
       const personal=pack.personalFollowUp||{},encounterFollowups=Array.isArray(personal.encounterBodies?.[encounter])?personal.encounterBodies[encounter]:[],followups=encounterFollowups.length?encounterFollowups:(Array.isArray(personal.bodies)?personal.bodies:(Array.isArray(pack.personalFollowups)?pack.personalFollowups:[]));
@@ -2208,7 +2217,7 @@ class CampaignController {
         const contact=this.contactFromId(personal.contactId||pack.contactId)||this.contactForMission(m),personalSeed=this.hashText(`${m.id}|template-personal|${encounter}`),subjectCount=Math.max(1,personal.subjects?.length||0);
         this.enqueueMail({
           id:`personal_${this.state.completed}_${m.id}`,templateId:'mission_template_personal_v1',
-          vars:{missionTemplateId:m.templateId,contactId:contact?.id||'',faction:m.faction,title:m.title,cargo:m.cargo||'',destination:m.destination||'',target:m.targetGroup||'',motive:m.motive||'',situation:m.situation||'',credits:m.pay,repGain,encounter,subjectVariant:personalSeed%subjectCount,bodyVariant:Math.floor(personalSeed/7)%followups.length},
+          vars:{missionTemplateId:m.templateId,setting:m.setting||'',contactId:contact?.id||'',faction:m.faction,title:m.title,cargo:m.cargo||'',destination:m.destination||'',target:m.targetGroup||'',motive:m.motive||'',situation:m.situation||'',credits:m.pay,repGain,encounter,subjectVariant:personalSeed%subjectCount,bodyVariant:Math.floor(personalSeed/7)%followups.length},
           category:'faction',priority:'normal'
         })
       }
@@ -2242,7 +2251,7 @@ class CampaignController {
     this.enqueueMail({
       id:`${abandoned?'abandon':'failed'}_${this.state.failed}_${m.id}`,
       templateId:'mission_template_failure_v1',
-      vars:{missionTemplateId:m.templateId,contactId:contact?.id||'',faction:m.faction,title:m.title,cargo:m.cargo||'',destination:m.destination||'',target:m.targetGroup||'',motive:m.motive||'',situation:m.situation||'',reason:String(reason||''),outcome:abandoned?'abandoned':'failed',subjectVariant:seed%Math.max(1,subjects.length),bodyVariant:Math.floor(seed/7)%bodies.length,civilianIncidents:civilian?.incidents||0,civilianAssaults:civilian?.assaults||0,civilianCollisions:civilian?.collisions||0,civilianVariant:Math.floor(seed/13)},
+      vars:{missionTemplateId:m.templateId,setting:m.setting||'',contactId:contact?.id||'',faction:m.faction,title:m.title,cargo:m.cargo||'',destination:m.destination||'',target:m.targetGroup||'',motive:m.motive||'',situation:m.situation||'',reason:String(reason||''),outcome:abandoned?'abandoned':'failed',subjectVariant:seed%Math.max(1,subjects.length),bodyVariant:Math.floor(seed/7)%bodies.length,civilianIncidents:civilian?.incidents||0,civilianAssaults:civilian?.assaults||0,civilianCollisions:civilian?.collisions||0,civilianVariant:Math.floor(seed/13)},
       category:'faction',priority:'normal'
     })
   }
@@ -2254,7 +2263,7 @@ class CampaignController {
     const seed=this.hashText(`${m.id}|civilian-traffic|${settlement.assaults}|${settlement.collisions}`);
     this.enqueueMail({
       id:`civilian_${this.state.completed}_${m.id}`,templateId:'mission_template_civilian_v1',
-      vars:{missionTemplateId:m.templateId,contactId:contact?.id||'',faction:m.faction,cargo:m.cargo||'',destination:m.destination||'',credits:actualPay,fullCredits:m.pay,incidents:settlement.incidents,assaults:settlement.assaults,collisions:settlement.collisions,subjectVariant:seed%Math.max(1,subjects.length),bodyVariant:Math.floor(seed/7)%bodies.length},
+      vars:{missionTemplateId:m.templateId,setting:m.setting||'',contactId:contact?.id||'',faction:m.faction,cargo:m.cargo||'',destination:m.destination||'',credits:actualPay,fullCredits:m.pay,incidents:settlement.incidents,assaults:settlement.assaults,collisions:settlement.collisions,subjectVariant:seed%Math.max(1,subjects.length),bodyVariant:Math.floor(seed/7)%bodies.length},
       category:'faction',priority:'high'
     });
     return true
@@ -2779,7 +2788,7 @@ class CampaignController {
   }
   jobType(m){
     const map={fighters:'combat',combat_recovery:'recovery',asteroids:'asteroids',asteroid_delivery:'delivery',station_delivery:'delivery',penthouse_delivery:'delivery',
-      forest_cabin_delivery:'delivery',swamp_relay_delivery:'delivery',secure_terminal_intrusion:'infiltration',deep_core:'assault',dune_armour_clearance:'assault',ice_field_armour:'assault',bunker_raid:'assault',groundside_pickup:'delivery',crystal_consignment:'delivery',survey_run:'delivery',vent_survey:'delivery',crater_cores:'delivery',crash_recovery:'recovery',relay_repair:'delivery',canyon_run:'delivery',jackal_hideout:'delivery',canyon_wreck:'recovery',lattice_survey:'infiltration',convoy_escort:'combat',customs_run:'infiltration',cargo_spill:'recovery',nest_clearance:'assault',factory_strike:'assault',wreck_recovery:'recovery',station_defence:'combat',taco_run:'delivery',specimen_recovery:'recovery'};
+      remote_delivery:'delivery',remote_pickup:'delivery',remote_data:'recovery',wreck_scan:'recovery',recon_sweep:'intrusion',crash_rescue:'recovery',secure_terminal_intrusion:'infiltration',deep_core:'assault',dune_armour_clearance:'assault',ice_field_armour:'assault',bunker_raid:'assault',groundside_pickup:'delivery',crystal_consignment:'delivery',survey_run:'delivery',vent_survey:'delivery',crater_cores:'delivery',crash_recovery:'recovery',relay_repair:'delivery',lattice_survey:'infiltration',convoy_escort:'combat',customs_run:'infiltration',cargo_spill:'recovery',nest_clearance:'assault',factory_strike:'assault',wreck_recovery:'recovery',station_defence:'combat',taco_run:'delivery',specimen_recovery:'recovery'};
     return map[m?.templateId]||(m?.kind==='procedural'?'combat':'delivery')
   }
   jobTypeInfo(type){
@@ -3384,9 +3393,9 @@ class CampaignController {
       this.enqueueMail({id:`rep_${f.id}_${this.state.completed}_${f.rep}_${Date.now().toString(36)}`,from:`${f.name} · Network Office`,subject:`Standing ${direction}: ${newLabel}`,category:'network',priority:'normal',body:[`Your standing with ${f.name} has ${direction}.`,`Current status: ${newLabel} (${f.rep>0?'+':''}${f.rep}).`,...[globalThis.AgentXContactNotes?.tierLine?.(f.id,newLabel,f.rep>before)].filter(Boolean)]})
     }
   }
-  makeDevTemplatePreview(templateId,factionId){
+  makeDevTemplatePreview(templateId,factionId,setting=null){
     const template=this.missionTemplate(templateId);if(!template)return null;
-    const m=this.makeTemplateContract(template,999,{faction:factionId});if(!m)return null;
+    const m=this.makeTemplateContract(template,999,{faction:factionId,setting});if(!m)return null;
     // A DEV preview is a real generated contract, but it is not put on the public
     // board or made pending until the tester explicitly accepts it.
     m.id=`dev_template_${template.id}_${Date.now().toString(36)}_${((Math.random()*0xffff)|0).toString(36)}`;

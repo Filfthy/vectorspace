@@ -23,6 +23,12 @@ globalThis.AgentXEnvironments={
       id:'forest_corridor',family:'corridor',controllerVariant:'forest',length:650,speed:20.5,
       floorY:-3.5,hostileFlora:false
     },
+    // v3013 the canyon run: a corridor like the forest, walled by bluffs and stacks.
+    desert_canyon:{
+      id:'desert_canyon',family:'corridor',controllerVariant:'canyon',length:650,speed:21.5,
+      floorY:-3.5,halfWidthBonus:.85,hostileFlora:false,
+      scene:{gridColor:'o',routeLabel:'CANYON'}
+    },
     alien_swamp:{
       id:'alien_swamp',family:'corridor',controllerVariant:'alien_swamp',length:620,speed:26.04,
       floorY:-3.62,halfWidthBonus:1.10,pathHalfWidthBonus:1.20,hostileFlora:true,

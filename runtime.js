@@ -747,7 +747,7 @@ const populateDevTemplates=()=>{
   templates.sort((a,b)=>devTemplateLabel(a).localeCompare(devTemplateLabel(b)));
   devTemplateSelect.innerHTML='';
   for(const t of templates){const o=document.createElement('option');o.value=t.id;o.textContent=devTemplateLabel(t);devTemplateSelect.appendChild(o)}
-  if(templates.some(t=>t.id==='forest_cabin_delivery'))devTemplateSelect.value='forest_cabin_delivery';
+  if(templates.some(t=>t.id==='remote_delivery'))devTemplateSelect.value='remote_delivery';
   populateDevFactions()
 };
 if(DEV_MODE){

@@ -158,7 +158,9 @@ class SceneRenderer {
    let horizonY=viewH+2;
    if(e<.42){
      const floor=mission.surfaceExitScene==='city'?(jackalDelivery?.groundY??-4.15):-3.5;
-     const hp=proj([shipX,floor,360]);
+     // v3015 (Dave: stars through the ground on take-off): the horizon the way the drone faces,
+     // not always down +z, which was behind it after a city exit and so clipped nothing.
+     const hp=proj([shipX+Math.sin(viewYaw)*360,floor,Math.cos(viewYaw)*360]);
      if(hp)horizonY=clamp(hp.y+3,0,viewH+2)
    }
    ctx.save();
@@ -733,7 +735,7 @@ class SceneRenderer {
  // v2640 (Dave: the HUD said STATIONPADDEPARTURE). Place names by mode or phase. Anything not
  // named here is split into words, so a raw run-together name can never reach the screen.
  const HUD_PLACE={trenchEntry:'BUNKER APPROACH',bunkerTunnel:'BUNKER TUNNEL',bunkerReturn:'RETURN TUNNEL',bunkerCircuitryPickup:'EQUIPMENT RECOVERY',bunkerTurn:'TURNAROUND',bunkerSurfaceClear:'BUNKER EXIT',osdDelivery:'OSD FACILITY',reactorApproach:'REACTOR APPROACH',surfaceExit:'SURFACE ESCAPE',missionTransit:'CHECKPOINT TRANSIT',spaceTransfer:'SPACE TRANSIT',asteroidExit:'RING ESCAPE',courierMine:'MINE APPROACH',courierDock:'DOCKING',courierTunnel:'MINE TUNNEL',courierReturn:'RETURN TUNNEL',courierDelivery:'DELIVERY',courierTurn:'TURNAROUND',courierExitZoom:'DEPARTURE',missionExit:'RETURN TO BASE',destinationApproach:'PLAINS APPROACH',jackalCity:'CITY APPROACH',jackalPenthouse:'PENTHOUSE APPROACH',jackalDelivery:'DELIVERY',jackalExitZoom:'SURFACE ESCAPE',urbanPickupAuto:'GROUND PICKUP',urbanTurn:'CITY TURNAROUND',stationEntry:'STATION ENTRY',stationInterior:'STATION INTERIOR',stationDeparture:'STATION DEPARTURE',stationPad:'PAD 03 DELIVERY',stationPadDeparture:'STATION DEPARTURE',abandonExit:'WITHDRAWING',exitDoor:'TUNNEL EXIT',recoveryPickup:'RECOVERY',securityCheckpoint:'SECURITY CHECKPOINT',osdSurface:'OSD FACILITY',xenoCore:'HIVE CORE',xenoNest:'XENO NEST'},placeKey=mode==='play'?phase:mode;
- const placeLabel=/ASSAULT$/.test(rawLabel)?rawLabel:(HUD_PLACE[placeKey]||String(placeKey).replace(/([a-z])([A-Z])/g,'$1 $2').toUpperCase());
+ const placeLabel=/ASSAULT$/.test(rawLabel)?rawLabel:(placeKey==='forest'&&corridorEnvironment?.isCanyonVariant?.()?'CANYON':placeKey==='forest'&&corridorEnvironment?.isSwampVariant?.()?'SWAMP':HUD_PLACE[placeKey]||String(placeKey).replace(/([a-z])([A-Z])/g,'$1 $2').toUpperCase());
  let leftLabel=xenoNest.active?xenoNest.hudLeft():(encounterLabel||placeLabel);
  if(campaign.currentMission?.training)leftLabel=`VOX SIMULATOR · ${(campaign.currentStage()?.label||'TRAINING').toUpperCase()}`;
  else if(asteroidWreckRun?.active)leftLabel=asteroidWreckRun.hudLeft()||leftLabel;

@@ -49,7 +49,7 @@ class CorridorEnvironmentController {
     const floor=Number.isFinite(Number(this.environmentConfig?.floorY))?Number(this.environmentConfig.floorY):forestFloor;
     return{x,floor,centerY:floor+1.62,half:this.halfWidthAt(u),u};
   }
-  hasGladeDestination(){return this.terminalDestination==='cabin_delivery'||this.terminalDestination==='wreckage_recovery'||this.isRelayDestination()||this.isMonolithDestination()}
+  hasGladeDestination(){return this.terminalDestination==='cabin_delivery'||this.terminalDestination==='wreckage_recovery'||this.terminalDestination==='site_work'||this.isRelayDestination()||this.isMonolithDestination()}
   isSwampVariant(){return this.environmentId==='alien_swamp'||this.variant==='alien_swamp'}
   isRelayDestination(){return this.terminalDestination==='swamp_relay_delivery'||this.terminalDestination==='swamp_relay_console'}
   isMonolithDestination(){return this.terminalDestination==='swamp_monolith_scan'}
@@ -67,7 +67,7 @@ class CorridorEnvironmentController {
       if(this.isSwampVariant())return{...p,half:p.half+(Number(this.environmentConfig?.pathHalfWidthBonus)||0)};
       return p
     }
-    const targetHalf=this.isRelayDestination()?11.0:(this.isMonolithDestination()?10.2:6.2);
+    const targetHalf=(this.isRelayDestination()||this.relayOutpost)?11.0:(this.isMonolithDestination()?10.2:6.2);
     const x=lerp(p.x,this.gladeCentreX,g),floor=lerp(p.floor,this.gladeFloor,g),half=lerp(p.half,targetHalf,g);
     return{x,floor,centerY:floor+1.62,half,u:p.u}
   }
@@ -289,7 +289,7 @@ class CorridorEnvironmentController {
       while(this.dataSpawnT<=0&&this.dataPackets.length<16){this.spawnRecorderPacket(false);this.dataSpawnT+=.14+Math.random()*.31}
     }
     if(this.dataDraining&&!this.dataPackets.length&&!this.dataComplete){
-      this.dataComplete=true;audio?.hackChirp?.stop?.();SoundFX.objectiveComplete();say('FLIGHT RECORDER DATA RECOVERED',.95);this.terminalState='dataHold';this.finishT=0
+      this.dataComplete=true;audio?.hackChirp?.stop?.();SoundFX.objectiveComplete();say(this.stage?.presentation?.done||'FLIGHT RECORDER DATA RECOVERED',.95);if(this.stage?.presentation?.doneVoice)this.playStageVoice(this.stage.presentation.doneVoice);this.terminalState='dataHold';this.finishT=0
     }
   }
   updateRelayCalibration(dt){
@@ -657,7 +657,7 @@ class CorridorEnvironmentController {
     }
   }
   buildSwampRelayClearing(){
-    if(!this.isRelayDestination()&&!this.isMonolithDestination())return;
+    if(!this.isRelayDestination()&&!this.isMonolithDestination()&&!this.relayOutpost)return;
     const base=this.isMonolithDestination()?(this.monolith?.worldZ??(this.startWorld+this.length+10.5)):(this.relayOutpost?.worldZ??(this.startWorld+this.length+8.4));
     const reedIds=['swampReedTall','swampReedFan','swampReedWide','swampReedSpike'];
     const accentIds=['alienBulbPlantConnected','alienUmbrellaPlantConnected','alienEggPodFat','alienEggClusterFat'];
@@ -680,6 +680,7 @@ class CorridorEnvironmentController {
   buildCourse(){
     this.trees.length=0;this.obstacles.length=0;this.spitters.length=0;this.seed=0x5f3759df;
     if(this.isSwampVariant()){this.buildAlienSwampCourse();this.buildSwampRelayClearing();return}
+    if(this.isCanyonVariant?.()){this.buildCanyonCourse();return}   // v3013: environment-canyon.js
     // v194: denser banks and a tighter cadence. Only nearby trees are rendered,
     // so the extra forest density does not mean the whole course is drawn at once.
     const step=4.35,max=this.length+70;
@@ -794,7 +795,7 @@ class CorridorEnvironmentController {
     // text, terminalConfig, scanSeconds) is read from this.stage, which was never set,
     // so missions silently got the built-in defaults.
     this.stage=stage||null;
-    this.active=true;this.finishing=false;this.finishT=0;this.wallHitCD=0;
+    this.active=true;this.finishing=false;this.finishT=0;this.wallHitCD=0;this._canyonSaid=null;
     this.scenarioMode=!!(campaign.currentMission&&campaign.currentStage()?.type==='forest_corridor');
     this.environmentId=stage?.environment||(stage?.variant==='alien_swamp'?'alien_swamp':'forest_corridor');
     this.environmentConfig=globalThis.AgentXEnvironments?.get?.(this.environmentId)||null;
@@ -814,12 +815,14 @@ class CorridorEnvironmentController {
     fighters.length=0;asteroids.length=0;groundTargets.length=0;bolts.length=0;hazards.length=0;shots.length=0;playerMissiles.length=0;
     asteroidField.stop();courier.reset();resetSpaceDogfightDirector();
     inputX=inputY=aimX=aimY=0;viewYaw=0;viewPitch=approachHandoff?.pitch||0;viewRoll=approachHandoff?.roll||0;spaceYawVel=spacePitchVel=0;surfaceVX=surfaceVY=0;
-    if(this.terminalDestination==='cabin_delivery')this.setupCabinDestination();
+    this.wreckage=[];this.recorder=null;this.cabin=null;this.cabinMesh=null;this.relayOutpost=null;this.relayMesh=null;this.monolith=null;this.siteHull=null;this.survivors=[];this.scanPoints=[];this.siteT=0;   // v3016
+    if(this.terminalDestination==='site_work')this.setupSiteWork();
+    else if(this.terminalDestination==='cabin_delivery')this.setupCabinDestination();
     else if(this.terminalDestination==='wreckage_recovery')this.setupWreckageDestination();
     else if(this.isRelayDestination())this.setupRelayDestination();
     else if(this.isMonolithDestination())this.setupMonolithDestination();
     const p=this.pathAtWorld(travel);shipX=p.x;shipY=p.centerY;
-    this.buildCourse();
+    this.buildCourse();this.setupScanPoints?.();
     say(this.stage?.presentation?.start||(this.isSwampVariant()?(this.isMonolithDestination()?'FOLLOW SWAMP COORDINATES':(this.relayAction()==='console'?'SWAMP RELAY CALIBRATION':'SWAMP RELAY DELIVERY')):(this.terminalDestination==='cabin_delivery'?'FOREST DELIVERY':(this.terminalDestination==='wreckage_recovery'?'INVESTIGATE WRECKAGE':'FOREST CORRIDOR'))),.9);
     if(this.isMonolithDestination())if(audio.hasVoice?.('followSwampCoordinates'))audio.playVoice('followSwampCoordinates',{once:false,priority:true})
   }
@@ -870,6 +873,7 @@ class CorridorEnvironmentController {
     if(!this.active)return;
     this.wallHitCD=Math.max(0,this.wallHitCD-dt);
     for(const t of this.trees)t.z=t.worldZ-travel;
+    if(this.isCanyonVariant?.())this.canyonCallouts();
     if(this.isSwampVariant()){
       this.updateSwampSpitters(dt);
       updateBoltsOnly(dt);
@@ -877,6 +881,8 @@ class CorridorEnvironmentController {
     }
 
     if(this.monolith){this.monolithYaw=wrapAngle(this.monolithYaw+dt*this.monolithSpinRate);this.monolith.rot[1]=this.monolithYaw}
+    if(this.scanPoints?.length)this.updateScanPoints();
+    if(this.terminalDestination==='site_work'&&this.updateSiteWork(dt))return;   // v3016: environment-sites.js
 
     if(this.isMonolithDestination()){
       const remain=(this.monolithStandOff?.[2]??Infinity)-travel;
@@ -939,7 +945,8 @@ class CorridorEnvironmentController {
       if(this.terminalState==='download'){this.updateRecorderDownload(dt);return}
       if(this.terminalState==='dataHold'){
         this.finishT+=dt;
-        if(this.finishT>.78){this.terminalState='missionSpeech';this.missionSpeechStarted=true;this.finishT=0;audio.playVoice('missionComplete',{once:true,priority:true})}
+        // v3023 (Dave: mission complete cut off the data transferred line): wait for it to finish.
+        if(this.finishT>.78&&!audio.voicePlaying&&!audio.voiceQueue?.length&&!audio.voiceDelayTimer){this.terminalState='missionSpeech';this.missionSpeechStarted=true;this.finishT=0;audio.playVoice('missionComplete',{once:true,priority:true})}
         return
       }
       if(this.terminalState==='missionSpeech'){
@@ -982,7 +989,7 @@ class CorridorEnvironmentController {
       }
       if(this.terminalState==='delivery'){
         this.deliveryT+=dt;this.deliveryProgress=ease(clamp((this.deliveryT-.36)/2.65,0,1));
-        if(!this.deliveryAnnounced&&this.deliveryProgress>=.999){this.deliveryAnnounced=true;this.deliveryLanded=true;SoundFX.objectiveComplete();audio.playVoice('deliveryComplete',{once:false,priority:true});this.terminalState='deliveryHold';this.finishT=0}
+        if(!this.deliveryAnnounced&&this.deliveryProgress>=.999){this.deliveryAnnounced=true;this.deliveryLanded=true;SoundFX.objectiveComplete();this.playStageVoice(this.stage?.presentation?.doneVoice||'deliveryComplete');if(this.stage?.presentation?.done)say(this.stage.presentation.done,.8);this.terminalState='deliveryHold';this.finishT=0}
         return
       }
       if(this.terminalState==='calibrate'){this.updateRelayCalibration(dt);return}
@@ -1007,7 +1014,7 @@ class CorridorEnvironmentController {
       const remain=(this.standOffWorld?.[2]??Infinity)-travel;
       if(this.terminalState==='run'&&this.gladeBlend(travel+18)>.16)this.terminalState='glade';
       if(this.terminalState==='glade'&&remain<24){
-        this.terminalState='approach';laserBurstRemaining=0;endLaserTrigger();inputX=inputY=aimX=aimY=0;say('AUTOPILOT · CABIN DELIVERY',.58)
+        this.terminalState='approach';laserBurstRemaining=0;endLaserTrigger();inputX=inputY=aimX=aimY=0;say(this.stage?.presentation?.autopilot||'AUTOPILOT · CABIN DELIVERY',.58)
       }
       if(this.terminalState==='approach'&&remain<=.24){
         travel=this.standOffWorld[2];shipX=this.standOffWorld[0];shipY=this.gladeFloor+1.68;
@@ -1022,7 +1029,7 @@ class CorridorEnvironmentController {
       }
       if(this.terminalState==='delivery'){
         this.deliveryT+=dt;this.deliveryProgress=ease(clamp((this.deliveryT-.36)/2.65,0,1));
-        if(!this.deliveryAnnounced&&this.deliveryProgress>=.999){this.deliveryAnnounced=true;this.deliveryLanded=true;SoundFX.objectiveComplete();audio.playVoice('deliveryComplete',{once:false,priority:true});this.terminalState='deliveryHold';this.finishT=0}
+        if(!this.deliveryAnnounced&&this.deliveryProgress>=.999){this.deliveryAnnounced=true;this.deliveryLanded=true;SoundFX.objectiveComplete();this.playStageVoice(this.stage?.presentation?.doneVoice||'deliveryComplete');if(this.stage?.presentation?.done)say(this.stage.presentation.done,.8);this.terminalState='deliveryHold';this.finishT=0}
         return
       }
       if(this.terminalState==='deliveryHold'){
@@ -1052,15 +1059,16 @@ class CorridorEnvironmentController {
     const p=this.pathAtWorld(travel),floor=this.floorAt(travel,shipX),edge=Math.max(.3,p.half-.28);
     if(Math.abs(shipX-p.x)>edge){
       shipX=clamp(shipX,p.x-edge,p.x+edge);
-      if(this.wallHitCD<=0){damage('TREES');this.wallHitCD=.78;if(mode==='dead')return}
+      if(this.wallHitCD<=0){damage(this.isCanyonVariant?.()?'ROCK':'TREES');this.wallHitCD=.78;if(mode==='dead')return}
     }
     if(shipY<floor+.48){shipY=floor+.48;if(this.wallHitCD<=0){damage('GROUND');this.wallHitCD=.78;if(mode==='dead')return}}
     for(const t of this.obstacles){
       if(t.passed)continue;const z=t.worldZ-travel;if(z<.15){t.passed=true;continue}if(z>1.75)continue;
       const dx=Math.abs(shipX-t.x),of=t.obstacle||{};let hit=false;
       if(of.kind==='fallen')hit=dx<(of.radius||2.3)&&shipY<this.floorAt(t.worldZ,t.x)+1.62;
+      else if(of.kind==='arch')hit=shipY>this.floorAt(t.worldZ,shipX)+(of.clear||1.45);   // v3013: dive under a canyon arch
       else hit=dx<(of.radius||.85);
-      if(hit){t.passed=true;damage('TREE');this.wallHitCD=.78;if(mode==='dead')return}
+      if(hit){t.passed=true;damage(t.rock?'ROCK':'TREE');this.wallHitCD=.78;if(mode==='dead')return}
     }
     if(!this.hasGladeDestination()&&travel-this.startWorld>=this.length){this.finishing=true;this.finishT=0;say(this.isSwampVariant()?'SWAMP TEST COMPLETE':'FOREST TEST COMPLETE',.85)}
   }
@@ -1093,7 +1101,7 @@ class CorridorEnvironmentController {
     const q=camPoint(this.recorderPoint());if(!q||q[2]<=.15)return;const p=projectCam(q);if(!p)return;
     const d=Math.max(1,q[2]),r=clamp(10+(70-d)*.22,10,26),col=C.y;
     line(p.x-r,p.y,p.x,p.y-r,col,1,1);line(p.x,p.y-r,p.x+r,p.y,col,1,1);line(p.x+r,p.y,p.x,p.y+r,col,1,1);line(p.x,p.y+r,p.x-r,p.y,col,1,1);
-    ctx.save();ctx.font='400 11px Consolas,monospace';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.strokeStyle=col;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.strokeText('RECORDER',p.x,p.y-r-5);ctx.restore()
+    ctx.save();ctx.font='400 11px Consolas,monospace';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.strokeStyle=col;ctx.lineWidth=VECTOR_LINE_WIDTH;ctx.strokeText(this.stage?.presentation?.marker||'RECORDER',p.x,p.y-r-5);ctx.restore()
   }
   drawRecorderData(){
     if(this.terminalDestination!=='wreckage_recovery'||this.terminalState!=='download'||!this.recorder)return;
@@ -1300,7 +1308,10 @@ class CorridorEnvironmentController {
     // trunk that is genuinely behind the hill; terrain behind a tree is painted first.
     for(const t of this.trees){
       if(t.dead)continue;
-      t.z=t.worldZ-travel;const drawFar=t.swampSpitter?112:82;if(t.z<.35||t.z>drawFar)continue;
+      t.z=t.worldZ-travel;const drawFar=t.swampSpitter?112:(t.rock?118:82);if(t.z<(t.rock?-(t.R||1)*4:.35)||t.z>drawFar)continue;
+      // v3013: a canyon rock is long, so it still draws while its middle is beside or just
+      // behind the drone, sorted by its nearest stretch ahead.
+      if(t.rock){const d=Math.max(.2,camPoint([t.x,this.floorAt(t.worldZ,t.x),Math.max(t.z,.6)])[2]);items.push({d,draw:()=>drawMesh({...t,fadeZ:d*.45},t.mesh,t.col,t.obstacle?1:clamp(1.1-d/150,.4,.95))});continue}
       const q=camPoint([t.x,t.y,t.z]);if(q[2]<=.18)continue;
       // Sort against terrain by the root depth, not the tree's high object origin.
       // Pitch changes camera-space Z as a function of Y; using the canopy/mesh origin
@@ -1313,7 +1324,7 @@ class CorridorEnvironmentController {
       }
       items.push({d:sortDepth,draw:()=>drawLayeredForestTree(t,t.corridorMesh||t.mesh,t.assetId,t.obstacle?1:.93)})
     }
-    if(this.terminalDestination==='cabin_delivery'&&this.cabin&&this.cabinMesh){
+    if(this.cabin&&this.cabinMesh){
       const z=this.cabin.worldZ-travel,obj={type:'forestCabin',x:this.cabin.x,y:this.cabin.y,z,s:this.cabin.s,rot:this.cabin.rot};
       const centre=camPoint([this.cabin.x,this.cabin.y+1.6,z]);
       if(centre[2]>.18&&centre[2]<145){
@@ -1327,18 +1338,18 @@ class CorridorEnvironmentController {
         items.push({d:nearest,draw:()=>drawMesh(obj,this.cabinMesh,C.o,.96)})
       }
     }
-    if(this.terminalDestination==='wreckage_recovery'){
-      for(const w of this.wreckage){
+    {
+      for(const w of this.wreckage||[]){
         const z=w.worldZ-travel,q=camPoint([w.x,w.y,z]);if(q[2]<=.18||q[2]>145)continue;
         items.push({d:q[2],draw:()=>drawMesh({type:w.type,x:w.x,y:w.y,z:w.worldZ-travel,s:w.s,rot:w.rot},forestWreckagePanelMesh,w.col,1)})
       }
-      if(this.recorder){const z=this.recorder.worldZ-travel,q=camPoint([this.recorder.x,this.recorder.y,z]);if(q[2]>.18&&q[2]<145)items.push({d:q[2],draw:()=>drawMesh({type:'flightRecorder',x:this.recorder.x,y:this.recorder.y,z,s:.5,mx:.72,my:.34,mz:.48,rot:this.recorder.rot},courierFixtureBoxMesh,C.o,1)})}
+      if(this.recorder&&!this.recorder.hidden){const z=this.recorder.worldZ-travel,q=camPoint([this.recorder.x,this.recorder.y,z]);if(q[2]>.18&&q[2]<145)items.push({d:q[2],draw:()=>drawMesh({type:'flightRecorder',x:this.recorder.x,y:this.recorder.y,z,s:.5,mx:.72,my:.34,mz:.48,rot:this.recorder.rot},courierFixtureBoxMesh,C.o,1)})}
     }
     if(this.isMonolithDestination()&&this.monolith){
       const z=this.monolith.worldZ-travel,q=camPoint([this.monolith.x,this.monolith.y,z]);
       if(q[2]>.18&&q[2]<180)items.push({d:q[2]-.5,draw:()=>this.drawMonolith()})
     }
-    if(this.isRelayDestination()&&this.relayOutpost&&this.relayMesh){
+    if(this.relayOutpost&&this.relayMesh){
       const z=this.relayOutpost.worldZ-travel,obj={type:'swampRelayOutpost',x:this.relayOutpost.x,y:this.relayOutpost.y,z,s:this.relayOutpost.s,rot:this.relayOutpost.rot};
       const centre=camPoint([this.relayOutpost.x,this.relayOutpost.y+2.4,z]);
       if(centre[2]>.18&&centre[2]<165){
@@ -1356,8 +1367,9 @@ class CorridorEnvironmentController {
           this.drawRelayConsoleScreen()}})
       }
     }
+    this.appendSiteItems?.(items);
     items.sort((a,b)=>b.d-a.d);for(const item of items)item.draw();
-    this.drawCabinCargo();this.drawRecorderData();this.drawRecorderMarker();this.drawRelayCargo();this.drawRelayCalibration();
+    this.drawSiteOverlay?.();this.drawHideoutLights?.();this.drawCabinCargo();this.drawRecorderData();this.drawRecorderMarker();this.drawRelayCargo();this.drawRelayCalibration();
     // Scanner rails are an emitted foreground effect from Agent X's drone. Draw
     // them after terrain and foliage so the lower portion remains visible all the
     // way to the bottom-centre of the play area. The actual surface contact marks
@@ -1441,8 +1453,9 @@ class CorridorEnvironmentController {
   drawTrees(){
     const visible=[];
     for(const t of this.trees){
-      t.z=t.worldZ-travel;if(t.z<.35||t.z>82)continue;
+      t.z=t.worldZ-travel;if(t.z<.35-(t.R||0)*2||t.z>(t.rock?118:82))continue;
       const q=camPoint([t.x,t.y,t.z]);if(q[2]<=.18)continue;
+      if(t.rock){visible.push({d:q[2],draw:()=>drawMesh(t,t.mesh,t.col,.95)});continue}
       visible.push({d:q[2],draw:()=>drawLayeredForestTree(t,t.corridorMesh||t.mesh,t.assetId,t.obstacle?1:.93)})
     }
     if(this.terminalDestination==='cabin_delivery'&&this.cabin&&this.cabinMesh){
@@ -1456,26 +1469,27 @@ class CorridorEnvironmentController {
     if(!this.active)return'';
     if(this.terminalDestination==='cabin_delivery'){
       if(this.terminalState==='run')return`${this.sceneRouteLabel()} ${Math.round(clamp((travel-this.startWorld)/this.length,0,1)*100)}%`;
-      if(this.terminalState==='glade')return'CABIN AHEAD';
-      if(this.terminalState==='approach'||this.terminalState==='settle')return'AUTOPILOT · DELIVERY';
-      if(this.terminalState==='delivery')return'DELIVERING PARCEL';
-      if(this.terminalState==='deliveryHold')return'DELIVERY COMPLETE';
+      if(this.terminalState==='glade')return this.stage?.presentation?.hudAhead||'CABIN AHEAD';
+      if(this.terminalState==='approach'||this.terminalState==='settle')return this.stage?.presentation?.hudAutopilot||'AUTOPILOT · DELIVERY';
+      if(this.terminalState==='delivery')return this.stage?.presentation?.hudWork||'DELIVERING PARCEL';
+      if(this.terminalState==='deliveryHold')return this.stage?.presentation?.hudDone||'DELIVERY COMPLETE';
       if(this.terminalState==='missionSpeech'||this.terminalState==='departing')return'MISSION COMPLETE'
     }
+    if(this.terminalDestination==='site_work'){const h=this.siteHud?.();if(h)return h}
     if(this.isRelayDestination()){
       if(this.terminalState==='run')return`${this.sceneRouteLabel()} ${Math.round(clamp((travel-this.startWorld)/this.length,0,1)*100)}%`;
       if(this.terminalState==='glade')return'RELAY POST AHEAD';
-      if(this.terminalState==='approach'||this.terminalState==='settle')return this.relayAction()==='console'?'AUTOPILOT · TERMINAL':'AUTOPILOT · DELIVERY';
-      if(this.terminalState==='delivery')return'DELIVERING PARCEL';
-      if(this.terminalState==='deliveryHold')return'DELIVERY COMPLETE';
+      if(this.terminalState==='approach'||this.terminalState==='settle')return this.stage?.presentation?.hudAutopilot||(this.relayAction()==='console'?'AUTOPILOT · TERMINAL':'AUTOPILOT · DELIVERY');
+      if(this.terminalState==='delivery')return this.stage?.presentation?.hudWork||'DELIVERING PARCEL';
+      if(this.terminalState==='deliveryHold')return this.stage?.presentation?.hudDone||'DELIVERY COMPLETE';
       if(this.terminalState==='calibrate')return'RECALIBRATING TERMINAL';
       if(this.terminalState==='consoleHold')return'TERMINAL CALIBRATED';
       if(this.terminalState==='missionSpeech'||this.terminalState==='departing')return'MISSION COMPLETE'
     }
     if(this.terminalDestination==='wreckage_recovery'){
       if(this.terminalState==='run')return`${this.sceneRouteLabel()} ${Math.round(clamp((travel-this.startWorld)/this.length,0,1)*100)}%`;
-      if(this.terminalState==='approach'||this.terminalState==='settle')return'AUTOPILOT · RECORDER';
-      if(this.terminalState==='download')return'RECOVERING DATA';
+      if(this.terminalState==='approach'||this.terminalState==='settle')return this.stage?.presentation?.hudAutopilot||'AUTOPILOT · RECORDER';
+      if(this.terminalState==='download')return this.stage?.presentation?.hudWork||'RECOVERING DATA';
       if(this.terminalState==='dataHold')return'DATA RECOVERED';
       if(this.terminalState==='missionSpeech'||this.terminalState==='departing')return'MISSION COMPLETE'
     }
@@ -1680,6 +1694,14 @@ function forestTreeBounds(mesh){
   let minY=Infinity,maxY=-Infinity,r=0;for(const v of mesh.v){minY=Math.min(minY,v[1]);maxY=Math.max(maxY,v[1]);r=Math.max(r,Math.hypot(v[0],v[2]))}
   return mesh._lodBounds={minY,maxY,r}
 }
+// The trunk of a pine for the far outline: its half width and where the foliage starts.
+function forestTrunkBounds(mesh,layout){
+  if(mesh._lodTrunk)return mesh._lodTrunk;
+  const vs=f=>(layout?.[f]||[]).flatMap(i=>(mesh.faces?.[i]||[]).map(k=>mesh.v[k])).filter(Boolean);
+  const fol=vs('foliageFaces'),wood=vs('woodFaces'),folMinY=fol.length?Math.min(...fol.map(v=>v[1])):forestTreeBounds(mesh).minY+.25*(forestTreeBounds(mesh).maxY-forestTreeBounds(mesh).minY);
+  const low=wood.filter(v=>v[1]<=folMinY+.01),r=low.length?Math.max(...low.map(v=>Math.hypot(v[0],v[2]))):.08;
+  return mesh._lodTrunk={r,folMinY}
+}
 function drawFarForestTree(obj,mesh,layout,depth,alphaScale){
   const b=forestTreeBounds(mesh),s=obj.s*(obj.my||1),base=proj([obj.x,obj.y+b.minY*s,obj.z]),top=proj([obj.x,obj.y+b.maxY*s,obj.z]);
   if(!base||!top)return true;
@@ -1688,10 +1710,16 @@ function drawFarForestTree(obj,mesh,layout,depth,alphaScale){
   const foliageCol=resolvePaletteColor(layout.foliageColorKey||layout.foliageColor||mesh.foliageColorKey||mesh.foliageColor)||C.g;
   const woodCol=resolvePaletteColor(layout.woodColorKey||layout.woodColor||mesh.woodColorKey||mesh.woodColor)||C.o;
   const alpha=clamp(1.12-depth/120,.32,.96)*alphaScale;
+  // v3018 (Dave: trunks hidden until you are almost on the forest, then they suddenly appear).
+  // The far outline used to give a pine a hairline for a trunk, so at 72 units a real trunk
+  // popped in. It now has the mesh's own trunk, as wide as the real one and up to where the
+  // branches really start, and the tiers begin there too.
+  const tk=forestTrunkBounds(mesh,layout),uF=clamp((tk.folMinY-b.minY)/Math.max(.001,b.maxY-b.minY),.05,.5),tw=Math.max(.6,tk.r*obj.s*(obj.mx||1)*base.k)/Math.max(1,w);
   ctx.save();ctx.lineJoin='round';ctx.lineWidth=VECTOR_LINE_WIDTH;
-  ctx.beginPath();const t0=at(0,0),t1=at(.3,0);ctx.moveTo(t0[0],t0[1]);ctx.lineTo(t1[0],t1[1]);ctx.globalAlpha=alpha;ctx.strokeStyle=woodCol;ctx.stroke();
-  ctx.beginPath();
-  for(const[lo,hi,k]of[[.24,.62,1],[.44,.82,.74],[.62,1,.48]]){const l=at(lo,-k),rr=at(lo,k),a=at(hi,0);ctx.moveTo(l[0],l[1]);ctx.lineTo(a[0],a[1]);ctx.lineTo(rr[0],rr[1]);ctx.closePath()}
+  {const a0=at(0,-tw),a1=at(uF+.02,-tw),b0=at(0,tw),b1=at(uF+.02,tw);ctx.beginPath();ctx.moveTo(a0[0],a0[1]);ctx.lineTo(a1[0],a1[1]);ctx.lineTo(b1[0],b1[1]);ctx.lineTo(b0[0],b0[1]);ctx.closePath();
+    ctx.globalAlpha=1;ctx.fillStyle='#000';ctx.fill();ctx.beginPath();ctx.moveTo(a0[0],a0[1]);ctx.lineTo(a1[0],a1[1]);ctx.moveTo(b0[0],b0[1]);ctx.lineTo(b1[0],b1[1]);ctx.globalAlpha=alpha;ctx.strokeStyle=woodCol;ctx.stroke()}
+  ctx.beginPath();const span=1-uF;
+  for(const[lo,hi,k]of[[uF,uF+span*.5,1],[uF+span*.26,uF+span*.76,.74],[uF+span*.5,1,.48]]){const l=at(lo,-k),rr=at(lo,k),a=at(hi,0);ctx.moveTo(l[0],l[1]);ctx.lineTo(a[0],a[1]);ctx.lineTo(rr[0],rr[1]);ctx.closePath()}
   ctx.globalAlpha=1;ctx.fillStyle='#000';ctx.fill();ctx.globalAlpha=alpha;ctx.strokeStyle=foliageCol;ctx.stroke();
   // Snow on the tiers' upper edges when a scene asks for it (drawFarForestTree.snow).
   if(drawFarForestTree.snow){ctx.beginPath();for(const[lo,hi,k]of[[.24,.62,1],[.44,.82,.74],[.62,1,.48]]){const l=at(lo+(hi-lo)*.45,-k*.55),rr=at(lo+(hi-lo)*.45,k*.55),a=at(hi,0);ctx.moveTo(l[0],l[1]);ctx.lineTo(a[0],a[1]);ctx.lineTo(rr[0],rr[1])}ctx.strokeStyle=C.w;ctx.globalAlpha=alpha*.85;ctx.stroke()}

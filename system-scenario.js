@@ -49,6 +49,7 @@ class ScenarioFlowController {
       // v400: the dune armour field (formerly DEV-only) as a contract module. Like the
       // factory it completes the contract itself once the dunes are clear, so it goes last.
       dune_assault:{entry:'seamless',terminal:'departed'},
+      crash_field:{entry:'seamless',terminal:'departed'},
       // v420: optional off-route diversion (beacon, derelict, pursued civilian).
       route_diversion:{entry:'seamless',terminal:'space'},
       deep_core_surface:{entry:'seamless',terminal:'surface'},
@@ -345,6 +346,9 @@ class ScenarioFlowController {
       bunkerRaid.begin(stage);return true
     }
     if(stage.type==='route_diversion')return routeDiversion.begin(stage);
+    if(stage.type==='crash_field'){   // v3019: system-crash-field.js
+      groundAssault.beginCrashField({risk:campaign.currentMission?.risk,sites:stage.crashSites});return true
+    }
     if(stage.type==='dune_assault'){
       groundAssault.begin({risk:campaign.currentMission?.risk});say(stage.startMessage||'ARMOUR COLUMN',.9);return true
     }

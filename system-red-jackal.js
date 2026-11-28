@@ -456,6 +456,7 @@ class RedJackalDeliveryController {
     inputX=inputY=aimX=aimY=0;spaceYawVel=spacePitchVel=0;surfaceVX=surfaceVY=0;
     shipX=handoff?clamp(handoff.x,-2.6,2.6):0;shipY=handoff?clamp(handoff.y,this.groundY+.76,this.groundY+4.8):-.75;
     viewYaw=handoff?clamp(handoff.yaw,-.16,.16):0;viewPitch=handoff?clamp(handoff.pitch,-.10,.10):0;viewRoll=handoff?clamp(handoff.roll,-.12,.12):0;
+    this.keptLandX=handoff&&surfaceDestination?.keptAt?surfaceDestination.keptAt.x-shipX:0;if(!handoff&&surfaceDestination)surfaceDestination.landKept=false;   // v3015
     fighters.length=0;asteroids.length=0;groundTargets.length=0;bolts.length=0;hazards.length=0;shots.length=0;playerMissiles.length=0;
     this.pickupT=0;this.pickupCargoProgress=0;this.pickupSecured=false;this.navPulse=0;this.buildCity();
     audio.music.setMode('calm');audio.playVoice('avoidCivilianVehicles',{once:false,priority:true});say('GROUND PICKUP MARKED',.78)
@@ -709,6 +710,7 @@ class RedJackalDeliveryController {
           const radius=.34+.34*t.s,top=this.groundY+4.8*t.s;
           if(Math.abs(dz)<1.15&&Math.abs(dx)<radius&&shipY<top){t.hit=true;this.exitTreeHitCD=.82;damage('TREE');if(mode==='dead')return;break}
         }
+        if(this.exitTreeHitCD<=0&&surfaceDestination?.keptLandHit?.(this.keptLandX||0)){this.exitTreeHitCD=.82;damage('TREE');if(mode==='dead')return}
       }
       if(travel<=this.outboundEnd){travel=this.outboundEnd;scenarioFlow.completeCurrentStage()}return
     }
@@ -1166,7 +1168,9 @@ class RedJackalDeliveryController {
         }})
       }
     }
-    if(this.state==='cityOutbound'||this.state==='outboundMerge')for(const t of this.exitTrees){
+    const kept=(this.state==='cityOutbound'||this.state==='outboundMerge')&&surfaceDestination?.landKept;
+    if(kept)surfaceDestination.appendKeptLand(scene,this.keptLandX||0);   // v3015: the land flown over on the way in
+    if(!kept&&(this.state==='cityOutbound'||this.state==='outboundMerge'))for(const t of this.exitTrees){
       const z=t.worldZ-travel,d=camPoint([t.x,t.y,z])[2];
       if(d>.3&&d<430)scene.push({depth:d,draw:()=>drawLayeredForestTree({type:'cityExitTree',assetId:t.assetId,x:t.x,y:t.y,z,s:t.s,rot:t.rot},t.mesh,t.assetId,.88)})
     }

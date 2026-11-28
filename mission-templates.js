@@ -1312,227 +1312,6 @@
   // -> committed forest corridor -> Raised Field Cabin tractor delivery -> canonical
   // surface pitch-up and forward extraction. The environment is shared; faction
   // wrappers change why the parcel is going somewhere this remote.
-  const forestCabinDelivery={
-    id:'forest_cabin_delivery',
-    version:1,
-    family:'forest_cabin_delivery',
-    musicMode:'calm',
-    minLevel:1,
-    maxLevel:null,
-    allowedFactions:['trade','security','jackals','helix','quickbite'],
-    // Premise weighting is intentionally strong here. QuickBite has the most obvious
-    // routine reason to serve an isolated address; Red Jackal has nearly as much reason
-    // to use one for discreet hand-offs. The others remain possible rather than excluded.
-    factionWeights:{quickbite:6,jackals:5,trade:3,helix:2,security:1},
-    board:{category:'delivery',weight:1.0,maxPerBoard:2},
-    risk:{base:2,min:1,levelsPerStep:2,max:9,jitter:1},
-    reward:{
-      basePay:1050,payPerRisk:720,payRiskSquare:160,randomPay:300,roundPay:50,
-      baseXp:145,xpPerRisk:52,xpRiskSquare:13
-    },
-    planetaryRequirements:{
-      landingBody:{choices:['planet','moon'],weights:[65,35]},
-      // v710 world types: the plains grid takes the landing world's colour, so the
-      // cabin run varies between green worlds and rarer yellow, cyan, orange ones.
-      landingColour:{choices:['green','cyan','yellow','orange','blue','magenta'],weights:[50,14,14,12,5,5]},
-      moonCount:{min:0,max:2}
-    },
-    // Keep the complication genuinely occasional. A quiet delivery is the normal run;
-    // faction only changes which low-probability orbital nuisance is most plausible.
-    encounterTable:{
-      entries:{
-        pirate_ambush:{type:'fighters',profile:'pirate',params:{target:{base:2,perRisk:1,min:4,max:7,round:true},fighterHp:{base:10,perRisk:.5,min:12,max:15,round:true}}},
-        rogue_drones:{type:'fighters',profile:'rogue',params:{target:{base:2,perRisk:1,min:4,max:7,round:true},fighterHp:{base:10,perRisk:.5,min:12,max:15,round:true}}},
-        customs_intercept:{type:'customs_drones',profile:'customs',params:{target:{base:3,perRisk:1,min:5,max:8,round:true},fighterHp:{base:10,perRisk:.5,min:12,max:15,round:true}}}
-      },
-      weightsByFaction:{
-        trade:{none:80,pirate_ambush:14,rogue_drones:6},
-        security:{none:80,rogue_drones:14,pirate_ambush:6},
-        jackals:{none:78,customs_intercept:12,pirate_ambush:6,rogue_drones:4},
-        helix:{none:80,rogue_drones:12,pirate_ambush:8},
-        quickbite:{none:80,pirate_ambush:12,rogue_drones:8}
-      }
-    },
-    sections:[
-      {type:'template_encounter',label:'Orbital Approach'},
-      {type:'planet_descent',label:'Planetary Descent',params:{difficulty:'$risk'}},
-      {type:'surface_destination_approach',label:'Forest Approach',params:{difficulty:'$risk',terrain:'plains',destination:'forest',routeLength:360,treeClumps:7,entryRadius:24}},
-      {type:'forest_corridor',label:'Forest Cabin Delivery',params:{difficulty:'$risk',length:650,terminalDestination:'cabin_delivery',entryFrom:'surface_destination'}}
-    ],
-    presentation:{
-      trade:{
-        contactId:'corvella_pallis',cargoStyle:'case',
-        titles:['Remote Cabin Delivery','Forest Consignment','Woodland Supply Run'],
-        cargo:['sealed supply case','replacement machine parts','merchant parcel','remote-site stores'],
-        descriptions:[
-          'Sweetie, take {cargo} to the cabin beyond the forest. Try not to leave pieces of my favourite drone on the trees. I am rather attached to it.',
-          'Babe, remote customer, forest route, direct handoff at {destination}. You make dangerous deliveries look far too good.',
-          'Carry {cargo} to {destination}, sweetie. Tight trees on the final run, so show me how graceful that big machine can be.'
-        ],
-        completionSubjects:['FOREST DELIVERY CONFIRMED','REMOTE HANDOFF COMPLETE'],
-        completionBodies:['The recipient at {destination} confirmed receipt of {cargo}. Payment: CR {credits}. Standing: +{rep}.','Delivery is confirmed at the remote cabin. CR {credits} has been released through VOX. Standing: +{rep}.'],
-        encounterAcknowledgements:{pirate_ambush:['The route record also shows a pirate intercept before descent. You cleared it and still made the handoff.'],rogue_drones:['Rogue drones complicated the orbital approach. The parcel still reached the cabin.']},
-        failureMail:{contactId:'corvella_pallis',subjects:['SWEETIE, THE CABIN IS STILL WAITING','RE: FOREST DELIVERY'],bodies:['Sweetie, the cabin never got {cargo}. I know those trees are tight, but I was expecting graceful, dangerous competence. Instead I have an empty table and a sulk.','Babe, the forest run ended without the parcel reaching the cabin. All that beautiful machinery and the customer is still waiting. Not your finest look.']},
-        abandonMail:{contactId:'corvella_pallis',subjects:['YOU LEFT THEM WAITING, SWEETIE','BABE, YOU WALKED AWAY'],bodies:['Sweetie, you accepted my remote delivery and left the cabin waiting. I can defend bad luck. I cannot make walking away look sexy, however hard I try.','Babe, if the forest route is too much, tell me before you accept it. I would rather worry about you before the run than be disappointed in you afterwards.']},
-        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.16,encounterMinRisk:2,encounterChance:.48,subjects:['NICE FOREST RUN, SWEETIE','RE: REMOTE DELIVERY'],bodies:['Sweetie, clean through the trees and the parcel exactly where it belonged. Big machine, tiny gaps. I may have watched that replay twice.'],encounterBodies:{pirate_ambush:['Babe, pirates above the planet and that forest below it, and you still made the delivery. You really do know how to make an entrance.'],rogue_drones:['Sweetie, rogue drones before descent and then that forest route? That is an unreasonable amount of showing off in one contract.']}}
-      },
-      security:{
-        contactId:'kudo_shang',cargoStyle:'case',
-        titles:['Remote Field Transfer','Forest Observer Supply','Secure Cabin Handoff'],
-        cargo:['sealed field stores','encrypted sensor package','authorised surveillance module','secure evidence case'],
-        descriptions:['Deliver {cargo} to the authorised remote cabin. Follow the marked forest route and maintain custody through handoff.','A remote Directorate position requires {cargo}. Complete the surface approach and direct transfer at {destination}.'],
-        completionSubjects:['REMOTE TRANSFER CONFIRMED','FIELD HANDOFF CLOSED'],
-        completionBodies:['Custody transfer at {destination} is confirmed. Payment: CR {credits}. Standing: +{rep}.'],
-        encounterAcknowledgements:{pirate_ambush:['Pirate contact before descent was outside tasking. Threat removal is recorded.'],rogue_drones:['Rogue drone contact was resolved before descent. Additional action recorded.']},
-        failureMail:{contactId:'kudo_shang',subjects:['REMOTE TRANSFER FAILED','OBJECTIVE NOT COMPLETED'],bodies:['The remote transfer failed. The forest did not defeat the mission. You did. Correct it.','Objective incomplete. The route was hard. The order was simple. Finish what you accept.']},
-        abandonMail:{contactId:'kudo_shang',subjects:['UNAUTHORISED WITHDRAWAL','REMOTE TRANSFER ABANDONED'],bodies:['You withdrew before completing the authorised handoff. No withdrawal was ordered.','The forest route remained the route. You chose to stop. I do not reward weakness.']},
-        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.10,encounterMinRisk:2,encounterChance:.38,subjects:['RE: REMOTE TRANSFER','ADDITIONAL ACTION RECORDED'],bodies:['Remote transfer complete. You held the line through the route. Good.'],encounterBodies:{pirate_ambush:['Additional hostile contact was not in the tasking. It was removed without loss of custody. Good work.'],rogue_drones:['Rogue drone contact was incidental. Maintaining custody through it was not. Acceptable work.']}}
-      },
-      jackals:{
-        contactId:'cassian_erivan_snade',cargoStyle:'case',
-        titles:['Woodland Drop','A Quiet Cabin','Remote Hand-Off'],
-        // Drug cargo is deliberately common for this wrapper: an isolated cabin is a
-        // natural Red Jackal destination, not merely a generic parcel address.
-        cargo:['sealed narcotics package','restricted stimulants','unregistered pharmaceuticals','private chemical consignment','unmarked private case'],
-        descriptions:['A discreet client has an isolated forest cabin and, presently, an unfortunate absence of {cargo}. I imagine that imbalance can be corrected.','{destination} is expecting {cargo}. I would be delighted if the parcel simply appeared on the receiving table without inspiring unnecessary curiosity.','A small woodland address awaits {cargo}. The journey is inconvenient. The discretion is the point.'],
-        completionSubjects:['THE CABIN HAS ITS PARCEL','A QUIET DELIVERY CONCLUDED'],
-        completionBodies:['Our client confirms receipt of {cargo}. CR {credits} released. Standing: +{rep}.','The woodland handoff is complete. The parcel is where it belongs and, better still, nowhere interesting. Payment: CR {credits}. Standing: +{rep}.'],
-        encounterAcknowledgements:{customs_intercept:['Customs displayed an unfortunate curiosity before descent. You corrected it before proceeding to the cabin.'],pirate_ambush:['Pirates attempted to turn a discreet delivery into public entertainment. They failed.'],rogue_drones:['A collection of obsolete machines briefly complicated the approach. They are now considerably more obsolete.']},
-        failureMail:{contactId:'cassian_erivan_snade',subjects:['THE CABIN REMAINS EMPTY','A MOST INCONVENIENT NON-DELIVERY'],bodies:['A secluded cabin, a marked route and one parcel, X. Somehow we have arrived at the only ending in which the parcel is not there. Disappointing.','Our client remains without {cargo}. Privacy is of limited value when the goods themselves fail to appear.']},
-        abandonMail:{contactId:'cassian_erivan_snade',subjects:['YOU ABANDONED THE HAND-OFF','A FAILURE OF FOLLOW-THROUGH'],bodies:['You accepted a discreet commission and then abandoned it before the handoff. Even smugglers are entitled to expect the second half of a transaction.','The Romans built roads across continents. I asked you to follow one forest route. Your retreat lacks their sense of scale.']},
-        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:3,chance:.22,encounterMinRisk:2,encounterChance:.52,subjects:['A SATISFYINGLY QUIET ENDING','RE: THE CABIN'],bodies:['A remote parcel, a quiet handoff and no unnecessary theatre. Restraint becomes you.'],encounterBodies:{customs_intercept:['Customs objected, naturally. Yet the parcel reached its destination and their objection did not. A neat little triumph.'],pirate_ambush:['Pirates before descent, trees afterwards, and still the handoff concluded. Odysseus had a longer journey, but substantially worse navigation.'],rogue_drones:['The machines objected to your passage. History records their objection poorly. The parcel, however, arrived.']}}
-      },
-      helix:{
-        contactId:'navira_derris',cargoStyle:'case',
-        titles:['Remote Sample Transfer','Forest Field Delivery','Isolated Site Supply'],
-        cargo:['sealed research sample','environmental sensor package','field-analysis module','replacement monitoring equipment'],
-        descriptions:['A remote field site requires {cargo}. Deliver it beyond the forest route. The local growth pattern is unusual, so keep the route telemetry.','Transport {cargo} to {destination}. The isolation is intentional. Do not contaminate the package. If the forest reacts to your passage, I want the data.'],
-        completionSubjects:['FIELD DELIVERY CONFIRMED','REMOTE SAMPLE RECEIVED'],
-        completionBodies:['The remote site confirms receipt of {cargo}. CR {credits} released. Standing: +{rep}.','Delivery telemetry is complete and the package is at {destination}. Payment: CR {credits}. Standing: +{rep}.'],
-        encounterAcknowledgements:{pirate_ambush:['An unplanned pirate contact was resolved before descent. The delivery dataset remains complete.'],rogue_drones:['Rogue drone contact added an uncontrolled variable to the approach. It did not alter the delivery outcome.']},
-        failureMail:{contactId:'navira_derris',subjects:['FIELD DELIVERY FAILED','REMOTE SITE DID NOT RECEIVE PACKAGE'],bodies:['The remote site did not receive {cargo}. The intended field work therefore cannot proceed.','The delivery condition was not met. The cabin receiving point remained empty at mission termination.']},
-        abandonMail:{contactId:'navira_derris',subjects:['FIELD TRANSFER TERMINATED','PACKAGE LEFT UNDELIVERED'],bodies:['You terminated the transfer before {cargo} reached the receiving point. That outcome is not operationally useful.','The route ended before the experiment could begin. The package remains undelivered.']},
-        personalFollowUp:{contactId:'navira_derris',minRisk:4,chance:.14,encounterMinRisk:2,encounterChance:.44,subjects:['RE: FIELD DELIVERY','USEFUL ROUTE DATA'],bodies:['The package arrived intact. The route telemetry contains a lateral growth response I was not expecting. Both are useful.'],encounterBodies:{pirate_ambush:['The pirate contact was not part of the planned dataset. Your completion of the delivery despite it is statistically reassuring.'],rogue_drones:['The rogue contact increased route variance without changing the outcome. Efficiently handled.']}}
-      },
-      quickbite:{
-        contactId:'nyxo_malloc',cargoStyle:'case',
-        titles:['Cabin Food Run','Forest Delivery','Remote Order'],
-        cargo:['hot meal order','sealed takeaway crate','catering package','emergency rations order','franchise food supplies'],
-        descriptions:['Dude, somebody ordered {cargo} to a cabin in the middle of a forest because apparently roads are old technology. Get it there.','Remote order at {destination}. Follow Forest Nav, survive the trees, put {cargo} on the table. Normal delivery shiz.','Dispatch has {cargo} for a forest cabin. Yes, really. No, I do not know why they live there.'],
-        completionSubjects:['DUDE, FOOD DELIVERED','CABIN ORDER COMPLETE'],
-        completionBodies:['Dude, cabin says they got {cargo}. CR {credits}. Standing: +{rep}. Nobody has complained about temperature yet, which is basically a miracle.','Order delivered to {destination}. CR {credits} released. Standing: +{rep}. Awesome.'],
-        encounterAcknowledgements:{pirate_ambush:['Also, pirates tried to turn the food run into a combat zone before descent. Dispatch has somehow logged this as a delivery delay.'],rogue_drones:['Rogue drones showed up before descent. The food still got there, which apparently means everything is fine.']},
-        failureMail:{contactId:'nyxo_malloc',subjects:['DUDE. THEY STILL WANT THEIR FOOD.','FOREST ORDER FAILED'],bodies:['Dude, the cabin did not get {cargo}. They live in a forest and somehow this is still our service-level failure. Awesome.','What the shiz, X? Route was marked. Table was there. Dispatch still says ORDER NOT DELIVERED in enormous letters.']},
-        abandonMail:{contactId:'nyxo_malloc',subjects:['YOU ABANDONED A FOOD ORDER','DUDE. THE CABIN.'],bodies:['Dude, you accepted somebody\'s food and then bailed in the middle of the run. I now have to explain that to a person who lives far enough out to need a combat drone for takeaway.','You left the order undelivered. The customer is hungry, Dispatch is shouting, and some grint has opened a refund ticket. Great.']},
-        personalFollowUp:{contactId:'nyxo_malloc',minRisk:2,chance:.22,encounterMinRisk:2,encounterChance:.56,subjects:['NICE RUN, DUDE','THAT FOREST ORDER'],bodies:['Dude, you threaded that forest and put the food straight on the table. That was actually awesome.'],encounterBodies:{pirate_ambush:['Dude. Pirates, atmospheric entry, forest obstacle course, hot food still delivered. I am putting that in the next argument I have with Customer Support.'],rogue_drones:['Rogue drones before descent and the order still arrived. Customer says nothing, which is the highest QuickBite rating available.']}}
-      }
-    },
-    defaults:{destination:'remote forest cabin',cargo:'sealed delivery package'}
-  };
-
-
-  // v400: environments that used to be DEV-only, promoted to the ordinary board.
-  // Swamp relay delivery reuses the alien-swamp corridor and its relay clearing drop.
-  const swampRelayDelivery={
-    id:'swamp_relay_delivery',
-    version:1,
-    family:'swamp_relay_delivery',
-    musicMode:'calm',
-    minLevel:3,
-    maxLevel:null,
-    allowedFactions:['trade','security','jackals','helix','quickbite'],
-    factionWeights:{helix:5,jackals:4,security:3,trade:3,quickbite:3},
-    board:{category:'delivery',weight:.9,maxPerBoard:1},
-    risk:{base:3,min:2,levelsPerStep:2,max:9,jitter:1},
-    reward:{
-      basePay:1600,payPerRisk:820,payRiskSquare:170,randomPay:350,roundPay:50,
-      baseXp:190,xpPerRisk:62,xpRiskSquare:14
-    },
-    planetaryRequirements:{landingBody:'planet',landingColour:'cyan',moonCount:{min:0,max:2}},
-    encounterTable:{
-      entries:{
-        pirate_ambush:{type:'fighters',profile:'pirate',params:{target:{base:2,perRisk:1,min:4,max:8,round:true},fighterHp:{base:10,perRisk:.5,min:12,max:16,round:true}}},
-        rogue_drones:{type:'fighters',profile:'rogue',params:{target:{base:2,perRisk:1,min:4,max:8,round:true},fighterHp:{base:10,perRisk:.5,min:12,max:16,round:true}}},
-        customs_intercept:{type:'customs_drones',profile:'customs',params:{target:{base:3,perRisk:1,min:5,max:9,round:true},fighterHp:{base:10,perRisk:.5,min:12,max:16,round:true}}}
-      },
-      weightsByFaction:{
-        trade:{none:76,pirate_ambush:16,rogue_drones:8},
-        security:{none:76,rogue_drones:16,pirate_ambush:8},
-        jackals:{none:72,customs_intercept:18,pirate_ambush:6,rogue_drones:4},
-        helix:{none:76,rogue_drones:14,pirate_ambush:10},
-        quickbite:{none:76,pirate_ambush:14,rogue_drones:10}
-      }
-    },
-    sections:[
-      {type:'template_encounter',label:'Orbital Approach'},
-      {type:'planet_descent',label:'Swamp World Descent',params:{difficulty:'$risk'}},
-      {type:'surface_destination_approach',label:'Swamp Approach',params:{difficulty:'$risk',environment:'swamp_approach'}},
-      {type:'forest_corridor',label:'Swamp Relay Delivery',params:{difficulty:'$risk',environment:'alien_swamp',length:620,terminalDestination:'swamp_relay_delivery',entryFrom:'surface_destination'}}
-    ],
-    presentation:{
-      trade:{
-        contactId:'corvella_pallis',cargoStyle:'case',
-        titles:['Swamp Relay Run','Muddy Little Errand','Relay Clearing Drop'],
-        cargo:['relay spares case','sealed merchant parcel','replacement transponder','weatherproof supply case'],
-        descriptions:['Sweetie, a relay out in the swamp needs {cargo}. The trees bite out there, so keep that gorgeous drone low and careful.','Babe, swamp world, relay clearing, {cargo}. Nasty plants, muddy route, and you looking good doing it.'],
-        completionSubjects:['SWAMP DROP CONFIRMED','RELAY CLEARING DELIVERY COMPLETE'],
-        completionBodies:['The relay crew confirmed {cargo}. Payment: CR {credits}. Standing: +{rep}.','Delivery is logged at the swamp relay. CR {credits} released. Standing: +{rep}.'],
-        encounterAcknowledgements:{pirate_ambush:['The record shows pirates tried their luck before descent. You saw them off and still made the drop.'],rogue_drones:['Rogue drones in orbit too. You cleared them first. Very impressive, sweetie.']},
-        failureMail:{contactId:'corvella_pallis',subjects:['SWEETIE, THE SWAMP WON','RE: SWAMP RELAY'],bodies:['Sweetie, the relay never got its {cargo}. Those horrible plants got my favourite drone instead. Try again for me.']},
-        abandonMail:{contactId:'corvella_pallis',subjects:['YOU LEFT THEM IN THE MUD, BABE'],bodies:['Babe, you took my swamp job and turned around. The relay crew is still waiting and so am I.']},
-        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.18,subjects:['MUDDY BUT MARVELLOUS'],bodies:['Sweetie, the relay crew says you came through those trees like you owned them. I like that.']}
-      },
-      security:{
-        contactId:'kudo_shang',cargoStyle:'case',
-        titles:['Relay Maintenance Supply','Swamp Relay Custody','Remote Relay Transfer'],
-        cargo:['encrypted relay module','sealed maintenance kit','authorised sensor array','secure relay core'],
-        descriptions:['Deliver {cargo} to the OSD swamp relay. Hostile flora is active along the route. Maintain custody to the clearing.','An OSD relay on a swamp world needs {cargo}. Fly low, avoid the spitters, complete the handoff.'],
-        completionSubjects:['RELAY SUPPLY CONFIRMED','SWAMP TRANSFER CLOSED'],
-        completionBodies:['Custody transfer at the swamp relay is confirmed. Payment: CR {credits}. Standing: +{rep}.'],
-        encounterAcknowledgements:{rogue_drones:['Rogue drone contact before descent is recorded as removed.'],pirate_ambush:['Pirate interference before descent is recorded as removed.']},
-        failureMail:{contactId:'kudo_shang',subjects:['RELAY TRANSFER FAILED'],bodies:['The swamp relay did not receive {cargo}. The route was hostile. That is why we paid you.']},
-        abandonMail:{contactId:'kudo_shang',subjects:['UNAUTHORISED WITHDRAWAL'],bodies:['You withdrew before the relay handoff. No withdrawal was ordered.']},
-        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.12,subjects:['RE: SWAMP RELAY'],bodies:['Relay supplied on time through a hostile route. Noted.']}
-      },
-      jackals:{
-        contactId:'cassian_erivan_snade',cargoStyle:'case',
-        titles:['A Damp Arrangement','Swamp Hand-Off','The Relay Clearing'],
-        cargo:['unregistered relay key','private chemical consignment','sealed courier case','discreet signal module'],
-        descriptions:['A relay in a swamp clearing would benefit from {cargo}, and certain associates would benefit from the relay. Everyone wins, except perhaps the plants.','I have a delivery for a swamp relay where nobody asks questions, mainly because the vegetation eats them. {cargo}, if you please.'],
-        completionSubjects:['THE RELAY HAS ITS PARCEL'],
-        completionBodies:['The clearing confirms receipt of {cargo}. CR {credits} released. Standing: +{rep}.'],
-        encounterAcknowledgements:{customs_intercept:['Customs took an interest before descent. You discouraged it. How thoughtful.']},
-        failureMail:{contactId:'cassian_erivan_snade',subjects:['A SOGGY FAILURE'],bodies:['The relay is still without its {cargo}. The swamp appears to have had opinions about your drone.']},
-        abandonMail:{contactId:'cassian_erivan_snade',subjects:['SECOND THOUGHTS IN THE SWAMP'],bodies:['You accepted a discreet delivery and then withdrew from it. Discretion, I find, includes finishing things.']},
-        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:3,chance:.2,subjects:['A PLEASINGLY DAMP RESULT'],bodies:['The relay is quiet and the parcel is where it should be. Exactly as I prefer.']}
-      },
-      helix:{
-        contactId:'navira_derris',cargoStyle:'case',
-        titles:['Swamp Field Station Supply','Relay Clearing Samples','Spitter Zone Delivery'],
-        cargo:['sealed sampling kit','environmental sensor package','culture medium crate','replacement monitoring equipment'],
-        descriptions:['Our swamp relay station needs {cargo}. The spitter plants along the route are wonderful and dangerous. Please admire them from a distance.','Deliver {cargo} to the relay clearing. The flora is hostile. I would love a little telemetry of it on the way.'],
-        completionSubjects:['FIELD STATION SUPPLIED'],
-        completionBodies:['The relay clearing confirms {cargo}. CR {credits} released. Standing: +{rep}.'],
-        encounterAcknowledgements:{rogue_drones:['Rogue drones before descent. You dealt with them. The dataset is still complete, thankfully.']},
-        failureMail:{contactId:'navira_derris',subjects:['THE SWAMP RESPONDED'],bodies:['The relay did not receive {cargo}. The flora responded to your drone with great enthusiasm. Please try again.']},
-        abandonMail:{contactId:'navira_derris',subjects:['DELIVERY NOT CONCLUDED'],bodies:['You withdrew before the clearing. The station is still waiting for {cargo}.']},
-        personalFollowUp:{contactId:'navira_derris',minRisk:4,chance:.16,subjects:['LOVELY SPITTER TELEMETRY'],bodies:['Your run gave me some beautiful readings of the spitter plants. Thank you, X.']}
-      },
-      quickbite:{
-        contactId:'nyxo_malloc',cargoStyle:'food',
-        titles:['Swamp Lunch Run','Relay Crew Order','Muddy Delivery'],
-        cargo:['hot meal order','sealed takeaway crate','relay crew catering','emergency snack order'],
-        descriptions:['Dude, a relay crew in a swamp ordered {cargo}. The plants spit acid. They still want fries. Respect.','Swamp relay, {cargo}, angry trees. They knew the risks when they took a job in a swamp.'],
-        completionSubjects:['DUDE, SWAMP FOOD DELIVERED'],
-        completionBodies:['Relay crew got their {cargo}. CR {credits}. Standing: +{rep}. Somebody said the fries were a bit damp. Swamp, dude.'],
-        encounterAcknowledgements:{pirate_ambush:['Also pirates tried to steal the food before descent. You said no. Good.']},
-        failureMail:{contactId:'nyxo_malloc',subjects:['THE SWAMP ATE THE ORDER'],bodies:['Dude, the swamp ate your drone and the {cargo}. The relay crew is hungry and sad.']},
-        abandonMail:{contactId:'nyxo_malloc',subjects:['DUDE. THE RELAY CREW.'],bodies:['You bailed on a food run, dude. The relay crew is still hungry.']},
-        personalFollowUp:{contactId:'nyxo_malloc',minRisk:2,chance:.22,subjects:['NICE SWAMP RUN, DUDE'],bodies:['Relay crew says thanks. They also say the plants are worse than the food. Great review.']}
-      }
-    },
-    defaults:{destination:'swamp relay clearing',cargo:'sealed delivery package'}
-  };
 
   // v880 specimen recovery: xenos are attacking a station on the edge of their
   // territory. Clear them, tractor fresh material from one of the bodies, and deliver
@@ -2585,78 +2364,89 @@
     }
   };
 
-  // v1510: CRASH RECOVERY. A craft has come down on the plains: find the crash sites (each
-  // a smoking wreck marked on the nav), fly low over each to pull its flight recorder,
-  // then make the pickup and deliver to the depot. Same route as the survey run.
+  // v3019 CRASH RECOVERY (Dave: no city; ground units to take out before scanning; a wider
+  // area). The drone lands on open rolling ground with two to four downed craft spread far
+  // apart (system-crash-field.js). Scavengers (technicals and ground drones) guard some of them,
+  // more as the risk rises, and must be destroyed before their wreck can be scanned. Fly low
+  // over each wreck to pull its recorder, then launch and upload the logs at the depot.
   const crashRecovery={
     ...surveyRun,
     id:'crash_recovery',
+    version:2,
+    family:'crash_recovery',
+    musicMode:'calm',
     minLevel:3,
-    defaults:{origin:'the recovery team\'s field office',destination:'the Compact freight depot',cargo:'the recovered flight recorders'},
+    defaults:{destination:'the Compact freight depot',cargo:'the flight logs'},
     allowedFactions:['security','trade','helix','jackals'],
     factionWeights:{security:4,trade:4,helix:3,jackals:2},
-    board:{category:'delivery',weight:.55,maxPerBoard:1},
-    sections:surveyRun.sections.map((s,i)=>{if(i!==1)return s;const params={...s.params,crashSites:{base:1,perRisk:.25,min:1,max:3,round:true}};delete params.surveyPoints;return{...s,label:'Crash Recovery',params}}),
+    board:{category:'recovery',weight:.7,maxPerBoard:1},
+    risk:{base:3,min:2,levelsPerStep:2,max:9,jitter:1},
+    reward:{basePay:2400,payPerRisk:1500,payRiskSquare:120,randomPay:400,roundPay:50,baseXp:340,xpPerRisk:85,xpRiskSquare:9},
+    sections:[
+      {type:'planet_descent',label:'Planet Descent',params:{difficulty:'$risk'}},
+      {type:'crash_field',label:'Crash Field',params:{difficulty:'$risk',crashSites:{base:1.6,perRisk:.3,min:2,max:4,round:true}}},
+      ...groundsidePickup.sections.filter(s=>s.type==='space_transit'||s.type==='free_traders_depot_terminal')
+    ],
     presentation:{
       security:{
-        contactId:'kudo_shang',cargoStyle:'case',
+        contactId:'kudo_shang',
         titles:['Recorder Recovery','Downed Patrol','Crash Site Sweep'],
-        cargo:['the recovered flight recorders','a sealed recorder case','the patrol\'s crash report'],
+        cargo:['the patrol\'s flight logs','the crash records','the recorder logs'],
         destinations:['the Compact freight depot'],
         descriptions:[
-          'An OSD patrol came down on the plains of this world. I want every flight recorder recovered before anyone else reads them. Find the crash sites, then collect {cargo} from {origin} and deliver it to {destination}.',
-          'Downed patrol craft. Fly low over each crash site and pull the recorder. Then collect {cargo} from {origin} and deliver it to {destination}. Nobody else touches those recorders.'
+          'An OSD patrol came down across a wide stretch of open ground. I want every flight recorder recovered before anyone else reads them. Scavengers are already at some of the wrecks. Destroy them, fly low over each wreck to pull its recorder, then upload {cargo} at {destination}.',
+          'Downed patrol craft, scattered wide. Scavengers on some of them. Clear the scavengers, pull every recorder, upload {cargo} at {destination}. Nobody else touches those recorders.'
         ],
         completionSubjects:['Recorders recovered','Crash sites closed'],
         completionBodies:['Every recorder is in OSD hands. We know what brought the patrol down now. Payment: CR {credits}. Standing: +{rep}.'],
-        failureMail:{contactId:'kudo_shang',subjects:['Recorders lost'],bodies:['The recorders never reached us. Someone else will read them first. That is unacceptable.']},
+        failureMail:{contactId:'kudo_shang',subjects:['Recorders lost'],bodies:['The recorders never reached us. The scavengers will sell them to whoever pays. That is unacceptable.']},
         abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left the crash sites unrecovered. The patrol deserved better.']},
         personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.18,subjects:['Re: the downed patrol'],bodies:['The recorders showed the patrol held formation to the ground. I thought you should know.']}
       },
       trade:{
-        contactId:'corvella_pallis',cargoStyle:'case',
-        titles:['Lost Hauler','Black Box Run','Where My Hauler Went'],
-        cargo:['the hauler\'s flight recorders','a case of insurance paperwork','the hauler\'s cargo manifest'],
+        contactId:'corvella_pallis',
+        titles:['Lost Convoy','Black Box Run','Where My Haulers Went'],
+        cargo:['the convoy\'s flight logs','the haulers\' recorder logs','the crash records'],
         destinations:['the Compact freight depot'],
         descriptions:[
-          'Sweetie, one of my haulers went down on the plains and the insurers want the black boxes before they pay. Find the crash sites, then pick up {cargo} from {origin} and bring it to {destination}.',
-          'Babe, I lost a hauler and I want to know why. Fly over every wreck and grab the recorders, then collect {cargo} from {origin} and drop it at {destination}. The crew got out. I checked first.'
+          'Sweetie, a convoy of mine came down over open country and the insurers want every black box before they pay. Scavengers are picking at some of the wrecks. Chase them off, fly low over each wreck for its recorder, then upload {cargo} at {destination}.',
+          'Babe, I lost haulers and I want to know why. They are spread all over a lot of empty ground, and some have scavengers on them. Clear them, grab every recorder, and upload {cargo} at {destination}. The crews got out. I checked first.'
         ],
         completionSubjects:['The insurers paid, babe','Black boxes in'],
-        completionBodies:['The recorders are in and the insurers have stopped arguing. A clamp failed, not my pilot. I knew it. Payment: CR {credits}. Standing: +{rep}.'],
-        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the black boxes'],bodies:['Sweetie, the recorders never reached the depot. The insurers are going to be awful about this.']},
-        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, the wreck'],bodies:['You left the wrecks unrecovered, babe. I still do not know what happened to my hauler.']},
-        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['About my hauler'],bodies:['The crew from that hauler asked who brought the recorders in. I told them a friend. They sent cake, sweetie. I ate your half.']}
+        completionBodies:['The recorders are in and the insurers have stopped arguing. A clamp failed, not my pilots. I knew it. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the black boxes'],bodies:['Sweetie, the recorders never reached the depot. The scavengers have them now, and the insurers are going to be awful about this.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, the wrecks'],bodies:['You left the wrecks to the scavengers, babe. I still do not know what happened to my haulers.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['About my haulers'],bodies:['The crews from that convoy asked who brought the recorders in. I told them a friend. They sent cake, sweetie. I ate your half.']}
       },
       helix:{
-        contactId:'navira_derris',cargoStyle:'case',
+        contactId:'navira_derris',
         titles:['Sample Drone Recovery','Downed Research Craft','Crash Data'],
-        cargo:['the research drone\'s data cores','a sealed sample case','the recovered recorders'],
+        cargo:['the research drones\' logs','the crash records','the recorder logs'],
         destinations:['the Compact freight depot','a Helix collection point at the depot'],
         descriptions:[
-          'A Helix research drone came down on this world carrying samples I would like back. Find the crash sites, pull the recorders, then collect {cargo} from {origin} and bring it to {destination}.',
-          'I lost a sampling drone and its telemetry stops at a very interesting moment. Fly over each wreck for the recorders, then collect {cargo} from {origin} and hand it over at {destination}.'
+          'A flight of Helix research drones came down across open ground on this world, and scavengers have found some of them. Clear the scavengers, fly low over each wreck for its recorder, then upload {cargo} at {destination}.',
+          'I lost several sampling drones and their telemetry stops at a very interesting moment. The wrecks are spread wide and some are being stripped. Stop that, pull every recorder, and upload {cargo} at {destination}.'
         ],
         completionSubjects:['Recorders received','The interesting moment'],
-        completionBodies:['The recorders are in. The drone was not shot down. It flew into something it was studying. I am almost proud of it. CR {credits} released. Standing: +{rep}.'],
-        failureMail:{contactId:'navira_derris',subjects:['Crash data lost'],bodies:['Your drone was lost before the recorders reached the depot. I now have two crashes to explain.']},
-        abandonMail:{contactId:'navira_derris',subjects:['Recovery abandoned'],bodies:['You left before the recorders were recovered. The interesting moment remains a mystery.']},
-        personalFollowUp:{contactId:'navira_derris',minRisk:3,chance:.22,subjects:['About the crash'],bodies:['I have reconstructed the sampling drone\'s last minute. It was enjoying itself.']}
+        completionBodies:['The recorders are in. The drones were not shot down. They flew into something they were studying. I am almost proud of them. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'navira_derris',subjects:['Crash data lost'],bodies:['Your drone was lost before the recorders reached the depot. I now have more crashes to explain.']},
+        abandonMail:{contactId:'navira_derris',subjects:['Recovery abandoned'],bodies:['You left before the recorders were recovered. The scavengers will sell my interesting moment for scrap.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:3,chance:.22,subjects:['About the crash'],bodies:['I have reconstructed the sampling drones\' last minute. They were enjoying themselves.']}
       },
       jackals:{
-        contactId:'cassian_erivan_snade',cargoStyle:'case',
-        titles:['An Unfortunate Descent','Discreet Recovery','A Courier Fell'],
-        cargo:['the courier\'s recorders','a case that was never aboard','a very discreet box'],
-        destinations:['the Compact freight depot','a quiet locker at the Compact depot'],
+        contactId:'cassian_erivan_snade',
+        titles:['An Unfortunate Descent','Discreet Recovery','Couriers Fell'],
+        cargo:['the couriers\' logs','the crash records','a very discreet set of logs'],
+        destinations:['the Compact freight depot','a quiet terminal at the Compact depot'],
         descriptions:[
-          'One of my couriers suffered an unfortunate descent onto the plains. Its recorders contain conversations of a private nature. Find the crash sites, then collect {cargo} from {origin} and deliver it to {destination}.',
-          'A craft carrying certain items of mine came down rather abruptly. Recover the recorders from each wreck before anyone curious arrives, then collect {cargo} from {origin} and take it to {destination}.'
+          'Several of my couriers suffered an unfortunate descent across open country. Their recorders hold conversations of a private nature, and scavengers are already at some of the wrecks. Remove them, recover every recorder, and upload {cargo} at {destination}.',
+          'Craft carrying certain items of mine came down rather abruptly and rather far apart. Scavengers have arrived, as they do. Discourage them, pull the recorders, and upload {cargo} at {destination}.'
         ],
         completionSubjects:['A tidy recovery','Nothing to see'],
-        completionBodies:['The recorders are mine again and nobody heard a thing. CR {credits} released. Standing: +{rep}.'],
-        failureMail:{contactId:'cassian_erivan_snade',subjects:['An unfortunate outcome'],bodies:['The recorders did not reach the depot. Somewhere, someone is listening to my private conversations. I find that tiresome.']},
+        completionBodies:['The recorders are mine again and nobody heard a thing. The scavengers will not be talking either. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'cassian_erivan_snade',subjects:['An unfortunate outcome'],bodies:['The recorders did not reach the depot. Somewhere a scavenger is listening to my private conversations. I find that tiresome.']},
         abandonMail:{contactId:'cassian_erivan_snade',subjects:['Left lying about'],bodies:['You left the wrecks where anyone might find them. That was careless of you, and expensive for me.']},
-        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:3,chance:.2,subjects:['On recorders'],bodies:['I listened to the recordings myself. My courier was singing when it fell. Badly, but with feeling.']}
+        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:3,chance:.2,subjects:['On recorders'],bodies:['I listened to the recordings myself. One of my couriers was singing when it fell. Badly, but with feeling.']}
       }
     }
   };
@@ -2723,199 +2513,338 @@
     }
   };
 
-  // v3011 CANYON RUN (Dave: a dedicated canyon job). Always an orange world that is not
-  // volcanic, so the plains approach always crosses the mesa (environment-canyon.js). The relay
-  // masts are strung down the canyon floor, and the canyon narrows and gathers more boulders as
-  // the risk rises (stage.canyonJob). Then the usual city collection and depot handoff.
-  const canyonRun={
-    ...surveyRun,
-    id:'canyon_run',
-    minLevel:3,
-    allowedFactions:['trade','security','quickbite'],
-    factionWeights:{trade:4,security:3,quickbite:3},
-    board:{category:'delivery',weight:.6,maxPerBoard:1},
-    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
-    volcanic:false,
-    defaults:{origin:'the canyon relay crew\'s depot',destination:'the Compact freight depot',cargo:'the canyon relay crew\'s diagnostics case'},
-    planetaryRequirements:{landingBody:'planet',landingColour:'orange',moonCount:{min:0,max:2}},
-    sections:surveyRun.sections.map((s,i)=>{if(i!==1)return s;const params={...s.params,canyonJob:true,relayMasts:{base:3,perRisk:.15,min:3,max:4,round:true}};delete params.surveyPoints;return{...s,label:'Canyon Run',params}}),
-    presentation:{
-      trade:{
-        contactId:'corvella_pallis',cargoStyle:'case',
-        titles:['Canyon Run','The Narrows','Down the Canyon'],
-        cargo:['the canyon relay crew\'s diagnostics case','a case of canyon relay boards','the canyon relay logs'],
-        destinations:['the Compact freight depot'],
-        descriptions:[
-          'Sweetie, the only way through the mesa on this world is one long canyon, and the relay masts down there have gone dark. My haulers will not go in blind. Fly the canyon, reset every mast you pass, then pick up {cargo} from {origin} and bring it to {destination}.',
-          'Babe, there is a canyon on this world my haulers call the Narrows. The walls are solid rock and the relays inside are down. Thread it, light the masts back up, then collect {cargo} from {origin} and drop it at {destination}.'
-        ],
-        completionSubjects:['You flew the Narrows','The canyon is lit'],
-        completionBodies:['Every mast down the canyon is back on, sweetie, and my first hauler is already through it. The driver said it was like flying down a lit corridor. Payment: CR {credits}. Standing: +{rep}.'],
-        failureMail:{contactId:'corvella_pallis',subjects:['Babe, the canyon'],bodies:['Your drone went down and the canyon is still dark. My haulers are going the long way round the mesa, and the long way round is very long.']},
-        abandonMail:{contactId:'corvella_pallis',subjects:['Sweetie, the masts'],bodies:['You turned back with masts still dark in that canyon. My haulers saw you leave. They did not say anything nice.']},
-        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['That canyon'],bodies:['The haulers have started calling the Narrows by your call sign. I have not corrected them. I think it suits it.']}
-      },
-      security:{
-        contactId:'kudo_shang',cargoStyle:'case',
-        titles:['Canyon Relay Restoration','Canyon Transit','Mesa Corridor'],
-        cargo:['the canyon relay crew\'s diagnostics case','a sealed signal log','the canyon fault report'],
-        destinations:['the Compact freight depot'],
-        descriptions:[
-          'The patrol corridor on this world runs through a single canyon cut in a mesa. Its relay masts are down. Fly the canyon, reset every mast, then collect {cargo} from {origin} and deliver it to {destination}. The walls are solid. Do not touch them.',
-          'One canyon, one corridor, no coverage. Restore the relay masts along the canyon floor. Then collect {cargo} from {origin} and deliver it to {destination}.'
-        ],
-        completionSubjects:['Canyon coverage restored','Corridor online'],
-        completionBodies:['All canyon masts report online. The patrol corridor through the mesa is open again. Payment: CR {credits}. Standing: +{rep}.'],
-        failureMail:{contactId:'kudo_shang',subjects:['Corridor still dark'],bodies:['The canyon relays remain down. Patrols are routing round the mesa. Return and finish it.']},
-        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left with canyon masts still down. A corridor with gaps is not a corridor.']},
-        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.18,subjects:['Re: canyon transit'],bodies:['A patrol pilot clipped a canyon wall the week before you went in. Your logs show no contact. Noted.']}
-      },
-      quickbite:{
-        contactId:'nyxo_malloc',cargoStyle:'case',
-        titles:['Canyon Shortcut','The Fast Way','Through the Big Rock'],
-        cargo:['the canyon relay crew\'s diagnostics case','a box of spare relay boards','the courier routing log'],
-        destinations:['the Compact freight depot'],
-        descriptions:[
-          'Dude, there is a canyon through the mesa on this world that would save our couriers like twenty minutes, but the relays in it are dead and nobody wants to fly it blind. Fly it, reset the masts, then grab {cargo} from {origin} and take it to {destination}.',
-          'So there is a big rock with a crack in it and the crack is the shortcut. The crack has relay masts. The masts are off. Turn them on from the air without hitting the rock. Then collect {cargo} from {origin} and drop it at {destination}.'
-        ],
-        completionSubjects:['shortcut is open','canyon thing'],
-        completionBodies:['Masts are up and the couriers are using the canyon. One of them did it upside down. Please do not tell anyone. Payment: CR {credits}. Standing: +{rep}.'],
-        failureMail:{contactId:'nyxo_malloc',subjects:['so the canyon won'],bodies:['Your drone went down and the canyon is still dark. The couriers are back to going round the rock. The rock is very big.']},
-        abandonMail:{contactId:'nyxo_malloc',subjects:['the masts are still off'],bodies:['You left with masts still off in the canyon, dude. The shortcut is a long cut again.']},
-        personalFollowUp:{contactId:'nyxo_malloc',minRisk:3,chance:.24,subjects:['canyon'],bodies:['The couriers made a leaderboard for the canyon. You are on it. You are first. Nobody is close.']}
-      }
+  // v3016 GROUND JOBS IN ANY SETTING (Dave: canyons, forests and swamps should be for all sorts
+  // of thing: delivery, get data, scan wreckage, reconnaissance, rescue; keep unique buildings
+  // for different environments). Six jobs replace Forest Cabin Delivery, Swamp Relay Delivery
+  // and the three canyon jobs. Each rolls its setting when it is dealt (campaign.js, forSetting):
+  // the forest run on green worlds and moons, the swamp on cyan worlds, the canyon on orange arid
+  // worlds. Each setting has its own building at the head of the run (environment-sites.js):
+  // the cabin, the stilt outpost, the door in the rock. Letters name the place and the building
+  // through {place}, {site} and {siteA}.
+  const groundEncounters={
+    entries:{
+      pirate_ambush:{type:'fighters',profile:'pirate',params:{target:{base:2,perRisk:1,min:4,max:7,round:true},fighterHp:{base:10,perRisk:.5,min:12,max:15,round:true}}},
+      rogue_drones:{type:'fighters',profile:'rogue',params:{target:{base:2,perRisk:1,min:4,max:7,round:true},fighterHp:{base:10,perRisk:.5,min:12,max:15,round:true}}},
+      customs_intercept:{type:'customs_drones',profile:'customs',params:{target:{base:3,perRisk:1,min:5,max:8,round:true},fighterHp:{base:10,perRisk:.5,min:12,max:15,round:true}}}
+    },
+    weightsByFaction:{
+      trade:{none:80,pirate_ambush:14,rogue_drones:6},
+      security:{none:80,rogue_drones:14,pirate_ambush:6},
+      jackals:{none:78,customs_intercept:12,pirate_ambush:6,rogue_drones:4},
+      helix:{none:80,rogue_drones:12,pirate_ambush:8},
+      quickbite:{none:80,pirate_ambush:12,rogue_drones:8}
     }
   };
+  const GROUND_SETTINGS={
+    forest:{label:'Forest',place:'the forest',site:'the cabin',siteA:'a cabin deep in the forest',
+      planet:{landingBody:{choices:['planet','moon'],weights:[70,30]},landingColour:{choices:['green','blue','magenta'],weights:[70,15,15]},moonCount:{min:0,max:2}},
+      approach:{terrain:'plains',destination:'forest',routeLength:360,treeClumps:7,entryRadius:24},corridor:{length:650}},
+    swamp:{label:'Swamp',place:'the swamp',site:'the stilt outpost',siteA:'an outpost on stilts in the swamp',
+      planet:{landingBody:'planet',landingColour:'cyan',moonCount:{min:0,max:2}},
+      approach:{environment:'swamp_approach'},corridor:{environment:'alien_swamp',length:620}},
+    canyon:{label:'Canyon',place:'the canyon',site:'the rock outpost',siteA:'an outpost cut into the canyon rock',volcanic:false,
+      planet:{landingBody:'planet',landingColour:'orange',moonCount:{min:0,max:2}},
+      approach:{terrain:'plains',destination:'canyon',routeLength:360,treeClumps:6,entryRadius:24},corridor:{environment:'desert_canyon',length:650}}
+  };
+  // ending(settingKey) gives the corridor's terminal for that setting.
+  const groundJob=def=>({
+    version:3,musicMode:'calm',maxLevel:null,encounterTable:groundEncounters,   // v3021: 3, so data jobs are dealt again with the stations
+    settingWeights:{forest:5,swamp:3,canyon:3},settingMinLevel:{swamp:3,canyon:3},
+    ...def,
+    forSetting(key){
+      const S=GROUND_SETTINGS[key]||GROUND_SETTINGS.forest,end=def.ending(key);
+      return{...this,setting:key,volcanic:S.volcanic,planetaryRequirements:S.planet,
+        defaults:{...(def.defaults||{}),place:S.place,site:S.site,siteA:S.siteA},
+        sections:[
+          {type:'template_encounter',label:'Orbital Approach'},
+          {type:'planet_descent',label:'Planetary Descent',params:{difficulty:'$risk'}},
+          {type:'surface_destination_approach',label:`${S.label} Approach`,params:{difficulty:'$risk',...S.approach}},
+          {type:'forest_corridor',label:`${S.label} ${def.label}`,params:{difficulty:'$risk',...S.corridor,entryFrom:'surface_destination',...end,presentation:{start:`${S.label.toUpperCase()} RUN · ${def.label.toUpperCase()}`,...(end.presentation||{})}}}
+        ]}
+    }
+  });
+  const deliveryEnd=(key,extra={})=>({terminalDestination:key==='swamp'?'swamp_relay_delivery':'cabin_delivery',...extra});
 
-  // v3012 RED JACKAL HIDEOUT (Dave: red jackal smugglers hideout). An orange world that is not
-  // volcanic, so the approach crosses the mesa. The Red Jackals have built into a bay of one
-  // canyon wall: a blast door, a pad, crates and a mast (environment-canyon.js). Find their
-  // caches on the canyon floor and scan the hideout, then the city collection and the depot.
-  const jackalHideout={
-    ...surveyRun,
-    id:'jackal_hideout',
-    minLevel:4,
-    allowedFactions:['security','trade','jackals'],
-    factionWeights:{security:4,trade:3,jackals:2},
-    board:{category:'delivery',weight:.5,maxPerBoard:1},
-    risk:{base:3,min:3,levelsPerStep:2,max:9,jitter:1},
-    volcanic:false,
-    defaults:{origin:'the survey team\'s field office',destination:'the Compact freight depot',cargo:'the hideout scans'},
-    planetaryRequirements:{landingBody:'planet',landingColour:'orange',moonCount:{min:0,max:2}},
-    sections:surveyRun.sections.map((s,i)=>{if(i!==1)return s;const params={...s.params,canyonJob:true,hideoutCaches:{base:2,perRisk:.12,min:2,max:3,round:true}};delete params.surveyPoints;return{...s,label:'Smugglers\' Hideout',params}}),
+  // REMOTE DELIVERY: take a parcel down the run and set it down at the building.
+  const remoteDelivery=groundJob({
+    id:'remote_delivery',family:'remote_delivery',label:'Delivery',
+    minLevel:1,
+    allowedFactions:['trade','security','jackals','helix','quickbite'],
+    factionWeights:{quickbite:6,jackals:5,trade:3,helix:2,security:1},
+    board:{category:'delivery',weight:1.2,maxPerBoard:2},
+    risk:{base:2,min:1,levelsPerStep:2,max:9,jitter:1},
+    reward:{basePay:1150,payPerRisk:760,payRiskSquare:160,randomPay:300,roundPay:50,baseXp:150,xpPerRisk:54,xpRiskSquare:13},
+    defaults:{cargo:'a sealed parcel'},
+    ending:key=>deliveryEnd(key,{presentation:{autopilot:'AUTOPILOT · DELIVERY',hudAhead:'DELIVERY AHEAD'}}),
     presentation:{
-      security:{
-        contactId:'kudo_shang',cargoStyle:'case',
-        titles:['Smugglers\' Hideout','Red Jackal Den','Canyon Reconnaissance'],
-        cargo:['the hideout scans','a sealed reconnaissance case','the cache survey'],
-        destinations:['the Compact freight depot'],
-        descriptions:[
-          'Red Jackal smugglers are running cargo through a canyon on this world. Their hideout is cut into the canyon wall and their caches are on the floor. Fly the canyon, find every cache, scan the hideout. Then collect {cargo} from {origin} and deliver it to {destination}. Do not engage. Just look.',
-          'The Red Jackals have a den in a canyon here. I want its door, its pad and every cache on the canyon floor on record before I send a raid in. Fly it, scan it, then collect {cargo} from {origin} and take it to {destination}.'
-        ],
-        completionSubjects:['Hideout on record','Reconnaissance received'],
-        completionBodies:['The hideout and its caches are on record. A raid is being planned. You will not be told when. Payment: CR {credits}. Standing: +{rep}.'],
-        failureMail:{contactId:'kudo_shang',subjects:['Reconnaissance failed'],bodies:['Your drone went down in their canyon. The Red Jackals now know someone is looking. That makes the raid harder.']},
-        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left with the hideout unscanned. Half a reconnaissance is no reconnaissance.']},
-        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.2,subjects:['Re: the canyon den'],bodies:['The raid went in at dawn. The door was where your scans said it would be. Everything was where your scans said it would be.']}
-      },
-      trade:{
-        contactId:'corvella_pallis',cargoStyle:'case',
-        titles:['Where My Cargo Went','Smugglers\' Hideout','The Jackal Hole'],
-        cargo:['the hideout scans','the stolen cargo manifests','a case of insurance claims'],
-        destinations:['the Compact freight depot'],
-        descriptions:[
-          'Sweetie, Red Jackal smugglers have been lifting my freight and hiding it in a canyon on this world. They have a little hideout built into the wall, can you believe it. Find their caches, scan the hideout, then collect {cargo} from {origin} and bring it to {destination}. I want proof for the insurers.',
-          'Babe, my missing cargo is sitting under a net in a canyon somewhere, and the Red Jackals who took it are sitting behind a door in the canyon wall. Find the caches, scan the door, then pick up {cargo} from {origin} and drop it at {destination}.'
-        ],
-        completionSubjects:['I knew it was them','Proof, babe'],
-        completionBodies:['The scans show my crates under their nets, sweetie, with my stencils still on them. The insurers cannot argue with that. Payment: CR {credits}. Standing: +{rep}.'],
-        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the canyon'],bodies:['Your drone went down in their canyon, babe. The Red Jackals have my cargo and now they have your drone too.']},
-        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, the hideout'],bodies:['You turned back before you scanned the hideout. The insurers want proof, sweetie, and I still do not have any.']},
-        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['About those smugglers'],bodies:['OSD raided the hideout using your scans. I got four crates back. One of them was mine. Three were not, and I am keeping them.']}
-      },
-      jackals:{
-        contactId:'cassian_erivan_snade',cargoStyle:'case',
-        titles:['An Inventory','The Canyon House','Stock Taking'],
-        cargo:['the inventory scans','a discreet ledger','the cache tally'],
-        destinations:['the Compact freight depot','a quiet locker at the Compact depot'],
-        descriptions:[
-          'We keep a modest house in a canyon on this world. OSD has been flying over it, and I would like to know whether my caches are still where I left them. Fly the canyon, count the caches, look at the house, then collect {cargo} from {origin} and deliver it to {destination}.',
-          'X. There is a door in a canyon wall on this world, and it is mine. The crates on the canyon floor are also mine. Confirm both, then collect {cargo} from {origin} and take it to {destination}. Touch nothing.'
-        ],
-        completionSubjects:['Inventory concluded','Everything in its place'],
-        completionBodies:['Every cache accounted for and the house untouched. OSD has been flying over the wrong canyon. CR {credits} released. Standing: +{rep}.'],
-        failureMail:{contactId:'cassian_erivan_snade',subjects:['A noisy visit'],bodies:['Your drone came down in my canyon. Wreckage outside my front door is exactly the attention I pay you to avoid.']},
-        abandonMail:{contactId:'cassian_erivan_snade',subjects:['An unfinished count'],bodies:['You left before the count was finished. I now have to assume the worst about my caches, and I dislike assuming.']},
-        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:4,chance:.2,subjects:['The canyon house'],bodies:['The crew at the canyon house saw your drone go past the door. They said it was very polite. They waved. You probably missed it.']}
-      }
+      quickbite:{contactId:'nyxo_malloc',cargoStyle:'box',
+        titles:['Remote Drop','Out of Range Order','Long Way for Lunch'],
+        cargo:['a hot meal box','a family meal bundle','a crate of snacks'],
+        descriptions:['Dude, somebody ordered {cargo} to {siteA}. Our couriers will not go into {place}. You will. Fly it in and put it down at {site}.','Order for {site} out in {place}. No roads, no lights, no tip probably. Fly {cargo} in and set it down. Do not crash into anything. That is the whole brief.'],
+        completionSubjects:['order delivered','they ate it'],
+        completionBodies:['They got {cargo} and sent a picture of it. It looked fine. A bit squashed. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'nyxo_malloc',subjects:['so the order'],bodies:['Your drone went down in {place} and the order went with it. The customer has asked for a refund. And an apology. Mostly the refund.']},
+        abandonMail:{contactId:'nyxo_malloc',subjects:['order not delivered'],bodies:['You turned back with {cargo} still aboard, dude. Someone out there is very hungry and very cross.']},
+        personalFollowUp:{contactId:'nyxo_malloc',minRisk:3,chance:.22,subjects:['about that order'],bodies:['The customer out in {place} ordered again. They asked for you by name. They do not know your name. They described your drone.']}},
+      jackals:{contactId:'cassian_erivan_snade',cargoStyle:'case',
+        titles:['A Quiet Drop','Discreet Delivery','Something for the House'],
+        cargo:['a discreet parcel','a sealed case','a very quiet box'],
+        descriptions:['A friend of mine lives at {siteA}, well away from anyone who asks questions. Take {cargo} through {place} and leave it at {site}. Nobody will sign for it.','X. {cargo} needs to reach {site} in {place}, and it needs to arrive unremarked. You are, I am told, unremarkable in exactly the right way.'],
+        completionSubjects:['Delivery received','Nothing to report'],
+        completionBodies:['The parcel arrived and nobody saw it arrive. That is the whole of the art. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'cassian_erivan_snade',subjects:['A noisy failure'],bodies:['Your drone came down in {place} with my parcel aboard. Wreckage is the opposite of discreet.']},
+        abandonMail:{contactId:'cassian_erivan_snade',subjects:['An undelivered parcel'],bodies:['You turned back with the parcel still aboard. My friend at {site} is waiting, and waiting makes people talkative.']},
+        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:4,chance:.2,subjects:['Our friend out there'],bodies:['Our friend at {site} asked who flew the parcel in. I said nobody. He seemed to find that very reassuring.']}},
+      trade:{contactId:'corvella_pallis',cargoStyle:'case',
+        titles:['Remote Delivery','Off the Map','Special Order'],
+        cargo:['a case of spare parts','a crate of medical supplies','a sealed case'],
+        descriptions:['Sweetie, a customer of mine lives at {siteA}, and my haulers cannot get anywhere near it. Fly {cargo} in for me and set it down at {site}.','Babe, {cargo} has to reach {site} out in {place}. No landing strip, no road, no nothing. Just you and a lot of {place}.'],
+        completionSubjects:['Delivered, babe','My customer is happy'],
+        completionBodies:['{cargo} arrived and my customer is singing my praises. I am singing yours. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the delivery'],bodies:['Your drone went down in {place} and {cargo} with it. My customer is still waiting, sweetie.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, you turned back'],bodies:['You turned back with {cargo} still aboard. My customer at {site} saw you leave. That was awkward for both of us.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.2,subjects:['That delivery'],bodies:['My customer at {site} sent a thank you note. It was handwritten. Out there, sweetie, that is a whole expedition.']}},
+      helix:{contactId:'navira_derris',cargoStyle:'case',
+        titles:['Field Station Supply','Sample Kit Delivery','Remote Lab Drop'],
+        cargo:['a sterile sample kit','a case of reagents','a cold storage case'],
+        descriptions:['One of my field teams is working out of {siteA}. They need {cargo} and they need it intact. Fly it through {place} and set it down at {site}.','{cargo} for my people at {site}. {place} is beautiful and lethal in roughly equal measure. Please only admire the first part.'],
+        completionSubjects:['Supplies received','The field team thanks you'],
+        completionBodies:['The field team has {cargo} and has stopped improvising with kitchen equipment. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'navira_derris',subjects:['Supplies lost'],bodies:['Your drone was lost in {place} with {cargo} aboard. The field team is improvising again. I would rather they did not.']},
+        abandonMail:{contactId:'navira_derris',subjects:['Delivery abandoned'],bodies:['You turned back before reaching {site}. The field team watched you go.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:3,chance:.2,subjects:['From the field team'],bodies:['The field team at {site} has named a new species after your drone. It is small, fast and avoids obstacles. They meant it kindly.']}},
+      security:{contactId:'kudo_shang',cargoStyle:'case',
+        titles:['Outpost Resupply','Remote Drop','Field Delivery'],
+        cargo:['a sealed equipment case','a case of batteries','a field radio'],
+        descriptions:['An OSD observer is posted at {siteA}. Deliver {cargo} to {site}. {place} is not forgiving. Neither am I.','Resupply for the observer at {site}. Fly {cargo} in through {place} and set it down. Then leave.'],
+        completionSubjects:['Resupply complete','Delivery confirmed'],
+        completionBodies:['The observer at {site} confirms receipt. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Resupply failed'],bodies:['Your drone went down in {place}. The observer at {site} is still waiting. Do better.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You turned back with the resupply aboard. The observer noted it. So did I.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.18,subjects:['Re: the observer'],bodies:['The observer at {site} reports your approach was clean. Noted.']}}
     }
-  };
+  });
 
-  // v3012 CANYON WRECK (Dave: wreck recovery). A hauler tried the canyon and lost. Its torn
-  // plates lie down the canyon floor and the hauler itself is the last crash site
-  // (stage.crashMesh 'freighter'). Pull the recorders, then the city collection and the depot.
-  const canyonWreck={
-    ...surveyRun,
-    id:'canyon_wreck',
-    minLevel:3,
-    allowedFactions:['trade','security','jackals'],
-    factionWeights:{trade:4,security:3,jackals:2},
-    board:{category:'recovery',weight:.5,maxPerBoard:1},
-    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
-    volcanic:false,
-    defaults:{origin:'the recovery team\'s field office',destination:'the Compact freight depot',cargo:'the hauler\'s flight recorders'},
-    planetaryRequirements:{landingBody:'planet',landingColour:'orange',moonCount:{min:0,max:2}},
-    sections:surveyRun.sections.map((s,i)=>{if(i!==1)return s;const params={...s.params,canyonJob:true,crashMesh:'freighter',crashSites:{base:2,perRisk:.2,min:2,max:4,round:true}};delete params.surveyPoints;return{...s,label:'Canyon Wreck',params}}),
+  // REMOTE PICKUP: fly in and lift a parcel off the pad at the building.
+  const remotePickup=groundJob({
+    id:'remote_pickup',family:'remote_pickup',label:'Pickup',
+    minLevel:2,
+    allowedFactions:['trade','helix','jackals','quickbite'],
+    factionWeights:{trade:4,helix:4,jackals:3,quickbite:2},
+    board:{category:'delivery',weight:.8,maxPerBoard:1},
+    risk:{base:2,min:1,levelsPerStep:2,max:9,jitter:1},
+    reward:{basePay:1200,payPerRisk:780,payRiskSquare:160,randomPay:300,roundPay:50,baseXp:155,xpPerRisk:55,xpRiskSquare:13},
+    defaults:{cargo:'a sealed case'},
+    ending:key=>deliveryEnd(key,{terminalConfig:{pickup:true},presentation:{autopilot:'AUTOPILOT · PICKUP',hudAhead:'PICKUP AHEAD',hudAutopilot:'AUTOPILOT · PICKUP',hudWork:'COLLECTING CARGO',hudDone:'CARGO ABOARD',done:'CARGO COLLECTED',doneVoice:'cargoCollected'}}),
     presentation:{
-      trade:{
-        contactId:'corvella_pallis',cargoStyle:'case',
-        titles:['Canyon Wreck','My Hauler Took the Canyon','Wreck in the Narrows'],
-        cargo:['the hauler\'s flight recorders','a case of insurance paperwork','the hauler\'s cargo manifest'],
-        destinations:['the Compact freight depot'],
-        descriptions:[
-          'Sweetie, one of my haulers tried the canyon through the mesa on this world and the canyon won. Pieces of it are all down the canyon floor. Follow the wreckage, pull the recorders, then collect {cargo} from {origin} and bring it to {destination}. The crew got out. I checked first.',
-          'Babe, my hauler clipped the canyon wall and broke up. I need the recorders from every piece before the insurers send their own people. Fly the canyon, then pick up {cargo} from {origin} and drop it at {destination}.'
-        ],
-        completionSubjects:['The recorders are in','It was the canyon, babe'],
-        completionBodies:['The recorders show my pilot took the canyon at full throttle to save an hour. I have had a word. Payment: CR {credits}. Standing: +{rep}.'],
-        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, not you too'],bodies:['Your drone went down in the same canyon as my hauler. That canyon now owes me two vehicles.']},
-        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, the wreck'],bodies:['You left the wreck unrecovered. The insurers are going to say it was my fault, sweetie, and without the recorders I cannot prove otherwise.']},
-        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['About that canyon'],bodies:['My haulers go round the mesa now. It takes an hour longer. Nobody complains.']}
-      },
-      security:{
-        contactId:'kudo_shang',cargoStyle:'case',
-        titles:['Canyon Crash Recovery','Downed in the Canyon','Wreck Survey'],
-        cargo:['the hauler\'s flight recorders','a sealed recorder case','the canyon crash report'],
-        destinations:['the Compact freight depot'],
-        descriptions:[
-          'A registered hauler broke up in a canyon on this world. The wreckage is strung along the canyon floor. Recover the recorder from every site. Then collect {cargo} from {origin} and deliver it to {destination}. The walls are solid. Do not add to the wreckage.',
-          'Hauler down in a canyon. Debris trail, then the hull. Pull every recorder, then collect {cargo} from {origin} and deliver it to {destination}.'
-        ],
-        completionSubjects:['Recorders recovered','Crash closed'],
-        completionBodies:['All recorders received. The hauler was running without clearance. Its owner has been informed. Payment: CR {credits}. Standing: +{rep}.'],
-        failureMail:{contactId:'kudo_shang',subjects:['Second wreck in the canyon'],bodies:['There are now two wrecks in that canyon. One of them is yours.']},
-        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left the crash sites unrecovered. Evidence does not wait.']},
-        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.18,subjects:['Re: canyon crash'],bodies:['The recorders show the hauler was being chased into the canyon. By whom is now an OSD matter.']}
-      },
-      jackals:{
-        contactId:'cassian_erivan_snade',cargoStyle:'case',
-        titles:['A Shortcut Gone Wrong','The Canyon Took It','Discreet Salvage'],
-        cargo:['the runner\'s recorders','a case that was never aboard','a very discreet box'],
-        destinations:['the Compact freight depot','a quiet locker at the Compact depot'],
-        descriptions:[
-          'One of my runners tried to lose an OSD patrol in a canyon on this world. The patrol is fine. The runner is now in several pieces along the canyon floor. Recover the recorders from every piece, then collect {cargo} from {origin} and deliver it to {destination}.',
-          'A hauler of mine met a canyon wall rather firmly. Its recorders hold a manifest I would like no one else to read. Pull them from the wreckage, then collect {cargo} from {origin} and take it to {destination}.'
-        ],
-        completionSubjects:['A tidy recovery','The manifest is home'],
-        completionBodies:['The recorders are mine and the manifest is unread. The canyon keeps the rest. CR {credits} released. Standing: +{rep}.'],
-        failureMail:{contactId:'cassian_erivan_snade',subjects:['More wreckage'],bodies:['You have added your drone to my runner in that canyon. It is becoming a collection.']},
-        abandonMail:{contactId:'cassian_erivan_snade',subjects:['Left lying about'],bodies:['You left the recorders in the canyon where anyone curious might find them. That was careless, and expensive for me.']},
-        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:3,chance:.2,subjects:['On canyons'],bodies:['My runners now call that canyon the Graveyard. They go round. It has done wonders for my insurance.']}
-      }
+      trade:{contactId:'corvella_pallis',cargoStyle:'case',
+        titles:['Remote Pickup','Collection Run','Out and Back'],
+        cargo:['a case of rare ore samples','a crate of handmade goods','a sealed consignment'],
+        descriptions:['Sweetie, a supplier of mine has {cargo} waiting on the pad at {site}, out in {place}. Fly in, lift it aboard and bring it out.','Babe, {cargo} is sitting at {siteA}. My haulers cannot reach it. You can. Collect it and fly out.'],
+        completionSubjects:['Collected, babe','Got it'],
+        completionBodies:['{cargo} is in my hands and my supplier is paid. Everyone is happy, sweetie. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the pickup'],bodies:['Your drone went down in {place}. The consignment is still sitting at {site}.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, the consignment'],bodies:['You left without {cargo}. My supplier is asking questions I cannot answer.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.2,subjects:['That consignment'],bodies:['The goods from {site} sold in an afternoon, sweetie. I am sending you on more of these.']}},
+      helix:{contactId:'navira_derris',cargoStyle:'case',
+        titles:['Sample Collection','Field Return','Specimen Pickup'],
+        cargo:['a case of field samples','a cold case of specimens','the field team\'s sample cores'],
+        descriptions:['My field team at {siteA} has finished. Their samples need to come out today. Fly in, collect {cargo} from {site} and bring it out intact.','{cargo} is waiting on the pad at {site}. It is the result of three months in {place}. Please treat it accordingly.'],
+        completionSubjects:['Samples received','Specimens home'],
+        completionBodies:['The samples arrived cold and intact. Three months of work, safe. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'navira_derris',subjects:['Samples lost'],bodies:['Your drone went down in {place} with three months of samples aboard. I am going to need a moment.']},
+        abandonMail:{contactId:'navira_derris',subjects:['Collection abandoned'],bodies:['You left {site} without the samples. They will not keep forever.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:3,chance:.2,subjects:['The samples'],bodies:['One of the samples from {place} is doing something I have never seen before. It is either a discovery or a containment problem.']}},
+      jackals:{contactId:'cassian_erivan_snade',cargoStyle:'case',
+        titles:['A Collection','Retrieval','Picking Something Up'],
+        cargo:['a sealed case','a parcel that does not exist','a discreet box'],
+        descriptions:['There is {cargo} waiting for me at {site} in {place}. Collect it. Do not open it. Do not wonder about it.','X. A colleague has left {cargo} on the pad at {siteA}. Bring it out before anyone else thinks to look.'],
+        completionSubjects:['Collected','Safely in hand'],
+        completionBodies:['The case is mine and nobody saw it move. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'cassian_erivan_snade',subjects:['A lost case'],bodies:['Your drone came down in {place}. The case is still at {site}, and now it is surrounded by wreckage. Very conspicuous.']},
+        abandonMail:{contactId:'cassian_erivan_snade',subjects:['Left behind'],bodies:['You left {site} without the case. Someone less discreet will collect it.']},
+        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:4,chance:.2,subjects:['About the case'],bodies:['You did not open the case. I checked. I appreciate that more than you know.']}},
+      quickbite:{contactId:'nyxo_malloc',cargoStyle:'box',
+        titles:['Ingredient Run','Collection','Grab and Go'],
+        cargo:['a crate of rare mushrooms','a box of wild herbs','a crate of something the chef wants'],
+        descriptions:['Dude, our chef found a supplier at {siteA} and now nothing else will do. Fly in, grab {cargo} off the pad at {site}, fly out.','So {cargo} is at {site} in {place}. The chef says it is essential. I said it is a long way. The chef won.'],
+        completionSubjects:['got the stuff','chef is happy'],
+        completionBodies:['The chef has {cargo} and has stopped shouting. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'nyxo_malloc',subjects:['no ingredients'],bodies:['Your drone went down in {place}. The chef is shouting again.']},
+        abandonMail:{contactId:'nyxo_malloc',subjects:['you left the crate'],bodies:['You left without {cargo}, dude. The chef wants to talk to you. I said you were busy.']},
+        personalFollowUp:{contactId:'nyxo_malloc',minRisk:3,chance:.22,subjects:['new menu'],bodies:['The new menu is all stuff from {place}. It is very popular. Nobody knows how hard it is to get. Except us.']}}
     }
-  };
+  });
+
+  // DATA RECOVERY: download the logs from the building's terminal.
+  const remoteData=groundJob({
+    id:'remote_data',family:'remote_data',label:'Data Recovery',
+    minLevel:2,
+    allowedFactions:['security','helix','jackals','trade'],
+    factionWeights:{security:4,helix:4,jackals:3,trade:2},
+    board:{category:'recovery',weight:.8,maxPerBoard:1},
+    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
+    reward:{basePay:1300,payPerRisk:800,payRiskSquare:165,randomPay:300,roundPay:50,baseXp:165,xpPerRisk:58,xpRiskSquare:13},
+    defaults:{cargo:'the station logs'},
+    ending:()=>({terminalDestination:'wreckage_recovery',terminalConfig:{dataSite:true,facility:'station'},presentation:{marker:'TERMINAL',hudAutopilot:'AUTOPILOT · TERMINAL',hudWork:'DOWNLOADING DATA',done:'DATA DOWNLOADED',doneVoice:'dataTransferComplete'}}),
+    presentation:{
+      security:{contactId:'kudo_shang',
+        titles:['Data Recovery','Logs Retrieval','Silent Station'],
+        descriptions:['An OSD observation post at {siteA} stopped reporting. The equipment is still running. Fly in and download its logs from the terminal at {site}.','The station at {site} in {place} has gone quiet. I want its logs. Fly in, download them, fly out.'],
+        completionSubjects:['Logs recovered','Data received'],
+        completionBodies:['The logs are in. The station went quiet because its aerial fell over. Nothing more sinister. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Logs not recovered'],bodies:['Your drone went down in {place}. The station is still silent and so is my report.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left {site} without the logs. Unacceptable.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.18,subjects:['Re: the station logs'],bodies:['The logs from {site} show the observer counted every animal that passed for a month. Thorough. I approve.']}},
+      helix:{contactId:'navira_derris',
+        titles:['Instrument Data','Sensor Download','Station Readings'],
+        descriptions:['My instruments at {siteA} have been recording for a season and the uplink has failed. Fly in and pull the data from the terminal at {site}.','A season of readings is sitting in a terminal at {site}, out in {place}. I would very much like to read it.'],
+        completionSubjects:['Readings received','A season of data'],
+        completionBodies:['A whole season of readings. I have cancelled my evening. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'navira_derris',subjects:['Data not recovered'],bodies:['Your drone was lost in {place}. The readings are still in the terminal. Waiting. Like me.']},
+        abandonMail:{contactId:'navira_derris',subjects:['Download abandoned'],bodies:['You left without the readings. A season of patience, wasted.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:3,chance:.2,subjects:['The readings'],bodies:['The readings from {place} have overturned one of my favourite theories. I am thrilled. It was a bad theory.']}},
+      jackals:{contactId:'cassian_erivan_snade',
+        titles:['A Ledger','Borrowed Records','The Books'],
+        descriptions:['Someone at {siteA} keeps records they should not. Fly in and copy them from the terminal at {site}. Leave the original. I like people to wonder.','X. The terminal at {site} in {place} holds a ledger. I would like a copy. Nobody needs to know.'],
+        completionSubjects:['The ledger is mine','Records received'],
+        completionBodies:['The copy reached me and the original is undisturbed. Delicious. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'cassian_erivan_snade',subjects:['A loud failure'],bodies:['Your drone came down in {place}. The owner of that ledger will now be checking it very carefully.']},
+        abandonMail:{contactId:'cassian_erivan_snade',subjects:['No copy'],bodies:['You left without the copy. The ledger keeps its secrets, for now.']},
+        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:4,chance:.2,subjects:['The ledger'],bodies:['The ledger from {site} was most illuminating. Two people I know are about to have a very difficult week.']}},
+      trade:{contactId:'corvella_pallis',
+        titles:['Inventory Download','Depot Records','Stock Check'],
+        descriptions:['Sweetie, my supply post at {siteA} has lost its uplink and I need its stock records. Fly in and download them from the terminal at {site}.','Babe, the terminal at {site} has my inventory on it and I cannot reach it from here. Fly into {place} and pull it for me.'],
+        completionSubjects:['Records in','Stock checked'],
+        completionBodies:['The records show I have twice the stock I thought. Lovely surprise, sweetie. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the records'],bodies:['Your drone went down in {place}. I still do not know what I have in stock.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, no records'],bodies:['You left without the records. I am going to have to count everything by hand.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.2,subjects:['About my stock'],bodies:['Turns out the extra stock at {site} was someone else\'s. I am keeping it until they ask nicely.']}}
+    }
+  });
+
+  // WRECK SCAN: a hauler came down at the head of the run. Settle over it and scan it.
+  const wreckScan=groundJob({
+    id:'wreck_scan',family:'wreck_scan',label:'Wreck Scan',
+    minLevel:3,
+    allowedFactions:['security','helix','trade'],
+    factionWeights:{security:4,trade:4,helix:3},
+    board:{category:'recovery',weight:.7,maxPerBoard:1},
+    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
+    reward:{basePay:1350,payPerRisk:820,payRiskSquare:165,randomPay:300,roundPay:50,baseXp:170,xpPerRisk:58,xpRiskSquare:13},
+    ending:()=>({terminalDestination:'site_work',terminalConfig:{work:'scan',target:'wreck',scanSeconds:6},presentation:{autopilot:'AUTOPILOT · WRECK SITE',hudAutopilot:'AUTOPILOT · WRECK',hudWork:'SCANNING WRECK',hudDone:'SCAN COMPLETE',workStart:'SCANNING WRECK',done:'WRECK SCAN COMPLETE',doneVoice:'scanComplete'}}),
+    presentation:{
+      security:{contactId:'kudo_shang',
+        titles:['Wreck Survey','Crash Investigation','Downed Hauler'],
+        descriptions:['A registered hauler came down in {place}. Fly in and scan the wreck. I want to know what brought it down before anyone touches it.','Hauler down in {place}. Full scan of the wreck. Nothing removed, nothing moved.'],
+        completionSubjects:['Scan received','Crash under investigation'],
+        completionBodies:['The scan shows the hauler was carrying more than its manifest said. An investigation is open. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Two wrecks now'],bodies:['There are now two wrecks in {place}. One of them is yours.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left the wreck unscanned. Evidence does not wait.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.18,subjects:['Re: the downed hauler'],bodies:['Your scan of the wreck in {place} led to two arrests. You will not be thanked publicly. Consider this the thanks.']}},
+      trade:{contactId:'corvella_pallis',
+        titles:['Insurance Scan','My Hauler','Wreck Assessment'],
+        descriptions:['Sweetie, one of my haulers came down in {place}. The crew got out, I checked first. The insurers want a full scan of the wreck before they pay. Fly in and get it.','Babe, my hauler is lying in {place} in a lot of pieces. Scan what is left so the insurers have nothing to argue about.'],
+        completionSubjects:['The insurers paid','Scan in, babe'],
+        completionBodies:['Your scan shows a clamp failed, not my pilot. I knew it. The insurers paid in full. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, not you too'],bodies:['Your drone went down in {place} next to my hauler. That place now owes me two vehicles.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, the scan'],bodies:['You left without scanning the wreck. The insurers are going to say it was my fault.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['About my hauler'],bodies:['The crew from that hauler asked who scanned the wreck. I told them a friend. They sent cake, sweetie. I ate your half.']}},
+      helix:{contactId:'navira_derris',
+        titles:['Wreck Analysis','Crash Site Scan','Impact Study'],
+        descriptions:['A hauler came down in {place} and something about the crash is interesting. Scan the wreck for me. Every panel.','I would like a full scan of the wreck lying in {place}. The way it broke up does not match the way haulers break up.'],
+        completionSubjects:['Scan received','Interesting indeed'],
+        completionBodies:['The hauler broke up the way it did because something in its hold was alive. I have so many questions. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'navira_derris',subjects:['Scan lost'],bodies:['Your drone was lost in {place}. I now have two crashes to study and no data on either.']},
+        abandonMail:{contactId:'navira_derris',subjects:['Scan abandoned'],bodies:['You left without scanning the wreck. The interesting thing about it remains interesting and unknown.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:3,chance:.22,subjects:['About the wreck'],bodies:['Whatever was alive in that hauler\'s hold is no longer in the wreck. I have mentioned this to OSD. They did not laugh.']}}
+    }
+  });
+
+  // RECONNAISSANCE: scan points along the run (each one pays a share on top), then a full scan
+  // of the building at its head.
+  const reconSweep=groundJob({
+    id:'recon_sweep',family:'recon_sweep',label:'Reconnaissance',
+    minLevel:3,
+    allowedFactions:['security','jackals','trade'],
+    factionWeights:{security:5,jackals:3,trade:3},
+    board:{category:'intrusion',weight:.7,maxPerBoard:1},
+    risk:{base:3,min:2,levelsPerStep:2,max:9,jitter:1},
+    reward:{basePay:1200,payPerRisk:760,payRiskSquare:160,randomPay:300,roundPay:50,baseXp:180,xpPerRisk:60,xpRiskSquare:14},
+    ending:()=>({terminalDestination:'site_work',terminalConfig:{work:'scan',target:'site',scanSeconds:6,scanPoints:{base:3,perRisk:.25,min:3,max:5,round:true}},presentation:{autopilot:'AUTOPILOT · TARGET',hudAutopilot:'AUTOPILOT · TARGET',hudWork:'SCANNING TARGET',hudDone:'SCAN COMPLETE',workStart:'SCANNING TARGET',done:'RECONNAISSANCE COMPLETE',doneVoice:'scanComplete'}}),
+    presentation:{
+      security:{contactId:'kudo_shang',
+        titles:['Reconnaissance','Eyes On','Survey the Approach'],
+        descriptions:['Red Jackal smugglers are using {siteA}. Fly the route through {place}, scan every point along it, then scan {site} itself. Do not engage. Just look.','I want the approach through {place} mapped and {site} on record before I send a raid in. Scan points on the way, then the target. Every point you miss is a blind spot.'],
+        completionSubjects:['Reconnaissance received','Eyes on target'],
+        completionBodies:['The route and the target are on record. A raid is being planned. You will not be told when. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Reconnaissance failed'],bodies:['Your drone went down in {place}. The smugglers now know someone is looking.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left without scanning the target. Half a reconnaissance is no reconnaissance.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.2,subjects:['Re: the raid'],bodies:['The raid on {site} went in at dawn. Everything was where your scans said it would be.']}},
+      jackals:{contactId:'cassian_erivan_snade',
+        titles:['A Look Around','Counter Surveillance','The Neighbours'],
+        descriptions:['OSD has put an observer at {siteA}, rather close to one of my routes. Fly through {place}, scan the route points, then take a good look at {site}.','X. Someone new has moved into {place}. I would like to know who, and how well they can see my route. Scan the points along it, then {site} at its end.'],
+        completionSubjects:['Most informative','The neighbours'],
+        completionBodies:['The observer can see half my route and none of the important half. Wonderful. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'cassian_erivan_snade',subjects:['Noticed'],bodies:['Your drone came down in {place}, right where the observer could see it. They will be watching more closely now.']},
+        abandonMail:{contactId:'cassian_erivan_snade',subjects:['An incomplete look'],bodies:['You left before looking at the target. I am left guessing, and I dislike guessing.']},
+        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:4,chance:.2,subjects:['The neighbours'],bodies:['The observer in {place} has been reassigned. I had nothing to do with it. Probably.']}},
+      trade:{contactId:'corvella_pallis',
+        titles:['Route Survey','Scouting','Before the Convoy'],
+        descriptions:['Sweetie, I want to run haulers through {place} but I want to know what is out there first. Scan the points along the route, then {site} at the far end. Someone has moved in.','Babe, scout the route through {place} for me. Every scan point, then whoever is living at {site}. I do not send my haulers in blind.'],
+        completionSubjects:['Route mapped','Safe to run, babe'],
+        completionBodies:['The route is mapped and the people at {site} turned out to be prospectors. Harmless. Mostly. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the survey'],bodies:['Your drone went down in {place}. I am not sending haulers anywhere that eats drones.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, the survey'],bodies:['You left before scanning {site}. I still do not know who is out there.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.2,subjects:['The new route'],bodies:['My first hauler went through {place} yesterday. The prospectors at {site} waved. Very friendly, sweetie.']}}
+    }
+  });
+
+  // CRASH RESCUE: a craft is down at the head of the run with its crew beside it. Lift them out.
+  const crashRescue=groundJob({
+    id:'crash_rescue',family:'crash_rescue',label:'Rescue',
+    minLevel:3,
+    allowedFactions:['trade','security','helix','quickbite'],
+    factionWeights:{trade:4,security:4,helix:3,quickbite:2},
+    board:{category:'recovery',weight:.7,maxPerBoard:1},
+    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
+    reward:{basePay:1400,payPerRisk:820,payRiskSquare:165,randomPay:300,roundPay:50,baseXp:185,xpPerRisk:60,xpRiskSquare:14},
+    ending:()=>({terminalDestination:'site_work',terminalConfig:{work:'rescue',target:'wreck'},presentation:{autopilot:'AUTOPILOT · CRASH SITE',hudAutopilot:'AUTOPILOT · CRASH SITE',hudWork:'RESCUED',hudDone:'SURVIVORS ABOARD',workStart:'LIFTING SURVIVORS',done:'SURVIVORS RECOVERED',doneVoice:'survivorsRecovered'}}),
+    presentation:{
+      trade:{contactId:'corvella_pallis',
+        titles:['Crew Rescue','Get Them Out','Hauler Down'],
+        descriptions:['Sweetie, one of my haulers came down in {place} and the crew is alive beside it. Nothing bigger than your drone can get in there. Fly in and lift them out.','Babe, my crew is sitting next to their wrecked hauler in {place}, waving at the sky. Please be what they are waving at.'],
+        completionSubjects:['They are safe','My crew is home'],
+        completionBodies:['My crew is home and the first thing they asked was whether the drone pilot was single. I said you were busy. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, my crew'],bodies:['Your drone went down in {place} and my crew is still out there. I am sending another drone. Please be more careful than the last one.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, you left them'],bodies:['You turned back with my crew still out in {place}. I need you to understand how that looked from here.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.24,subjects:['From my crew'],bodies:['My crew sent you a card. It has a drone on the front. It is badly drawn and very sincere.']}},
+      security:{contactId:'kudo_shang',
+        titles:['Search and Rescue','Patrol Down','Personnel Recovery'],
+        descriptions:['An OSD patrol craft came down in {place}. The crew is alive and beside it. Fly in and recover them.','Patrol down in {place}, crew survived the landing. Get them out before nightfall. Nothing else matters.'],
+        completionSubjects:['Crew recovered','Personnel safe'],
+        completionBodies:['The patrol crew is recovered and in medical. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Rescue failed'],bodies:['Your drone went down in {place}. My people are still out there.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You turned back with my crew still on the ground. That will not be forgotten.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.2,subjects:['Re: the patrol crew'],bodies:['The pilot you lifted out of {place} asked for your call sign. I gave it. Do not make me regret it.']}},
+      helix:{contactId:'navira_derris',
+        titles:['Field Team Rescue','Evacuation','Stranded Researchers'],
+        descriptions:['My field team\'s transport came down in {place}. They are unhurt and annoyed. Fly in and lift them out.','Three of my researchers are standing next to a wrecked transport in {place}. They are probably taking notes on it. Please collect them.'],
+        completionSubjects:['Team recovered','They are home'],
+        completionBodies:['My team is home. They took samples from the wreck while they waited. Of course they did. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'navira_derris',subjects:['Team still stranded'],bodies:['Your drone was lost in {place}. My team is still out there and now they have two wrecks to study.']},
+        abandonMail:{contactId:'navira_derris',subjects:['Rescue abandoned'],bodies:['You left my team in {place}. They are fine. They are writing a very strongly worded paper about it.']},
+        personalFollowUp:{contactId:'navira_derris',minRisk:3,chance:.22,subjects:['From the field team'],bodies:['The team you rescued from {place} has dedicated their next paper to you. The acknowledgements say: to the drone.']}},
+      quickbite:{contactId:'nyxo_malloc',
+        titles:['Courier Down','Rescue Run','Get My Courier'],
+        descriptions:['Dude, one of our couriers tried a shortcut through {place} and came down. They are fine, the food is not. Go get them.','Courier down in {place}. Alive, embarrassed, hungry. Fly in and lift them out please.'],
+        completionSubjects:['courier is back','thanks dude'],
+        completionBodies:['Courier is back and has promised never to take a shortcut again. They will. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'nyxo_malloc',subjects:['two down now'],bodies:['Your drone went down in {place} too. Now I have to send someone to rescue the rescue.']},
+        abandonMail:{contactId:'nyxo_malloc',subjects:['you left them'],bodies:['You left the courier out in {place}, dude. They are walking home. It is very far.']},
+        personalFollowUp:{contactId:'nyxo_malloc',minRisk:3,chance:.24,subjects:['the courier'],bodies:['The courier you rescued has a poster of your drone on their wall now. I am not judging. A little bit judging.']}}
+    }
+  });
 
   // v1910: CONVOY ESCORT. Keep a freighter alive across open space through two or three
   // waves of raiders that go for it, not you (route-diversion.js kind 'escort'). Lose the
@@ -3247,7 +3176,8 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crater_cores:craterCores,crash_recovery:crashRecovery,relay_repair:relayRepair,canyon_run:canyonRun,jackal_hideout:jackalHideout,canyon_wreck:canyonWreck,lattice_survey:latticeSurvey,convoy_escort:convoyEscort,customs_run:customsRun,cargo_spill:cargoSpill,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    groundSettings:GROUND_SETTINGS,
+    templates:{remote_delivery:remoteDelivery,remote_pickup:remotePickup,remote_data:remoteData,wreck_scan:wreckScan,recon_sweep:reconSweep,crash_rescue:crashRescue,specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crater_cores:craterCores,crash_recovery:crashRecovery,relay_repair:relayRepair,lattice_survey:latticeSurvey,convoy_escort:convoyEscort,customs_run:customsRun,cargo_spill:cargoSpill,bunker_raid:bunkerRaid,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();

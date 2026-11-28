@@ -3764,3 +3764,144 @@ v3012 Two more canyon jobs on orange worlds that are not volcanic.
       Both canyons tighten with the risk. New voice lines "Find the
       hideout and the caches.", "Cache found." and "Hideout scanned." are
       in voices unprocessed. Each client has its own titles and letters.
+
+v3013 The canyon rebuilt as a proper run, like the forest (Dave: the
+      walls were glitchy, see-through and looked bad). The flat mesa walls
+      on the plains are gone; buttes and spires still stand on orange
+      plains. The canyon jobs now fly a plains approach to a line of
+      bluffs with the canyon mouth cut through it, then the canyon run: a
+      low, fast, winding canyon walled by towering bluffs, with spires to
+      steer round, rockfalls to climb over and rock arches to dive under.
+      It gets busier as the risk rises, and every canyon is laid out
+      afresh. Each job ends in the basin at the head of the canyon:
+      Canyon Run recalibrates the relay station there, Canyon Wreck
+      downloads the wreck's recorder, and Smugglers' Hideout leaves a
+      package on the pad outside the Red Jackal blast door (sensor for
+      OSD, tracker for the Free Traders, supplies for the Jackals). The
+      job letters are rewritten to match. The canyon voice lines play on
+      the approach, on entry and as the canyon opens into the basin. The
+      three hideout voice requests from v3012 are dropped (no longer
+      used; their raw takes are still in voices unprocessed). The
+      self-test flies all three canyon jobs end to end and counts every
+      rock hit.
+
+v3014 Missing edges on buttes, spires and canyon rock (Dave's screenshot).
+      Only every third side of a cliff had its upright line drawn, so the
+      outline of a rock vanished whenever it fell on a bare side. Every
+      upright is drawn now, on the plains stacks, the canyon bluffs, the
+      rockfall boulders and the arches, so outlines are always complete.
+
+v3015 Leaving a city (Dave: flat, boring land on the way out, and stars
+      through the ground on take-off). A city approach now keeps the land
+      it crossed, so the city exit flies back over the same hills, trees,
+      rocks, stacks and masts seen on the way in, solid as before (they
+      replace the stand-in pines). On take-off the stars were clipped to
+      the horizon straight down +z, which is behind the drone after a
+      city exit, so nothing was clipped: the horizon now follows the way
+      the drone faces. The canyon jobs go to template version 2, so a
+      board still holding an old v3011 or v3012 canyon offer (the plains
+      relay version) is dealt again with the real canyon run.
+
+v3016 Ground jobs in any setting (Dave: canyons, forests and swamps
+      should be for all sorts of things, replace the old jobs, recon with
+      scan points, add rescue, keep unique buildings per setting). Six
+      board jobs replace Forest Cabin Delivery, Swamp Relay Delivery and
+      the three canyon jobs: Remote Delivery, Remote Pickup, Data
+      Recovery, Wreck Scan, Reconnaissance and Crash Rescue. Each rolls
+      its setting when it is dealt: the forest run (green, yellow, blue
+      and magenta worlds and moons), the swamp (cyan worlds, level 3 and
+      up) or the canyon (orange arid worlds, level 3 and up). Each
+      setting keeps its own building at the head of the run: the cabin,
+      the stilt outpost, the rock outpost with its blast door.
+        Delivery: set a parcel down at the building.
+        Pickup: the parcel comes up off the pad into the drone instead.
+        Data Recovery: download the logs from the building's terminal.
+        Wreck Scan: a downed hauler with its debris, settle and scan it.
+        Reconnaissance: scan points along the run (pass close to each,
+          each pays a share on top, a missed one is lost), then a full
+          scan of the building.
+        Crash Rescue: survivors wave beside a downed hauler and are
+          lifted up the beam one at a time.
+      Every client has its own letters for each job, naming the place
+      and the building. New voice requests: "Scan complete.", "Cargo
+      collected." and "Scan point logged." (raw takes in voices
+      unprocessed). The HUD now says SWAMP in the swamp. The self-test
+      flies all six jobs, each setting twice, from the approach to the
+      end, counting every rock and tree hit and every scan point.
+
+v3017 Tarrega's Recuerdos de la Alhambra on the calm playlist (Carlo
+      Alberto Boni, CC BY-SA 3.0, via Wikimedia Commons), levelled like
+      the others with tools/prepare-music.py (-14 LUFS). It has its own
+      row in the DEV track mixer and is credited in the About box and
+      music credits.txt. The original download stays in calm audition.
+
+v3018 Pine trunks no longer pop in (Dave: trunks hidden until you are
+      almost on the forest). Past 72 units a pine is drawn as a light
+      outline, which gave it only a hairline for a trunk, so the real
+      trunk appeared suddenly at that range. The far outline now has the
+      mesh's own trunk, as wide as the real one and up to where the
+      branches start, so the switch is not seen. Yellow worlds are no
+      longer a forest setting for the ground jobs (they grow cacti, and a
+      pine forest there did not fit): forests are on green, blue and
+      magenta worlds and moons. The ground jobs go to version 2 so any
+      yellow forest offer on a board is dealt again.
+
+v3019 Crash Recovery rebuilt (Dave: no city, ground units to take out
+      before scanning, a wider area, scavengers like technicals not tanks
+      plus ground drones, voice lines). The job no longer goes through a
+      city. The drone lands on open rolling ground (the dune engine) with
+      two to four downed craft spread far apart, each with a nav point
+      (WRECK A, B...). Scavengers guard some of them, more often as the
+      risk rises: technicals (red pickup trucks with a pintle machine gun
+      in the bed, fast, firing in bursts) and scav drones (low six
+      wheeled ground drones with a twin gun pod), with a stolen hover
+      tank among them at the top risks. A guarded wreck cannot be scanned
+      until its scavengers are destroyed (GUARDED on its nav point). Fly
+      low over each wreck to pull its recorder. With every recorder in,
+      the drone launches and uploads the logs at the depot. New letters
+      for OSD, the Free Traders, Helix and the Red Jackals. New voice
+      requests: "Scavengers at the crash sites.", "Clear the scavengers
+      first.", "Scavengers down. Scan the wreck." and "All recorders
+      recovered." (raw takes in voices unprocessed), alongside the
+      existing "Find the crash sites." and "Recorder recovered.". New
+      file system-crash-field.js. The self-test pilot flies it.
+
+v3020 Crash Recovery scans are a proper stop with the scanner (Dave:
+      scanning a wreck should be a pause to use the scanner, as in other
+      missions). Within 30 of a cleared wreck the drone brakes to a hover
+      about 25 off, turns and tips to centre the wreck, and the salvage
+      scanner sweeps it for 2.4 seconds: the fan from under the drone, the
+      contact line traced on the hull, the scanner sound (SCANNING WRECK
+      A nn% on the HUD). Then the recorder is in and the drone flies on.
+      Fixed with it: the crash field ended as soon as every guard was
+      down, even with wrecks still unscanned (the dune engine's own
+      clear check); it now ends only with every recorder in.
+
+v3021 Data Recovery goes to a technical site, not a home (Dave: a log
+      hut would not have a terminal, we need other types of facility).
+      Forest: a new field station, a prefab lab module on a concrete pad
+      with solar panels on its roof, a lattice mast with a dish, tanks at
+      the back and a data terminal on a pedestal out front, its screen
+      tilted up with readout lines. Canyon: the rock outpost's station
+      version, a terminal and equipment cabinets beside the blast door
+      and a dish on its mast. Swamp: the stilt outpost, already a relay
+      station with a console. The drone parks square to the terminal and
+      the data comes off its screen. Deliveries, pickups and recon keep
+      the cabin, the stilt outpost and the rock door. The ground jobs go
+      to version 3 so data offers already dealt use the stations.
+
+v3022 The canyon mouth no longer shows straight through (Dave: the canyon
+      looks short until you enter, you should not see through to the
+      other side). Seen from the plain, the canyon now runs on well past
+      the mouth and bends away to one side, its walls rising as it goes,
+      with a wall of tall bluffs where it turns, so it goes round a
+      corner out of sight. "Mesa ahead. Fly the canyon." was said like
+      "messer": the voice tool now says mesa as "maysa" (tools/voice-
+      checker.py), and a fresh raw take is in voices unprocessed to
+      normalise over the old one.
+
+v3023 "Mission complete" no longer cuts off "Data transfer complete" at the
+      end of a data download (Dave). The hold after the download moved on
+      after a fixed 0.78 s and the mission line interrupts, so it talked
+      over the data line. It now waits for the line to finish, as the
+      delivery and scan endings already did.

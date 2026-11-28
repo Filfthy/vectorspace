@@ -402,23 +402,50 @@ Spoken text:
 Expected filename:
     clearofthecanyon.mp3
 
-RED JACKAL HIDEOUT (v3012)
---------------------------
+GROUND JOBS: SCAN, PICKUP, RECON (v3016)
+----------------------------------------
 
 Spoken text:
-    Find the hideout and the caches.
+    Scan complete.
 
 Expected filename:
-    findthehideoutandthecaches.mp3
+    scancomplete.mp3
 
 Spoken text:
-    Cache found.
+    Cargo collected.
 
 Expected filename:
-    cachefound.mp3
+    cargocollected.mp3
 
 Spoken text:
-    Hideout scanned.
+    Scan point logged.
 
 Expected filename:
-    hideoutscanned.mp3
+    scanpointlogged.mp3
+
+CRASH RECOVERY: SCAVENGERS (v3019)
+----------------------------------
+
+Spoken text:
+    Scavengers at the crash sites.
+
+Expected filename:
+    scavengersatthecrashsites.mp3
+
+Spoken text:
+    Clear the scavengers first.
+
+Expected filename:
+    clearthescavengersfirst.mp3
+
+Spoken text:
+    Scavengers down. Scan the wreck.
+
+Expected filename:
+    scavengersdownscanthewreck.mp3
+
+Spoken text:
+    All recorders recovered.
+
+Expected filename:
+    allrecordersrecovered.mp3

@@ -274,10 +274,10 @@
       // The picture is only needed to read the HUD marker, so not while there is a fight on.
       hudFrame=f;if(f%2===0&&!fighters.some(x=>!x.dead&&!x.dying&&x.t>=0))render(performance.now());
       if(phase==='destinationApproach'&&surfaceDestination.active){
-        const S=surfaceDestination,left=S.surveyLeft().sort((a,b)=>a.worldZ-b.worldZ);let t=left[0]?{x:left[0].x,z:left[0].worldZ}:{x:S.targetX,z:S.targetWorldZ};
-        // v3011: through a canyon the pilot follows its middle line until the next target is close.
-        const K=S.canyon;if(K&&travel>K.z0-70&&travel<K.z1&&t.z>travel+18){const z=Math.min(K.z1,Math.max(K.z0,travel+14));t={x:S.canyonAt(z).cx,z}}
+        const S=surfaceDestination,left=S.surveyLeft().sort((a,b)=>a.worldZ-b.worldZ),t=left[0]?{x:left[0].x,z:left[0].worldZ}:{x:S.targetX,z:S.targetWorldZ};
         inputX=clamp(wrapAngle(Math.atan2(t.x-shipX,t.z-travel)-viewYaw)*2.2,-1,1);inputY=left[0]?.kind==='core'&&Math.hypot(t.x-shipX,t.z-travel)<45?1:0   // v1930: dive for core samples
+      }else if(phase==='surface'&&groundAssault?.active&&groundAssault.variant==='crash'&&!groundAssault.units.some(u=>u.state==='alive')){   // v3019: guards down, fly over each wreck
+        const g=groundAssault.activeGroup();if(fireHeld){fireHeld=false;endLaserTrigger()}inputY=0;if(g)inputX=clamp(wrapAngle(Math.atan2(g.navX-shipX,g.navWZ-travel)-viewYaw)*2.2,-1,1)
       }else if(phase==='surface'&&groundAssault?.active&&groundAssault.units?.length)groundStep(skill);
       else if(routeDiversion.active&&routeDiversion.state==='customs')customsSteer(1);   // v2040
       else{
@@ -359,7 +359,7 @@
 
     // Flown for real: no stage is skipped once the pilot has the controls.
     const pilotNotes=[];
-    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','canyon_run','jackal_hideout','canyon_wreck','crater_cores','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge','convoy_escort','minelayer','customs_run','cargo_spill','network jobs paid'],id=>{
+    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','ground jobs','crater_cores','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge','convoy_escort','minelayer','customs_run','cargo_spill','network jobs paid'],id=>{
       // v2150: Customs Run and Cargo Spill flown as real board contracts (not DEV runs), so
       // the pay, the bonus and the stats behind their achievements are all exercised.
       if(id==='network jobs paid'){
@@ -374,6 +374,38 @@
         const b=real('cargo_spill','trade',()=>flySpill(1));if(b.err)return b.err;if(!b.ok)return 'a real Cargo Spill did not reach the debrief';
         if(b.pods!==b.r.pods||!(b.paid>0))return `a real Cargo Spill brought ${b.r.pods} pods, counted ${b.pods}, paid ${b.paid}`;
         pilotNotes.push(`real customs ${a.r.outcome} CR ${a.paid}, real spill ${b.r.pods} pods CR ${b.paid}`);return
+      }
+      // v3016: the six ground jobs, each flown in a setting (every setting twice): the approach,
+      // the whole corridor run (steering round, over and under its hazards, through every recon
+      // scan point) and the job's own ending. Rock and tree hits are counted, and the job must finish.
+      if(id==='ground jobs'){
+        const F=corridorEnvironment,out=[];
+        for(const[tid,fac,set]of[['remote_delivery','trade','forest'],['remote_pickup','helix','swamp'],['remote_data','security','canyon'],['wreck_scan','trade','forest'],['recon_sweep','security','canyon'],['crash_rescue','helix','swamp']]){
+          reset();c.state.xp=Math.max(c.state.xp,c.xpForLevel(8));const pre=c.makeDevTemplatePreview(tid,fac,set);if(!pre)return `${tid}: no contract`;
+          c.launchDevTemplateTest(tid,fac,{mission:pre});invulnerable=true;if(!c.currentMission)return `${tid} did not launch`;
+          if(!toStage('surface_destination_approach'))return `${tid} never reached its approach`;
+          const a=flyApproach(240);if(!a.done)return `${tid} ${set}: the approach did not end`;
+          for(let i=0;i<300&&phase!=='forest';i++)update(1/30);
+          const want=set==='canyon'?'canyon':(set==='swamp'?'alien_swamp':'forest');
+          if(phase!=='forest'||F.variant!==want)return `${tid}: wanted the ${set} run, got ${phase} ${F.variant}`;
+          let hits=0,f=0;const d0=window.damage;window.damage=function(...x){if(/^(ROCK|TREES?|GROUND)$/.test(String(x[0])))hits++;return d0.apply(this,x)};
+          try{for(;f<240*30&&c.currentMission&&phase==='forest'&&!exiting();f++){
+            const ahead=t=>!t.passed&&t.worldZ-travel>-.5&&t.worldZ-travel<26,o=F.obstacles.filter(ahead).sort((x,y)=>x.worldZ-y.worldZ)[0];
+            const sp=(F.scanPoints||[]).find(p=>!p.done&&!p.missed&&p.worldZ-travel>-.5&&p.worldZ-travel<30);
+            const q=F.pathAtWorld(travel+1.2),room=Math.max(.6,q.half-.62);let tx=0,ty=0;
+            if(sp&&(!o||sp.worldZ<o.worldZ))tx=clamp((sp.x-q.x)/room,-1,1);
+            else if(o){const k=o.obstacle?.kind,dz=o.worldZ-travel;if(k==='upright')tx=(o.x-F.pathAtWorld(o.worldZ).x>0?-1:1)*.82;else if(k==='fallen'&&dz<16)ty=-1;else if(k==='arch'&&dz<16)ty=1}
+            inputX=lerp(inputX,tx,.25);inputY=lerp(inputY,ty,.3);if(f%2===0)render(performance.now());update(1/30)}}
+          finally{window.damage=d0;inputX=inputY=0}
+          const scans=(F.scanPoints||[]).length?` ${F.scanPoints.filter(p=>p.done).length}/${F.scanPoints.length} scans`:'';
+          for(let i=0;i<1500&&c.currentMission&&!c.isOpen?.();i++)update(1/30);
+          const done=!c.currentMission||c.isOpen?.();try{c.closeMissionDebrief?.('missions')}catch(_){}paused=false;document.body.classList.remove('paused');
+          if(!done)return `${tid} ${set}: did not finish (${phase}, ${F.terminalState}, ${Math.round(f/30)}s)`;
+          out.push(`${tid.replace('_',' ')} ${set} ${Math.round(f/30)}s ${hits} hits${scans}`);
+          if(hits>2)return `${tid} ${set}: the pilot hit ${hits} times (${out.join(', ')})`;
+          if(scans&&F.scanPoints.some(p=>!p.done))return `${tid}: missed scan points (${out.join(', ')})`
+        }
+        pilotNotes.push(out.join(', '));return
       }
       // v2080: Cargo Spill flown twice, once going for the cases and once flying straight
       // past them. Both must end, and going for the cases must bring more home.
@@ -443,6 +475,12 @@
         c.state.inventory.laser5=1;c.state.weaponLoadout='laser5';c.launchDevTemplateTest(id,(T[id].allowedFactions||['trade'])[0]);invulnerable=true;
         const r=flyGround(id==='factory_strike'?'factory_assault':'dune_assault');if(!r.started)return 'the armour field never started';pilotNotes.push(`${id.split('_')[0]} ${r.units} units ${r.secs}s`);
         if(!r.done)return `${r.left} of ${r.units} units still standing after ${r.secs} s`;return
+      }
+      // v3019: Crash Recovery is a crash field now (no city): the job pilot fights the scavengers,
+      // flies over every wreck and goes on to the depot. It must finish, and not get stuck.
+      if(id==='crash_recovery'){
+        const line=flyJob('crash_recovery',{weapon:'laser5',frame:'AX-5A',level:12,stageCap:420,maxSecs:800});
+        const secs=Number((line.match(/in (\d+) s/)||[])[1]||0);pilotNotes.push(`crash ${secs}s`);if(/STUCK/.test(line)||!/finished/.test(line))return line;return
       }
       if(id==='lattice_survey'){
         const tries=[];

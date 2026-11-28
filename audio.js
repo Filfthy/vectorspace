@@ -5,7 +5,7 @@ class AudioMixer {
     enabled:{master:true,music:true,fx:true,speech:true},
     volume:{master:1,music:1,fx:1,speech:1},
     trims:{laser:1,hit:1,explosion:1,damageTaken:1,projectileDestroyed:1,objectiveComplete:1,zoom:.45,disconnect:1,uiClick:1,swampSpit:1,relayCalibrated:1,droneApproval:1},
-    trackTrims:{mozart:1,pachelbel:1,satie:1,morningmood:1,waltzflowers:1,sarabande:1,aquarium:1,mars:1,baldmountain:1,diesirae:1,valkyries:1,uranus:1,beethoven5:1,mozart40:1,summer:1,winter:1}
+    trackTrims:{mozart:1,pachelbel:1,satie:1,morningmood:1,waltzflowers:1,sarabande:1,aquarium:1,alhambra:1,mars:1,baldmountain:1,diesirae:1,valkyries:1,uranus:1,beethoven5:1,mozart40:1,summer:1,winter:1}
   });
   static state=null;
   static fxDuckGain=1;
@@ -678,7 +678,8 @@ class MusicManager {
       {id:'morningmood',title:'Grieg · Morning Mood',src:'./music/calm/morningmood.ogg'},
       {id:'waltzflowers',title:'Tchaikovsky · Waltz of the Flowers',src:'./music/calm/waltzflowers.ogg'},
       {id:'sarabande',title:'Handel · Sarabande',src:'./music/calm/sarabande.ogg'},
-      {id:'aquarium',title:'Saint-Saëns · Aquarium',src:'./music/calm/aquarium.ogg'}
+      {id:'aquarium',title:'Saint-Saëns · Aquarium',src:'./music/calm/aquarium.ogg'},
+      {id:'alhambra',title:'Tárrega · Recuerdos de la Alhambra',src:'./music/calm/alhambra.ogg'}
     ],
     violent:[
       {id:'mars',title:'Holst · Mars, the Bringer of War',src:'./music/violent/mars.ogg'},
