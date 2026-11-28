@@ -3905,3 +3905,13 @@ v3023 "Mission complete" no longer cuts off "Data transfer complete" at the
       after a fixed 0.78 s and the mission line interrupts, so it talked
       over the data line. It now waits for the line to finish, as the
       delivery and scan endings already did.
+
+v3024 Cargo Spill could never finish (Dave: killed all the ships before
+      putting the cargo on the hauler and the mission did not complete).
+      A kill only counted while the drone was in ordinary flight, so a
+      scavenger that died while a case was being tractored aboard (a
+      missile in flight, a burst already on its way) was never counted,
+      and the fight never reached its tally. Kills during a tractor
+      pickup now count. And as a safety net, once every scavenger has
+      been sent in and none is left alive the fight is won, however they
+      died.

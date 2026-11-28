@@ -17,7 +17,9 @@ function killFighter(f,p){
  f.dead=true;score+=1000;explodeMesh(f,f.mesh,p,f.col);campaign.onFighterKilled?.(f);
  if(typeof salvageRecovery!=='undefined'&&salvageRecovery.active&&salvageRecovery.stage?.useCombatWrecks)salvageRecovery.recordCombatWreck(f);
  if(typeof xenoNest!=='undefined'&&xenoNest.active&&f.hiveNest){xenoNest.onFighterDestroyed(f);return}
- if(mode==='play'&&phase==='space'){
+ // v3024 (Dave: the cargo spill never finished): a kill during a tractor pickup (mode
+ // recoveryPickup) counts too, or the fight could never be cleared.
+ if((mode==='play'||mode==='recoveryPickup')&&phase==='space'){
    if(!freezeObjectives)interceptorsDestroyed=Math.min(interceptorGoal,interceptorsDestroyed+1);
    const liveHostiles=fighters.filter(x=>!x.dead&&!x.dying).length;
    const thin=!freezeObjectives&&fighterReservesRemaining()===0&&liveHostiles<=Math.max(2,Math.ceil(activeFighterCap()*.45));

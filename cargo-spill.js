@@ -78,7 +78,10 @@ const AgentXCargoSpill={
       if(best&&best.state==='free'&&Math.hypot(best.x-f.x,best.y-f.y,best.z-f.z)<6){best.state='stolen';this.stolen++;f.spillTarget=null;
         if(this.t-this.lastTake>2.5){this.lastTake=this.t;callout(`SCAVENGER TOOK A CASE · ${this.stolen} STOLEN`,1.3,false)}}
     }
-    if(!this.scavsIn&&(this.t>=this.SCAV_AT||this.picked>=2)){this.scavsIn=true;return 'scavengers'}
+    if(!this.scavsIn&&(this.t>=this.SCAV_AT||this.picked>=2)){this.scavsIn=true;this.scavT=this.t;return 'scavengers'}
+    // v3024: every scavenger sent in and none left alive is a won fight, however they died
+    // (the kill tally could miss one, and the spill then never finished).
+    if(this.scavsIn&&!this.scavsDone&&this.t-(this.scavT||0)>3&&!scavs.length&&typeof fighterReservesRemaining==='function'&&fighterReservesRemaining()===0&&!fighters.some(f=>!f.dead))routeDiversion.onSpillScavengersCleared();
     if(!this.free().length){
       // Nothing left to take: whoever is still here comes for the drone.
       for(const f of scavs)if(!f.provoked){f.provoked=true;if(!(f.shotsLeft>0))f.shotsLeft=3}
