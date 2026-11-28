@@ -2950,7 +2950,7 @@ class CampaignController {
   }
   marketProducts(){const order={frame:0,weapon:1,consumable:2,internal:3};return [...Object.values(this.frames).filter(f=>f.id!=='AX-1'&&!f.unique).map(f=>({...f,productType:'frame'})),...this.shop.map(it=>({...it,productType:it.slot}))].sort((a,b)=>a.tier-b.tier+(a.tier===b.tier?((order[a.productType]??9)-(order[b.productType]??9)||a.price-b.price):0))}
   // v2310 (Dave: the market was awkward). One filter row (kind tabs with counts, and
-  // "Available to me" or "Everything"), short two-line rows grouped under grade headers,
+  // "Available" or "Everything"), short two-line rows grouped under grade headers,
   // and the detail panel leads with what the item does and ends with the purchase box.
   // Picking a row swaps only the detail, so the list keeps its scroll position.
   marketKindName(p){return p.productType==='frame'?'Frame':({consumable:'Consumable',weapon:'Weapon',internal:'Internal'}[p.slot]||'Gear')}
@@ -2974,7 +2974,7 @@ class CampaignController {
     if(shelfIn)status.push(`shelf changes in ${shelfIn} contract${shelfIn===1?'':'s'}`);
     if(ordP)status.push(`<b>${ordP.name}</b> on order, arrives in ${ordN} contract${ordN===1?'':'s'}`);
     const toolbar=document.createElement('div');toolbar.className='marketToolbar';
-    toolbar.innerHTML=`<div class="marketBar"><div class="marketFilterRow kindFilters">${kinds.map(([v,l])=>{const n=all.filter(p=>this.marketVisible(p,v)).length;return `<button type="button" data-market-kind="${v}" class="${this.marketKindView===v?'active':''}">${l} <span class="marketCount">${n}</span></button>`}).join('')}</div><div class="marketFilterRow marketShow">${[['accessible','Available to me'],['all','Everything']].map(([v,l])=>`<button type="button" data-market-tier="${v}" class="${this.marketTierView===v?'active':''}">${l}</button>`).join('')}</div></div><div class="marketAccessSummary">${status.join(' · ')}</div>`;
+    toolbar.innerHTML=`<div class="marketBar"><div class="marketFilterRow kindFilters">${kinds.map(([v,l])=>{const n=all.filter(p=>this.marketVisible(p,v)).length;return `<button type="button" data-market-kind="${v}" class="${this.marketKindView===v?'active':''}">${l} <span class="marketCount">${n}</span></button>`}).join('')}</div><div class="marketFilterRow marketShow">${[['accessible','Available'],['all','Everything']].map(([v,l])=>`<button type="button" data-market-tier="${v}" class="${this.marketTierView===v?'active':''}">${l}</button>`).join('')}</div></div><div class="marketAccessSummary">${status.join(' · ')}</div>`;
     toolbar.querySelectorAll('[data-market-tier]').forEach(btn=>btn.addEventListener('click',()=>{this.marketTierView=btn.dataset.marketTier;this.renderShop()}));
     toolbar.querySelectorAll('[data-market-kind]').forEach(btn=>btn.addEventListener('click',()=>{this.marketKindView=btn.dataset.marketKind;this.renderShop()}));
     shopGridEl.appendChild(toolbar);
@@ -3221,7 +3221,7 @@ class CampaignController {
   renderPerks(){
     const avail=this.skillPointsAvailable(),total=this.skillPointsTotal(),spent=this.skillPointsSpent(),locked=this.equipmentLocked();
     const notice=this.state.skillRefundNotice?`<div class="skillNotice"><span>THE SKILL TREE HAS BEEN REBUILT. YOUR POINTS HAVE BEEN REFUNDED: SPEND THEM AGAIN BELOW.</span><button type="button" data-dismiss-notice>OK</button></div>`:'';
-    perkGridEl.innerHTML=`${notice}<div class="skillTreeStatus"><span>SKILL POINTS <b>${avail}</b> / ${total}</span><span>SPENT <b>${spent}</b></span><span>1 POINT PER LEVEL · ROW 1 COSTS 1 · ROWS 2 AND 3 COST 2 · ROW 4 COSTS 3</span><button type="button" data-respec ${locked||!this.state.skills.length||this.state.money<this.respecCost()?'disabled':''}>RESET SKILLS · CR ${this.respecCost().toLocaleString()}</button></div><div class="skillColumns"></div>`;
+    perkGridEl.innerHTML=`${notice}<div class="skillTreeStatus"><span>SKILL POINTS <b>${avail}</b> / ${total}</span><span>SPENT <b>${spent}</b></span><button type="button" data-respec ${locked||!this.state.skills.length||this.state.money<this.respecCost()?'disabled':''}>RESET SKILLS · CR ${this.respecCost().toLocaleString()}</button></div><div class="skillColumns"></div>`;
     perkGridEl.querySelector('[data-dismiss-notice]')?.addEventListener('click',()=>{this.state.skillRefundNotice=false;this.save();this.renderPerks()});
     perkGridEl.querySelector('[data-respec]')?.addEventListener('click',()=>this.respecSkills());
     const host=perkGridEl.querySelector('.skillColumns');

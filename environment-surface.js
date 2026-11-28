@@ -792,15 +792,24 @@ class SurfaceDestinationApproachController {
     const registry=globalThis.AgentXAlienSwampScenery;
     const reeds=['swampReedTall','swampReedFan','swampReedWide','swampReedSpike'];
     const accents=['alienBulbPlantConnected','alienUmbrellaPlantConnected','alienEggPodFat','alienEggClusterFat'];
-    for(let row=0;row<3;row++)for(const side of[-1,1])for(let i=0;i<11;i++){
-      const accent=(i+row)%5===2,id=accent?accents[(i+row)%accents.length]:reeds[(i*3+row)%reeds.length];
-      const base=registry?.get?.(id)||(typeof alienSwampSceneryMesh==='function'?alienSwampSceneryMesh(id):null);if(!base)continue;
-      const scale=(accent?.98:1.18)+this.rand()*(accent?.42:.80),gap=7.4+row*1.4;
-      const x=this.targetX+side*(gap+i*3.95+this.rand()*1.8),wz=this.targetWorldZ+3+row*11+this.rand()*12;
+    // v3027 (Dave: we see a gap even though this is where we enter dense swamp). The edge
+    // was three loose rows either side of a 15 wide opening with nothing behind it, so the
+    // way in read as an empty gap. Now it is built like the forest edge: five dense rows
+    // either side of an opening only as wide as the swamp lane (half about 4.5), further
+    // rows lining the lane, and a closing clump where the lane bends away, so the swamp
+    // reads as one wall with a path cut into it.
+    const add=(id,x,wz,big=1)=>{
+      const accent=accents.includes(id),base=registry?.get?.(id)||(typeof alienSwampSceneryMesh==='function'?alienSwampSceneryMesh(id):null);if(!base)return;
+      const scale=((accent?.98:1.18)+this.rand()*(accent?.42:.80))*big;
       const y=this.groundY-this.meshBaseY(base)*scale,obj={assetId:id,mesh:base,x,y,worldZ:wz,s:scale,rot:[0,this.rand()*Math.PI*2,0],col:resolvePaletteColor(base.singleColorKey)||C.g};
       if(String(id).startsWith('swampReed')){obj.my=1.65+this.rand()*.58;obj.mx=1.12+this.rand()*.20;obj.mz=1.0+this.rand()*.16}
       this.forestFront.push(obj)
-    }
+    };
+    const pick=(i,row)=>(i+row)%5===2?accents[(i+row)%accents.length]:reeds[(i*3+row)%reeds.length];
+    for(let row=0;row<11;row++)for(const side of[-1,1])for(let i=0;i<(row<5?18:4);i++)
+      add(pick(i,row),this.targetX+side*(5.0+(row%3)*.3+i*2.9+this.rand()*1.2+(row%2)*1.4),this.targetWorldZ+4+row*5+this.rand()*2.5);
+    for(let row=0;row<3;row++)for(let i=-2;i<=2;i++)
+      add(pick(i+2,row),this.targetX+i*2.7+(row%2)*1.3+this.rand()*.8,this.targetWorldZ+60+row*4.5+this.rand()*2,1.1);
   }
   treeWithinTurnMargin(q,scale=1){
     // Reject trees well outside the current view before hidden-line removal. The

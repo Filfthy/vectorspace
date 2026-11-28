@@ -3915,3 +3915,9 @@ v3024 Cargo Spill could never finish (Dave: killed all the ships before
       pickup now count. And as a safety net, once every scavenger has
       been sent in and none is left alive the fight is won, however they
       died.
+
+v3025: Skill tree header trimmed (Dave: it does not need all the explanation). Removed the paragraph under the title and the row cost line in the status bar. Each skill card still shows its cost.
+
+v3026: Removed the explanation paragraphs from the Networks and Market panels. The market filter "Available to me" is now "Available".
+
+v3027: Swamp edge on the plains approach rebuilt like the forest edge (Dave: we see a gap where we enter dense swamp). Five dense rows either side of a lane-wide opening, further rows lining the lane, and a closing clump behind, so it reads as one wall with a path cut in.
