@@ -81,8 +81,6 @@
         <p class="creditDetail">Performance: Musopen Symphony. Public-domain recording, via Wikimedia Commons.</p>
         <p class="credit">Antonio Vivaldi · Summer, RV 315: III. Presto, and Winter, RV 297: I. Allegro non molto</p>
         <p class="creditDetail">Performance: The Modena Chamber Orchestra. Dedicated to the public domain by the owner, via Wikimedia Commons.</p>
-        <p class="credit">Bedřich Smetana · Dance of the Comedians, from The Bartered Bride</p>
-        <p class="creditDetail">Transcription: Lt. Col. Jack Kline. Performance: United States Marine Band. U.S. federal government public-domain recording, via Wikimedia Commons.</p>
         <p class="creditDetail">Use of United States military band recordings does not imply endorsement by the Department of Defense, United States Air Force, United States Marine Corps, or their respective bands.</p>
 
         <h3>Sound</h3>
@@ -172,7 +170,7 @@
         <div class="saveFileRow"><button id="campaignExport" type="button">Save to file</button><button id="campaignImport" type="button">Load from file</button><input id="campaignImportFile" type="file" accept=".json,application/json" hidden></div>
         <p class="optionNote">Reset removes Agent X campaign progress, money, XP, reputation, equipment and purchased skills.</p>
         <button id="campaignReset" class="dangerOption" type="button">Reset campaign</button>
-        <p class="optionNote buildInfo">Build v3007</p>
+        <p class="optionNote buildInfo">Build v3012</p>
 
         <h3>Sound mixer</h3>
         <p class="optionNote">Adjust the overall game mix. Individual sound-effect and music-track audition trims are available in the local development tab.</p>
@@ -408,7 +406,6 @@
           <div class="trackMixerRow" data-track-row="mozart40"><span class="trackName">Mozart · Symphony No. 40: I. Molto allegro</span><input class="mixerSlider" type="range" min="0" max="150" step="1" value="100" data-track-level="mozart40" data-vector-ignore aria-label="Mozart 40 track level"><output class="mixerValue" data-track-level-value="mozart40">100%</output><input class="mixerSlider trackPosition" type="range" min="0" max="1000" step="1" value="0" data-track-position="mozart40" data-vector-ignore aria-label="Mozart 40 track position"><output class="trackTime" data-track-time="mozart40">0:00 / --:--</output><button class="trackPlay" type="button" data-track-play="mozart40">Play</button></div>
           <div class="trackMixerRow" data-track-row="summer"><span class="trackName">Vivaldi · Summer: III. Presto</span><input class="mixerSlider" type="range" min="0" max="150" step="1" value="100" data-track-level="summer" data-vector-ignore aria-label="Summer track level"><output class="mixerValue" data-track-level-value="summer">100%</output><input class="mixerSlider trackPosition" type="range" min="0" max="1000" step="1" value="0" data-track-position="summer" data-vector-ignore aria-label="Summer track position"><output class="trackTime" data-track-time="summer">0:00 / --:--</output><button class="trackPlay" type="button" data-track-play="summer">Play</button></div>
           <div class="trackMixerRow" data-track-row="winter"><span class="trackName">Vivaldi · Winter: I. Allegro non molto</span><input class="mixerSlider" type="range" min="0" max="150" step="1" value="100" data-track-level="winter" data-vector-ignore aria-label="Winter track level"><output class="mixerValue" data-track-level-value="winter">100%</output><input class="mixerSlider trackPosition" type="range" min="0" max="1000" step="1" value="0" data-track-position="winter" data-vector-ignore aria-label="Winter track position"><output class="trackTime" data-track-time="winter">0:00 / --:--</output><button class="trackPlay" type="button" data-track-play="winter">Play</button></div>
-          <div class="trackMixerRow" data-track-row="comedians"><span class="trackName">Smetana · Dance of the Comedians</span><input class="mixerSlider" type="range" min="0" max="150" step="1" value="100" data-track-level="comedians" data-vector-ignore aria-label="Dance of the Comedians track level"><output class="mixerValue" data-track-level-value="comedians">100%</output><input class="mixerSlider trackPosition" type="range" min="0" max="1000" step="1" value="0" data-track-position="comedians" data-vector-ignore aria-label="Dance of the Comedians track position"><output class="trackTime" data-track-time="comedians">0:00 / --:--</output><button class="trackPlay" type="button" data-track-play="comedians">Play</button></div>
         </div>
       </section>
       <section class="campaignPanel" data-panel="debrief">
@@ -586,6 +583,7 @@
 <script src="system-red-jackal.js"></script>
 <script src="system-ground-assault.js"></script>
 <script src="environment-surface.js"></script>
+<script src="environment-canyon.js"></script>
 <script src="environment-corridor.js"></script>
 
 <!-- Core engine controllers -->

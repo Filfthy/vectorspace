@@ -380,3 +380,45 @@ Spoken text:
 
 Expected filename:
     coresampletaken.mp3
+
+CANYON RUN, ORANGE WORLDS (v3010)
+---------------------------------
+
+Spoken text:
+    Mesa ahead. Fly the canyon.
+
+Expected filename:
+    mesaaheadflythecanyon.mp3
+
+Spoken text:
+    Canyon walls are solid.
+
+Expected filename:
+    canyonwallsaresolid.mp3
+
+Spoken text:
+    Clear of the canyon.
+
+Expected filename:
+    clearofthecanyon.mp3
+
+RED JACKAL HIDEOUT (v3012)
+--------------------------
+
+Spoken text:
+    Find the hideout and the caches.
+
+Expected filename:
+    findthehideoutandthecaches.mp3
+
+Spoken text:
+    Cache found.
+
+Expected filename:
+    cachefound.mp3
+
+Spoken text:
+    Hideout scanned.
+
+Expected filename:
+    hideoutscanned.mp3

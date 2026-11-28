@@ -3707,3 +3707,60 @@ v3007 Mozart 40 on the violent playlist is now the famous first movement
       Saint-Saens' Aquarium (CC BY-SA 2.0, Pandora Music repository via
       Wikimedia Commons). Credited in the About box and music credits.txt.
       tools/prepare-music.py takes an optional start time for such cuts.
+v3008 The music keeps its track when the mood does not really change. A
+      short spell in the other mood (a brief fight, a one-frame flip
+      between stages, a look at the menu) used to throw the track away
+      and pick a fresh one on the way back, so a calm run could jump from
+      one calm piece to another between stages. Each mood now remembers
+      its track and position, and coming back within a minute carries on
+      where it left off. After a longer spell a fresh track is picked as
+      before. (Resuming mid-track needs a server that allows range
+      requests, as GitHub Pages does.)
+      Dance of the Comedians is off the violent playlist (it did not work
+      as game music): removed from the track list, mixer and credits, its
+      levelled copy deleted. The original stays in music/violent audition.
+
+v3009 Canyon runs and stacks on orange worlds. Orange planets that are
+      not volcanic now cross a mesa on the plains approach: a cliff wall
+      across the whole field, cut by one winding canyon that leads on to
+      the city or forest. The nav marker points at the canyon mouth until
+      the drone is in it. The walls are solid: a hit costs one shield and
+      turns the drone back along the canyon (scraping on afterwards costs
+      nothing more), and the cliff across the field slides it towards the
+      gap. Boulders lie on the canyon floor to steer round. Survey points,
+      relay masts, crash sites and the beacon move down into the canyon.
+      Buttes and ragged spires stand on the plains before and after the
+      mesa and out beyond its ends, and a few rise off the mesa top so
+      they show over the rim from inside. The route is longer on these
+      worlds (640) to give the canyon room, and the city road starts at
+      the canyon exit. New file environment-canyon.js.
+
+v3010 Voice lines for the canyon run: "Mesa ahead. Fly the canyon.",
+      "Canyon walls are solid." and "Clear of the canyon.", each with its
+      on-screen callout (the last now also comes up just past the exit,
+      before the city or forest takes over). Raw takes are in voices
+      unprocessed, and each line plays once its file is in voices/.
+
+v3011 New job: Canyon Run (level 3 and up, Free Traders, OSD and
+      QuickBite). Always an orange world that is not volcanic, so the
+      plains approach always crosses the mesa. Three or four relay masts
+      are strung down the canyon floor, and the canyon narrows, its
+      walls rise and boulders lie thicker as the risk goes up. Then the
+      usual city collection and depot handoff. Each client has its own
+      titles, letters and notes. The self-test pilots fly it for real,
+      and the pilot now follows a canyon's middle line.
+
+v3012 Two more canyon jobs on orange worlds that are not volcanic.
+      Smugglers' Hideout (level 4 and up, OSD, Free Traders and the Red
+      Jackals): one canyon wall is cut back into a bay where the Red
+      Jackals have built a hideout, a blast door in the rock with work
+      lamps, a landing pad with a skiff on it, crates along the wall and
+      a mast with a red light. Find their two or three caches (crates
+      under a net) on the canyon floor and scan the hideout, then the
+      city collection and the depot. Canyon Wreck (level 3 and up, Free
+      Traders, OSD and the Red Jackals): a hauler broke up in the canyon.
+      Torn hull plates lie down the canyon floor and the hauler itself is
+      the last crash site. Pull every recorder, then the city and depot.
+      Both canyons tighten with the risk. New voice lines "Find the
+      hideout and the caches.", "Cache found." and "Hideout scanned." are
+      in voices unprocessed. Each client has its own titles and letters.

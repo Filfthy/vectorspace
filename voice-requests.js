@@ -69,7 +69,15 @@ globalThis.AgentXVoiceRequests={
   surveyPointLogged:'Survey point logged.',
   findTheCrashSites:'Find the crash sites.',
   recorderRecovered:'Recorder recovered.',
-  coreSampleTaken:'Core sample taken.'
+  coreSampleTaken:'Core sample taken.',
+  // v3010: the canyon run on orange worlds.
+  mesaAheadFlyTheCanyon:'Mesa ahead. Fly the canyon.',
+  canyonWallsAreSolid:'Canyon walls are solid.',
+  clearOfTheCanyon:'Clear of the canyon.',
+  // v3012: the Red Jackal hideout job.
+  findTheHideout:'Find the hideout and the caches.',
+  cacheFound:'Cache found.',
+  hideoutScanned:'Hideout scanned.'
 };
 // Expected filename: the spoken text in lower case with spaces and punctuation removed.
 globalThis.AgentXVoiceRequestFile=text=>String(text).toLowerCase().replace(/[^a-z0-9]/g,'')+'.mp3';

@@ -5,7 +5,7 @@ class AudioMixer {
     enabled:{master:true,music:true,fx:true,speech:true},
     volume:{master:1,music:1,fx:1,speech:1},
     trims:{laser:1,hit:1,explosion:1,damageTaken:1,projectileDestroyed:1,objectiveComplete:1,zoom:.45,disconnect:1,uiClick:1,swampSpit:1,relayCalibrated:1,droneApproval:1},
-    trackTrims:{mozart:1,pachelbel:1,satie:1,morningmood:1,waltzflowers:1,sarabande:1,aquarium:1,mars:1,baldmountain:1,diesirae:1,valkyries:1,uranus:1,beethoven5:1,mozart40:1,summer:1,winter:1,comedians:1}
+    trackTrims:{mozart:1,pachelbel:1,satie:1,morningmood:1,waltzflowers:1,sarabande:1,aquarium:1,mars:1,baldmountain:1,diesirae:1,valkyries:1,uranus:1,beethoven5:1,mozart40:1,summer:1,winter:1}
   });
   static state=null;
   static fxDuckGain=1;
@@ -689,8 +689,7 @@ class MusicManager {
       {id:'beethoven5',title:'Beethoven · Symphony No. 5: I. Allegro con brio',src:'./music/violent/beethoven5.ogg'},
       {id:'mozart40',title:'Mozart · Symphony No. 40: I. Molto allegro',src:'./music/violent/mozart40.ogg'},
       {id:'summer',title:'Vivaldi · Summer: III. Presto',src:'./music/violent/summer.ogg'},
-      {id:'winter',title:'Vivaldi · Winter: I. Allegro non molto',src:'./music/violent/winter.ogg'},
-      {id:'comedians',title:'Smetana · Dance of the Comedians',src:'./music/violent/comedians.ogg'}
+      {id:'winter',title:'Vivaldi · Winter: I. Allegro non molto',src:'./music/violent/winter.ogg'}
     ]
   };
   static allTracks(){return [...this.tracks.calm,...this.tracks.violent]}
@@ -758,13 +757,50 @@ class MusicManager {
     if(!this.current||!this.current.src)this.startRandom(this.mode,false);
     else if(this.current.paused)this.current.play().catch(()=>{})
   }
+  // v3008 (Dave: if there is no change between temperament there should be no change of
+  // track). A brief spell in the other mood (a short fight, a one-frame flip between stages,
+  // a look at the menu) used to throw away the track and pick a fresh one on the way back.
+  // Each mood now remembers what it was playing and where; coming back to it within
+  // RESUME_MS picks that track up where it left off. A longer spell still gets a fresh pick.
   setMode(mode){
     if(!MusicManager.tracks[mode])return;
     const changed=this.mode!==mode;
+    if(changed&&this.mode&&this.current?.src&&this.current.dataset.trackMode===this.mode)
+      (this.modeMemory||(this.modeMemory={}))[this.mode]={id:this.current.dataset.trackId,t:Number(this.current.currentTime)||0,at:performance.now()};
     this.mode=mode;
     if(this.previewing||AudioMixer.channelVolume('music')<=0)return;
-    if(changed||!this.current||!this.current.src)this.startRandom(mode,changed);
+    if(changed){
+      const mem=this.modeMemory?.[mode];
+      if(mem&&performance.now()-mem.at<MusicManager.RESUME_MS&&this.resumeTrack(mode,mem))return;
+      this.startRandom(mode,true);return
+    }
+    if(!this.current||!this.current.src)this.startRandom(mode,false);
     else if(this.current.paused)this.current.play().catch(()=>{})
+  }
+  static RESUME_MS=60000;
+  resumeTrack(mode,mem){
+    const track=MusicManager.trackById(mem.id);if(!track||this.previewing)return false;
+    const old=this.current;
+    // The other deck may still hold that track (it is still fading out after a quick flip).
+    let next=this.decks.find(d=>d!==old&&d.dataset.trackId===mem.id&&d.src);
+    if(!next){
+      next=old===this.decks[0]?this.decks[1]:this.decks[0];
+      try{next.pause()}catch(_){ }
+      next.src=track.src;next.dataset.trackId=track.id
+    }
+    next.dataset.trackMode=mode;
+    this.lastTrack[mode]=track.id;this.fadeToken++;const token=this.fadeToken;
+    // A deck that never stopped is already at the right place; a paused one goes back to it.
+    if(next.paused){const seek=()=>{try{next.currentTime=mem.t}catch(_){ }};if(next.readyState>=1)seek();else next.addEventListener('loadedmetadata',seek,{once:true})}
+    if(next.paused)next.volume=0;
+    this.current=next;
+    const p=next.play();
+    if(p&&typeof p.then==='function')p.then(()=>{
+      if(token!==this.fadeToken||this.previewing)return;
+      if(old&&old!==next&&!old.paused)this.crossfade(old,next,1200,token);
+      else{if(old&&old!==next){old.pause();old.volume=0}next.volume=this.mixedVolume(track.id)}
+    }).catch(()=>{});
+    return true
   }
   cycleTrack(){
     if(this.previewing||AudioMixer.channelVolume('music')<=0)return false;

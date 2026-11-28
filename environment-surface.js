@@ -53,7 +53,9 @@ const SURVEY_TEXT=Object.freeze({
   crash:{intro:(n,d)=>`FIND THE ${n} CRASH SITE${n>1?'S':''} · THEN THE ${d}`,got:(g,t)=>`CRASH SITE ${g} OF ${t} · RECORDER RECOVERED`,done:'ALL RECORDERS RECOVERED · PROCEED TO DESTINATION',nag:n=>`RECORDERS MISSING · ${n} CRASH SITE${n>1?'S':''} LEFT`,nav:'CRASH SITE',hud:'RECORDERS'},
   // v1930 CORE SAMPLES (moons): each site is a crater, and the sampler only fires on a low pass.
   core:{intro:(n,d)=>`TAKE ${n} CORE SAMPLES · DIVE LOW ACROSS EACH CRATER · THEN THE ${d}`,got:(g,t)=>`CORE SAMPLE ${g} OF ${t} TAKEN`,done:'ALL CORES TAKEN · PROCEED TO DESTINATION',nag:n=>`CORES MISSING · ${n} CRATER${n>1?'S':''} LEFT`,nav:'CORE SITE',hud:'CORES'},
-  relay:{intro:(n,d)=>`RESET THE ${n} RELAY MASTS · THEN THE ${d}`,got:(g,t)=>`RELAY ${g} OF ${t} BACK ONLINE`,done:'ALL RELAYS ONLINE · PROCEED TO DESTINATION',nag:n=>`RELAYS DOWN · ${n} LEFT`,nav:'RELAY MAST',hud:'RELAYS'}
+  relay:{intro:(n,d)=>`RESET THE ${n} RELAY MASTS · THEN THE ${d}`,got:(g,t)=>`RELAY ${g} OF ${t} BACK ONLINE`,done:'ALL RELAYS ONLINE · PROCEED TO DESTINATION',nag:n=>`RELAYS DOWN · ${n} LEFT`,nav:'RELAY MAST',hud:'RELAYS'},
+  // v3012 RED JACKAL HIDEOUT: caches on the canyon floor, and the hideout in a bay of the wall.
+  hideout:{intro:(n,d)=>`FIND THE HIDEOUT AND ${n-1} CACHE${n>2?'S':''} · THEN THE ${d}`,got:(g,t,p)=>p?.kind==='hideout'?`HIDEOUT SCANNED · ${g} OF ${t}`:`CACHE FOUND · ${g} OF ${t}`,done:'HIDEOUT AND CACHES LOGGED · PROCEED TO DESTINATION',nag:n=>`${n} LEFT TO FIND · HIDEOUT AND CACHES`,nav:'CACHE',navHideout:'HIDEOUT',hud:'HIDEOUT'}
 });
 // v3006 (Dave: no voice lines for go to the masts or go to city). Spoken lines for the
 // side tasks: the task when it is given, each mast or point as it is done, and the
@@ -63,7 +65,8 @@ const SURVEY_VOICE=Object.freeze({
   survey:{intro:'flyTheSurveyPoints',got:'surveyPointLogged'},
   crash:{intro:'findTheCrashSites',got:'recorderRecovered'},
   core:{intro:'coreSamplesDiveLow',got:'coreSampleTaken'},
-  relay:{intro:'resetTheRelayMasts',got:'relayBackOnline'}
+  relay:{intro:'resetTheRelayMasts',got:'relayBackOnline'},
+  hideout:{intro:'findTheHideout',got:'cacheFound',gotHideout:'hideoutScanned'}
 });
 // A relay mast: a tapering four-legged lattice tower with cross bracing and an antenna.
 // Lines only, so it hides nothing behind it.
@@ -276,7 +279,7 @@ class SurfaceDestinationApproachController {
     this.speed=22.0;this.navPulse=0;this.seed=0x504c4149;this.trees=[];this.survey=[];this.surveyIntro=null;this.beacon=null;this.chatter=null;this.skyline=[];this.forestBands=[];this.forestFront=[];this.treeHitCD=0;
     this.visibleTrees=[];this.visibleForestFront=[];
     this.baseCache=new WeakMap();this.finishing=false;this.finishT=0;this.entryRadius=36;
-    this.lastHandoff=null;this.manualComplete=false;this.hills=null;this.marsh=null;this.skimmers=[];this.gliders=[];this._critRocks=null
+    this.lastHandoff=null;this.manualComplete=false;this.hills=null;this.marsh=null;this.canyon=null;this.canyonHideout=null;this.stacks=[];this.stackField=false;this.rockFree=9;this.skimmers=[];this.gliders=[];this._critRocks=null
   }
   rand(){this.seed=(Math.imul(this.seed,1664525)+1013904223)>>>0;return this.seed/4294967296}
   // Shared surface-object mechanism. Environments and missions submit discrete
@@ -318,7 +321,7 @@ class SurfaceDestinationApproachController {
     this.targetWorldZ=Number.isFinite(Number(resolved?.targetWorldZ))?Number(resolved.targetWorldZ):this.routeLength;
     this.targetX=Number.isFinite(Number(resolved?.targetX))?Number(resolved.targetX):0;
     this.entryRadius=clamp(Number(resolved?.entryRadius)||36,24,60);
-    this.buildScenery();this.buildFissures();this.buildTraffic();this.buildFlocks();this.buildSurvey(resolved?.crashSites||resolved?.relayMasts||resolved?.coreSites||resolved?.surveyPoints,resolved?.crashSites?'crash':(resolved?.relayMasts?'relay':(resolved?.coreSites?'core':'survey')));this.buildBeacon();
+    this.setupCanyon?.();this.buildScenery();this.canyonDress?.();this.buildFissures();this.buildTraffic();this.buildFlocks();this.buildSurvey(resolved?.hideoutCaches?Number(resolved.hideoutCaches)+1:(resolved?.crashSites||resolved?.relayMasts||resolved?.coreSites||resolved?.surveyPoints),resolved?.hideoutCaches?'hideout':(resolved?.crashSites?'crash':(resolved?.relayMasts?'relay':(resolved?.coreSites?'core':'survey'))));this.buildBeacon();
     if(this.destination==='forest')this.buildForestBoundary();
     else if(this.destination==='swamp')this.buildSwampBoundary();
     else if(this.destination==='bunker'||this.destination==='osd'){this.skyline.length=0;this.forestBands.length=0;this.forestFront.length=0}
@@ -346,6 +349,7 @@ class SurfaceDestinationApproachController {
     // Each entry: level within r0, full hills from r1.
     const obj=[];for(const p of this.survey||[])obj.push([p.x+(p.off||0),p.worldZ,14,40]);if(this.beacon)obj.push([this.beacon.x,this.beacon.worldZ,14,40]);
     for(const t of this.trees)if(t.feature==='crater'){const r0=1.5*t.s*Math.max(t.mx||1,t.mz||1)+2;obj.push([t.x,t.worldZ,r0,r0+14])}
+    for(const t of this.stacks||[])if(!t.top)obj.push([t.x,t.worldZ,t.foot+2,t.foot+20]);   // v3009: stacks stand on level ground
     this.hills={ax,az,bx,bz,dx,dz,len,len2:len*len,obj,road:this.road||null,endFlat:osd?this.osdFlatRadius():(this.destination==='bunker'?55:40),band,amp:swamp?1.6:(osd?1.5:1),
       minX:Math.min(ax,bx)-pad,maxX:Math.max(ax,bx)+pad,minZ:Math.min(az,bz)-pad,maxZ:Math.max(az,bz)+pad,memo:new Map()};
     // Scenery stands on the slopes (once, however often this runs).
@@ -417,6 +421,7 @@ class SurfaceDestinationApproachController {
     const far=1-ease(clamp((dl-h.band[0])/h.band[1],0,1));if(far<=0)return 0;
     const along=u*h.len,de=Math.hypot(x-h.bx,wz-h.bz);
     let g=ease(clamp(along/50,0,1))*ease(clamp((de-h.endFlat)/50,0,1));if(g<=0)return 0;
+    if(this.canyon){g*=this.canyonHillMask(x,wz);if(g<=0)return 0}
     for(const o of h.obj){const dx=x-o[0];if(dx>o[3]||dx<-o[3])continue;const d=Math.hypot(dx,wz-o[1]);if(d<o[3]){g*=ease(clamp((d-o[2])/(o[3]-o[2]),0,1));if(g<=0)return 0}}
     const r=h.road;if(r&&wz>r.z0-30&&wz<r.z1+30){const ax=Math.abs(x-r.x);if(ax<30){g*=ease(clamp((ax-6)/24,0,1));if(g<=0)return 0}}
     const n=.5*Math.sin(x*.034+wz*.011+.4)+.32*Math.sin(wz*.029-x*.019+1.3)+.2*Math.sin(x*.071+wz*.053+.7)+.18*Math.sin(x*.013-wz*.021+2.1);
@@ -628,11 +633,19 @@ class SurfaceDestinationApproachController {
     const count=clamp(Math.round(Number(n)||0),0,4);if(!count)return;
     for(let i=0;i<count;i++){
       const u=.22+(.58*(i+.5)/count)+(this.rand()-.5)*.08,side=i%2?1:-1,p={x:this.targetX+side*(20+this.rand()*26),worldZ:this.routeLength*u,done:false};
-      if(crash){const mesh=(typeof pickEnemyFighterMesh==='function'?pickEnemyFighterMesh():null)||routeDiversion?.CIV_MESH;if(mesh){p.kind='crash';p.mesh=mesh;p.s=3.2+this.rand()*.8;p.rot=[-.3-this.rand()*.15,this.rand()*Math.PI*2,-.45+this.rand()*.2];p.noLabel=true}}
+      if(crash){const mesh=(typeof pickEnemyFighterMesh==='function'?pickEnemyFighterMesh():null)||routeDiversion?.CIV_MESH;if(mesh){p.kind='crash';p.mesh=mesh;p.s=3.2+this.rand()*.8;p.rot=[-.3-this.rand()*.15,this.rand()*Math.PI*2,-.45+this.rand()*.2];p.noLabel=true}
+        // v3012 CANYON WRECK (stage.crashMesh 'freighter'): one hauler hit the walls and broke up.
+        // Torn hull plates lie down the canyon and the hauler itself is the last site.
+        if(this.stage?.crashMesh==='freighter'){const last=i===count-1,plates=[courierWreckHullPlateMesh,courierWreckTornPlateMesh,courierWreckAngleBeamMesh];
+          if(last&&typeof longHaulFreighterMesh!=='undefined'){p.kind='crash';p.mesh=longHaulFreighterMesh;p.s=1.25;p.rot=[-.03-this.rand()*.04,this.rand()*Math.PI*2,0];p.noLabel=true}
+          else if(typeof courierWreckHullPlateMesh!=='undefined'){p.kind='crash';p.mesh=plates[i%3];p.s=2.4+this.rand()*.6;p.rot=[-.5-this.rand()*.4,this.rand()*Math.PI*2,-.6+this.rand()*1.2];p.noLabel=true}}}
       if(mode==='relay'){p.kind='relay';p.yaw=this.rand()*Math.PI*2;p.off=side*3.2}
       if(mode==='core')p.kind='core';
+      if(mode==='hideout')p.kind='cache';
       this.survey.push(p)
     }
+    this.canyonPlaceObjectives?.(this.survey);   // v3009: on the canyon floor, not the mesa
+    if(mode==='hideout')this.canyonPlaceHideout?.();   // v3012: the last mark is the hideout
     // v1930: each core site sits in a crater of its own (rim about 9 units out, never an
     // obstacle), so the dive has an obvious target.
     if(mode==='core')for(const p of this.survey)this.trees.push({kind:'rock',feature:'crater',noHit:true,coreSite:true,mesh:surfaceCraterMesh,x:p.x,y:this.groundY+.02,worldZ:p.worldZ,s:6,rot:[0,this.rand()*Math.PI*2,0],col:landingWorldColour(),mx:1,my:.8,mz:1,hit:false});
@@ -654,6 +667,7 @@ class SurfaceDestinationApproachController {
     // plain, smoke rising off it, worth flying over for salvage rights or a survivor.
     if(Math.random()<.45){const b=this.beacon,mesh=(typeof pickEnemyFighterMesh==='function'?pickEnemyFighterMesh():null)||routeDiversion?.CIV_MESH;
       if(mesh){b.kind='crash';b.mesh=mesh;b.s=3.4;b.rot=[-.32,Math.random()*Math.PI*2,-.45]}}
+    this.canyonPlaceObjectives?.([this.beacon]);
     this.trees=this.trees.filter(t=>Math.hypot(t.x-this.beacon.x,t.worldZ-this.beacon.worldZ)>=9)
   }
   updateBeacon(){
@@ -727,10 +741,10 @@ class SurfaceDestinationApproachController {
       {
       p.done=true;const total=this.survey.length,got=total-this.surveyLeft().length;
       const T=SURVEY_TEXT[this.surveyMode||'survey'];
-      if(typeof callout==='function')callout(got<total?T.got(got,total):T.done,1.8);
+      if(typeof callout==='function')callout(got<total?T.got(got,total,p):T.done,1.8);
       SoundFX.objectiveComplete?.();
       // Every one gets its line, the last too; then the destination's line queues after it.
-      this.playVoiceIf(SURVEY_VOICE[this.surveyMode||'survey']?.got,false);if(got>=total)this.playVoiceIf(this.proceedVoiceKey(),false)
+      {const V=SURVEY_VOICE[this.surveyMode||'survey'];this.playVoiceIf(p.kind==='hideout'&&V?.gotHideout||V?.got,false)}if(got>=total)this.playVoiceIf(this.proceedVoiceKey(),false)
     }}
   }
   buildSkyline(){
@@ -870,6 +884,7 @@ class SurfaceDestinationApproachController {
   update(dt){
     if(!this.active||phase!=='destinationApproach')return;
     this.navPulse+=dt;this.treeHitCD=Math.max(0,this.treeHitCD-dt);
+    if(this.stackField){this.canyonCollide(dt);if(mode==='dead')return}
     if(this.treeHitCD<=0){
       for(const t of this.trees){
         if(t.hit||t.noHit)continue;const dz=t.worldZ-travel,dx=t.x-shipX;
@@ -924,6 +939,8 @@ class SurfaceDestinationApproachController {
   appendScenery(scene,{minDepth=-Infinity,maxDepth=Infinity}={}){
     if(!Array.isArray(scene))return scene;
     this.appendHillStrips(scene,{minDepth,maxDepth});
+    if(this.stackField)this.appendCanyon(scene,{minDepth,maxDepth});
+    if(this.surveyMode==='hideout')this.appendHideout?.(scene,{minDepth,maxDepth});
     // v2200: on rolling ground each fissure lies on the slope and is sorted in with the hills
     // (just ahead of the strip it lies on), so a hill in front hides it.
     if(this.hills)for(const f of this.fissures||[]){const mid=f.pts[f.pts.length>>1],d=camPoint([mid[0],this.groundY+this.hillAt(mid[0],mid[1]),mid[1]-travel])[2];
@@ -1001,15 +1018,16 @@ class SurfaceDestinationApproachController {
         if(sp&&sp.x>=0&&sp.x<=W&&sp.y>=0&&sp.y<=viewH){const r=5;line(sp.x,sp.y-r,sp.x+r,sp.y,C.c,1,.7);line(sp.x+r,sp.y,sp.x,sp.y+r,C.c,1,.7);line(sp.x,sp.y+r,sp.x-r,sp.y,C.c,1,.7);line(sp.x-r,sp.y,sp.x,sp.y-r,C.c,1,.7)}
       }
     }
-    const tx=next?next.x:this.targetX,twz=next?next.worldZ:this.targetWorldZ;
-    const q=camPoint([tx,this.groundY+(next?3.2:6.8),twz-travel]);
+    const mouth=this.canyonMouth?.();
+    const tx=mouth?mouth.x:(next?next.x:this.targetX),twz=mouth?mouth.z:(next?next.worldZ:this.targetWorldZ);
+    const q=camPoint([tx,this.groundY+(next||mouth?3.2:6.8),twz-travel]);
     const p=q[2]>.2?projectCam(q):null,on=!!(p&&p.x>=0&&p.x<=W&&p.y>=0&&p.y<=viewH);
     if(on){
       const pulse=1.5+Math.sin(this.navPulse*4.2)*1.5,r=9+pulse;
       line(p.x,p.y-r,p.x+r,p.y,C.y,1.15,.92);line(p.x+r,p.y,p.x,p.y+r,C.y,1.15,.92);
       line(p.x,p.y+r,p.x-r,p.y,C.y,1.15,.92);line(p.x-r,p.y,p.x,p.y-r,C.y,1.15,.92);
       line(p.x-3,p.y,p.x+3,p.y,C.c,1,.9);line(p.x,p.y-3,p.x,p.y+3,C.c,1,.9);
-      const navLabel=next?SURVEY_TEXT[this.surveyMode||'survey'].nav:this.destination==='bunker'?'BUNKER NAV':(this.destination==='forest'?'FOREST NAV':(this.destination==='swamp'?'SWAMP NAV':(this.destination==='osd'?'OSD NAV':'CITY NAV')));
+      const navLabel=mouth?'CANYON':next?(next.kind==='hideout'&&SURVEY_TEXT[this.surveyMode||'survey'].navHideout||SURVEY_TEXT[this.surveyMode||'survey'].nav):this.destination==='bunker'?'BUNKER NAV':(this.destination==='forest'?'FOREST NAV':(this.destination==='swamp'?'SWAMP NAV':(this.destination==='osd'?'OSD NAV':'CITY NAV')));
       ctx.textAlign='center';ctx.font='400 8px Consolas,monospace';ctx.strokeStyle=C.y;ctx.strokeText(navLabel,p.x,p.y-r-7);ctx.textAlign='left'
     }else{
       const edge=hudEdgeCue(q,0),x=edge.x,y=edge.y,dx=edge.dx,dy=edge.dy,tx=-dy,ty=dx,depth=8,width=12,bx=x-dx*depth;
@@ -1140,7 +1158,7 @@ class SurfaceDestinationApproachController {
     this.traffic=[];this.road=null;
     if(this.destination!=='city'||this.scenery==='rocks'||this.scenery==='swamp'||typeof jackalDelivery==='undefined')return;
     const cars=globalThis.AgentXCivilianTraffic?.list||[];if(!cars.length)return;
-    this.road={x:this.targetX,z0:-90,z1:this.targetWorldZ-8};
+    this.road={x:this.targetX,z0:this.canyon?this.canyon.z1+8:-90,z1:this.targetWorldZ-8};   // v3009: the road starts past the canyon
     this.trafficRoadClear();
     const palette=[[C.w,3],[C.c,2.5],[C.r,1.5],[C.u,2],[C.m,1.5],[C.o,1.5],[C.y,.8]];
     const pickCol=()=>{let r=this.rand()*palette.reduce((n,p)=>n+p[1],0);for(const[c,w]of palette){r-=w;if(r<=0)return c}return C.w};

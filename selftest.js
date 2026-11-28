@@ -274,7 +274,9 @@
       // The picture is only needed to read the HUD marker, so not while there is a fight on.
       hudFrame=f;if(f%2===0&&!fighters.some(x=>!x.dead&&!x.dying&&x.t>=0))render(performance.now());
       if(phase==='destinationApproach'&&surfaceDestination.active){
-        const S=surfaceDestination,left=S.surveyLeft().sort((a,b)=>a.worldZ-b.worldZ),t=left[0]?{x:left[0].x,z:left[0].worldZ}:{x:S.targetX,z:S.targetWorldZ};
+        const S=surfaceDestination,left=S.surveyLeft().sort((a,b)=>a.worldZ-b.worldZ);let t=left[0]?{x:left[0].x,z:left[0].worldZ}:{x:S.targetX,z:S.targetWorldZ};
+        // v3011: through a canyon the pilot follows its middle line until the next target is close.
+        const K=S.canyon;if(K&&travel>K.z0-70&&travel<K.z1&&t.z>travel+18){const z=Math.min(K.z1,Math.max(K.z0,travel+14));t={x:S.canyonAt(z).cx,z}}
         inputX=clamp(wrapAngle(Math.atan2(t.x-shipX,t.z-travel)-viewYaw)*2.2,-1,1);inputY=left[0]?.kind==='core'&&Math.hypot(t.x-shipX,t.z-travel)<45?1:0   // v1930: dive for core samples
       }else if(phase==='surface'&&groundAssault?.active&&groundAssault.units?.length)groundStep(skill);
       else if(routeDiversion.active&&routeDiversion.state==='customs')customsSteer(1);   // v2040
@@ -357,7 +359,7 @@
 
     // Flown for real: no stage is skipped once the pilot has the controls.
     const pilotNotes=[];
-    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','crater_cores','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge','convoy_escort','minelayer','customs_run','cargo_spill','network jobs paid'],id=>{
+    await group('pilots',['survey_run','vent_survey','crash_recovery','relay_repair','canyon_run','jackal_hideout','canyon_wreck','crater_cores','lattice_survey','dune_armour_clearance','ice_field_armour','factory_strike','asteroid ambush','city merge edge','convoy_escort','minelayer','customs_run','cargo_spill','network jobs paid'],id=>{
       // v2150: Customs Run and Cargo Spill flown as real board contracts (not DEV runs), so
       // the pay, the bonus and the stats behind their achievements are all exercised.
       if(id==='network jobs paid'){

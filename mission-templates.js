@@ -2723,6 +2723,200 @@
     }
   };
 
+  // v3011 CANYON RUN (Dave: a dedicated canyon job). Always an orange world that is not
+  // volcanic, so the plains approach always crosses the mesa (environment-canyon.js). The relay
+  // masts are strung down the canyon floor, and the canyon narrows and gathers more boulders as
+  // the risk rises (stage.canyonJob). Then the usual city collection and depot handoff.
+  const canyonRun={
+    ...surveyRun,
+    id:'canyon_run',
+    minLevel:3,
+    allowedFactions:['trade','security','quickbite'],
+    factionWeights:{trade:4,security:3,quickbite:3},
+    board:{category:'delivery',weight:.6,maxPerBoard:1},
+    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
+    volcanic:false,
+    defaults:{origin:'the canyon relay crew\'s depot',destination:'the Compact freight depot',cargo:'the canyon relay crew\'s diagnostics case'},
+    planetaryRequirements:{landingBody:'planet',landingColour:'orange',moonCount:{min:0,max:2}},
+    sections:surveyRun.sections.map((s,i)=>{if(i!==1)return s;const params={...s.params,canyonJob:true,relayMasts:{base:3,perRisk:.15,min:3,max:4,round:true}};delete params.surveyPoints;return{...s,label:'Canyon Run',params}}),
+    presentation:{
+      trade:{
+        contactId:'corvella_pallis',cargoStyle:'case',
+        titles:['Canyon Run','The Narrows','Down the Canyon'],
+        cargo:['the canyon relay crew\'s diagnostics case','a case of canyon relay boards','the canyon relay logs'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'Sweetie, the only way through the mesa on this world is one long canyon, and the relay masts down there have gone dark. My haulers will not go in blind. Fly the canyon, reset every mast you pass, then pick up {cargo} from {origin} and bring it to {destination}.',
+          'Babe, there is a canyon on this world my haulers call the Narrows. The walls are solid rock and the relays inside are down. Thread it, light the masts back up, then collect {cargo} from {origin} and drop it at {destination}.'
+        ],
+        completionSubjects:['You flew the Narrows','The canyon is lit'],
+        completionBodies:['Every mast down the canyon is back on, sweetie, and my first hauler is already through it. The driver said it was like flying down a lit corridor. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Babe, the canyon'],bodies:['Your drone went down and the canyon is still dark. My haulers are going the long way round the mesa, and the long way round is very long.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Sweetie, the masts'],bodies:['You turned back with masts still dark in that canyon. My haulers saw you leave. They did not say anything nice.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['That canyon'],bodies:['The haulers have started calling the Narrows by your call sign. I have not corrected them. I think it suits it.']}
+      },
+      security:{
+        contactId:'kudo_shang',cargoStyle:'case',
+        titles:['Canyon Relay Restoration','Canyon Transit','Mesa Corridor'],
+        cargo:['the canyon relay crew\'s diagnostics case','a sealed signal log','the canyon fault report'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'The patrol corridor on this world runs through a single canyon cut in a mesa. Its relay masts are down. Fly the canyon, reset every mast, then collect {cargo} from {origin} and deliver it to {destination}. The walls are solid. Do not touch them.',
+          'One canyon, one corridor, no coverage. Restore the relay masts along the canyon floor. Then collect {cargo} from {origin} and deliver it to {destination}.'
+        ],
+        completionSubjects:['Canyon coverage restored','Corridor online'],
+        completionBodies:['All canyon masts report online. The patrol corridor through the mesa is open again. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Corridor still dark'],bodies:['The canyon relays remain down. Patrols are routing round the mesa. Return and finish it.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left with canyon masts still down. A corridor with gaps is not a corridor.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.18,subjects:['Re: canyon transit'],bodies:['A patrol pilot clipped a canyon wall the week before you went in. Your logs show no contact. Noted.']}
+      },
+      quickbite:{
+        contactId:'nyxo_malloc',cargoStyle:'case',
+        titles:['Canyon Shortcut','The Fast Way','Through the Big Rock'],
+        cargo:['the canyon relay crew\'s diagnostics case','a box of spare relay boards','the courier routing log'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'Dude, there is a canyon through the mesa on this world that would save our couriers like twenty minutes, but the relays in it are dead and nobody wants to fly it blind. Fly it, reset the masts, then grab {cargo} from {origin} and take it to {destination}.',
+          'So there is a big rock with a crack in it and the crack is the shortcut. The crack has relay masts. The masts are off. Turn them on from the air without hitting the rock. Then collect {cargo} from {origin} and drop it at {destination}.'
+        ],
+        completionSubjects:['shortcut is open','canyon thing'],
+        completionBodies:['Masts are up and the couriers are using the canyon. One of them did it upside down. Please do not tell anyone. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'nyxo_malloc',subjects:['so the canyon won'],bodies:['Your drone went down and the canyon is still dark. The couriers are back to going round the rock. The rock is very big.']},
+        abandonMail:{contactId:'nyxo_malloc',subjects:['the masts are still off'],bodies:['You left with masts still off in the canyon, dude. The shortcut is a long cut again.']},
+        personalFollowUp:{contactId:'nyxo_malloc',minRisk:3,chance:.24,subjects:['canyon'],bodies:['The couriers made a leaderboard for the canyon. You are on it. You are first. Nobody is close.']}
+      }
+    }
+  };
+
+  // v3012 RED JACKAL HIDEOUT (Dave: red jackal smugglers hideout). An orange world that is not
+  // volcanic, so the approach crosses the mesa. The Red Jackals have built into a bay of one
+  // canyon wall: a blast door, a pad, crates and a mast (environment-canyon.js). Find their
+  // caches on the canyon floor and scan the hideout, then the city collection and the depot.
+  const jackalHideout={
+    ...surveyRun,
+    id:'jackal_hideout',
+    minLevel:4,
+    allowedFactions:['security','trade','jackals'],
+    factionWeights:{security:4,trade:3,jackals:2},
+    board:{category:'delivery',weight:.5,maxPerBoard:1},
+    risk:{base:3,min:3,levelsPerStep:2,max:9,jitter:1},
+    volcanic:false,
+    defaults:{origin:'the survey team\'s field office',destination:'the Compact freight depot',cargo:'the hideout scans'},
+    planetaryRequirements:{landingBody:'planet',landingColour:'orange',moonCount:{min:0,max:2}},
+    sections:surveyRun.sections.map((s,i)=>{if(i!==1)return s;const params={...s.params,canyonJob:true,hideoutCaches:{base:2,perRisk:.12,min:2,max:3,round:true}};delete params.surveyPoints;return{...s,label:'Smugglers\' Hideout',params}}),
+    presentation:{
+      security:{
+        contactId:'kudo_shang',cargoStyle:'case',
+        titles:['Smugglers\' Hideout','Red Jackal Den','Canyon Reconnaissance'],
+        cargo:['the hideout scans','a sealed reconnaissance case','the cache survey'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'Red Jackal smugglers are running cargo through a canyon on this world. Their hideout is cut into the canyon wall and their caches are on the floor. Fly the canyon, find every cache, scan the hideout. Then collect {cargo} from {origin} and deliver it to {destination}. Do not engage. Just look.',
+          'The Red Jackals have a den in a canyon here. I want its door, its pad and every cache on the canyon floor on record before I send a raid in. Fly it, scan it, then collect {cargo} from {origin} and take it to {destination}.'
+        ],
+        completionSubjects:['Hideout on record','Reconnaissance received'],
+        completionBodies:['The hideout and its caches are on record. A raid is being planned. You will not be told when. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Reconnaissance failed'],bodies:['Your drone went down in their canyon. The Red Jackals now know someone is looking. That makes the raid harder.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left with the hideout unscanned. Half a reconnaissance is no reconnaissance.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.2,subjects:['Re: the canyon den'],bodies:['The raid went in at dawn. The door was where your scans said it would be. Everything was where your scans said it would be.']}
+      },
+      trade:{
+        contactId:'corvella_pallis',cargoStyle:'case',
+        titles:['Where My Cargo Went','Smugglers\' Hideout','The Jackal Hole'],
+        cargo:['the hideout scans','the stolen cargo manifests','a case of insurance claims'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'Sweetie, Red Jackal smugglers have been lifting my freight and hiding it in a canyon on this world. They have a little hideout built into the wall, can you believe it. Find their caches, scan the hideout, then collect {cargo} from {origin} and bring it to {destination}. I want proof for the insurers.',
+          'Babe, my missing cargo is sitting under a net in a canyon somewhere, and the Red Jackals who took it are sitting behind a door in the canyon wall. Find the caches, scan the door, then pick up {cargo} from {origin} and drop it at {destination}.'
+        ],
+        completionSubjects:['I knew it was them','Proof, babe'],
+        completionBodies:['The scans show my crates under their nets, sweetie, with my stencils still on them. The insurers cannot argue with that. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, the canyon'],bodies:['Your drone went down in their canyon, babe. The Red Jackals have my cargo and now they have your drone too.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, the hideout'],bodies:['You turned back before you scanned the hideout. The insurers want proof, sweetie, and I still do not have any.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['About those smugglers'],bodies:['OSD raided the hideout using your scans. I got four crates back. One of them was mine. Three were not, and I am keeping them.']}
+      },
+      jackals:{
+        contactId:'cassian_erivan_snade',cargoStyle:'case',
+        titles:['An Inventory','The Canyon House','Stock Taking'],
+        cargo:['the inventory scans','a discreet ledger','the cache tally'],
+        destinations:['the Compact freight depot','a quiet locker at the Compact depot'],
+        descriptions:[
+          'We keep a modest house in a canyon on this world. OSD has been flying over it, and I would like to know whether my caches are still where I left them. Fly the canyon, count the caches, look at the house, then collect {cargo} from {origin} and deliver it to {destination}.',
+          'X. There is a door in a canyon wall on this world, and it is mine. The crates on the canyon floor are also mine. Confirm both, then collect {cargo} from {origin} and take it to {destination}. Touch nothing.'
+        ],
+        completionSubjects:['Inventory concluded','Everything in its place'],
+        completionBodies:['Every cache accounted for and the house untouched. OSD has been flying over the wrong canyon. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'cassian_erivan_snade',subjects:['A noisy visit'],bodies:['Your drone came down in my canyon. Wreckage outside my front door is exactly the attention I pay you to avoid.']},
+        abandonMail:{contactId:'cassian_erivan_snade',subjects:['An unfinished count'],bodies:['You left before the count was finished. I now have to assume the worst about my caches, and I dislike assuming.']},
+        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:4,chance:.2,subjects:['The canyon house'],bodies:['The crew at the canyon house saw your drone go past the door. They said it was very polite. They waved. You probably missed it.']}
+      }
+    }
+  };
+
+  // v3012 CANYON WRECK (Dave: wreck recovery). A hauler tried the canyon and lost. Its torn
+  // plates lie down the canyon floor and the hauler itself is the last crash site
+  // (stage.crashMesh 'freighter'). Pull the recorders, then the city collection and the depot.
+  const canyonWreck={
+    ...surveyRun,
+    id:'canyon_wreck',
+    minLevel:3,
+    allowedFactions:['trade','security','jackals'],
+    factionWeights:{trade:4,security:3,jackals:2},
+    board:{category:'recovery',weight:.5,maxPerBoard:1},
+    risk:{base:2,min:2,levelsPerStep:2,max:9,jitter:1},
+    volcanic:false,
+    defaults:{origin:'the recovery team\'s field office',destination:'the Compact freight depot',cargo:'the hauler\'s flight recorders'},
+    planetaryRequirements:{landingBody:'planet',landingColour:'orange',moonCount:{min:0,max:2}},
+    sections:surveyRun.sections.map((s,i)=>{if(i!==1)return s;const params={...s.params,canyonJob:true,crashMesh:'freighter',crashSites:{base:2,perRisk:.2,min:2,max:4,round:true}};delete params.surveyPoints;return{...s,label:'Canyon Wreck',params}}),
+    presentation:{
+      trade:{
+        contactId:'corvella_pallis',cargoStyle:'case',
+        titles:['Canyon Wreck','My Hauler Took the Canyon','Wreck in the Narrows'],
+        cargo:['the hauler\'s flight recorders','a case of insurance paperwork','the hauler\'s cargo manifest'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'Sweetie, one of my haulers tried the canyon through the mesa on this world and the canyon won. Pieces of it are all down the canyon floor. Follow the wreckage, pull the recorders, then collect {cargo} from {origin} and bring it to {destination}. The crew got out. I checked first.',
+          'Babe, my hauler clipped the canyon wall and broke up. I need the recorders from every piece before the insurers send their own people. Fly the canyon, then pick up {cargo} from {origin} and drop it at {destination}.'
+        ],
+        completionSubjects:['The recorders are in','It was the canyon, babe'],
+        completionBodies:['The recorders show my pilot took the canyon at full throttle to save an hour. I have had a word. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'corvella_pallis',subjects:['Sweetie, not you too'],bodies:['Your drone went down in the same canyon as my hauler. That canyon now owes me two vehicles.']},
+        abandonMail:{contactId:'corvella_pallis',subjects:['Babe, the wreck'],bodies:['You left the wreck unrecovered. The insurers are going to say it was my fault, sweetie, and without the recorders I cannot prove otherwise.']},
+        personalFollowUp:{contactId:'corvella_pallis',minRisk:3,chance:.22,subjects:['About that canyon'],bodies:['My haulers go round the mesa now. It takes an hour longer. Nobody complains.']}
+      },
+      security:{
+        contactId:'kudo_shang',cargoStyle:'case',
+        titles:['Canyon Crash Recovery','Downed in the Canyon','Wreck Survey'],
+        cargo:['the hauler\'s flight recorders','a sealed recorder case','the canyon crash report'],
+        destinations:['the Compact freight depot'],
+        descriptions:[
+          'A registered hauler broke up in a canyon on this world. The wreckage is strung along the canyon floor. Recover the recorder from every site. Then collect {cargo} from {origin} and deliver it to {destination}. The walls are solid. Do not add to the wreckage.',
+          'Hauler down in a canyon. Debris trail, then the hull. Pull every recorder, then collect {cargo} from {origin} and deliver it to {destination}.'
+        ],
+        completionSubjects:['Recorders recovered','Crash closed'],
+        completionBodies:['All recorders received. The hauler was running without clearance. Its owner has been informed. Payment: CR {credits}. Standing: +{rep}.'],
+        failureMail:{contactId:'kudo_shang',subjects:['Second wreck in the canyon'],bodies:['There are now two wrecks in that canyon. One of them is yours.']},
+        abandonMail:{contactId:'kudo_shang',subjects:['Unauthorised withdrawal'],bodies:['You left the crash sites unrecovered. Evidence does not wait.']},
+        personalFollowUp:{contactId:'kudo_shang',minRisk:4,chance:.18,subjects:['Re: canyon crash'],bodies:['The recorders show the hauler was being chased into the canyon. By whom is now an OSD matter.']}
+      },
+      jackals:{
+        contactId:'cassian_erivan_snade',cargoStyle:'case',
+        titles:['A Shortcut Gone Wrong','The Canyon Took It','Discreet Salvage'],
+        cargo:['the runner\'s recorders','a case that was never aboard','a very discreet box'],
+        destinations:['the Compact freight depot','a quiet locker at the Compact depot'],
+        descriptions:[
+          'One of my runners tried to lose an OSD patrol in a canyon on this world. The patrol is fine. The runner is now in several pieces along the canyon floor. Recover the recorders from every piece, then collect {cargo} from {origin} and deliver it to {destination}.',
+          'A hauler of mine met a canyon wall rather firmly. Its recorders hold a manifest I would like no one else to read. Pull them from the wreckage, then collect {cargo} from {origin} and take it to {destination}.'
+        ],
+        completionSubjects:['A tidy recovery','The manifest is home'],
+        completionBodies:['The recorders are mine and the manifest is unread. The canyon keeps the rest. CR {credits} released. Standing: +{rep}.'],
+        failureMail:{contactId:'cassian_erivan_snade',subjects:['More wreckage'],bodies:['You have added your drone to my runner in that canyon. It is becoming a collection.']},
+        abandonMail:{contactId:'cassian_erivan_snade',subjects:['Left lying about'],bodies:['You left the recorders in the canyon where anyone curious might find them. That was careless, and expensive for me.']},
+        personalFollowUp:{contactId:'cassian_erivan_snade',minRisk:3,chance:.2,subjects:['On canyons'],bodies:['My runners now call that canyon the Graveyard. They go round. It has done wonders for my insurance.']}
+      }
+    }
+  };
+
   // v1910: CONVOY ESCORT. Keep a freighter alive across open space through two or three
   // waves of raiders that go for it, not you (route-diversion.js kind 'escort'). Lose the
   // freighter and the job still ends, at half the fee and a standing loss.
@@ -3053,7 +3247,7 @@
   globalThis.AgentXMissionData={
     schemaVersion:2,
     boardRules,
-    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crater_cores:craterCores,crash_recovery:crashRecovery,relay_repair:relayRepair,lattice_survey:latticeSurvey,convoy_escort:convoyEscort,customs_run:customsRun,cargo_spill:cargoSpill,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
+    templates:{specimen_recovery:specimenRecovery,taco_run:tacoRun,station_defence:stationDefence,wreck_recovery:wreckRecovery,factory_strike:factoryStrike,nest_clearance:nestClearance,groundside_pickup:groundsidePickup,crystal_consignment:crystalConsignment,survey_run:surveyRun,vent_survey:ventSurvey,crater_cores:craterCores,crash_recovery:crashRecovery,relay_repair:relayRepair,canyon_run:canyonRun,jackal_hideout:jackalHideout,canyon_wreck:canyonWreck,lattice_survey:latticeSurvey,convoy_escort:convoyEscort,customs_run:customsRun,cargo_spill:cargoSpill,bunker_raid:bunkerRaid,swamp_relay_delivery:swampRelayDelivery,dune_armour_clearance:duneArmourClearance,ice_field_armour:iceFieldArmour,asteroid_delivery:asteroidDelivery,station_delivery:stationDelivery,penthouse_delivery:penthouseDelivery,forest_cabin_delivery:forestCabinDelivery,secure_terminal_intrusion:secureTerminalIntrusion,asteroids:asteroidClearance,fighters:fighterDestroy,combat_recovery:combatRecovery,deep_core:deepCore},
     rewardMail
   };
 })();
